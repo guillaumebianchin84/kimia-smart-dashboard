@@ -1,0 +1,39 @@
+# KIMIA Smart — préférences esthétiques communes à la maison.
+# Ce package n'installe aucun matériel ni scénario domotique.
+# Home Assistant doit déjà charger les packages (homeassistant.packages).
+input_select:
+  kimia_theme_global:
+    name: Thème KIMIA pour la maison
+    icon: mdi:palette-outline
+    options:
+      - KIMIA Gris Premium
+      - KIMIA Clair
+      - KIMIA Sombre
+      - KIMIA Signature
+    # PAS de initial: le dernier choix est restauré après redémarrage.
+
+automation:
+  - id: kimia_appliquer_theme_global
+    alias: "KIMIA - Appliquer le thème client"
+    description: >-
+      Applique à Home Assistant le thème commun choisi par le client.
+      Cela modifie le thème HA par défaut, pas les préférences personnelles
+      enregistrées dans les profils utilisateurs.
+    triggers:
+      - trigger: state
+        entity_id: input_select.kimia_theme_global
+      - trigger: homeassistant
+        event: start
+    conditions:
+      - condition: template
+        value_template: >-
+          {{ states('input_select.kimia_theme_global') in [
+              'KIMIA Gris Premium', 'KIMIA Clair',
+              'KIMIA Sombre', 'KIMIA Signature'
+          ] }}
+    actions:
+      - action: frontend.set_theme
+        data:
+          name: "{{ states('input_select.kimia_theme_global') }}"
+          name_dark: "{{ states('input_select.kimia_theme_global') }}"
+    mode: restart

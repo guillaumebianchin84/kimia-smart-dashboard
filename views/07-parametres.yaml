@@ -11,50 +11,28 @@ sections:
         icon: mdi:palette-outline
       - type: markdown
         content: >-
-          ### Votre style
-
-          Trois thèmes sont fournis :
-
-          - **KIMIA Clair** : blanc et bleu, texte foncé.
-          - **KIMIA Sombre** : bleu nuit, texte clair.
-          - **KIMIA Signature** : identité PROMAINT, turquoise et bleu.
-
-          Pour choisir le thème, ouvrez votre **profil utilisateur Home Assistant**
-          depuis la barre latérale, puis **Apparence / Thème**.
-
-          Le choix est propre à chaque utilisateur et reste actif sur
-          téléphone comme sur tablette.
+          Choisissez les couleurs de votre maison depuis le
+          dashboard **Configuration client KIMIA**.
+          Le choix sera appliqué automatiquement aux écrans
+          utilisant le thème Home Assistant par défaut.
+      - type: button
+        name: Ouvrir Configuration client
+        icon: mdi:palette
+        tap_action:
+          action: navigate
+          navigation_path: /kimia-client/configuration
   - type: grid
     cards:
       - type: heading
-        heading: Réseau et services
-        icon: mdi:router-wireless
+        heading: Aide et informations
+        icon: mdi:information-outline
       - type: markdown
         content: >-
-          **Architecture de référence KIMIA Smart**
+          **KIMIA Smart by PROMAINT**
 
-          - Routeur : 192.168.60.1
-          - Home Assistant : 192.168.60.10
-          - Zigbee SMLIGHT : 192.168.60.11
-          - Pont Matter SONOFF : 192.168.60.12
+          La configuration technique des équipements, du réseau,
+          des intégrations et des accès distants est réservée
+          à l'installateur, sauf ouverture volontaire des droits
+          administrateur au client.
 
-          Ces IP sont des exemples et doivent être validées à l'installation.
-      - type: button
-        name: Réglages du routeur (réseau local)
-        icon: mdi:router
-        tap_action:
-          action: url
-          url_path: http://192.168.60.1
-      - type: markdown
-        content: >-
-          Le bouton ouvre l'administration du routeur si elle est
-          accessible depuis votre réseau. Il ne reconfigure pas WISP.
-      - type: heading
-        heading: Accès distant
-        icon: mdi:shield-lock-outline
-      - type: markdown
-        content: >-
-          Cloudflare Tunnel sera configuré séparément, avec les comptes
-          et autorisations propres au client.
-
-          **KIMIA Smart by PROMAINT — prototype de démonstration.**
+          Les commandes locales restent indépendantes du thème choisi.

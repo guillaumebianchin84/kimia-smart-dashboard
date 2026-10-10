@@ -1,7 +1,6 @@
-# Theme Signature KIMIA — base claire, header bleu, contraste de lecture contrôlé.
+# Thème KIMIA. Modes clair/sombre identiques pour garantir la lisibilité
+# si le téléphone change son apparence système.
 KIMIA Signature:
-  primary-color: "#0F557E"
-  accent-color: "#009E9A"
   modes:
     light:
       primary-background-color: "#E9F2F8"
@@ -9,6 +8,25 @@ KIMIA Signature:
       card-background-color: "#FFFFFF"
       primary-text-color: "#183447"
       secondary-text-color: "#536D7C"
+      primary-color: "#0F557E"
+      accent-color: "#009E9A"
+      app-header-background-color: "#10446D"
+      app-header-text-color: "#FFFFFF"
+      sidebar-background-color: "#F7FAFC"
+      sidebar-text-color: "#183447"
+      state-icon-color: "#267A9B"
+      state-icon-active-color: "#009E9A"
+      ha-card-border-color: "#CADDE8"
+      ha-card-border-radius: "18px"
+      ha-card-box-shadow: "0 3px 12px rgba(12,59,94,0.06)"
+    dark:
+      primary-background-color: "#E9F2F8"
+      secondary-background-color: "#DFECF3"
+      card-background-color: "#FFFFFF"
+      primary-text-color: "#183447"
+      secondary-text-color: "#536D7C"
+      primary-color: "#0F557E"
+      accent-color: "#009E9A"
       app-header-background-color: "#10446D"
       app-header-text-color: "#FFFFFF"
       sidebar-background-color: "#F7FAFC"
