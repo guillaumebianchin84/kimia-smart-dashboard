@@ -16,6 +16,8 @@ Prototype de l'interface **KIMIA Smart by PROMAINT**, conçu pour une VM Home As
 - `views/07-parametres.yaml` : réseau, accès distant, informations
 - `themes/KIMIA-Smart.yaml` : couleurs de marque
 - `packages/kimia_demo.yaml` : entités et scripts **fictifs**, pour essais uniquement
+- `packages/kimia_rss_optional.yaml` : option journal RSS automatique (sans HACS ni IA)
+
 
 ## Installer sur une VM Home Assistant de test
 
@@ -41,7 +43,8 @@ lovelace:
       filename: kimia/dashboard.yaml
 ```
 
-5. Vérifier la configuration puis redémarrer Home Assistant. Choisir le thème **KIMIA Smart** dans le profil utilisateur. Ouvrir **KIMIA Smart** dans la barre latérale.
+5. **Facultatif** : pour activer les actualités, copier `packages/kimia_rss_optional.yaml` dans `/config/packages/kimia_rss_optional.yaml`, puis ajouter l'intégration **Feedreader** via *Paramètres > Appareils et services* avec le flux RSS d'un journal choisi. Ce module affiche les trois derniers titres reçus (sans résumé IA). À éviter sur un client si les sources ne sont pas définies.
+6. Vérifier la configuration puis redémarrer Home Assistant. Choisir le thème **KIMIA Smart** dans le profil utilisateur. Ouvrir **KIMIA Smart** dans la barre latérale.
 
 Si tu utilises déjà des packages ou thèmes, conserver ta configuration et fusionner les entrées plutôt que de remplacer les sections.
 
@@ -49,15 +52,17 @@ Si tu utilises déjà des packages ou thèmes, conserver ta configuration et fus
 
 - Boutons de scènes et commandes de démonstration via `packages/kimia_demo.yaml`.
 - Interrupteurs de lumière et de volet *simulés*, consignes de climatisation *simulées*.
-- Journal court éditable via `input_text.kimia_brief`. Les vraies actualités/RSS seront reliées ultérieurement.
-- Météo : adapter `weather.forecast_home` à l'entité disponible dans la VM ; sinon sa carte sera indisponible.
+- Accueil v0.2 : salutation selon l'heure, météo avec message de secours, scénarios rapides, état de la maison et navigation en 6 boutons.
+- Journal : trois titres RSS renseignés par les helpers `input_text.kimia_actu_1..3`, et un « mot du jour » éditable via `input_text.kimia_brief`. Le module RSS optionnel est prêt : il faut choisir un vrai flux Feedreader.
+- Les titres RSS sont affichés tels quels, sans tri de pertinence, sans résumé et sans traduction.
+- Météo : adapter `weather.forecast_home` à l'entité disponible dans la VM. Sans entité météo, un message de remplacement s'affiche et le dashboard reste utilisable.
 - Musique : les lecteurs Cast, la file MP3 et le réveil réel restent à configurer et valider.
 
 ## À ne pas confondre avec une installation client
 
 Cette version **n'est pas un package prêt à déployer chez un client**. Les helpers `input_boolean` et `input_number` sont des simulations. Ils seront remplacés par de véritables entités `light`, `cover`, `climate`, etc. Les liens réseau de la page Paramètres sont des exemples.
 
-**Aucune connexion Cloudflare, intégration Matter, synchronisation MP3 ou flux RSS n'est configurée automatiquement par ces fichiers.**
+**Aucune connexion Cloudflare, intégration Matter ou synchronisation MP3 n'est configurée automatiquement.** Le journal RSS nécessite une source Feedreader choisie et l'installation du package facultatif.
 
 ## Sécurité et maintenance
 
