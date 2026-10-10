@@ -1,0 +1,174 @@
+title: Configuration
+path: configuration
+icon: mdi:tune-variant
+type: sections
+max_columns: 2
+sections:
+  - type: grid
+    cards:
+      - type: heading
+        heading: Personnaliser KIMIA
+        icon: mdi:palette-outline
+      - type: markdown
+        content: >-
+          ### Votre maison, votre ambiance
+
+          Choisissez un style pour les écrans de la maison.
+          Vous pourrez en changer à tout moment.
+        grid_options:
+          columns: 12
+          rows: auto
+      - type: markdown
+        content: >-
+          **Style sélectionné :** {{ states('input_select.kimia_theme_global') }}
+
+          {% if states('input_select.kimia_theme_global') not in [
+            'KIMIA Gris Premium', 'KIMIA Clair', 'KIMIA Sombre',
+            'KIMIA Signature'] %}
+          *Configuration en cours. Prévenez votre installateur.*
+          {% endif %}
+        grid_options:
+          columns: 12
+          rows: auto
+      - type: button
+        name: "Gris Premium"
+        icon: mdi:palette
+        show_name: true
+        show_icon: true
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Gris Premium"
+        grid_options:
+          columns: 6
+          rows: 2
+        card_mod:
+          style: |
+            ha-card {
+              background: #353D46 !important;
+              color: #F4F7FA !important;
+              border: 2px solid #36C8BE !important;
+              border-radius: 18px !important;
+              box-shadow: 0 4px 12px rgba(0,0,0,.10);
+            }
+            ha-icon { color: #36C8BE !important; }
+      - type: button
+        name: "Clair"
+        icon: mdi:weather-sunny
+        show_name: true
+        show_icon: true
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Clair"
+        grid_options:
+          columns: 6
+          rows: 2
+        card_mod:
+          style: |
+            ha-card {
+              background: #FFFFFF !important;
+              color: #1A3143 !important;
+              border: 2px solid #008F91 !important;
+              border-radius: 18px !important;
+              box-shadow: 0 4px 12px rgba(0,0,0,.10);
+            }
+            ha-icon { color: #008F91 !important; }
+      - type: button
+        name: "Sombre"
+        icon: mdi:weather-night
+        show_name: true
+        show_icon: true
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Sombre"
+        grid_options:
+          columns: 6
+          rows: 2
+        card_mod:
+          style: |
+            ha-card {
+              background: #1A2A3A !important;
+              color: #F0F6FA !important;
+              border: 2px solid #3BDBC4 !important;
+              border-radius: 18px !important;
+              box-shadow: 0 4px 12px rgba(0,0,0,.10);
+            }
+            ha-icon { color: #3BDBC4 !important; }
+      - type: button
+        name: "Signature"
+        icon: mdi:home-heart
+        show_name: true
+        show_icon: true
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Signature"
+        grid_options:
+          columns: 6
+          rows: 2
+        card_mod:
+          style: |
+            ha-card {
+              background: #10446D !important;
+              color: #FFFFFF !important;
+              border: 2px solid #28CEC0 !important;
+              border-radius: 18px !important;
+              box-shadow: 0 4px 12px rgba(0,0,0,.10);
+            }
+            ha-icon { color: #28CEC0 !important; }
+      - type: entities
+        title: Choisir dans la liste
+        entities:
+          - entity: input_select.kimia_theme_global
+            name: Style de la maison
+        grid_options:
+          columns: 12
+          rows: auto
+  - type: grid
+    cards:
+      - type: heading
+        heading: Mes préférences
+        icon: mdi:home-heart
+      - type: markdown
+        content: >-
+          **L'apparence est commune à la maison.**
+
+          Le thème choisi s'applique par défaut à tous les dashboards
+          Home Assistant, et non uniquement à KIMIA.
+
+          Si votre écran ne change pas : dans votre **profil Home Assistant**,
+          choisissez **Utiliser le thème par défaut**. Un thème personnel
+          sélectionné dans le profil a toujours priorité.
+
+          *Les automatismes, les commandes et la configuration
+          technique ne sont pas modifiés par ce réglage.*
+        grid_options:
+          columns: 12
+          rows: auto
+      - type: button
+        name: Revenir à l'accueil
+        icon: mdi:home-outline
+        tap_action:
+          action: navigate
+          navigation_path: /kimia-smart/accueil
+        grid_options:
+          columns: 12
+          rows: 2

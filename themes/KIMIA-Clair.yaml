@@ -1,7 +1,6 @@
-# Theme clair : fond discret, cartes blanches, textes foncés.
+# Thème KIMIA. Modes clair/sombre identiques pour garantir la lisibilité
+# si le téléphone change son apparence système.
 KIMIA Clair:
-  primary-color: "#0B597F"
-  accent-color: "#008F91"
   modes:
     light:
       primary-background-color: "#F7F9FB"
@@ -9,6 +8,25 @@ KIMIA Clair:
       card-background-color: "#FFFFFF"
       primary-text-color: "#1A3143"
       secondary-text-color: "#566F7D"
+      primary-color: "#0B597F"
+      accent-color: "#008F91"
+      app-header-background-color: "#FFFFFF"
+      app-header-text-color: "#1A3143"
+      sidebar-background-color: "#FFFFFF"
+      sidebar-text-color: "#1A3143"
+      state-icon-color: "#477D9D"
+      state-icon-active-color: "#008F91"
+      ha-card-border-color: "#DCE6EC"
+      ha-card-border-radius: "18px"
+      ha-card-box-shadow: "0 3px 12px rgba(20,49,71,0.045)"
+    dark:
+      primary-background-color: "#F7F9FB"
+      secondary-background-color: "#EDF3F6"
+      card-background-color: "#FFFFFF"
+      primary-text-color: "#1A3143"
+      secondary-text-color: "#566F7D"
+      primary-color: "#0B597F"
+      accent-color: "#008F91"
       app-header-background-color: "#FFFFFF"
       app-header-text-color: "#1A3143"
       sidebar-background-color: "#FFFFFF"

@@ -1,6 +1,7 @@
-# KIMIA Smart — plusieurs vues dans un seul dashboard.
-# Ne pas définir de theme: ici ni dans les vues : le client choisit son thème
-# dans son profil Home Assistant (KIMIA Clair / Sombre / Signature).
+# KIMIA Smart — dashboard principal.
+# Aucun thème n'est imposé aux vues : le thème commun est choisi depuis
+# Configuration client (input_select + frontend.set_theme).
+# Ne pas ajouter de theme: à chaque vue.
 title: KIMIA Smart
 views:
   - !include /config/kimia/views/01-accueil.yaml

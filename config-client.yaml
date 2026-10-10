@@ -1,0 +1,5 @@
+# Dashboard séparé : Configuration client KIMIA.
+# Inclure en mode YAML dans lovelace.dashboards.kimia-client.
+title: Configuration client
+views:
+  - !include /config/kimia/views/09-configuration-client.yaml

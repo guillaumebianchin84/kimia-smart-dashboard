@@ -1,10 +1,44 @@
 # KIMIA Smart — Dashboard Home Assistant
 
+## Configuration client v0.5 : quatre thèmes au même endroit
+
+**Nouvelle branche : `feat/config-client-themes` (non fusionnée).**
+
+Cette version fournit un **deuxième dashboard "Configuration client"**, avec quatre
+styles : **KIMIA Gris Premium**, **KIMIA Clair**, **KIMIA Sombre** et **KIMIA Signature**.
+Chaque style est un bouton indépendant, et une liste déroulante native permet
+aussi de choisir le thème. Les réglages techniques du routeur et les secrets
+ne sont pas affichés dans le dashboard client.
+
+La sélection est enregistrée par `input_select.kimia_theme_global`,
+puis une automation applique le thème grâce à l'action officielle
+`frontend.set_theme`. Aucun JavaScript custom n'est nécessaire pour la sélection.
+
+**Limites importantes :** cette action change le **thème Home Assistant par défaut
+sur toute l'installation**, pas seulement les pages KIMIA. Un utilisateur ayant
+choisi explicitement un thème dans son profil doit repasser à **Utiliser le thème
+par défaut** pour suivre ce réglage collectif. Certains styles CSS codés en dur
+dans les cartes HACS restent indépendants des thèmes.
+
+**Mode d'emploi complet : [Configuration client](docs/CONFIGURATION_CLIENT.md).**
+La fonctionnalité est codée mais **non testée sur une VM Home Assistant**.
+
+### Installation supplémentaire v0.5
+
+- Copier les **quatre** fichiers `themes/*.yaml` dans `/config/themes/`.
+- Copier `packages/kimia_client_theme.yaml` dans `/config/packages/`.
+- Copier `config-client.yaml` et `views/09-configuration-client.yaml` sous `/config/kimia/`.
+- Déclarer **deux** dashboards sous l'unique clé `lovelace.dashboards` :
+  le dashboard `kimia-smart` existant et le nouveau `kimia-client`.
+- Le lien **Paramètres → Configuration client** du dashboard KIMIA
+  mène à `/kimia-client/configuration`.
+
+
 ## Direction visuelle v0.4 — sobre et premium
 
-La branche `feat/themes-premium-responsive` ajoute **trois thèmes** (KIMIA Clair, KIMIA Sombre, KIMIA Signature), un petit bandeau KIMIA Smart by PROMAINT et une navigation claire entre les pages Accueil, Lumières, Volets, Climatisation, Musique, Sécurité, Prises et Paramètres.
+La branche `feat/themes-premium-responsive` introduit **trois thèmes** (KIMIA Clair, KIMIA Sombre, KIMIA Signature), un petit bandeau KIMIA Smart by PROMAINT et une navigation claire entre les pages Accueil, Lumières, Volets, Climatisation, Musique, Sécurité, Prises et Paramètres.
 
-**Responsive natif :** toutes les vues utilisent `type: sections` ; Home Assistant réorganise les sections sur téléphone et tablette. Les thèmes sont choisis **par utilisateur** via son profil Home Assistant, pas via un bouton fictif du dashboard. Aucun thème n'est forcé sur les vues. **Aucun HACS ni JavaScript personnalisé requis.**
+**Responsive natif :** toutes les vues utilisent `type: sections` ; Home Assistant réorganise les sections sur téléphone et tablette. Dans la v0.5 le thème commun est choisi depuis **Configuration client**. Le profil HA doit rester sur le thème par défaut pour suivre ce choix. Aucun thème n'est forcé sur les vues. **Aucun HACS ni JavaScript personnalisé requis.**
 
 Le pictogramme `www/kimia-logo.svg` est une **signature graphique provisoire** reprenant le nom et les couleurs de la plaquette ; il ne remplace pas le fichier logo officiel PROMAINT de qualité source.
 
@@ -26,7 +60,7 @@ Prototype de l'interface **KIMIA Smart by PROMAINT**, conçu pour une VM Home As
 - `views/06-securite.yaml` : ouvertures et capteurs
 - `views/07-parametres.yaml` : réseau, accès distant, informations
 - `themes/KIMIA-Smart.yaml` : thème **KIMIA Signature** (bleu et turquoise)
-- `themes/KIMIA-Clair.yaml` et `themes/KIMIA-Sombre.yaml` : thèmes alternatifs lisibles
+- `themes/KIMIA-Clair.yaml`, `themes/KIMIA-Sombre.yaml` et `themes/KIMIA-Gris-Premium.yaml` : thèmes alternatifs lisibles
 - `www/kimia-logo.svg` : petite signature de marque
 - `views/08-prises.yaml` : page Prises
 - `packages/kimia_demo.yaml` : entités et scripts **fictifs**, pour essais uniquement
@@ -36,7 +70,7 @@ Prototype de l'interface **KIMIA Smart by PROMAINT**, conçu pour une VM Home As
 ## Installer sur une VM Home Assistant de test
 
 1. Créer `/config/kimia/`, y copier `dashboard.yaml` et le dossier `views/` (l'arborescence doit contenir `/config/kimia/views/01-accueil.yaml`).
-2. Copier **les trois fichiers du dossier** `themes/` dans `/config/themes/` (KIMIA-Smart, KIMIA-Clair, KIMIA-Sombre).
+2. Copier **les quatre fichiers du dossier** `themes/` dans `/config/themes/` (KIMIA-Smart, KIMIA-Clair, KIMIA-Sombre, KIMIA-Gris-Premium).
 3. Copier `www/kimia-logo.svg` dans `/config/www/kimia-logo.svg`. Créer le dossier `/config/www/` si nécessaire.
 4. Pour activer les entités de démonstration, copier `packages/kimia_demo.yaml` dans `/config/packages/kimia_demo.yaml`.
 5. Ajouter ou fusionner dans `/config/configuration.yaml` les sections ci-dessous, **sans créer de deuxième clé** `frontend`, `homeassistant` ou `lovelace` si elles existent déjà.
@@ -59,7 +93,7 @@ lovelace:
 ```
 
 6. **Facultatif** : pour activer les actualités, copier `packages/kimia_rss_optional.yaml` dans `/config/packages/kimia_rss_optional.yaml`, puis ajouter l'intégration **Feedreader** via *Paramètres > Appareils et services* avec le flux RSS d'un journal choisi. Ce module affiche les trois derniers titres reçus (sans résumé IA). À éviter sur un client si les sources ne sont pas définies.
-7. Vérifier la configuration puis redémarrer Home Assistant. Choisir **KIMIA Clair**, **KIMIA Sombre** ou **KIMIA Signature** dans le profil utilisateur. Ouvrir **KIMIA Smart** dans la barre latérale.
+7. Vérifier la configuration puis redémarrer Home Assistant. Pour la v0.5, choisir **Utiliser le thème par défaut** dans le profil utilisateur, puis choisir une des quatre ambiances dans **Configuration client**. Ouvrir **KIMIA Smart** dans la barre latérale.
 
 Si tu utilises déjà des packages ou thèmes, conserver ta configuration et fusionner les entrées plutôt que de remplacer les sections.
 
@@ -88,7 +122,7 @@ Conception : cartes natives Home Assistant en priorité, aucune dépendance HACS
 
 ## Validation avant installation chez un client
 
-- Sur VM HA : vérifier les trois thèmes (contraste titres, icônes, champs, cartes) et la navigation.
+- Sur VM HA : vérifier les quatre thèmes (contraste titres, icônes, champs, cartes) et la navigation.
 - Comparer la page Accueil sur téléphone et sur tablette.
 - Vérifier que le fichier `/local/kimia-logo.svg` se charge depuis l'installation HA.
 - Tester les commandes de démonstration avant de substituer des appareils réels.
