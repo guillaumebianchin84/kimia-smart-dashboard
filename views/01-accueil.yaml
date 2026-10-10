@@ -1,46 +1,95 @@
+# KIMIA Smart — accueil client (v0.2)
+# Cartes natives Home Assistant. La météo nécessite weather.forecast_home
+# ou l'adaptation du nom d'entité à celle du logement.
 title: Accueil
 path: accueil
 icon: mdi:home-heart
 type: sections
 theme: KIMIA Smart
 max_columns: 3
+header:
+  layout: responsive
+  badges_position: bottom
+  card:
+    type: markdown
+    text_only: true
+    content: >-
+      {% set heure = now().hour %}
+      # {% if heure < 12 %}Bonjour{% elif heure < 18 %}Bon après-midi{% else %}Bonsoir{% endif %} {{ user }} 👋
+
+      **KIMIA Smart** · Votre maison, tout simplement.
+
+      {{ now().strftime('%d/%m/%Y') }}
 sections:
+  # Colonne 1 : météo et informations du jour.
   - type: grid
+    background:
+      color: "#E7F5F6"
+      opacity: 35
     cards:
       - type: heading
-        heading: Bienvenue à la maison
-        icon: mdi:home-heart
+        heading: Aujourd'hui
+        icon: mdi:weather-partly-cloudy
       - type: markdown
         content: >-
-          ## KIMIA Smart
+          {% set condition = states('weather.forecast_home') %}
+          {% set temp = state_attr('weather.forecast_home', 'temperature') %}
+          {% set libelles = {
+            'sunny': 'Ensoleillé ☀️',
+            'clear-night': 'Ciel dégagé 🌙',
+            'partlycloudy': 'Éclaircies ⛅',
+            'cloudy': 'Nuageux ☁️',
+            'rainy': 'Pluvieux 🌧️',
+            'pouring': 'Fortes pluies 🌧️',
+            'lightning': 'Orages ⛈️',
+            'lightning-rainy': 'Orages et pluie ⛈️',
+            'fog': 'Brume 🌫️',
+            'windy': 'Venteux 💨'
+          } %}
+          {% if condition not in ['unknown', 'unavailable', 'none'] %}
+            ### {{ libelles.get(condition, condition | replace('-', ' ') | capitalize) }}
+            {% if temp is not none %}**{{ temp }} °C** · Température extérieure{% endif %}
 
-          **Votre maison, simplement.**
+            {{ state_attr('weather.forecast_home', 'friendly_name') or 'Météo locale' }}
+          {% else %}
+            ### 🌤️ La météo arrive
 
-          Pilotez l'essentiel et retrouvez les informations du jour.
+            La carte météo sera active dès que la météo du logement sera configurée.
+          {% endif %}
       - type: heading
-        heading: Météo du jour
-        icon: mdi:weather-partly-cloudy
-      # Remplacer weather.forecast_home par l'entité météo réelle.
-      - type: weather-forecast
-        entity: weather.forecast_home
-        show_current: true
-        show_forecast: true
-        forecast_type: daily
-      - type: heading
-        heading: Votre journal
+        heading: Le journal du jour
         icon: mdi:newspaper-variant-outline
+      - type: markdown
+        content: >-
+          {% set titres = [
+            states('input_text.kimia_actu_1'),
+            states('input_text.kimia_actu_2'),
+            states('input_text.kimia_actu_3')
+          ] %}
+          {% set valides = titres | reject('in', ['unknown', 'unavailable', 'none', '']) | list %}
+          {% if valides | count > 0 %}
+          {% for titre in valides %}
+          • {{ titre }}
+
+          {% endfor %}
+          {% else %}
+          *Aucune actualité pour le moment.*
+
+          Une source RSS pourra alimenter ces trois lignes automatiquement.
+          {% endif %}
       - type: markdown
         content: >-
           {% set brief = states('input_text.kimia_brief') %}
           {% if brief not in ['unknown', 'unavailable', 'none', ''] %}
-            {{ brief }}
-          {% else %}
-            *Le petit brief de la journée apparaîtra ici.*
+          **Le mot du jour**
+
+          {{ brief }}
           {% endif %}
+  # Colonne 2 : scénarios et informations pratiques.
   - type: grid
     cards:
       - type: heading
-        heading: Scénarios rapides
+        heading: Vos raccourcis
         icon: mdi:gesture-tap-button
       - type: grid
         columns: 2
@@ -59,11 +108,11 @@ sections:
               action: perform-action
               perform_action: script.kimia_depart
           - type: button
-            name: Détente
-            icon: mdi:sofa-outline
+            name: Retour
+            icon: mdi:home-import-outline
             tap_action:
               action: perform-action
-              perform_action: script.kimia_detente
+              perform_action: script.kimia_retour
           - type: button
             name: Bonne nuit
             icon: mdi:weather-night
@@ -71,21 +120,42 @@ sections:
               action: perform-action
               perform_action: script.kimia_bonne_nuit
       - type: heading
-        heading: Ma maison
+        heading: État de la maison
         icon: mdi:home-analytics
-      - type: entities
-        show_header_toggle: false
-        entities:
-          - entity: input_boolean.kimia_mode_absence
-            name: Mode absence (démo)
-          - entity: input_boolean.kimia_porte_ouverte
-            name: Porte d'entrée (simulation)
-          - entity: input_number.kimia_consigne_salon
-            name: Consigne salon (simulation)
+      - type: markdown
+        content: >-
+          {% set absence = is_state('input_boolean.kimia_mode_absence','on') %}
+          {% set porte = is_state('input_boolean.kimia_porte_ouverte','on') %}
+          {% set fenetre = is_state('input_boolean.kimia_fenetre_ouverte','on') %}
+          {% set lumieres = [
+            'input_boolean.kimia_lumiere_salon',
+            'input_boolean.kimia_lumiere_cuisine',
+            'input_boolean.kimia_lumiere_chambre'
+          ] %}
+          {% set ns = namespace(compte=0) %}
+          {% for l in lumieres %}
+          {% if is_state(l, 'on') %}{% set ns.compte = ns.compte + 1 %}{% endif %}
+          {% endfor %}
+          **{{ '🚶 Mode absence actif' if absence else '🏡 Mode maison actif' }}**
+
+          {{ '🚪 Porte ouverte' if porte else '✅ Porte fermée' }} ·
+          {{ '🪟 Fenêtre ouverte' if fenetre else '✅ Fenêtre fermée' }}
+
+          💡 **{{ ns.compte }}** lumière(s) allumée(s)
+      - type: tile
+        entity: input_boolean.kimia_mode_absence
+        name: Mode absence (démo)
+      - type: heading
+        heading: Confort
+        icon: mdi:home-thermometer-outline
+      - type: tile
+        entity: input_number.kimia_consigne_salon
+        name: Consigne salon (démo)
+  # Colonne 3 : navigation claire vers les vues thématiques.
   - type: grid
     cards:
       - type: heading
-        heading: Tout à portée de main
+        heading: Piloter ma maison
         icon: mdi:view-dashboard-outline
       - type: grid
         columns: 2
@@ -128,12 +198,14 @@ sections:
               action: navigate
               navigation_path: /kimia-smart/parametres
       - type: heading
-        heading: Informations utiles
-        icon: mdi:information-outline
+        heading: Votre installation
+        icon: mdi:shield-check-outline
       - type: markdown
         content: >-
-          **Domotique locale** : les scènes et équipements compatibles restent
-          fonctionnels sans Internet.
+          **Fonctions locales** · éclairage, volets et scénarios configurés
+          restent disponibles sans connexion Internet.
 
-          **Services en ligne** : actualités, Gemini et autres fonctions cloud
-          nécessitent une connexion.
+          **Fonctions cloud** · Gemini, actualités et accès distant
+          nécessitent Internet.
+
+          *KIMIA Smart by PROMAINT · Démonstration*
