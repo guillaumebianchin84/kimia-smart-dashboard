@@ -81,7 +81,7 @@ sections:
         content: >-
           {% set brief = states('input_text.kimia_brief') %}
           {% if brief not in ['unknown', 'unavailable', 'none', ''] %}
-          **Le mot du jour**
+          **En bref**
 
           {{ brief }}
           {% endif %}
