@@ -3,45 +3,21 @@ path: volets
 icon: mdi:window-shutter
 type: sections
 theme: KIMIA Smart
-max_columns: 3
+max_columns: 2
 sections:
   - type: grid
     cards:
       - type: heading
-        heading: Pièces de vie
+        heading: Volets par pièce
         icon: mdi:window-shutter
-      - type: tile
-        entity: input_boolean.kimia_volet_salon_ouvert
-        name: Volet salon ouvert (démo)
-      - type: tile
-        entity: input_boolean.kimia_volet_cuisine_ouvert
-        name: Volet cuisine ouvert (démo)
+      - type: custom:kimia-auto-card
+        category: covers
   - type: grid
     cards:
-      - type: heading
-        heading: Chambres
-        icon: mdi:bed-outline
-      - type: tile
-        entity: input_boolean.kimia_volet_chambre_ouvert
-        name: Volet chambre ouvert (démo)
       - type: markdown
         content: >-
-          Les véritables volets utiliseront ensuite des entités cover avec
-          ouverture, fermeture et position selon les modèles installés.
-  - type: grid
-    cards:
-      - type: heading
-        heading: Commandes générales
-        icon: mdi:gesture-tap
-      - type: button
-        name: Ouvrir les volets
-        icon: mdi:window-shutter-open
-        tap_action:
-          action: perform-action
-          perform_action: script.kimia_volets_ouvrir
-      - type: button
-        name: Fermer les volets
-        icon: mdi:window-shutter
-        tap_action:
-          action: perform-action
-          perform_action: script.kimia_volets_fermer
+          Les volets exposés comme entités **cover** sont reconnus automatiquement.
+
+          Les modules de type **switch** peuvent être classés dans cette page,
+          mais n'offriront que les commandes prises en charge par leur intégration.
+          Un véritable contrôle montée/descente/position nécessite une entité cover.
