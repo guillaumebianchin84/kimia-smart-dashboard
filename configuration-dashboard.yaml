@@ -1,0 +1,38 @@
+title: Configuration KIMIA Smart
+views:
+  - title: Installation
+    path: installation
+    icon: mdi:cog-outline
+    theme: KIMIA Smart
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Assistant d'installation
+            icon: mdi:cog-outline
+          - type: custom:kimia-setup-card
+      - type: grid
+        cards:
+          - type: heading
+            heading: Conseils d'installation
+            icon: mdi:information-outline
+          - type: markdown
+            content: >-
+              ### KIMIA Smart
+
+              **Zigbee (ZHA)** : associer les appareils SONOFF / LEDVANCE,
+              puis choisir leur pièce, leur fonction et leur nom.
+
+              **Google Cast et caméras** : passer d'abord par l'intégration
+              correspondante. Les appareils reconnus apparaîtront ensuite
+              dans l'assistant.
+
+              La rubrique choisie est stockée en **étiquette Home Assistant**,
+              et la pièce dans son registre natif.
+
+              **Important** : seuls les comptes administrateurs peuvent
+              créer les pièces et modifier les appareils.
+
+              Ne pas exposer cette page dans l'interface destinée aux clients.
