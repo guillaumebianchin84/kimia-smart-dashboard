@@ -59,7 +59,7 @@ class KimiaCardBase extends HTMLElement {
     this.ha=value;
     const count=Object.keys(value.states||{}).length;
     if(this.previousCount!==count){this.previousCount=count;this.refresh();}
-    else this.draw();
+    else if(this.tagName!=='KIMIA-SETUP-CARD')this.draw();
   }
   connectedCallback(){
     this.listener=()=>this.refresh(true);
