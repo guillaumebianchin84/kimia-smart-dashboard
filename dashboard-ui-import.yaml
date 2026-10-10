@@ -346,6 +346,16 @@ views:
                   border: 1px solid var(--divider-color);
                   box-shadow: 0 3px 12px rgba(0,30,53,.05);
                 }
+  - title: Plan de maison
+    path: plan
+    icon: mdi:floor-plan
+    type: panel
+    cards:
+      - type: custom:maquette-card
+        id: kimia_plan_maison
+        title: Plan de ma maison
+        language: fr
+        full_page: true
   - title: Lumières
     path: lumieres
     icon: mdi:lightbulb-group-outline
