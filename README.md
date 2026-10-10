@@ -4,6 +4,30 @@ Prototype de l'interface **KIMIA Smart by PROMAINT**, conçu pour une VM Home As
 
 **Objectif :** un accueil agréable avec météo, raccourcis et brief du jour, puis des vues séparées pour les fonctions de la maison. Les couleurs sont inspirées de la nouvelle identité KIMIA Smart (bleu et turquoise).
 
+## Nouveau : configuration et ajout automatique (v0.3 — à tester)
+
+Une page **Configuration KIMIA** réservée aux administrateurs permet de lancer
+l'association Zigbee (ZHA), créer des pièces, nommer les appareils et les classer
+dans les bonnes rubriques **sans modifier les fichiers YAML à chaque ajout**.
+
+Les vues Lumières, Volets, Prises, Climatisation, Musique et Sécurité
+sont désormais alimentées depuis les registres de Home Assistant.
+
+**Installation spécifique :** consulter [Ajout simplifié des équipements](docs/AJOUT_EQUIPEMENTS.md).
+Cette version nécessite la ressource JavaScript locale `www/kimia-cards.js`
+et un deuxième dashboard `configuration-dashboard.yaml`. Le configurateur
+n'est pas encore validé sur une vraie VM Home Assistant.
+
+### Important
+
+- Les fichiers `views/` de la branche v0.3 utilisent une carte KIMIA personnalisée,
+  **sans HACS**, mais doivent charger le JavaScript associé.
+- Les entités de démonstration de la v0.2 ne sont plus nécessaires pour le classement
+  dynamique ; elles restent facultatives pour tester les scénarios de l'accueil.
+- L'association initiale des enceintes Google et des caméras passe encore par les
+  intégrations officielles HA.
+- Les secrets Cloudflare et les données personnelles ne doivent pas être publiés.
+
 ## Contenu
 
 - `dashboard.yaml` : configuration Lovelace et navigation
