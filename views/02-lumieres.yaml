@@ -1,41 +1,46 @@
 title: Lumières
 path: lumieres
-icon: mdi:lightbulb-group
+icon: mdi:lightbulb-group-outline
 type: sections
-theme: KIMIA Smart
 max_columns: 3
 sections:
   - type: grid
     cards:
       - type: heading
-        heading: Pièces de vie
-        icon: mdi:sofa
+        heading: Salon
+        icon: mdi:sofa-outline
       - type: tile
         entity: input_boolean.kimia_lumiere_salon
-        name: Salon (démo)
+        name: Éclairage salon (démo)
+        icon: mdi:ceiling-light
+  - type: grid
+    cards:
+      - type: heading
+        heading: Cuisine et chambres
+        icon: mdi:home-lightbulb-outline
       - type: tile
         entity: input_boolean.kimia_lumiere_cuisine
         name: Cuisine (démo)
-  - type: grid
-    cards:
-      - type: heading
-        heading: Chambres
-        icon: mdi:bed-outline
+        icon: mdi:lightbulb-outline
       - type: tile
         entity: input_boolean.kimia_lumiere_chambre
         name: Chambre (démo)
-      - type: markdown
-        content: >-
-          Après installation, les interrupteurs de démonstration seront remplacés
-          par les vraies entités d'éclairage et leurs commandes de variation.
+        icon: mdi:bed-outline
   - type: grid
     cards:
       - type: heading
-        heading: Commandes générales
-        icon: mdi:lightbulb-multiple-off-outline
+        heading: Toute la maison
+        icon: mdi:lightbulb-group-off-outline
       - type: button
         name: Tout éteindre
-        icon: mdi:lightbulb-group-off
+        icon: mdi:lightbulb-group-off-outline
         tap_action:
           action: perform-action
           perform_action: script.kimia_lumieres_eteindre
+      - type: markdown
+        content: >-
+          **Éclairage LEDVANCE SMART+**
+
+          Après intégration Zigbee, les vraies ampoules et spots remplaceront
+          les commandes de démonstration. La variation et les couleurs
+          seront proposées uniquement par les modèles compatibles.

@@ -35,6 +35,9 @@ input_boolean:
   kimia_volet_chambre_ouvert:
     name: KIMIA - Volet chambre ouvert (démo)
     icon: mdi:window-shutter
+  kimia_prise_salon:
+    name: KIMIA - Prise salon (démo)
+    icon: mdi:power-socket-eu
   kimia_porte_ouverte:
     name: KIMIA - Porte ouverte (démo)
     icon: mdi:door

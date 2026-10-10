@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="206" height="60" viewBox="0 0 206 60" role="img" aria-labelledby="title desc">
+<title id="title">KIMIA Smart by PROMAINT</title><desc id="desc">Signature de marque KIMIA Smart, bleu profond et turquoise</desc>
+<rect width="206" height="60" rx="14" fill="#103C62"/>
+<path d="M16 29 30 16 44 29" fill="none" stroke="#26C2B5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20 28v16h20V28M28 44V33h7v11" fill="none" stroke="#E9F9FA" stroke-width="2.5" stroke-linejoin="round"/>
+<text x="55" y="29" font-family="Arial,Helvetica,sans-serif" font-size="18" font-weight="700" fill="#FFFFFF" letter-spacing="1">KIMIA</text>
+<text x="124" y="29" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="600" fill="#28D1C2">Smart</text>
+<text x="56" y="43" font-family="Arial,Helvetica,sans-serif" font-size="9" font-weight="600" letter-spacing="2.0" fill="#C8E6EE">BY PROMAINT</text>
+</svg>

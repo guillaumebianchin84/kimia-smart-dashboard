@@ -2,7 +2,6 @@ title: Musique
 path: musique
 icon: mdi:music
 type: sections
-theme: KIMIA Smart
 max_columns: 3
 sections:
   - type: grid
@@ -12,26 +11,28 @@ sections:
         icon: mdi:cast-audio
       - type: markdown
         content: >-
-          **Diffusion par Google Cast**
+          **Choisir une enceinte**
 
-          Une fois les enceintes connectées, cette zone affichera leurs
-          lecteurs Home Assistant, le volume et les commandes de lecture.
-      # Exemple, à activer après intégration Cast :
-      # - type: media-control
-      #   entity: media_player.google_salon
+          Lorsque Google Cast sera configuré, cette page affichera les
+          lecteurs et commandes de volume de la maison.
+
+          La lecture native sur les enceintes ne nécessite pas d'IA dans Home Assistant.
   - type: grid
     cards:
       - type: heading
-        heading: Bibliothèque MP3 locale
-        icon: mdi:folder-music
+        heading: Ma musique locale
+        icon: mdi:folder-music-outline
       - type: markdown
         content: >-
-          Les clients pourront ajouter leurs morceaux dans des dossiers :
-          **Réveil doux**, **Louanges**, **Musique gabonaise**,
-          **Ambiance soirée**.
+          📁 Réveil doux
 
-          Le stockage et l'enchaînement des fichiers seront configurés
-          et testés séparément.
+          📁 Louanges
+
+          📁 Musique gabonaise
+
+          📁 Soirée
+
+          Le client pourra enrichir ses dossiers MP3 depuis le réseau local.
       - type: button
         name: Réveil musical (simulation)
         icon: mdi:alarm
@@ -41,13 +42,14 @@ sections:
   - type: grid
     cards:
       - type: heading
-        heading: Autres écoutes
-        icon: mdi:bluetooth-audio
+        heading: Les trois usages
+        icon: mdi:speaker-wireless
       - type: markdown
         content: >-
-          **Cast :** musique locale envoyée à l'enceinte via le réseau Wi-Fi.
+          **Google / Gemini** : conversation et musique en ligne.
 
-          **Bluetooth :** le client diffuse les sons directement depuis son téléphone.
+          **Google Cast** : lecture des MP3 depuis Home Assistant.
 
-          Le comportement Cast après une session Bluetooth doit être validé
-          sur les enceintes retenues.
+          **Bluetooth** : musique envoyée depuis le téléphone du client.
+
+          La bibliothèque MP3 et la reprise Cast/Bluetooth restent à tester.

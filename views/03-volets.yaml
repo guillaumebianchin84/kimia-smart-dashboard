@@ -2,14 +2,13 @@ title: Volets
 path: volets
 icon: mdi:window-shutter
 type: sections
-theme: KIMIA Smart
 max_columns: 3
 sections:
   - type: grid
     cards:
       - type: heading
         heading: Pièces de vie
-        icon: mdi:window-shutter
+        icon: mdi:window-shutter-open
       - type: tile
         entity: input_boolean.kimia_volet_salon_ouvert
         name: Volet salon ouvert (démo)
@@ -24,24 +23,25 @@ sections:
       - type: tile
         entity: input_boolean.kimia_volet_chambre_ouvert
         name: Volet chambre ouvert (démo)
-      - type: markdown
-        content: >-
-          Les véritables volets utiliseront ensuite des entités cover avec
-          ouverture, fermeture et position selon les modèles installés.
   - type: grid
     cards:
       - type: heading
         heading: Commandes générales
         icon: mdi:gesture-tap
       - type: button
-        name: Ouvrir les volets
+        name: Tout ouvrir
         icon: mdi:window-shutter-open
         tap_action:
           action: perform-action
           perform_action: script.kimia_volets_ouvrir
       - type: button
-        name: Fermer les volets
+        name: Tout fermer
         icon: mdi:window-shutter
         tap_action:
           action: perform-action
           perform_action: script.kimia_volets_fermer
+      - type: markdown
+        content: >-
+          Les vrais moteurs devront être reliés à une commande adaptée
+          et reconnus comme entités **cover**. Un relais seul ne
+          suffit pas à garantir un pilotage sécurisé des volets.

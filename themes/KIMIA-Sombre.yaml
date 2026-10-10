@@ -1,0 +1,20 @@
+# Theme sombre : contraste élevé, texte clair sur surfaces sombres.
+KIMIA Sombre:
+  primary-color: "#52C4D0"
+  accent-color: "#3BDBC4"
+  modes:
+    dark:
+      primary-background-color: "#0D1925"
+      secondary-background-color: "#172838"
+      card-background-color: "#1A2A3A"
+      primary-text-color: "#F0F6FA"
+      secondary-text-color: "#B8CAD6"
+      app-header-background-color: "#102338"
+      app-header-text-color: "#F0F6FA"
+      sidebar-background-color: "#122334"
+      sidebar-text-color: "#F0F6FA"
+      state-icon-color: "#80BDCA"
+      state-icon-active-color: "#39D7C2"
+      ha-card-border-color: "#304858"
+      ha-card-border-radius: "18px"
+      ha-card-box-shadow: "0 3px 12px rgba(0,0,0,0.22)"
