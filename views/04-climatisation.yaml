@@ -2,33 +2,128 @@ title: Climatisation
 path: climatisation
 icon: mdi:air-conditioner
 type: sections
-max_columns: 3
+max_columns: 2
 sections:
   - type: grid
     cards:
       - type: heading
-        heading: Salon
-        icon: mdi:thermometer
-      - type: tile
-        entity: input_number.kimia_consigne_salon
-        name: Consigne salon (démo)
-  - type: grid
-    cards:
-      - type: heading
-        heading: Chambre
-        icon: mdi:bed-king-outline
-      - type: tile
-        entity: input_number.kimia_consigne_chambre
-        name: Consigne chambre (démo)
-  - type: grid
-    cards:
-      - type: heading
-        heading: Confort personnalisé
+        heading: Confort de la maison
         icon: mdi:home-thermometer-outline
+        grid_options:
+          columns: full
+          rows: 1
+      - type: tile
+        entity: sensor.temperature_interieure_netatmo
+        name: Température intérieure
+        icon: mdi:home-thermometer-outline
+        tap_action:
+          action: more-info
+        grid_options:
+          columns: 6
+          rows: 1
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 17px;
+              border: 1px solid var(--divider-color);
+              background: var(--card-background-color);
+            }
+      - type: tile
+        entity: sensor.temperature_exterieure_meteo_france
+        name: Température extérieure
+        icon: mdi:weather-partly-cloudy
+        tap_action:
+          action: more-info
+        grid_options:
+          columns: 6
+          rows: 1
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 17px;
+              border: 1px solid var(--divider-color);
+              background: var(--card-background-color);
+            }
+      - type: custom:button-card
+        template: kimia_v2_tile
+        entity: input_boolean.gestion_clim_chauffage_maison
+        name: Gestion automatique
+        icon: mdi:autorenew
+        tap_action:
+          action: more-info
+        label: |
+          [[[
+            if(!entity||['unknown','unavailable'].includes(entity.state))return 'Indisponible';
+            return entity.state==='on'?'Activée':'Désactivée';
+          ]]]
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: tile
+        entity: input_number.consigne_maison
+        name: Consigne maison
+        icon: mdi:thermometer-lines
+        tap_action:
+          action: more-info
+        grid_options:
+          columns: 6
+          rows: 1
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 17px;
+              border: 1px solid var(--divider-color);
+              background: var(--card-background-color);
+            }
+  - type: grid
+    cards:
+      - type: heading
+        heading: Climatiseurs
+        icon: mdi:air-conditioner
+        grid_options:
+          columns: full
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        entity: climate.clim_salon
+        name: Salon
+        icon: mdi:sofa-outline
+        tap_action:
+          action: more-info
+        label: |
+          [[[
+            if(!entity||['unknown','unavailable'].includes(entity.state))return 'Indisponible';
+            const mode=entity.state==='off'?'Arrêt':entity.state==='cool'?'Froid':entity.state==='heat'?'Chaud':entity.state;return mode+(entity.attributes?.temperature!==undefined?' · '+entity.attributes.temperature+'°':'');
+          ]]]
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        entity: climate.clim_chambre
+        name: Chambre
+        icon: mdi:bed-king-outline
+        tap_action:
+          action: more-info
+        label: |
+          [[[
+            if(!entity||['unknown','unavailable'].includes(entity.state))return 'Indisponible';
+            const mode=entity.state==='off'?'Arrêt':entity.state==='cool'?'Froid':entity.state==='heat'?'Chaud':entity.state;return mode+(entity.attributes?.temperature!==undefined?' · '+entity.attributes.temperature+'°':'');
+          ]]]
+        grid_options:
+          columns: 6
+          rows: 1
       - type: markdown
         content: >-
-          La température, la consigne et les modes de chaque climatiseur
-          seront visibles après la configuration des vraies entités
-          **climate**.
-
-          L'interface conserve les mêmes repères sur téléphone et tablette.
+          Ces entités sont celles de la maison témoin. Sur une installation client, l'installateur les associe aux climatiseurs réellement présents.
+        grid_options:
+          columns: full
+          rows: auto
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 17px;
+              background: var(--card-background-color);
+              border: 1px solid var(--divider-color);
+              color: var(--primary-text-color);
+            }

@@ -2,54 +2,119 @@ title: Musique
 path: musique
 icon: mdi:music
 type: sections
-max_columns: 3
+max_columns: 2
 sections:
   - type: grid
     cards:
       - type: heading
-        heading: Enceintes Google
+        heading: Enceintes et diffusion
         icon: mdi:cast-audio
-      - type: markdown
-        content: >-
-          **Choisir une enceinte**
-
-          Lorsque Google Cast sera configuré, cette page affichera les
-          lecteurs et commandes de volume de la maison.
-
-          La lecture native sur les enceintes ne nécessite pas d'IA dans Home Assistant.
-  - type: grid
-    cards:
-      - type: heading
-        heading: Ma musique locale
-        icon: mdi:folder-music-outline
-      - type: markdown
-        content: >-
-          📁 Réveil doux
-
-          📁 Louanges
-
-          📁 Musique gabonaise
-
-          📁 Soirée
-
-          Le client pourra enrichir ses dossiers MP3 depuis le réseau local.
-      - type: button
-        name: Réveil musical (simulation)
-        icon: mdi:alarm
-        tap_action:
-          action: perform-action
-          perform_action: script.kimia_reveil_musical
-  - type: grid
-    cards:
-      - type: heading
-        heading: Les trois usages
+        grid_options:
+          columns: full
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Salon
         icon: mdi:speaker-wireless
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Cuisine
+        icon: mdi:speaker-wireless
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Chambre parents
+        icon: mdi:speaker-wireless
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Autre enceinte
+        icon: mdi:speaker-wireless
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
       - type: markdown
         content: >-
-          **Google / Gemini** : conversation et musique en ligne.
-
-          **Google Cast** : lecture des MP3 depuis Home Assistant.
-
-          **Bluetooth** : musique envoyée depuis le téléphone du client.
-
-          La bibliothèque MP3 et la reprise Cast/Bluetooth restent à tester.
+          Google Cast et le Bluetooth seront proposés selon les modèles et la connexion. Les lecteurs devront être détectés dans Home Assistant avant leur configuration.
+        grid_options:
+          columns: full
+          rows: auto
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 17px;
+              background: var(--card-background-color);
+              border: 1px solid var(--divider-color);
+              color: var(--primary-text-color);
+            }
+  - type: grid
+    cards:
+      - type: heading
+        heading: Musique locale
+        icon: mdi:folder-music-outline
+        grid_options:
+          columns: full
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Réveil doux
+        icon: mdi:weather-sunset-up
+        label: Lecture MP3 à configurer
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Louanges
+        icon: mdi:music-note
+        label: Lecture MP3 à configurer
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Musique personnelle
+        icon: mdi:playlist-music
+        label: Lecture MP3 à configurer
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: markdown
+        content: >-
+          Les MP3 seront conservés dans les dossiers du client. Aucun abonnement Music Assistant n'est prévu comme obligation.
+        grid_options:
+          columns: full
+          rows: auto
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 17px;
+              background: var(--card-background-color);
+              border: 1px solid var(--divider-color);
+              color: var(--primary-text-color);
+            }

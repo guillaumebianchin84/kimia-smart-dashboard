@@ -2,6 +2,18 @@
 # Ce package n'installe aucun matériel ni scénario domotique.
 # Home Assistant doit déjà charger les packages (homeassistant.packages).
 input_select:
+  kimia_meteo_visible:
+    name: Météo sur l'accueil KIMIA
+    icon: mdi:weather-partly-cloudy
+    options:
+      - "Oui"
+      - "Non"
+  kimia_journal_visible:
+    name: Journal sur l'accueil KIMIA
+    icon: mdi:newspaper-variant-outline
+    options:
+      - "Oui"
+      - "Non"
   kimia_theme_global:
     name: Thème KIMIA pour la maison
     icon: mdi:palette-outline

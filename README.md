@@ -1,4 +1,64 @@
-# KIMIA Smart — Dashboard Home Assistant
+# KIMIA Smart — dashboards premium et configuration client
+
+## V0.6 — Nouvelle base validée visuellement
+
+La V0.6 reprend **l'Accueil V4 Gris Premium testé sur téléphone**,
+et le décline en pages indépendantes : Lumières, Volets, Climatisation,
+Musique, Sécurité et Prises. Les cartes sont **individuelles**,
+placées dans des sections HA natives. La page Paramètres reste le lien
+vers le dashboard **Configuration client**.
+
+**Attention : le design de l'accueil est validé visuellement par le test,
+mais les autres pages et les fonctions de configuration sont de nouveaux
+prototypes et restent à tester en Home Assistant.**
+
+### Importation recommandée (cartes déplaçables)
+
+- `dashboard-ui-import.yaml` : dashboard principal prêt pour l'éditeur
+  brut d'un **dashboard HA géré par l'interface (mode storage)**.
+- `config-client-ui-import.yaml` : dashboard Configuration client,
+  à importer dans un **second dashboard HA géré par l'interface**.
+- `maintenance-installateur.yaml` : dashboard de maintenance,
+  **à déclarer administrateur uniquement** via le réglage HA
+  `require_admin: true` ou l'option équivalente dans les paramètres du dashboard.
+
+Ce mode est requis si l'on veut déplacer les cartes par glisser-déposer
+dans HA : **les dashboards en `mode: yaml` ne sont pas éditables
+visuellement**.
+
+### Fonctions client v0.6
+
+La page Configuration client peut :
+- choisir les quatre thèmes KIMIA ;
+- afficher/masquer **la météo et le journal** de l'accueil,
+  avec `input_select.kimia_meteo_visible` et
+  `input_select.kimia_journal_visible` ;
+- ouvrir la page Maintenance si le compte dispose de droits administrateur.
+
+Le thème choisi est le **thème par défaut de tout Home Assistant**,
+et non seulement de KIMIA. Les préférences personnelles de thème
+des profils HA restent prioritaires.
+
+### Ce qui n'est pas encore automatique
+
+Les cartes "À associer" des pages Lumières, Volets, Prises,
+Sécurité et Musique sont des emplacements prêts à personnaliser ;
+elles **ne pilotent pas encore les équipements** d'un client.
+L'installateur devra leur affecter la bonne entité Home Assistant
+avant leur mise en service. Aucun contrôle d'un moteur de volet,
+aucun système d'alarme et aucune caméra n'est mis en service
+par ce prototype.
+
+L'accueil réutilise les entités de **la maison de test**
+(Météo-France du Pontet, Netatmo, climatisations, RSS BFMTV et Le Monde).
+Les installations client devront utiliser **leurs propres** entités
+et sources configurées.
+
+**Guide détaillé : [DASHBOARDS_PREMIUM_V06](docs/DASHBOARDS_PREMIUM_V06.md)**
+
+---
+
+## Historique du prototype
 
 ## Configuration client v0.5 : quatre thèmes au même endroit
 

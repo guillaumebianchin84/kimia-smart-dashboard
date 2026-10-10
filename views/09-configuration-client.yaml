@@ -172,3 +172,43 @@ sections:
         grid_options:
           columns: 12
           rows: 2
+  - type: grid
+    cards:
+      - type: heading
+        heading: Contenu de l'accueil
+        icon: mdi:view-dashboard-outline
+      - type: tile
+        entity: input_select.kimia_meteo_visible
+        name: Afficher la météo
+        icon: mdi:weather-partly-cloudy
+        tap_action:
+          action: more-info
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: tile
+        entity: input_select.kimia_journal_visible
+        name: Afficher les actualités
+        icon: mdi:newspaper-variant-outline
+        tap_action:
+          action: more-info
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: heading
+        heading: Maintenance
+        icon: mdi:wrench-clock
+      - type: markdown
+        content: >-
+          Un redémarrage de Home Assistant peut être lancé
+          depuis **Maintenance installateur**, sous un compte
+          administrateur et après confirmation.
+      - type: button
+        name: Maintenance installateur (administrateur)
+        icon: mdi:shield-account-outline
+        tap_action:
+          action: navigate
+          navigation_path: /kimia-maintenance/maintenance
+        grid_options:
+          columns: 12
+          rows: 2
