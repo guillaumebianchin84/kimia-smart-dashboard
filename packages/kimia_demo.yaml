@@ -1,9 +1,18 @@
 # Uniquement pour la VM de démonstration. Aucun équipement réel n'est piloté.
 input_text:
   kimia_brief:
-    name: KIMIA - Brief du jour
+    name: KIMIA - Mot du jour
     max: 255
-    initial: "Bienvenue dans KIMIA Smart. Le brief quotidien pourra recevoir des titres RSS et un résumé court."
+    initial: "Bienvenue chez vous. Votre maison reste pilotable même sans connexion Internet."
+  kimia_actu_1:
+    name: KIMIA - Actualité 1
+    max: 255
+  kimia_actu_2:
+    name: KIMIA - Actualité 2
+    max: 255
+  kimia_actu_3:
+    name: KIMIA - Actualité 3
+    max: 255
 input_boolean:
   kimia_mode_absence:
     name: KIMIA - Mode absence (démo)
@@ -64,6 +73,12 @@ script:
     alias: KIMIA - Départ (démo)
     sequence:
       - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.kimia_mode_absence
+  kimia_retour:
+    alias: KIMIA - Retour (démo)
+    sequence:
+      - action: input_boolean.turn_off
         target:
           entity_id: input_boolean.kimia_mode_absence
   kimia_detente:
