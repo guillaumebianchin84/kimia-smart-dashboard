@@ -13,3 +13,8 @@ KIMIA Smart:
   state-icon-active-color: "#08AAA7"
   ha-card-border-radius: "16px"
   ha-card-border-color: "#DDE8EF"
+  ha-card-box-shadow: "0 4px 16px rgba(13, 65, 103, 0.07)"
+  ha-section-border-radius: "20px"
+  ha-section-background-color: "rgba(4, 157, 166, 0.07)"
+  mdc-theme-primary: "#0C5586"
+  paper-item-icon-active-color: "#08AAA7"
