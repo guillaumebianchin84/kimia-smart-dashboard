@@ -2,7 +2,7 @@
 
 ## Configuration client v0.5 : quatre thèmes au même endroit
 
-**Nouvelle branche : \`feat/config-client-themes\` (non fusionnée).**
+**Nouvelle branche : `feat/config-client-themes` (non fusionnée).**
 
 Cette version fournit un **deuxième dashboard "Configuration client"**, avec quatre
 styles : **KIMIA Gris Premium**, **KIMIA Clair**, **KIMIA Sombre** et **KIMIA Signature**.
@@ -10,9 +10,9 @@ Chaque style est un bouton indépendant, et une liste déroulante native permet
 aussi de choisir le thème. Les réglages techniques du routeur et les secrets
 ne sont pas affichés dans le dashboard client.
 
-La sélection est enregistrée par \`input_select.kimia_theme_global\`,
+La sélection est enregistrée par `input_select.kimia_theme_global`,
 puis une automation applique le thème grâce à l'action officielle
-\`frontend.set_theme\`. Aucun JavaScript custom n'est nécessaire pour la sélection.
+`frontend.set_theme`. Aucun JavaScript custom n'est nécessaire pour la sélection.
 
 **Limites importantes :** cette action change le **thème Home Assistant par défaut
 sur toute l'installation**, pas seulement les pages KIMIA. Un utilisateur ayant
@@ -25,13 +25,13 @@ La fonctionnalité est codée mais **non testée sur une VM Home Assistant**.
 
 ### Installation supplémentaire v0.5
 
-- Copier les **quatre** fichiers \`themes/*.yaml\` dans \`/config/themes/\`.
-- Copier \`packages/kimia_client_theme.yaml\` dans \`/config/packages/\`.
-- Copier \`config-client.yaml\` et \`views/09-configuration-client.yaml\` sous \`/config/kimia/\`.
-- Déclarer **deux** dashboards sous l'unique clé \`lovelace.dashboards\` :
-  le dashboard \`kimia-smart\` existant et le nouveau \`kimia-client\`.
+- Copier les **quatre** fichiers `themes/*.yaml` dans `/config/themes/`.
+- Copier `packages/kimia_client_theme.yaml` dans `/config/packages/`.
+- Copier `config-client.yaml` et `views/09-configuration-client.yaml` sous `/config/kimia/`.
+- Déclarer **deux** dashboards sous l'unique clé `lovelace.dashboards` :
+  le dashboard `kimia-smart` existant et le nouveau `kimia-client`.
 - Le lien **Paramètres → Configuration client** du dashboard KIMIA
-  mène à \`/kimia-client/configuration\`.
+  mène à `/kimia-client/configuration`.
 
 
 ## Direction visuelle v0.4 — sobre et premium
