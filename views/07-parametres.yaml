@@ -33,6 +33,19 @@ sections:
   - type: grid
     cards:
       - type: heading
+        heading: Installer et organiser
+        icon: mdi:cog-outline
+      - type: button
+        name: Configuration KIMIA (administrateur)
+        icon: mdi:cog-outline
+        tap_action:
+          action: navigate
+          navigation_path: /kimia-configuration/installation
+      - type: markdown
+        content: >-
+          Ce bouton ouvre le configurateur d'appareils. Les modifications
+          sont réservées aux comptes administrateurs Home Assistant.
+      - type: heading
         heading: Maintenance et accès distant
         icon: mdi:shield-lock
       - type: markdown

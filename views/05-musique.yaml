@@ -3,51 +3,28 @@ path: musique
 icon: mdi:music
 type: sections
 theme: KIMIA Smart
-max_columns: 3
+max_columns: 2
 sections:
   - type: grid
     cards:
       - type: heading
-        heading: Enceintes Google
+        heading: Enceintes et lecteurs
         icon: mdi:cast-audio
+      - type: custom:kimia-auto-card
+        category: media
       - type: markdown
         content: >-
-          **Diffusion par Google Cast**
-
-          Une fois les enceintes connectées, cette zone affichera leurs
-          lecteurs Home Assistant, le volume et les commandes de lecture.
-      # Exemple, à activer après intégration Cast :
-      # - type: media-control
-      #   entity: media_player.google_salon
+          Pour piloter une enceinte, appuyez sur son nom afin d'ouvrir
+          les contrôles Home Assistant associés.
   - type: grid
     cards:
       - type: heading
-        heading: Bibliothèque MP3 locale
+        heading: Ma musique locale
         icon: mdi:folder-music
       - type: markdown
         content: >-
-          Les clients pourront ajouter leurs morceaux dans des dossiers :
-          **Réveil doux**, **Louanges**, **Musique gabonaise**,
-          **Ambiance soirée**.
+          Réveils, playlists et dossiers MP3 personnalisables sont prévus
+          pour KIMIA Smart.
 
-          Le stockage et l'enchaînement des fichiers seront configurés
-          et testés séparément.
-      - type: button
-        name: Réveil musical (simulation)
-        icon: mdi:alarm
-        tap_action:
-          action: perform-action
-          perform_action: script.kimia_reveil_musical
-  - type: grid
-    cards:
-      - type: heading
-        heading: Autres écoutes
-        icon: mdi:bluetooth-audio
-      - type: markdown
-        content: >-
-          **Cast :** musique locale envoyée à l'enceinte via le réseau Wi-Fi.
-
-          **Bluetooth :** le client diffuse les sons directement depuis son téléphone.
-
-          Le comportement Cast après une session Bluetooth doit être validé
-          sur les enceintes retenues.
+          L'ajout de MP3 et la lecture Cast seront intégrés et testés
+          séparément, sans imposer Music Assistant.

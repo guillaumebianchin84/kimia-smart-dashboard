@@ -8,3 +8,4 @@ views:
   - !include /config/kimia/views/05-musique.yaml
   - !include /config/kimia/views/06-securite.yaml
   - !include /config/kimia/views/07-parametres.yaml
+  - !include /config/kimia/views/08-prises.yaml

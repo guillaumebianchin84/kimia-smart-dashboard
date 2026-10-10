@@ -1,0 +1,23 @@
+title: Prises
+path: prises
+icon: mdi:power-socket-eu
+type: sections
+theme: KIMIA Smart
+max_columns: 2
+sections:
+  - type: grid
+    cards:
+      - type: heading
+        heading: Prises et relais
+        icon: mdi:power-socket-eu
+      - type: custom:kimia-auto-card
+        category: plugs
+  - type: grid
+    cards:
+      - type: markdown
+        content: >-
+          Les prises SONOFF Zigbee sont automatiquement listées lorsqu'elles
+          sont reconnues par Home Assistant.
+
+          Un micromodule identifié comme un interrupteur peut aussi être
+          classé manuellement dans **Lumières** depuis la configuration KIMIA.

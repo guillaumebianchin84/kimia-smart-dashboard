@@ -3,34 +3,20 @@ path: climatisation
 icon: mdi:air-conditioner
 type: sections
 theme: KIMIA Smart
-max_columns: 3
+max_columns: 2
 sections:
   - type: grid
     cards:
       - type: heading
-        heading: Température souhaitée
-        icon: mdi:thermometer
-      - type: entities
-        entities:
-          - entity: input_number.kimia_consigne_salon
-            name: Salon (simulation)
-          - entity: input_number.kimia_consigne_chambre
-            name: Chambre (simulation)
-  - type: grid
-    cards:
-      - type: heading
-        heading: Confort
+        heading: Confort thermique par pièce
         icon: mdi:home-thermometer-outline
-      - type: markdown
-        content: >-
-          Avec les véritables climatiseurs, cette page affichera la température
-          mesurée, le mode, la consigne et la commande adaptée à chaque pièce.
+      - type: custom:kimia-auto-card
+        category: climate
   - type: grid
     cards:
-      - type: heading
-        heading: Programmations
-        icon: mdi:calendar-clock
       - type: markdown
         content: >-
-          Des horaires et modes **Présent**, **Absence** ou **Nuit** pourront être
-          ajoutés après définition des équipements.
+          Appuyez sur le climatiseur pour ouvrir les modes, consignes et options
+          réellement proposés par son intégration Home Assistant.
+
+          La présentation s'adapte aux équipements installés.
