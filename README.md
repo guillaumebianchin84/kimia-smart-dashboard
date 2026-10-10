@@ -53,7 +53,7 @@ Si tu utilises déjà des packages ou thèmes, conserver ta configuration et fus
 - Boutons de scènes et commandes de démonstration via `packages/kimia_demo.yaml`.
 - Interrupteurs de lumière et de volet *simulés*, consignes de climatisation *simulées*.
 - Accueil v0.2 : salutation selon l'heure, météo avec message de secours, scénarios rapides, état de la maison et navigation en 6 boutons.
-- Journal : trois titres RSS renseignés par les helpers `input_text.kimia_actu_1..3`, et un « mot du jour » éditable via `input_text.kimia_brief`. Le module RSS optionnel est prêt : il faut choisir un vrai flux Feedreader.
+- Journal : trois titres RSS renseignés par les helpers `input_text.kimia_actu_1..3`, et un court extrait RSS (ou message éditable) via `input_text.kimia_brief`. Le module RSS optionnel récupère les titres et un extrait de description, sans générer de résumé IA : il faut choisir un flux Feedreader.
 - Les titres RSS sont affichés tels quels, sans tri de pertinence, sans résumé et sans traduction.
 - Météo : adapter `weather.forecast_home` à l'entité disponible dans la VM. Sans entité météo, un message de remplacement s'affiche et le dashboard reste utilisable.
 - Musique : les lecteurs Cast, la file MP3 et le réveil réel restent à configurer et valider.
