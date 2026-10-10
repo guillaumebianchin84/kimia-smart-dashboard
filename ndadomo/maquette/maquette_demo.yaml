@@ -1,0 +1,101 @@
+# Maquette Card v0.2.0 — exemple générique pour NDADOMO
+# Remplacer toutes les entités d'exemple et adapter les dimensions.
+# Aucun plan ni équipement d'un domicile réel n'est inclus.
+type: custom:maquette-card
+title: NDADOMO — Démonstration
+language: fr
+summary: false
+legend: false
+full_page: true
+margin: 30
+default_floor: rdc
+floors:
+  - id: rdc
+    name: Rez-de-chaussée
+    short: RDC
+    rooms:
+      - name: Garage
+        poly: [[0, 0], [400, 0], [400, 360], [0, 360]]
+      - name: Cuisine
+        poly: [[400, 0], [800, 0], [800, 360], [400, 360]]
+      - name: Salon
+        poly: [[0, 360], [800, 360], [800, 750], [0, 750]]
+    walls:
+      - [0, 0, 800, 0]
+      - [800, 0, 800, 750]
+      - [800, 750, 0, 750]
+      - [0, 750, 0, 0]
+      - [400, 0, 400, 360]
+      - [0, 360, 800, 360]
+    badges:
+      - entity: light.cuisine_principale
+        name: Lumière cuisine
+        pos: [600, 180]
+        icon: mdi:ceiling-light
+        halo: 180
+        room: Cuisine
+      - entity: media_player.enceinte_google_cuisine
+        name: Enceinte cuisine
+        pos: [690, 280]
+        icon: mdi:speaker-wireless
+        room: Cuisine
+        tap: more_info
+      - entity: media_player.enceinte_google_salon
+        name: Enceinte salon
+        pos: [640, 610]
+        icon: mdi:speaker-wireless
+        room: Salon
+        tap: more_info
+      - entity: sensor.production_solaire_actuelle
+        name: Production photovoltaïque
+        pos: [100, 140]
+        icon: mdi:solar-panel-large
+        value: sensor.production_solaire_actuelle
+        unit: " W"
+        decimals: 0
+        tap: card
+        protected: true
+        card:
+          title: Énergie solaire
+          widgets:
+            - type: tile
+              title: Production sur 24 h
+              entity: sensor.production_solaire_actuelle
+              history: 24
+            - type: entities
+              title: Bilan
+              entities:
+                - sensor.production_solaire_jour
+                - sensor.consommation_maison_actuelle
+    texts:
+      - text: ☀ SOLAIRE
+        pos: [270, 170]
+        info:
+          - entity: sensor.production_solaire_actuelle
+            name: Puissance
+            decimals: 0
+            unit: W
+          - entity: sensor.production_solaire_jour
+            name: Aujourd'hui
+            decimals: 1
+            unit: kWh
+    # Exemple facultatif de PNG calibré.
+    # Fichier à placer dans /config/www/maquette/calque_demo.png
+    # background:
+    #   image: /local/maquette/calque_demo.png
+    #   pos: [0, 0]
+    #   width: 800
+    #   height: 750
+    #   opacity: 0.75
+    #   show: always
+ambience:
+  day_night: true
+  north: 0
+  light:
+    lamps: true
+interaction:
+  lock_view: false
+badge_style:
+  size: small
+layers:
+  overlay_order: [area_labels, room_labels, badges, texts]
