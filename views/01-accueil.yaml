@@ -186,6 +186,12 @@ sections:
               action: navigate
               navigation_path: /kimia-smart/musique
           - type: button
+            name: Prises
+            icon: mdi:power-socket-eu
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-smart/prises
+          - type: button
             name: Sécurité
             icon: mdi:shield-home
             tap_action:
