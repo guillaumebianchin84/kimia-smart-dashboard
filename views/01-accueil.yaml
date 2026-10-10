@@ -1,170 +1,289 @@
 title: Accueil
 path: accueil
-icon: mdi:home-outline
+icon: mdi:home-variant-outline
 type: sections
-max_columns: 3
-header:
-  layout: responsive
-  badges_position: bottom
-  card:
-    type: markdown
-    content: >-
-      <table role="presentation"><tr>
-      <td width="160"><img src="/local/kimia-logo.svg" width="144" height="42" alt="KIMIA Smart by PROMAINT"/></td>
-      <td><strong>{% if now().hour < 12 %}Bonjour{% elif now().hour < 18 %}Bon après-midi{% else %}Bonsoir{% endif %} {{ user }}</strong>
-      <br/>Votre maison, tout simplement.
-      <br/><small>{{ now().strftime('%d/%m/%Y') }}</small></td>
-      </tr></table>
+max_columns: 2
 sections:
+  # 01 — Bandeau compact, environ deux fois moins haut que le premier test.
   - type: grid
+    column_span: 2
     cards:
+      - type: custom:button-card
+        section_mode: true
+        grid_options:
+          columns: full
+          rows: auto
+        show_icon: false
+        show_name: false
+        show_label: false
+        tap_action:
+          action: none
+        triggers_update: []
+        custom_fields:
+          brand: |
+            [[[
+              return `<div style="font-size:22px;font-weight:850;line-height:1.1;letter-spacing:-.7px">KIMIA<span style="color:#43D9CE"> Smart</span></div>
+              <div style="font-size:9px;font-weight:750;color:#C3E0E8;letter-spacing:2px;margin-top:4px">BY PROMAINT</div>`;
+            ]]]
+          hello: |
+            [[[
+              const h = new Date().getHours();
+              const salutation = h < 12 ? 'Bonjour' : h < 18 ? 'Bon après-midi' : 'Bonsoir';
+              return `<div style="font-size:11px;color:#D7EDF3;text-align:right">${salutation}<br/>Votre maison, tout simplement.</div>`;
+            ]]]
+        styles:
+          card:
+            - background: 'linear-gradient(117deg, #0D324F 0%, #15597B 65%, #137D87 100%)'
+            - border: '1px solid rgba(255,255,255,.12)'
+            - border-radius: 19px
+            - padding: 14px 16px
+            - color: '#FFFFFF'
+            - box-shadow: '0 5px 16px rgba(0,45,68,.13)'
+          grid:
+            - grid-template-areas: '"brand hello"'
+            - grid-template-columns: minmax(0,1fr) auto
+            - grid-template-rows: auto
+            - align-items: center
+            - column-gap: 8px
+          custom_fields:
+            brand:
+              - justify-self: start
+              - text-align: left
+            hello:
+              - justify-self: end
+              - text-align: right
+
+  # 02 — Météo visible immédiatement. Données RÉELLES ou tirets si absentes.
       - type: heading
-        heading: Aujourd'hui
+        heading: Météo et températures
         icon: mdi:weather-partly-cloudy
-      - type: markdown
-        content: >-
-          {% set meteo = states('weather.forecast_home') %}
-          {% set t = state_attr('weather.forecast_home','temperature') %}
-          {% if meteo not in ['unknown','unavailable','none'] %}
-          ### {{ '🌤️' if meteo in ['sunny','partlycloudy'] else '🌧️' if meteo in ['rainy','pouring'] else '🌥️' }} {{ meteo | replace('-',' ') | capitalize }}
+        visibility:
+          - condition: state
+            entity: input_select.kimia_meteo_visible
+            state: "Oui"
+        grid_options:
+          columns: full
+          rows: 1
+      - type: weather-forecast
+        entity: weather.meteo_france_forecast_for_city_le_pontet_provence_alpes_cote_d_azur_84_fr_le_pontet
+        visibility:
+          - condition: state
+            entity: input_select.kimia_meteo_visible
+            state: "Oui"
+        forecast_type: daily
+        show_current: true
+        show_forecast: true
+        grid_options:
+          columns: full
+          rows: auto
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 18px;
+              overflow: hidden;
+              background: var(--card-background-color);
+              color: var(--primary-text-color);
+              border: 1px solid var(--divider-color);
+              box-shadow: 0 3px 12px rgba(0,30,53,.05);
+            }
+      - type: tile
+        entity: sensor.temperature_interieure_netatmo
+        visibility:
+          - condition: state
+            entity: input_select.kimia_meteo_visible
+            state: "Oui"
+        name: Intérieur
+        icon: mdi:home-thermometer-outline
+        vertical: false
+        tap_action:
+          action: more-info
+        grid_options:
+          columns: 6
+          rows: 1
+        card_mod:
+          style: ha-card { border-radius:17px; border:1px solid var(--divider-color); box-shadow:none; }
+      - type: tile
+        entity: sensor.temperature_exterieure_meteo_france
+        visibility:
+          - condition: state
+            entity: input_select.kimia_meteo_visible
+            state: "Oui"
+        name: Extérieur
+        icon: mdi:weather-sunny
+        vertical: false
+        tap_action:
+          action: more-info
+        grid_options:
+          columns: 6
+          rows: 1
+        card_mod:
+          style: ha-card { border-radius:17px; border:1px solid var(--divider-color); box-shadow:none; }
+      - type: heading
+        heading: Ma maison
+        icon: mdi:home-heart
+        grid_options:
+          columns: full
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        entity: input_boolean.mode_absence
+        name: Présence
+        icon: mdi:home-account
+        tap_action:
+          action: more-info
+        grid_options:
+          columns: 6
+          rows: 1
+        label: |
+          [[[
+            if(!entity || ['unknown','unavailable'].includes(entity.state)) return 'Indisponible';
+            return entity.state==='on'?'Mode absence':'Maison occupée';
+          ]]]
+        state:
+          - value: 'on'
+            styles:
+              icon:
+                - color: '#EDA94A'
+              img_cell:
+                - background: rgba(237,169,74,.14)
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Lumières
+        icon: mdi:lightbulb-group-outline
+        grid_options:
+          columns: 6
+          rows: 1
+        triggers_update: all
+        label: |
+          [[[
+            const n=Object.values(states).filter(e=>e.entity_id?.startsWith('light.') && e.state==='on').length;
+            return n+' allumée'+(n>1?'s':'');
+          ]]]
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Volets
+        icon: mdi:window-shutter
+        grid_options:
+          columns: 6
+          rows: 1
+        triggers_update: all
+        label: |
+          [[[
+            const n=Object.values(states).filter(e=>e.entity_id?.startsWith('cover.') && e.state==='open').length;
+            return n+' ouvert'+(n>1?'s':'');
+          ]]]
+      - type: custom:button-card
+        template: kimia_v2_tile
+        entity: input_boolean.gestion_clim_chauffage_maison
+        name: Clim auto
+        icon: mdi:autorenew
+        tap_action:
+          action: more-info
+        grid_options:
+          columns: 6
+          rows: 1
+        label: |
+          [[[
+            if(!entity || ['unknown','unavailable'].includes(entity.state)) return 'Indisponible';
+            return entity.state==='on'?'Activée':'Désactivée';
+          ]]]
 
-          **{{ t ~ ' °C' if t is not none else 'Météo disponible' }}**
-          {% else %}
-          ### 🌤️ La météo de votre maison
+      - type: heading
+        heading: Confort
+        icon: mdi:thermostat
+        grid_options:
+          columns: full
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        entity: climate.clim_salon
+        name: Salon
+        icon: mdi:sofa-outline
+        tap_action:
+          action: more-info
+        grid_options:
+          columns: 6
+          rows: 1
+        label: |
+          [[[
+            if(!entity || ['unknown','unavailable'].includes(entity.state)) return 'Indisponible';
+            const m=entity.state==='off'?'Arrêt':entity.state==='cool'?'Froid':entity.state==='heat'?'Chaud':entity.state;
+            const t=entity.attributes?.temperature;
+            return m+(t!==undefined&&t!==null?' · '+String(t).replace('.',',')+'°':'');
+          ]]]
+      - type: custom:button-card
+        template: kimia_v2_tile
+        entity: climate.clim_chambre
+        name: Chambre
+        icon: mdi:bed-king-outline
+        tap_action:
+          action: more-info
+        grid_options:
+          columns: 6
+          rows: 1
+        label: |
+          [[[
+            if(!entity || ['unknown','unavailable'].includes(entity.state)) return 'Indisponible';
+            const m=entity.state==='off'?'Arrêt':entity.state==='cool'?'Froid':entity.state==='heat'?'Chaud':entity.state;
+            const t=entity.attributes?.temperature;
+            return m+(t!==undefined&&t!==null?' · '+String(t).replace('.',',')+'°':'');
+          ]]]
+      - type: custom:button-card
+        template: kimia_v2_tile
+        entity: input_number.consigne_maison
+        name: Consigne maison
+        icon: mdi:thermometer-lines
+        tap_action:
+          action: more-info
+        grid_options:
+          columns: 12
+          rows: 1
+        label: |
+          [[[
+            if(!entity || ['unknown','unavailable'].includes(entity.state)) return 'Indisponible';
+            return entity.state.replace('.',',')+' °C · toucher pour régler';
+          ]]]
 
-          Sera affichée après l'ajout de votre service météo.
-          {% endif %}
+  # 04 — À remplacer par ton vrai RSS News après récupération de son YAML.
       - type: heading
         heading: Le journal
         icon: mdi:newspaper-variant-outline
-      - type: markdown
-        content: >-
-          {% set titres = [
-            states('input_text.kimia_actu_1'),
-            states('input_text.kimia_actu_2'),
-            states('input_text.kimia_actu_3')
-          ] %}
-          {% set titres_valides = titres | reject('in', ['unknown','unavailable','none','']) | list %}
-          {% if titres_valides %}
-          {% for titre in titres_valides %}
-          - {{ titre }}
-          {% endfor %}
-          {% else %}
-          *Le journal sera disponible après la configuration d'un flux RSS.*
-          {% endif %}
-      - type: markdown
-        content: >-
-          {% set brief = states('input_text.kimia_brief') %}
-          {% if brief not in ['unknown','unavailable','none',''] %}
-          **En bref**
-
-          {{ brief }}
-          {% endif %}
-  - type: grid
-    cards:
-      - type: heading
-        heading: Scénarios rapides
-        icon: mdi:gesture-tap-button
-      - type: grid
-        columns: 2
-        square: false
-        cards:
-          - type: button
-            name: Bonjour
-            icon: mdi:weather-sunset-up
-            tap_action:
-              action: perform-action
-              perform_action: script.kimia_bonjour
-          - type: button
-            name: Départ
-            icon: mdi:home-export-outline
-            tap_action:
-              action: perform-action
-              perform_action: script.kimia_depart
-          - type: button
-            name: Détente
-            icon: mdi:sofa-outline
-            tap_action:
-              action: perform-action
-              perform_action: script.kimia_detente
-          - type: button
-            name: Bonne nuit
-            icon: mdi:weather-night
-            tap_action:
-              action: perform-action
-              perform_action: script.kimia_bonne_nuit
-      - type: heading
-        heading: État de la maison
-        icon: mdi:home-analytics
-      - type: markdown
-        content: >-
-          {% set lampes = ['input_boolean.kimia_lumiere_salon',
-                           'input_boolean.kimia_lumiere_cuisine',
-                           'input_boolean.kimia_lumiere_chambre'] %}
-          {% set ns = namespace(n=0) %}
-          {% for lampe in lampes %}{% if is_state(lampe, 'on') %}{% set ns.n = ns.n + 1 %}{% endif %}{% endfor %}
-          **{{ '🚶 Mode absence' if is_state('input_boolean.kimia_mode_absence','on') else '🏡 Maison occupée' }}**
-
-          💡 {{ ns.n }} lumière(s) allumée(s)
-
-          🚪 {{ 'Porte ouverte' if is_state('input_boolean.kimia_porte_ouverte','on') else 'Porte fermée' }}
-      - type: tile
-        entity: input_boolean.kimia_mode_absence
-        name: Mode absence (démo)
-      - type: tile
-        entity: input_number.kimia_consigne_salon
-        name: Consigne salon (démo)
-  - type: grid
-    cards:
-      - type: heading
-        heading: Accès rapides
-        icon: mdi:view-dashboard-outline
-      - type: grid
-        columns: 2
-        square: false
-        cards:
-          - type: button
-            name: Lumières
-            icon: mdi:lightbulb-group-outline
-            tap_action:
-              action: navigate
-              navigation_path: /kimia-smart/lumieres
-          - type: button
-            name: Volets
-            icon: mdi:window-shutter
-            tap_action:
-              action: navigate
-              navigation_path: /kimia-smart/volets
-          - type: button
-            name: Climatisation
-            icon: mdi:air-conditioner
-            tap_action:
-              action: navigate
-              navigation_path: /kimia-smart/climatisation
-          - type: button
-            name: Musique
-            icon: mdi:music
-            tap_action:
-              action: navigate
-              navigation_path: /kimia-smart/musique
-          - type: button
-            name: Prises
-            icon: mdi:power-socket-eu
-            tap_action:
-              action: navigate
-              navigation_path: /kimia-smart/prises
-          - type: button
-            name: Sécurité
-            icon: mdi:shield-home-outline
-            tap_action:
-              action: navigate
-              navigation_path: /kimia-smart/securite
-      - type: heading
-        heading: À retenir
-        icon: mdi:shield-check-outline
-      - type: markdown
-        content: >-
-          La domotique locale continue à fonctionner sans Internet.
-
-          Les fonctions Google, les actualités et l'accès distant
-          dépendent de la connexion.
+        visibility:
+          - condition: state
+            entity: input_select.kimia_journal_visible
+            state: "Oui"
+        grid_options:
+          columns: full
+          rows: 1
+      - type: custom:rss-news-card
+        visibility:
+          - condition: state
+            entity: input_select.kimia_journal_visible
+            state: "Oui"
+        title: 📰 Flash Info
+        sources:
+          - entity: sensor.rss_bfmtv
+            name: BFMTV
+            color: '#0072CE'
+          - entity: sensor.rss_le_monde
+            name: Le Monde
+            color: '#222222'
+        max_articles: 5
+        card_height: 265
+        show_description: false
+        show_source: true
+        show_date: true
+        image_width: 120
+        image_height: 68
+        grid_options:
+          columns: full
+          rows: 5
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 18px;
+              overflow: hidden;
+              background: var(--card-background-color);
+              border: 1px solid var(--divider-color);
+              box-shadow: 0 3px 12px rgba(0,30,53,.05);
+            }

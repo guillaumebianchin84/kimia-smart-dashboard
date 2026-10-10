@@ -1,8 +1,63 @@
-# KIMIA Smart — dashboard principal.
-# Aucun thème n'est imposé aux vues : le thème commun est choisi depuis
-# Configuration client (input_select + frontend.set_theme).
-# Ne pas ajouter de theme: à chaque vue.
+# KIMIA Smart - source YAML historique
+# Pour déplacer les cartes dans l'éditeur visuel, importer dashboard-ui-import.yaml dans un dashboard géré par l'UI.
 title: KIMIA Smart
+button_card_templates:
+  kimia_v2_tile:
+    section_mode: true
+    show_name: true
+    show_icon: true
+    show_state: false
+    show_label: true
+    tap_action:
+      action: none
+    hold_action:
+      action: none
+    styles:
+      card:
+        - background: var(--ha-card-background, var(--card-background-color, #ffffff))
+        - color: var(--primary-text-color)
+        - border: 1px solid var(--divider-color)
+        - border-radius: 17px
+        - box-shadow: 0 3px 12px rgba(0, 30, 53, .05)
+        - padding: 8px 10px
+        - overflow: hidden
+      grid:
+        - grid-template-areas: '"i n" "i l"'
+        - grid-template-columns: 36px minmax(0, 1fr)
+        - grid-template-rows: 1fr 1fr
+        - column-gap: 6px
+      img_cell:
+        - width: 32px
+        - height: 32px
+        - border-radius: 11px
+        - background: rgba(22, 165, 166, .11)
+        - justify-self: start
+        - align-self: center
+      icon:
+        - width: 19px
+        - color: '#29B7AE'
+      name:
+        - color: var(--primary-text-color)
+        - font-size: 12px
+        - font-weight: 750
+        - justify-self: start
+        - align-self: end
+        - text-align: left
+        - white-space: nowrap
+        - max-width: 100%
+        - overflow: hidden
+        - text-overflow: ellipsis
+      label:
+        - color: var(--secondary-text-color)
+        - font-size: 10px
+        - justify-self: start
+        - align-self: start
+        - margin-top: 2px
+        - text-align: left
+        - white-space: nowrap
+        - max-width: 100%
+        - overflow: hidden
+        - text-overflow: ellipsis
 views:
   - !include /config/kimia/views/01-accueil.yaml
   - !include /config/kimia/views/02-lumieres.yaml

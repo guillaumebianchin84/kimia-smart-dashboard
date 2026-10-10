@@ -2,46 +2,138 @@ title: Volets
 path: volets
 icon: mdi:window-shutter
 type: sections
-max_columns: 3
+max_columns: 2
 sections:
   - type: grid
     cards:
       - type: heading
-        heading: Pièces de vie
+        heading: Ouvertures
+        icon: mdi:window-shutter
+        grid_options:
+          columns: full
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Volets ouverts
         icon: mdi:window-shutter-open
-      - type: tile
-        entity: input_boolean.kimia_volet_salon_ouvert
-        name: Volet salon ouvert (démo)
-      - type: tile
-        entity: input_boolean.kimia_volet_cuisine_ouvert
-        name: Volet cuisine ouvert (démo)
+        triggers_update: all
+        label: |
+          [[[
+            const n=Object.values(states).filter(e=>e.entity_id?.startsWith('cover.') && e.state==='open').length;
+            return n+' actif'+(n>1?'s':'');
+          ]]]
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: markdown
+        content: >-
+          Le pilotage réel des volets nécessite un contrôleur moteur compatible et une entité **cover**. Les commandes générales ne sont activées qu'après contrôle des moteurs.
+        grid_options:
+          columns: full
+          rows: auto
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 17px;
+              background: var(--card-background-color);
+              border: 1px solid var(--divider-color);
+              color: var(--primary-text-color);
+            }
+  - type: grid
+    cards:
+      - type: heading
+        heading: Pièces de vie
+        icon: mdi:sofa-outline
+        grid_options:
+          columns: full
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Salon
+        icon: mdi:window-shutter
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Baie vitrée
+        icon: mdi:window-shutter
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Cuisine
+        icon: mdi:window-shutter
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Terrasse
+        icon: mdi:window-shutter
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
   - type: grid
     cards:
       - type: heading
         heading: Chambres
         icon: mdi:bed-outline
-      - type: tile
-        entity: input_boolean.kimia_volet_chambre_ouvert
-        name: Volet chambre ouvert (démo)
-  - type: grid
-    cards:
-      - type: heading
-        heading: Commandes générales
-        icon: mdi:gesture-tap
-      - type: button
-        name: Tout ouvrir
-        icon: mdi:window-shutter-open
-        tap_action:
-          action: perform-action
-          perform_action: script.kimia_volets_ouvrir
-      - type: button
-        name: Tout fermer
+        grid_options:
+          columns: full
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Parents
         icon: mdi:window-shutter
+        label: À associer à un équipement
         tap_action:
-          action: perform-action
-          perform_action: script.kimia_volets_fermer
-      - type: markdown
-        content: >-
-          Les vrais moteurs devront être reliés à une commande adaptée
-          et reconnus comme entités **cover**. Un relais seul ne
-          suffit pas à garantir un pilotage sécurisé des volets.
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Chambre 1
+        icon: mdi:window-shutter
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Chambre 2
+        icon: mdi:window-shutter
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Chambre 3
+        icon: mdi:window-shutter
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1

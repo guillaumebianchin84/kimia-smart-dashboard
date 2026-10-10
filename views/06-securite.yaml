@@ -2,36 +2,147 @@ title: Sécurité
 path: securite
 icon: mdi:shield-home-outline
 type: sections
-max_columns: 3
+max_columns: 2
 sections:
   - type: grid
     cards:
       - type: heading
-        heading: Accès à la maison
-        icon: mdi:door
-      - type: tile
-        entity: input_boolean.kimia_porte_ouverte
-        name: Porte d'entrée (simulation)
-      - type: tile
-        entity: input_boolean.kimia_fenetre_ouverte
-        name: Fenêtre salon (simulation)
-  - type: grid
-    cards:
-      - type: heading
-        heading: Mouvements
+        heading: Sécurité et capteurs
+        icon: mdi:shield-home-outline
+        grid_options:
+          columns: full
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Ouvertures actives
+        icon: mdi:door-open
+        triggers_update: all
+        label: |
+          [[[
+            const n=Object.values(states).filter(e=>e.entity_id?.startsWith('binary_sensor.') && ['door','window','opening'].includes(e.attributes?.device_class) && e.state==='on').length;
+            return n+' actif'+(n>1?'s':'');
+          ]]]
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Mouvements actifs
         icon: mdi:motion-sensor
-      - type: tile
-        entity: input_boolean.kimia_mouvement_detecte
-        name: Détection (simulation)
-  - type: grid
-    cards:
-      - type: heading
-        heading: Caméras et notifications
-        icon: mdi:cctv
+        triggers_update: all
+        label: |
+          [[[
+            const n=Object.values(states).filter(e=>e.entity_id?.startsWith('binary_sensor.') && ['motion','occupancy','presence'].includes(e.attributes?.device_class) && e.state==='on').length;
+            return n+' actif'+(n>1?'s':'');
+          ]]]
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
       - type: markdown
         content: >-
-          Les caméras et capteurs réels apparaîtront après installation
-          et validation de leurs intégrations Home Assistant.
-
-          **Information importante :** les interrupteurs ci-contre
-          sont des démonstrations, pas un système d'alarme opérationnel.
+          Ces nombres proviennent des capteurs reconnus. Aucun système d'alarme certifié n'est installé par cette page.
+        grid_options:
+          columns: full
+          rows: auto
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 17px;
+              background: var(--card-background-color);
+              border: 1px solid var(--divider-color);
+              color: var(--primary-text-color);
+            }
+  - type: grid
+    cards:
+      - type: heading
+        heading: Portes et fenêtres
+        icon: mdi:door
+        grid_options:
+          columns: full
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Porte d'entrée
+        icon: mdi:door-closed
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Fenêtre salon
+        icon: mdi:window-closed
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Fenêtre chambre
+        icon: mdi:window-closed
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Détecteur d'eau
+        icon: mdi:water-alert
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+  - type: grid
+    cards:
+      - type: heading
+        heading: Caméras
+        icon: mdi:cctv
+        grid_options:
+          columns: full
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Entrée
+        icon: mdi:cctv
+        label: Caméra à associer
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Extérieur
+        icon: mdi:cctv
+        label: Caméra à associer
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: markdown
+        content: >-
+          Les flux vidéo ne seront activés qu'après sélection et validation d'une caméra compatible avec Home Assistant.
+        grid_options:
+          columns: full
+          rows: auto
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 17px;
+              background: var(--card-background-color);
+              border: 1px solid var(--divider-color);
+              color: var(--primary-text-color);
+            }

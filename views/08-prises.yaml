@@ -9,16 +9,68 @@ sections:
       - type: heading
         heading: Prises connectées
         icon: mdi:power-socket-eu
-      - type: tile
-        entity: input_boolean.kimia_prise_salon
-        name: Prise salon (simulation)
+        grid_options:
+          columns: full
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Salon
+        icon: mdi:power-socket-eu
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Cuisine
+        icon: mdi:power-socket-eu
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Chambre
+        icon: mdi:power-socket-eu
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Autre prise
+        icon: mdi:power-socket-eu
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
   - type: grid
     cards:
       - type: heading
-        heading: Consommation et automatismes
-        icon: mdi:flash-outline
+        heading: Énergie
+        icon: mdi:lightning-bolt-outline
+        grid_options:
+          columns: full
+          rows: 1
       - type: markdown
         content: >-
-          Les prises Zigbee SONOFF avec mesure de consommation pourront
-          afficher leur puissance et énergie, lorsqu'elles sont reconnues
-          et configurées dans Home Assistant.
+          Une prise SONOFF Zigbee S60ZBTPF peut mesurer la puissance et la consommation lorsque ses entités sont disponibles. Les mesures réelles seront affichées après association de la prise.
+        grid_options:
+          columns: full
+          rows: auto
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 17px;
+              background: var(--card-background-color);
+              border: 1px solid var(--divider-color);
+              color: var(--primary-text-color);
+            }

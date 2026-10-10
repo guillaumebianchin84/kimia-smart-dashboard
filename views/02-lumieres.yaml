@@ -2,45 +2,138 @@ title: Lumières
 path: lumieres
 icon: mdi:lightbulb-group-outline
 type: sections
-max_columns: 3
+max_columns: 2
 sections:
   - type: grid
     cards:
       - type: heading
-        heading: Salon
-        icon: mdi:sofa-outline
-      - type: tile
-        entity: input_boolean.kimia_lumiere_salon
-        name: Éclairage salon (démo)
-        icon: mdi:ceiling-light
-  - type: grid
-    cards:
-      - type: heading
-        heading: Cuisine et chambres
-        icon: mdi:home-lightbulb-outline
-      - type: tile
-        entity: input_boolean.kimia_lumiere_cuisine
-        name: Cuisine (démo)
-        icon: mdi:lightbulb-outline
-      - type: tile
-        entity: input_boolean.kimia_lumiere_chambre
-        name: Chambre (démo)
-        icon: mdi:bed-outline
-  - type: grid
-    cards:
-      - type: heading
-        heading: Toute la maison
-        icon: mdi:lightbulb-group-off-outline
-      - type: button
-        name: Tout éteindre
-        icon: mdi:lightbulb-group-off-outline
+        heading: Éclairage de la maison
+        icon: mdi:lightbulb-group-outline
+        grid_options:
+          columns: full
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Allumées
+        icon: mdi:lightbulb-group
+        triggers_update: all
+        label: |
+          [[[
+            const n=Object.values(states).filter(e=>e.entity_id?.startsWith('light.') && e.state==='on').length;
+            return n+' actif'+(n>1?'s':'');
+          ]]]
         tap_action:
-          action: perform-action
-          perform_action: script.kimia_lumieres_eteindre
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
       - type: markdown
         content: >-
-          **Éclairage LEDVANCE SMART+**
-
-          Après intégration Zigbee, les vraies ampoules et spots remplaceront
-          les commandes de démonstration. La variation et les couleurs
-          seront proposées uniquement par les modèles compatibles.
+          Touchez les commandes des lampes après leur association à Home Assistant. Les ampoules et spots retenus dans le catalogue sont **LEDVANCE SMART+ Zigbee**.
+        grid_options:
+          columns: full
+          rows: auto
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 17px;
+              background: var(--card-background-color);
+              border: 1px solid var(--divider-color);
+              color: var(--primary-text-color);
+            }
+  - type: grid
+    cards:
+      - type: heading
+        heading: Pièces de vie
+        icon: mdi:sofa-outline
+        grid_options:
+          columns: full
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Salon
+        icon: mdi:ceiling-light
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Cuisine
+        icon: mdi:lightbulb-spot
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Entrée
+        icon: mdi:wall-sconce-flat
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Terrasse
+        icon: mdi:outdoor-lamp
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+  - type: grid
+    cards:
+      - type: heading
+        heading: Chambres
+        icon: mdi:bed-outline
+        grid_options:
+          columns: full
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Parents
+        icon: mdi:lamp
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Chambre 1
+        icon: mdi:lightbulb-outline
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Chambre 2
+        icon: mdi:lightbulb-outline
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1
+      - type: custom:button-card
+        template: kimia_v2_tile
+        name: Chambre 3
+        icon: mdi:lightbulb-outline
+        label: À associer à un équipement
+        tap_action:
+          action: none
+        grid_options:
+          columns: 6
+          rows: 1

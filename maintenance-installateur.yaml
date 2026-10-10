@@ -1,0 +1,44 @@
+title: Maintenance KIMIA
+views:
+  - title: Maintenance
+    path: maintenance
+    icon: mdi:shield-wrench
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Maintenance administrateur
+            icon: mdi:shield-wrench
+          - type: markdown
+            content: >-
+              **Attention :** actions réservées à l'installateur
+              ou au client disposant de droits administrateur.
+
+              Un redémarrage suspend temporairement le contrôle
+              Home Assistant. Il ne redémarre pas nécessairement
+              le système d'exploitation ou le matériel.
+          - type: button
+            name: Redémarrer Home Assistant
+            icon: mdi:restart
+            tap_action:
+              action: perform-action
+              perform_action: homeassistant.restart
+              confirmation:
+                title: Confirmer le redémarrage
+                text: >-
+                  Home Assistant va redémarrer et sera indisponible
+                  pendant quelques instants. Continuer ?
+            grid_options:
+              columns: 12
+              rows: 2
+          - type: button
+            name: Réglages système
+            icon: mdi:cog-outline
+            tap_action:
+              action: navigate
+              navigation_path: /config/system
+            grid_options:
+              columns: 12
+              rows: 2

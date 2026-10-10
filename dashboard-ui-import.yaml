@@ -1,0 +1,1137 @@
+title: KIMIA Smart
+button_card_templates:
+  kimia_v2_tile:
+    section_mode: true
+    show_name: true
+    show_icon: true
+    show_state: false
+    show_label: true
+    tap_action:
+      action: none
+    hold_action:
+      action: none
+    styles:
+      card:
+        - background: var(--ha-card-background, var(--card-background-color, #ffffff))
+        - color: var(--primary-text-color)
+        - border: 1px solid var(--divider-color)
+        - border-radius: 17px
+        - box-shadow: 0 3px 12px rgba(0, 30, 53, .05)
+        - padding: 8px 10px
+        - overflow: hidden
+      grid:
+        - grid-template-areas: '"i n" "i l"'
+        - grid-template-columns: 36px minmax(0, 1fr)
+        - grid-template-rows: 1fr 1fr
+        - column-gap: 6px
+      img_cell:
+        - width: 32px
+        - height: 32px
+        - border-radius: 11px
+        - background: rgba(22, 165, 166, .11)
+        - justify-self: start
+        - align-self: center
+      icon:
+        - width: 19px
+        - color: '#29B7AE'
+      name:
+        - color: var(--primary-text-color)
+        - font-size: 12px
+        - font-weight: 750
+        - justify-self: start
+        - align-self: end
+        - text-align: left
+        - white-space: nowrap
+        - max-width: 100%
+        - overflow: hidden
+        - text-overflow: ellipsis
+      label:
+        - color: var(--secondary-text-color)
+        - font-size: 10px
+        - justify-self: start
+        - align-self: start
+        - margin-top: 2px
+        - text-align: left
+        - white-space: nowrap
+        - max-width: 100%
+        - overflow: hidden
+        - text-overflow: ellipsis
+views:
+  - title: Accueil
+    path: accueil
+    icon: mdi:home-variant-outline
+    type: sections
+    max_columns: 2
+    sections:
+      # 01 — Bandeau compact, environ deux fois moins haut que le premier test.
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:button-card
+            section_mode: true
+            grid_options:
+              columns: full
+              rows: auto
+            show_icon: false
+            show_name: false
+            show_label: false
+            tap_action:
+              action: none
+            triggers_update: []
+            custom_fields:
+              brand: |
+                [[[
+                  return `<div style="font-size:22px;font-weight:850;line-height:1.1;letter-spacing:-.7px">KIMIA<span style="color:#43D9CE"> Smart</span></div>
+                  <div style="font-size:9px;font-weight:750;color:#C3E0E8;letter-spacing:2px;margin-top:4px">BY PROMAINT</div>`;
+                ]]]
+              hello: |
+                [[[
+                  const h = new Date().getHours();
+                  const salutation = h < 12 ? 'Bonjour' : h < 18 ? 'Bon après-midi' : 'Bonsoir';
+                  return `<div style="font-size:11px;color:#D7EDF3;text-align:right">${salutation}<br/>Votre maison, tout simplement.</div>`;
+                ]]]
+            styles:
+              card:
+                - background: 'linear-gradient(117deg, #0D324F 0%, #15597B 65%, #137D87 100%)'
+                - border: '1px solid rgba(255,255,255,.12)'
+                - border-radius: 19px
+                - padding: 14px 16px
+                - color: '#FFFFFF'
+                - box-shadow: '0 5px 16px rgba(0,45,68,.13)'
+              grid:
+                - grid-template-areas: '"brand hello"'
+                - grid-template-columns: minmax(0,1fr) auto
+                - grid-template-rows: auto
+                - align-items: center
+                - column-gap: 8px
+              custom_fields:
+                brand:
+                  - justify-self: start
+                  - text-align: left
+                hello:
+                  - justify-self: end
+                  - text-align: right
+    
+      # 02 — Météo visible immédiatement. Données RÉELLES ou tirets si absentes.
+          - type: heading
+            heading: Météo et températures
+            icon: mdi:weather-partly-cloudy
+            visibility:
+              - condition: state
+                entity: input_select.kimia_meteo_visible
+                state: "Oui"
+            grid_options:
+              columns: full
+              rows: 1
+          - type: weather-forecast
+            entity: weather.meteo_france_forecast_for_city_le_pontet_provence_alpes_cote_d_azur_84_fr_le_pontet
+            visibility:
+              - condition: state
+                entity: input_select.kimia_meteo_visible
+                state: "Oui"
+            forecast_type: daily
+            show_current: true
+            show_forecast: true
+            grid_options:
+              columns: full
+              rows: auto
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 18px;
+                  overflow: hidden;
+                  background: var(--card-background-color);
+                  color: var(--primary-text-color);
+                  border: 1px solid var(--divider-color);
+                  box-shadow: 0 3px 12px rgba(0,30,53,.05);
+                }
+          - type: tile
+            entity: sensor.temperature_interieure_netatmo
+            visibility:
+              - condition: state
+                entity: input_select.kimia_meteo_visible
+                state: "Oui"
+            name: Intérieur
+            icon: mdi:home-thermometer-outline
+            vertical: false
+            tap_action:
+              action: more-info
+            grid_options:
+              columns: 6
+              rows: 1
+            card_mod:
+              style: ha-card { border-radius:17px; border:1px solid var(--divider-color); box-shadow:none; }
+          - type: tile
+            entity: sensor.temperature_exterieure_meteo_france
+            visibility:
+              - condition: state
+                entity: input_select.kimia_meteo_visible
+                state: "Oui"
+            name: Extérieur
+            icon: mdi:weather-sunny
+            vertical: false
+            tap_action:
+              action: more-info
+            grid_options:
+              columns: 6
+              rows: 1
+            card_mod:
+              style: ha-card { border-radius:17px; border:1px solid var(--divider-color); box-shadow:none; }
+          - type: heading
+            heading: Ma maison
+            icon: mdi:home-heart
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            entity: input_boolean.mode_absence
+            name: Présence
+            icon: mdi:home-account
+            tap_action:
+              action: more-info
+            grid_options:
+              columns: 6
+              rows: 1
+            label: |
+              [[[
+                if(!entity || ['unknown','unavailable'].includes(entity.state)) return 'Indisponible';
+                return entity.state==='on'?'Mode absence':'Maison occupée';
+              ]]]
+            state:
+              - value: 'on'
+                styles:
+                  icon:
+                    - color: '#EDA94A'
+                  img_cell:
+                    - background: rgba(237,169,74,.14)
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Lumières
+            icon: mdi:lightbulb-group-outline
+            grid_options:
+              columns: 6
+              rows: 1
+            triggers_update: all
+            label: |
+              [[[
+                const n=Object.values(states).filter(e=>e.entity_id?.startsWith('light.') && e.state==='on').length;
+                return n+' allumée'+(n>1?'s':'');
+              ]]]
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Volets
+            icon: mdi:window-shutter
+            grid_options:
+              columns: 6
+              rows: 1
+            triggers_update: all
+            label: |
+              [[[
+                const n=Object.values(states).filter(e=>e.entity_id?.startsWith('cover.') && e.state==='open').length;
+                return n+' ouvert'+(n>1?'s':'');
+              ]]]
+          - type: custom:button-card
+            template: kimia_v2_tile
+            entity: input_boolean.gestion_clim_chauffage_maison
+            name: Clim auto
+            icon: mdi:autorenew
+            tap_action:
+              action: more-info
+            grid_options:
+              columns: 6
+              rows: 1
+            label: |
+              [[[
+                if(!entity || ['unknown','unavailable'].includes(entity.state)) return 'Indisponible';
+                return entity.state==='on'?'Activée':'Désactivée';
+              ]]]
+    
+          - type: heading
+            heading: Confort
+            icon: mdi:thermostat
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            entity: climate.clim_salon
+            name: Salon
+            icon: mdi:sofa-outline
+            tap_action:
+              action: more-info
+            grid_options:
+              columns: 6
+              rows: 1
+            label: |
+              [[[
+                if(!entity || ['unknown','unavailable'].includes(entity.state)) return 'Indisponible';
+                const m=entity.state==='off'?'Arrêt':entity.state==='cool'?'Froid':entity.state==='heat'?'Chaud':entity.state;
+                const t=entity.attributes?.temperature;
+                return m+(t!==undefined&&t!==null?' · '+String(t).replace('.',',')+'°':'');
+              ]]]
+          - type: custom:button-card
+            template: kimia_v2_tile
+            entity: climate.clim_chambre
+            name: Chambre
+            icon: mdi:bed-king-outline
+            tap_action:
+              action: more-info
+            grid_options:
+              columns: 6
+              rows: 1
+            label: |
+              [[[
+                if(!entity || ['unknown','unavailable'].includes(entity.state)) return 'Indisponible';
+                const m=entity.state==='off'?'Arrêt':entity.state==='cool'?'Froid':entity.state==='heat'?'Chaud':entity.state;
+                const t=entity.attributes?.temperature;
+                return m+(t!==undefined&&t!==null?' · '+String(t).replace('.',',')+'°':'');
+              ]]]
+          - type: custom:button-card
+            template: kimia_v2_tile
+            entity: input_number.consigne_maison
+            name: Consigne maison
+            icon: mdi:thermometer-lines
+            tap_action:
+              action: more-info
+            grid_options:
+              columns: 12
+              rows: 1
+            label: |
+              [[[
+                if(!entity || ['unknown','unavailable'].includes(entity.state)) return 'Indisponible';
+                return entity.state.replace('.',',')+' °C · toucher pour régler';
+              ]]]
+    
+      # 04 — À remplacer par ton vrai RSS News après récupération de son YAML.
+          - type: heading
+            heading: Le journal
+            icon: mdi:newspaper-variant-outline
+            visibility:
+              - condition: state
+                entity: input_select.kimia_journal_visible
+                state: "Oui"
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:rss-news-card
+            visibility:
+              - condition: state
+                entity: input_select.kimia_journal_visible
+                state: "Oui"
+            title: 📰 Flash Info
+            sources:
+              - entity: sensor.rss_bfmtv
+                name: BFMTV
+                color: '#0072CE'
+              - entity: sensor.rss_le_monde
+                name: Le Monde
+                color: '#222222'
+            max_articles: 5
+            card_height: 265
+            show_description: false
+            show_source: true
+            show_date: true
+            image_width: 120
+            image_height: 68
+            grid_options:
+              columns: full
+              rows: 5
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 18px;
+                  overflow: hidden;
+                  background: var(--card-background-color);
+                  border: 1px solid var(--divider-color);
+                  box-shadow: 0 3px 12px rgba(0,30,53,.05);
+                }
+  - title: Lumières
+    path: lumieres
+    icon: mdi:lightbulb-group-outline
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Éclairage de la maison
+            icon: mdi:lightbulb-group-outline
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Allumées
+            icon: mdi:lightbulb-group
+            triggers_update: all
+            label: |
+              [[[
+                const n=Object.values(states).filter(e=>e.entity_id?.startsWith('light.') && e.state==='on').length;
+                return n+' actif'+(n>1?'s':'');
+              ]]]
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: markdown
+            content: >-
+              Touchez les commandes des lampes après leur association à Home Assistant. Les ampoules et spots retenus dans le catalogue sont **LEDVANCE SMART+ Zigbee**.
+            grid_options:
+              columns: full
+              rows: auto
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 17px;
+                  background: var(--card-background-color);
+                  border: 1px solid var(--divider-color);
+                  color: var(--primary-text-color);
+                }
+      - type: grid
+        cards:
+          - type: heading
+            heading: Pièces de vie
+            icon: mdi:sofa-outline
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Salon
+            icon: mdi:ceiling-light
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Cuisine
+            icon: mdi:lightbulb-spot
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Entrée
+            icon: mdi:wall-sconce-flat
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Terrasse
+            icon: mdi:outdoor-lamp
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+      - type: grid
+        cards:
+          - type: heading
+            heading: Chambres
+            icon: mdi:bed-outline
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Parents
+            icon: mdi:lamp
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Chambre 1
+            icon: mdi:lightbulb-outline
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Chambre 2
+            icon: mdi:lightbulb-outline
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Chambre 3
+            icon: mdi:lightbulb-outline
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+  - title: Volets
+    path: volets
+    icon: mdi:window-shutter
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Ouvertures
+            icon: mdi:window-shutter
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Volets ouverts
+            icon: mdi:window-shutter-open
+            triggers_update: all
+            label: |
+              [[[
+                const n=Object.values(states).filter(e=>e.entity_id?.startsWith('cover.') && e.state==='open').length;
+                return n+' actif'+(n>1?'s':'');
+              ]]]
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: markdown
+            content: >-
+              Le pilotage réel des volets nécessite un contrôleur moteur compatible et une entité **cover**. Les commandes générales ne sont activées qu'après contrôle des moteurs.
+            grid_options:
+              columns: full
+              rows: auto
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 17px;
+                  background: var(--card-background-color);
+                  border: 1px solid var(--divider-color);
+                  color: var(--primary-text-color);
+                }
+      - type: grid
+        cards:
+          - type: heading
+            heading: Pièces de vie
+            icon: mdi:sofa-outline
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Salon
+            icon: mdi:window-shutter
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Baie vitrée
+            icon: mdi:window-shutter
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Cuisine
+            icon: mdi:window-shutter
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Terrasse
+            icon: mdi:window-shutter
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+      - type: grid
+        cards:
+          - type: heading
+            heading: Chambres
+            icon: mdi:bed-outline
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Parents
+            icon: mdi:window-shutter
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Chambre 1
+            icon: mdi:window-shutter
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Chambre 2
+            icon: mdi:window-shutter
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Chambre 3
+            icon: mdi:window-shutter
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+  - title: Climatisation
+    path: climatisation
+    icon: mdi:air-conditioner
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Confort de la maison
+            icon: mdi:home-thermometer-outline
+            grid_options:
+              columns: full
+              rows: 1
+          - type: tile
+            entity: sensor.temperature_interieure_netatmo
+            name: Température intérieure
+            icon: mdi:home-thermometer-outline
+            tap_action:
+              action: more-info
+            grid_options:
+              columns: 6
+              rows: 1
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 17px;
+                  border: 1px solid var(--divider-color);
+                  background: var(--card-background-color);
+                }
+          - type: tile
+            entity: sensor.temperature_exterieure_meteo_france
+            name: Température extérieure
+            icon: mdi:weather-partly-cloudy
+            tap_action:
+              action: more-info
+            grid_options:
+              columns: 6
+              rows: 1
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 17px;
+                  border: 1px solid var(--divider-color);
+                  background: var(--card-background-color);
+                }
+          - type: custom:button-card
+            template: kimia_v2_tile
+            entity: input_boolean.gestion_clim_chauffage_maison
+            name: Gestion automatique
+            icon: mdi:autorenew
+            tap_action:
+              action: more-info
+            label: |
+              [[[
+                if(!entity||['unknown','unavailable'].includes(entity.state))return 'Indisponible';
+                return entity.state==='on'?'Activée':'Désactivée';
+              ]]]
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: tile
+            entity: input_number.consigne_maison
+            name: Consigne maison
+            icon: mdi:thermometer-lines
+            tap_action:
+              action: more-info
+            grid_options:
+              columns: 6
+              rows: 1
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 17px;
+                  border: 1px solid var(--divider-color);
+                  background: var(--card-background-color);
+                }
+      - type: grid
+        cards:
+          - type: heading
+            heading: Climatiseurs
+            icon: mdi:air-conditioner
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            entity: climate.clim_salon
+            name: Salon
+            icon: mdi:sofa-outline
+            tap_action:
+              action: more-info
+            label: |
+              [[[
+                if(!entity||['unknown','unavailable'].includes(entity.state))return 'Indisponible';
+                const mode=entity.state==='off'?'Arrêt':entity.state==='cool'?'Froid':entity.state==='heat'?'Chaud':entity.state;return mode+(entity.attributes?.temperature!==undefined?' · '+entity.attributes.temperature+'°':'');
+              ]]]
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            entity: climate.clim_chambre
+            name: Chambre
+            icon: mdi:bed-king-outline
+            tap_action:
+              action: more-info
+            label: |
+              [[[
+                if(!entity||['unknown','unavailable'].includes(entity.state))return 'Indisponible';
+                const mode=entity.state==='off'?'Arrêt':entity.state==='cool'?'Froid':entity.state==='heat'?'Chaud':entity.state;return mode+(entity.attributes?.temperature!==undefined?' · '+entity.attributes.temperature+'°':'');
+              ]]]
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: markdown
+            content: >-
+              Ces entités sont celles de la maison témoin. Sur une installation client, l'installateur les associe aux climatiseurs réellement présents.
+            grid_options:
+              columns: full
+              rows: auto
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 17px;
+                  background: var(--card-background-color);
+                  border: 1px solid var(--divider-color);
+                  color: var(--primary-text-color);
+                }
+  - title: Musique
+    path: musique
+    icon: mdi:music
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Enceintes et diffusion
+            icon: mdi:cast-audio
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Salon
+            icon: mdi:speaker-wireless
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Cuisine
+            icon: mdi:speaker-wireless
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Chambre parents
+            icon: mdi:speaker-wireless
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Autre enceinte
+            icon: mdi:speaker-wireless
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: markdown
+            content: >-
+              Google Cast et le Bluetooth seront proposés selon les modèles et la connexion. Les lecteurs devront être détectés dans Home Assistant avant leur configuration.
+            grid_options:
+              columns: full
+              rows: auto
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 17px;
+                  background: var(--card-background-color);
+                  border: 1px solid var(--divider-color);
+                  color: var(--primary-text-color);
+                }
+      - type: grid
+        cards:
+          - type: heading
+            heading: Musique locale
+            icon: mdi:folder-music-outline
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Réveil doux
+            icon: mdi:weather-sunset-up
+            label: Lecture MP3 à configurer
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Louanges
+            icon: mdi:music-note
+            label: Lecture MP3 à configurer
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Musique personnelle
+            icon: mdi:playlist-music
+            label: Lecture MP3 à configurer
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: markdown
+            content: >-
+              Les MP3 seront conservés dans les dossiers du client. Aucun abonnement Music Assistant n'est prévu comme obligation.
+            grid_options:
+              columns: full
+              rows: auto
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 17px;
+                  background: var(--card-background-color);
+                  border: 1px solid var(--divider-color);
+                  color: var(--primary-text-color);
+                }
+  - title: Sécurité
+    path: securite
+    icon: mdi:shield-home-outline
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Sécurité et capteurs
+            icon: mdi:shield-home-outline
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Ouvertures actives
+            icon: mdi:door-open
+            triggers_update: all
+            label: |
+              [[[
+                const n=Object.values(states).filter(e=>e.entity_id?.startsWith('binary_sensor.') && ['door','window','opening'].includes(e.attributes?.device_class) && e.state==='on').length;
+                return n+' actif'+(n>1?'s':'');
+              ]]]
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Mouvements actifs
+            icon: mdi:motion-sensor
+            triggers_update: all
+            label: |
+              [[[
+                const n=Object.values(states).filter(e=>e.entity_id?.startsWith('binary_sensor.') && ['motion','occupancy','presence'].includes(e.attributes?.device_class) && e.state==='on').length;
+                return n+' actif'+(n>1?'s':'');
+              ]]]
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: markdown
+            content: >-
+              Ces nombres proviennent des capteurs reconnus. Aucun système d'alarme certifié n'est installé par cette page.
+            grid_options:
+              columns: full
+              rows: auto
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 17px;
+                  background: var(--card-background-color);
+                  border: 1px solid var(--divider-color);
+                  color: var(--primary-text-color);
+                }
+      - type: grid
+        cards:
+          - type: heading
+            heading: Portes et fenêtres
+            icon: mdi:door
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Porte d'entrée
+            icon: mdi:door-closed
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Fenêtre salon
+            icon: mdi:window-closed
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Fenêtre chambre
+            icon: mdi:window-closed
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Détecteur d'eau
+            icon: mdi:water-alert
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+      - type: grid
+        cards:
+          - type: heading
+            heading: Caméras
+            icon: mdi:cctv
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Entrée
+            icon: mdi:cctv
+            label: Caméra à associer
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Extérieur
+            icon: mdi:cctv
+            label: Caméra à associer
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: markdown
+            content: >-
+              Les flux vidéo ne seront activés qu'après sélection et validation d'une caméra compatible avec Home Assistant.
+            grid_options:
+              columns: full
+              rows: auto
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 17px;
+                  background: var(--card-background-color);
+                  border: 1px solid var(--divider-color);
+                  color: var(--primary-text-color);
+                }
+  - title: Prises
+    path: prises
+    icon: mdi:power-socket-eu
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Prises connectées
+            icon: mdi:power-socket-eu
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Salon
+            icon: mdi:power-socket-eu
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Cuisine
+            icon: mdi:power-socket-eu
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Chambre
+            icon: mdi:power-socket-eu
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Autre prise
+            icon: mdi:power-socket-eu
+            label: À associer à un équipement
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+      - type: grid
+        cards:
+          - type: heading
+            heading: Énergie
+            icon: mdi:lightning-bolt-outline
+            grid_options:
+              columns: full
+              rows: 1
+          - type: markdown
+            content: >-
+              Une prise SONOFF Zigbee S60ZBTPF peut mesurer la puissance et la consommation lorsque ses entités sont disponibles. Les mesures réelles seront affichées après association de la prise.
+            grid_options:
+              columns: full
+              rows: auto
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 17px;
+                  background: var(--card-background-color);
+                  border: 1px solid var(--divider-color);
+                  color: var(--primary-text-color);
+                }
+  - title: Paramètres
+    path: parametres
+    icon: mdi:cog-outline
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Personnalisation
+            icon: mdi:palette-outline
+          - type: markdown
+            content: >-
+              Choisissez les couleurs de votre maison depuis le
+              dashboard **Configuration client KIMIA**.
+              Le choix sera appliqué automatiquement aux écrans
+              utilisant le thème Home Assistant par défaut.
+          - type: button
+            name: Ouvrir Configuration client
+            icon: mdi:palette
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-client/configuration
+      - type: grid
+        cards:
+          - type: heading
+            heading: Aide et informations
+            icon: mdi:information-outline
+          - type: markdown
+            content: >-
+              **KIMIA Smart by PROMAINT**
+    
+              La configuration technique des équipements, du réseau,
+              des intégrations et des accès distants est réservée
+              à l'installateur, sauf ouverture volontaire des droits
+              administrateur au client.
+    
+              Les commandes locales restent indépendantes du thème choisi.
