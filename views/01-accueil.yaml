@@ -1,0 +1,139 @@
+title: Accueil
+path: accueil
+icon: mdi:home-heart
+type: sections
+theme: KIMIA Smart
+max_columns: 3
+sections:
+  - type: grid
+    cards:
+      - type: heading
+        heading: Bienvenue à la maison
+        icon: mdi:home-heart
+      - type: markdown
+        content: >-
+          ## KIMIA Smart
+
+          **Votre maison, simplement.**
+
+          Pilotez l'essentiel et retrouvez les informations du jour.
+      - type: heading
+        heading: Météo du jour
+        icon: mdi:weather-partly-cloudy
+      # Remplacer weather.forecast_home par l'entité météo réelle.
+      - type: weather-forecast
+        entity: weather.forecast_home
+        show_current: true
+        show_forecast: true
+        forecast_type: daily
+      - type: heading
+        heading: Votre journal
+        icon: mdi:newspaper-variant-outline
+      - type: markdown
+        content: >-
+          {% set brief = states('input_text.kimia_brief') %}
+          {% if brief not in ['unknown', 'unavailable', 'none', ''] %}
+            {{ brief }}
+          {% else %}
+            *Le petit brief de la journée apparaîtra ici.*
+          {% endif %}
+  - type: grid
+    cards:
+      - type: heading
+        heading: Scénarios rapides
+        icon: mdi:gesture-tap-button
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: button
+            name: Bonjour
+            icon: mdi:weather-sunset-up
+            tap_action:
+              action: perform-action
+              perform_action: script.kimia_bonjour
+          - type: button
+            name: Départ
+            icon: mdi:home-export-outline
+            tap_action:
+              action: perform-action
+              perform_action: script.kimia_depart
+          - type: button
+            name: Détente
+            icon: mdi:sofa-outline
+            tap_action:
+              action: perform-action
+              perform_action: script.kimia_detente
+          - type: button
+            name: Bonne nuit
+            icon: mdi:weather-night
+            tap_action:
+              action: perform-action
+              perform_action: script.kimia_bonne_nuit
+      - type: heading
+        heading: Ma maison
+        icon: mdi:home-analytics
+      - type: entities
+        show_header_toggle: false
+        entities:
+          - entity: input_boolean.kimia_mode_absence
+            name: Mode absence (démo)
+          - entity: input_boolean.kimia_porte_ouverte
+            name: Porte d'entrée (simulation)
+          - entity: input_number.kimia_consigne_salon
+            name: Consigne salon (simulation)
+  - type: grid
+    cards:
+      - type: heading
+        heading: Tout à portée de main
+        icon: mdi:view-dashboard-outline
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: button
+            name: Lumières
+            icon: mdi:lightbulb-group-outline
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-smart/lumieres
+          - type: button
+            name: Volets
+            icon: mdi:window-shutter
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-smart/volets
+          - type: button
+            name: Climatisation
+            icon: mdi:air-conditioner
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-smart/climatisation
+          - type: button
+            name: Musique
+            icon: mdi:music
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-smart/musique
+          - type: button
+            name: Sécurité
+            icon: mdi:shield-home
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-smart/securite
+          - type: button
+            name: Paramètres
+            icon: mdi:cog-outline
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-smart/parametres
+      - type: heading
+        heading: Informations utiles
+        icon: mdi:information-outline
+      - type: markdown
+        content: >-
+          **Domotique locale** : les scènes et équipements compatibles restent
+          fonctionnels sans Internet.
+
+          **Services en ligne** : actualités, Gemini et autres fonctions cloud
+          nécessitent une connexion.

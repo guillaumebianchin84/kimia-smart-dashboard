@@ -1,0 +1,15 @@
+# Couleurs inspirées de l'identité KIMIA Smart by PROMAINT.
+KIMIA Smart:
+  primary-color: "#0C5586"
+  accent-color: "#08AAA7"
+  primary-background-color: "#F3F8FB"
+  secondary-background-color: "#E6F0F4"
+  card-background-color: "#FFFFFF"
+  primary-text-color: "#18384F"
+  secondary-text-color: "#607F90"
+  app-header-background-color: "#0C4171"
+  app-header-text-color: "#FFFFFF"
+  state-icon-color: "#26879B"
+  state-icon-active-color: "#08AAA7"
+  ha-card-border-radius: "16px"
+  ha-card-border-color: "#DDE8EF"

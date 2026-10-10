@@ -1,0 +1,35 @@
+title: Sécurité
+path: securite
+icon: mdi:shield-home
+type: sections
+theme: KIMIA Smart
+max_columns: 3
+sections:
+  - type: grid
+    cards:
+      - type: heading
+        heading: Ouvertures
+        icon: mdi:door
+      - type: tile
+        entity: input_boolean.kimia_porte_ouverte
+        name: Porte d'entrée ouverte (simulation)
+      - type: tile
+        entity: input_boolean.kimia_fenetre_ouverte
+        name: Fenêtre salon ouverte (simulation)
+  - type: grid
+    cards:
+      - type: heading
+        heading: Détections
+        icon: mdi:motion-sensor
+      - type: tile
+        entity: input_boolean.kimia_mouvement_detecte
+        name: Mouvement détecté (simulation)
+  - type: grid
+    cards:
+      - type: heading
+        heading: Caméras et alertes
+        icon: mdi:cctv
+      - type: markdown
+        content: >-
+          Cette section sera personnalisée selon l'installation : caméras,
+          détection de fuite, alarmes, notifications et historique.
