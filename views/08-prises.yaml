@@ -1,0 +1,24 @@
+title: Prises
+path: prises
+icon: mdi:power-socket-eu
+type: sections
+max_columns: 2
+sections:
+  - type: grid
+    cards:
+      - type: heading
+        heading: Prises connectées
+        icon: mdi:power-socket-eu
+      - type: tile
+        entity: input_boolean.kimia_prise_salon
+        name: Prise salon (simulation)
+  - type: grid
+    cards:
+      - type: heading
+        heading: Consommation et automatismes
+        icon: mdi:flash-outline
+      - type: markdown
+        content: >-
+          Les prises Zigbee SONOFF avec mesure de consommation pourront
+          afficher leur puissance et énergie, lorsqu'elles sont reconnues
+          et configurées dans Home Assistant.

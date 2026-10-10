@@ -2,35 +2,33 @@ title: Climatisation
 path: climatisation
 icon: mdi:air-conditioner
 type: sections
-theme: KIMIA Smart
 max_columns: 3
 sections:
   - type: grid
     cards:
       - type: heading
-        heading: Température souhaitée
+        heading: Salon
         icon: mdi:thermometer
-      - type: entities
-        entities:
-          - entity: input_number.kimia_consigne_salon
-            name: Salon (simulation)
-          - entity: input_number.kimia_consigne_chambre
-            name: Chambre (simulation)
+      - type: tile
+        entity: input_number.kimia_consigne_salon
+        name: Consigne salon (démo)
   - type: grid
     cards:
       - type: heading
-        heading: Confort
+        heading: Chambre
+        icon: mdi:bed-king-outline
+      - type: tile
+        entity: input_number.kimia_consigne_chambre
+        name: Consigne chambre (démo)
+  - type: grid
+    cards:
+      - type: heading
+        heading: Confort personnalisé
         icon: mdi:home-thermometer-outline
       - type: markdown
         content: >-
-          Avec les véritables climatiseurs, cette page affichera la température
-          mesurée, le mode, la consigne et la commande adaptée à chaque pièce.
-  - type: grid
-    cards:
-      - type: heading
-        heading: Programmations
-        icon: mdi:calendar-clock
-      - type: markdown
-        content: >-
-          Des horaires et modes **Présent**, **Absence** ou **Nuit** pourront être
-          ajoutés après définition des équipements.
+          La température, la consigne et les modes de chaque climatiseur
+          seront visibles après la configuration des vraies entités
+          **climate**.
+
+          L'interface conserve les mêmes repères sur téléphone et tablette.

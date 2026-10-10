@@ -1,35 +1,37 @@
 title: Sécurité
 path: securite
-icon: mdi:shield-home
+icon: mdi:shield-home-outline
 type: sections
-theme: KIMIA Smart
 max_columns: 3
 sections:
   - type: grid
     cards:
       - type: heading
-        heading: Ouvertures
+        heading: Accès à la maison
         icon: mdi:door
       - type: tile
         entity: input_boolean.kimia_porte_ouverte
-        name: Porte d'entrée ouverte (simulation)
+        name: Porte d'entrée (simulation)
       - type: tile
         entity: input_boolean.kimia_fenetre_ouverte
-        name: Fenêtre salon ouverte (simulation)
+        name: Fenêtre salon (simulation)
   - type: grid
     cards:
       - type: heading
-        heading: Détections
+        heading: Mouvements
         icon: mdi:motion-sensor
       - type: tile
         entity: input_boolean.kimia_mouvement_detecte
-        name: Mouvement détecté (simulation)
+        name: Détection (simulation)
   - type: grid
     cards:
       - type: heading
-        heading: Caméras et alertes
+        heading: Caméras et notifications
         icon: mdi:cctv
       - type: markdown
         content: >-
-          Cette section sera personnalisée selon l'installation : caméras,
-          détection de fuite, alarmes, notifications et historique.
+          Les caméras et capteurs réels apparaîtront après installation
+          et validation de leurs intégrations Home Assistant.
+
+          **Information importante :** les interrupteurs ci-contre
+          sont des démonstrations, pas un système d'alarme opérationnel.

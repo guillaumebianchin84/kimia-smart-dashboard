@@ -1,4 +1,6 @@
-# KIMIA Smart — dashboard Home Assistant, configuration Lovelace YAML
+# KIMIA Smart — plusieurs vues dans un seul dashboard.
+# Ne pas définir de theme: ici ni dans les vues : le client choisit son thème
+# dans son profil Home Assistant (KIMIA Clair / Sombre / Signature).
 title: KIMIA Smart
 views:
   - !include /config/kimia/views/01-accueil.yaml
@@ -7,4 +9,5 @@ views:
   - !include /config/kimia/views/04-climatisation.yaml
   - !include /config/kimia/views/05-musique.yaml
   - !include /config/kimia/views/06-securite.yaml
+  - !include /config/kimia/views/08-prises.yaml
   - !include /config/kimia/views/07-parametres.yaml
