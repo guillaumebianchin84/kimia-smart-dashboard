@@ -123,6 +123,119 @@ views:
             grid_options:
               columns: full
               rows: 1
+          - type: custom:button-card
+            entity: weather.forecast_lbv
+            show_icon: true
+            show_name: false
+            show_state: false
+            show_label: false
+            icon: |
+              [[[
+                const icons = {
+                  'sunny': 'mdi:weather-sunny',
+                  'clear-night': 'mdi:weather-night',
+                  'partlycloudy': 'mdi:weather-partly-cloudy',
+                  'cloudy': 'mdi:weather-cloudy',
+                  'rainy': 'mdi:weather-rainy',
+                  'pouring': 'mdi:weather-pouring',
+                  'lightning': 'mdi:weather-lightning',
+                  'lightning-rainy': 'mdi:weather-lightning-rainy',
+                  'fog': 'mdi:weather-fog',
+                  'windy': 'mdi:weather-windy',
+                  'windy-variant': 'mdi:weather-windy-variant',
+                  'hail': 'mdi:weather-hail',
+                  'snowy': 'mdi:weather-snowy',
+                  'snowy-rainy': 'mdi:weather-snowy-rainy'
+                };
+                return icons[entity?.state] || 'mdi:weather-partly-cloudy';
+              ]]]
+            tap_action:
+              action: more-info
+            visibility:
+              - condition: state
+                entity: input_select.kimia_meteo_visible
+                state: "Oui"
+            grid_options:
+              columns: full
+              rows: auto
+            custom_fields:
+              location: |
+                [[[
+                  return '<span style="font-size:11px;font-weight:800;letter-spacing:1.8px;color:#A8F6EC">LIBREVILLE · GABON</span>';
+                ]]]
+              temperature: |
+                [[[
+                  const t = entity?.attributes?.temperature;
+                  const value = t !== undefined && t !== null && !Number.isNaN(Number(t))
+                    ? Number(t).toFixed(1).replace('.', ',') : '—';
+                  return '<span style="font-size:49px;font-weight:800;letter-spacing:-2px;line-height:1">' + value +
+                    '<span style="font-size:21px;font-weight:500;margin-left:5px;letter-spacing:0">°C</span></span>';
+                ]]]
+              condition: |
+                [[[
+                  const labels = {
+                    'sunny':'Ensoleillé', 'clear-night':'Ciel dégagé',
+                    'partlycloudy':'Partiellement nuageux', 'cloudy':'Nuageux',
+                    'rainy':'Pluie', 'pouring':'Fortes pluies',
+                    'lightning':'Orage', 'lightning-rainy':'Orages et pluie',
+                    'fog':'Brouillard', 'windy':'Venteux',
+                    'windy-variant':'Venteux et nuageux', 'hail':'Grêle',
+                    'snowy':'Neige', 'snowy-rainy':'Neige et pluie'
+                  };
+                  return '<span style="font-size:14px;color:#E1F5F5">' +
+                    (labels[entity?.state] || 'Météo actuelle') + '</span>';
+                ]]]
+              details: |
+                [[[
+                  const a = entity?.attributes || {};
+                  const parts = [];
+                  if (a.humidity !== undefined && a.humidity !== null)
+                    parts.push('Humidité ' + a.humidity + ' %');
+                  if (a.wind_speed !== undefined && a.wind_speed !== null)
+                    parts.push('Vent ' + a.wind_speed + ' ' + (a.wind_speed_unit || 'km/h'));
+                  return '<span style="font-size:11px;color:#D1E9EE">' +
+                    (parts.length ? parts.join('  ·  ') : 'Conditions actualisées automatiquement') +
+                    '</span>';
+                ]]]
+            styles:
+              card:
+                - background: 'linear-gradient(115deg, #0D324F 0%, #15597B 63%, #138586 100%)'
+                - color: '#FFFFFF'
+                - border: '1px solid rgba(255,255,255,.13)'
+                - border-radius: 20px
+                - box-shadow: '0 5px 16px rgba(0,35,55,.14)'
+                - padding: 17px 22px
+                - overflow: hidden
+              grid:
+                - grid-template-areas: '"location i" "temperature i" "condition i" "details details"'
+                - grid-template-columns: 'minmax(0, 1fr) 80px'
+                - grid-template-rows: 'auto auto auto auto'
+                - row-gap: 4px
+                - align-items: center
+              img_cell:
+                - grid-area: i
+                - justify-self: end
+                - align-self: center
+                - width: 76px
+                - height: 76px
+              icon:
+                - width: 60px
+                - height: 60px
+                - color: '#C9FFF5'
+              custom_fields:
+                location:
+                  - justify-self: start
+                  - text-align: left
+                temperature:
+                  - justify-self: start
+                  - text-align: left
+                condition:
+                  - justify-self: start
+                  - text-align: left
+                details:
+                  - justify-self: start
+                  - text-align: left
+                  - margin-top: 10px
           - type: weather-forecast
             entity: weather.forecast_lbv
             visibility:
@@ -130,7 +243,7 @@ views:
                 entity: input_select.kimia_meteo_visible
                 state: "Oui"
             forecast_type: daily
-            show_current: true
+            show_current: false
             show_forecast: true
             grid_options:
               columns: full
@@ -138,12 +251,12 @@ views:
             card_mod:
               style: |
                 ha-card {
-                  border-radius: 18px;
+                  border-radius: 17px;
                   overflow: hidden;
                   background: var(--card-background-color);
                   color: var(--primary-text-color);
-                  border: 1px solid var(--divider-color);
-                  box-shadow: 0 3px 12px rgba(0,30,53,.05);
+                  border: 1px solid var(--ha-card-border-color, var(--divider-color));
+                  box-shadow: none;
                 }
           - type: custom:button-card
             template: kimia_v2_tile
