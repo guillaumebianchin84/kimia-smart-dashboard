@@ -5,7 +5,7 @@
 
 ### Nouvelle expérience KIMIA
 
-- **Page d'accueil = Maquette** en vue panneau, pleine hauteur, plan témoin de 6 pièces à redessiner pour chaque client.
+- **Page d'accueil = Maquette** en vue panneau, pleine hauteur, plan témoin de 6 pièces et une terrasse météo à redessiner pour chaque client.
 - Panneau latéral : météo de Libreville, **Au lit / Départ / Retour / Réveil**, deux titres Gabon / Monde.
 - Pages détaillées **Lumières (ambiances), Volets, Climatisation, Musique, Sécurité, Prises, Actualités, Paramètres** maintenues.
 - Scripts façade **sûrs par défaut** : rien n'est commandé tant qu'une véritable cible n'a pas été configurée.
