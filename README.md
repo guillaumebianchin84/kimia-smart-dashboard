@@ -1,5 +1,8 @@
 # KIMIA Smart — dashboards premium et configuration client
 
+> **Reprise du 14 octobre 2026 :** [état de la VM de test, fichiers RSS, météo Libreville et prochaines étapes](docs/REPRISE_2026-10-14.md). Les dernières modifications restent sur la branche de travail et ne sont pas fusionnées dans `main`.
+
+
 ## Nouvelle option : plan interactif Maquette Card
 
 Cette branche ajoute une vue **Plan de maison** avec [Maquette Card](https://github.com/TooMuhtsh/maquette-card). L'installateur dessine le logement dans l'éditeur graphique de la carte, peut commencer à partir des pièces Home Assistant et associe les véritables entités. Le plan de chaque client est à créer : nous ne connaissons pas les dimensions réelles du logement.
