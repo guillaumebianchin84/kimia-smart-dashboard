@@ -1,4 +1,4 @@
-# KIMIA Smart - source YAML historique
+# KIMIA Smart V0.8 - source YAML modulaire ; maquette est l'accueil
 # Pour déplacer les cartes dans l'éditeur visuel, importer dashboard-ui-import.yaml dans un dashboard géré par l'UI.
 title: KIMIA Smart
 button_card_templates:
@@ -60,11 +60,11 @@ button_card_templates:
         - text-overflow: ellipsis
 views:
   - !include /config/kimia/views/01-accueil.yaml
-  - !include /config/kimia/views/10-plan-maison.yaml
   - !include /config/kimia/views/02-lumieres.yaml
   - !include /config/kimia/views/03-volets.yaml
   - !include /config/kimia/views/04-climatisation.yaml
   - !include /config/kimia/views/05-musique.yaml
   - !include /config/kimia/views/06-securite.yaml
   - !include /config/kimia/views/08-prises.yaml
+  - !include /config/kimia/views/11-actualites.yaml
   - !include /config/kimia/views/07-parametres.yaml
