@@ -58,10 +58,23 @@ avant leur mise en service. Aucun contrôle d'un moteur de volet,
 aucun système d'alarme et aucune caméra n'est mis en service
 par ce prototype.
 
-L'accueil réutilise les entités de **la maison de test**
-(Météo-France du Pontet, Netatmo, climatisations, RSS BFMTV et Le Monde).
-Les installations client devront utiliser **leurs propres** entités
-et sources configurées.
+### Démonstration Gabon — octobre 2026
+
+La branche V0.7 utilise, dans `dashboard-ui-import.yaml`, la météo de Libreville
+(`weather.forecast_lbv`) et quatre capteurs RSS :
+`sensor.rss_gabon_actu`, `sensor.rss_gabonreview`,
+`sensor.rss_rfi_afrique` et `sensor.rss_france_24`.
+Ces capteurs doivent être créés séparément sur l'instance Home Assistant.
+
+Les entités propres à l'ancienne maison témoin (Netatmo, climatisations,
+gestion du chauffage, consigne et présence) ont été remplacées par des
+**emplacements inactifs à associer**, afin de ne pas afficher de commandes
+fonctionnelles fictives chez un client.
+
+Le fichier à importer dans le dashboard éditable via l'interface est
+`dashboard-ui-import.yaml` **depuis cette branche de travail**, et non le ZIP
+plus ancien déjà téléchargé. Les sources `views/*.yaml` sont synchronisées.
+Adapter météo, actualités et entités à chaque logement avant livraison.
 
 **Guide détaillé : [DASHBOARDS_PREMIUM_V06](docs/DASHBOARDS_PREMIUM_V06.md)**
 
