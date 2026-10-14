@@ -1,3 +1,23 @@
+# KIMIA Smart — accueil Maquette V0.8 (prototype tablette)
+
+> **V0.8 en cours de validation.** [Guide complet, installations, scripts, plan et tests](docs/KIMIA_V08_TABLETTE.md).
+> Ne pas fusionner sans essais sur la tablette 11 pouces et la VM Home Assistant 210.
+
+### Nouvelle expérience KIMIA
+
+- **Page d'accueil = Maquette** en vue panneau, pleine hauteur, plan témoin de 6 pièces à redessiner pour chaque client.
+- Panneau latéral : météo de Libreville, **Au lit / Départ / Retour / Réveil**, deux titres Gabon / Monde.
+- Pages détaillées **Lumières (ambiances), Volets, Climatisation, Musique, Sécurité, Prises, Actualités, Paramètres** maintenues.
+- Scripts façade **sûrs par défaut** : rien n'est commandé tant qu'une véritable cible n'a pas été configurée.
+- Dashboard technique **`installateur-ui-import.yaml`** (admin uniquement) pour les associations.
+- **Fichier à importer dans Home Assistant : `dashboard-ui-import.yaml` sur cette branche** (dashboard en mode interface / storage).
+- Maquette v0.3.1 recommandée pour les essais ; Button Card, Card Mod et RSS News Card restent nécessaires.
+
+**Important :** GitHub contient la conception, pas la sauvegarde des données Home Assistant ni de la VM.
+La V0.8 n'a pas encore été exécutée ni validée dans Home Assistant.
+
+---
+
 # KIMIA Smart — dashboards premium et configuration client
 
 > **Reprise du 14 octobre 2026 :** [état de la VM de test, fichiers RSS, météo Libreville et prochaines étapes](docs/REPRISE_2026-10-14.md). Les dernières modifications restent sur la branche de travail et ne sont pas fusionnées dans `main`.
