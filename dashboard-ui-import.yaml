@@ -56,393 +56,164 @@ button_card_templates:
         - max-width: 100%
         - overflow: hidden
         - text-overflow: ellipsis
+  kimia_v08_scene:
+    section_mode: true
+    show_name: true
+    show_icon: true
+    show_state: false
+    show_label: true
+    triggers_update: all
+    label: |
+      [[[
+        const ident = entity?.entity_id || '';
+        const cfg = 'input_text.kimia_cible_' + ident.replace('script.kimia_', '');
+        const val = states[cfg]?.state || '';
+        return val.startsWith('script.') && !val.startsWith('script.kimia_') ? 'Prêt · toucher' : 'À associer';
+      ]]]
+    styles:
+      card:
+        - background: 'linear-gradient(115deg, var(--card-background-color), rgba(30,120,130,.15))'
+        - color: var(--primary-text-color)
+        - border: '1px solid var(--ha-card-border-color, rgba(50,205,190,.32))'
+        - border-radius: 20px
+        - box-shadow: '0 5px 17px rgba(0,33,60,.12)'
+        - padding: '11px 15px'
+        - overflow: hidden
+      grid:
+        - grid-template-areas: '"i n" "i l"'
+        - grid-template-columns: '45px minmax(0,1fr)'
+        - grid-template-rows: '1fr 1fr'
+        - column-gap: 8px
+      img_cell:
+        - height: 43px
+        - width: 43px
+        - border-radius: 14px
+        - background: 'rgba(57,199,185,.13)'
+      icon:
+        - width: 25px
+        - color: '[[[ return variables.couleur || "#42D4C3"; ]]]'
+      name:
+        - font-size: 14px
+        - font-weight: 700
+        - justify-self: start
+        - align-self: end
+        - color: var(--primary-text-color)
+      label:
+        - font-size: 11px
+        - justify-self: start
+        - align-self: start
+        - color: var(--secondary-text-color)
 views:
+    # KIMIA Smart V0.8 — PAGE D'ACCUEIL TABLETTE
+    # Maquette seule dans une vue panel : édition native et hauteur d'écran,
+    # aucun empilement de cartes qui obligerait à défiler sur tablette.
+    # Plan générique de démonstration : NE représente PAS le logement du client.
   - title: Accueil
     path: accueil
-    icon: mdi:home-variant-outline
-    type: sections
-    max_columns: 2
-    sections:
-      # 01 — Bandeau compact, environ deux fois moins haut que le premier test.
-      - type: grid
-        column_span: 2
-        cards:
-          - type: custom:button-card
-            section_mode: true
-            grid_options:
-              columns: full
-              rows: auto
-            show_icon: false
-            show_name: false
-            show_label: false
-            tap_action:
-              action: none
-            triggers_update: []
-            custom_fields:
-              brand: |
-                [[[
-                  return `<div style="font-size:22px;font-weight:850;line-height:1.1;letter-spacing:-.7px">KIMIA<span style="color:#43D9CE"> Smart</span></div>
-                  <div style="font-size:9px;font-weight:750;color:#C3E0E8;letter-spacing:2px;margin-top:4px">BY PROMAINT</div>`;
-                ]]]
-              hello: |
-                [[[
-                  const h = new Date().getHours();
-                  const salutation = h < 12 ? 'Bonjour' : h < 18 ? 'Bon après-midi' : 'Bonsoir';
-                  return `<div style="font-size:11px;color:#D7EDF3;text-align:right">${salutation}<br/>Votre maison, tout simplement.</div>`;
-                ]]]
-            styles:
-              card:
-                - background: 'linear-gradient(117deg, #0D324F 0%, #15597B 65%, #137D87 100%)'
-                - border: '1px solid rgba(255,255,255,.12)'
-                - border-radius: 19px
-                - padding: 14px 16px
-                - color: '#FFFFFF'
-                - box-shadow: '0 5px 16px rgba(0,45,68,.13)'
-              grid:
-                - grid-template-areas: '"brand hello"'
-                - grid-template-columns: minmax(0,1fr) auto
-                - grid-template-rows: auto
-                - align-items: center
-                - column-gap: 8px
-              custom_fields:
-                brand:
-                  - justify-self: start
-                  - text-align: left
-                hello:
-                  - justify-self: end
-                  - text-align: right
-    
-      # 02 — Météo Libreville. La localisation et les capteurs sont adaptés au client.
-          - type: heading
-            heading: Météo · Libreville
-            icon: mdi:weather-partly-cloudy
-            visibility:
-              - condition: state
-                entity: input_select.kimia_meteo_visible
-                state: "Oui"
-            grid_options:
-              columns: full
-              rows: 1
-          - type: custom:button-card
-            entity: weather.forecast_lbv
-            show_icon: true
-            show_name: false
-            show_state: false
-            show_label: false
-            icon: |
-              [[[
-                const icons = {
-                  'sunny': 'mdi:weather-sunny',
-                  'clear-night': 'mdi:weather-night',
-                  'partlycloudy': 'mdi:weather-partly-cloudy',
-                  'cloudy': 'mdi:weather-cloudy',
-                  'rainy': 'mdi:weather-rainy',
-                  'pouring': 'mdi:weather-pouring',
-                  'lightning': 'mdi:weather-lightning',
-                  'lightning-rainy': 'mdi:weather-lightning-rainy',
-                  'fog': 'mdi:weather-fog',
-                  'windy': 'mdi:weather-windy',
-                  'windy-variant': 'mdi:weather-windy-variant',
-                  'hail': 'mdi:weather-hail',
-                  'snowy': 'mdi:weather-snowy',
-                  'snowy-rainy': 'mdi:weather-snowy-rainy'
-                };
-                return icons[entity?.state] || 'mdi:weather-partly-cloudy';
-              ]]]
-            tap_action:
-              action: more-info
-            visibility:
-              - condition: state
-                entity: input_select.kimia_meteo_visible
-                state: "Oui"
-            grid_options:
-              columns: full
-              rows: auto
-            custom_fields:
-              location: |
-                [[[
-                  return '<span style="font-size:11px;font-weight:800;letter-spacing:1.8px;color:#A8F6EC">LIBREVILLE · GABON</span>';
-                ]]]
-              temperature: |
-                [[[
-                  const t = entity?.attributes?.temperature;
-                  const value = t !== undefined && t !== null && !Number.isNaN(Number(t))
-                    ? Number(t).toFixed(1).replace('.', ',') : '—';
-                  return '<span style="font-size:49px;font-weight:800;letter-spacing:-2px;line-height:1">' + value +
-                    '<span style="font-size:21px;font-weight:500;margin-left:5px;letter-spacing:0">°C</span></span>';
-                ]]]
-              condition: |
-                [[[
-                  const labels = {
-                    'sunny':'Ensoleillé', 'clear-night':'Ciel dégagé',
-                    'partlycloudy':'Partiellement nuageux', 'cloudy':'Nuageux',
-                    'rainy':'Pluie', 'pouring':'Fortes pluies',
-                    'lightning':'Orage', 'lightning-rainy':'Orages et pluie',
-                    'fog':'Brouillard', 'windy':'Venteux',
-                    'windy-variant':'Venteux et nuageux', 'hail':'Grêle',
-                    'snowy':'Neige', 'snowy-rainy':'Neige et pluie'
-                  };
-                  return '<span style="font-size:14px;color:#E1F5F5">' +
-                    (labels[entity?.state] || 'Météo actuelle') + '</span>';
-                ]]]
-              details: |
-                [[[
-                  const a = entity?.attributes || {};
-                  const parts = [];
-                  if (a.humidity !== undefined && a.humidity !== null)
-                    parts.push('Humidité ' + a.humidity + ' %');
-                  if (a.wind_speed !== undefined && a.wind_speed !== null)
-                    parts.push('Vent ' + a.wind_speed + ' ' + (a.wind_speed_unit || 'km/h'));
-                  return '<span style="font-size:11px;color:#D1E9EE">' +
-                    (parts.length ? parts.join('  ·  ') : 'Conditions actualisées automatiquement') +
-                    '</span>';
-                ]]]
-            styles:
-              card:
-                - background: 'linear-gradient(115deg, #0D324F 0%, #15597B 63%, #138586 100%)'
-                - color: '#FFFFFF'
-                - border: '1px solid rgba(255,255,255,.13)'
-                - border-radius: 20px
-                - box-shadow: '0 5px 16px rgba(0,35,55,.14)'
-                - padding: 17px 22px
-                - overflow: hidden
-              grid:
-                - grid-template-areas: '"location i" "temperature i" "condition i" "details details"'
-                - grid-template-columns: 'minmax(0, 1fr) 80px'
-                - grid-template-rows: 'auto auto auto auto'
-                - row-gap: 4px
-                - align-items: center
-              img_cell:
-                - grid-area: i
-                - justify-self: end
-                - align-self: center
-                - width: 76px
-                - height: 76px
-              icon:
-                - width: 60px
-                - height: 60px
-                - color: |
-                    [[[
-                      const condition = entity?.state;
-                      if (['sunny','partlycloudy'].includes(condition)) return '#FFCC59';
-                      if (['rainy','pouring'].includes(condition)) return '#50C8FF';
-                      if (['lightning','lightning-rainy'].includes(condition)) return '#BDA8FF';
-                      if (condition === 'clear-night') return '#FFE09B';
-                      return '#D9E8F6';
-                    ]]]
-              custom_fields:
-                location:
-                  - justify-self: start
-                  - text-align: left
-                temperature:
-                  - justify-self: start
-                  - text-align: left
-                condition:
-                  - justify-self: start
-                  - text-align: left
-                details:
-                  - justify-self: start
-                  - text-align: left
-                  - margin-top: 10px
-          - type: weather-forecast
-            entity: weather.forecast_lbv
-            visibility:
-              - condition: state
-                entity: input_select.kimia_meteo_visible
-                state: "Oui"
-            forecast_type: daily
-            show_current: false
-            show_forecast: true
-            grid_options:
-              columns: full
-              rows: auto
-            card_mod:
-              style: |
-                ha-card {
-                  border-radius: 17px;
-                  overflow: hidden;
-                  background: linear-gradient(125deg, #253C4C, #314051);
-                  color: #F0F6FB;
-                  border: 1px solid rgba(123, 194, 218, .28);
-                  box-shadow: none;
-                  --weather-icon-cloud-front-color: #F1F7FF;
-                  --weather-icon-cloud-back-color: #88AFCB;
-                  --weather-icon-sun-color: #FFC44F;
-                  --weather-icon-rain-color: #35B7FC;
-                  --weather-icon-moon-color: #F5DB94;
-                }
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Température intérieure
-            icon: mdi:home-thermometer-outline
-            tap_action:
-              action: none
-            grid_options:
-              columns: 6
-              rows: 1
-            label: Capteur à associer
-          - type: custom:button-card
-            template: kimia_v2_tile
-            entity: weather.forecast_lbv
-            name: Température extérieure · Libreville
-            icon: mdi:weather-partly-cloudy
-            tap_action:
-              action: more-info
-            grid_options:
-              columns: 6
-              rows: 1
-            label: |
-              [[[
-                const t = entity?.attributes?.temperature;
-                return t !== undefined && t !== null ? String(t).replace('.', ',') + ' °C' : 'Indisponible';
-              ]]]
-          - type: heading
-            heading: Ma maison
-            icon: mdi:home-heart
-            grid_options:
-              columns: full
-              rows: 1
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Présence
-            icon: mdi:home-account
-            tap_action:
-              action: none
-            grid_options:
-              columns: 6
-              rows: 1
-            label: Mode à configurer
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Lumières
-            icon: mdi:lightbulb-group-outline
-            grid_options:
-              columns: 6
-              rows: 1
-            triggers_update: all
-            label: |
-              [[[
-                const n=Object.values(states).filter(e=>e.entity_id?.startsWith('light.') && e.state==='on').length;
-                return n+' allumée'+(n>1?'s':'');
-              ]]]
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Volets
-            icon: mdi:window-shutter
-            grid_options:
-              columns: 6
-              rows: 1
-            triggers_update: all
-            label: |
-              [[[
-                const n=Object.values(states).filter(e=>e.entity_id?.startsWith('cover.') && e.state==='open').length;
-                return n+' ouvert'+(n>1?'s':'');
-              ]]]
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Gestion automatique
-            icon: mdi:autorenew
-            tap_action:
-              action: none
-            grid_options:
-              columns: 6
-              rows: 1
-            label: À configurer
-          - type: heading
-            heading: Confort
-            icon: mdi:thermostat
-            grid_options:
-              columns: full
-              rows: 1
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Salon
-            icon: mdi:sofa-outline
-            tap_action:
-              action: none
-            grid_options:
-              columns: 6
-              rows: 1
-            label: Climatisation à associer
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Chambre
-            icon: mdi:bed-king-outline
-            tap_action:
-              action: none
-            grid_options:
-              columns: 6
-              rows: 1
-            label: Climatisation à associer
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Consigne maison
-            icon: mdi:thermometer-lines
-            tap_action:
-              action: none
-            grid_options:
-              columns: 12
-              rows: 1
-            label: À configurer
-      # 04 — Sources RSS de la VM KIMIA : Gabon, Afrique et Monde.
-          - type: heading
-            heading: Le journal
-            icon: mdi:newspaper-variant-outline
-            visibility:
-              - condition: state
-                entity: input_select.kimia_journal_visible
-                state: "Oui"
-            grid_options:
-              columns: full
-              rows: 1
-          - type: custom:rss-news-card
-            visibility:
-              - condition: state
-                entity: input_select.kimia_journal_visible
-                state: "Oui"
-            title: 📰 Gabon · Afrique · Monde
-            sources:
-              - entity: sensor.rss_gabon_actu
-                name: Gabon Actu
-                color: '#00A879'
-              - entity: sensor.rss_gabonreview
-                name: GabonReview
-                color: '#3797C6'
-              - entity: sensor.rss_rfi_afrique
-                name: RFI Afrique
-                color: '#F39836'
-              - entity: sensor.rss_france_24
-                name: France 24
-                color: '#2377C4'
-            max_articles: 5
-            card_height: 265
-            show_description: false
-            show_source: true
-            show_date: true
-            image_width: 120
-            image_height: 68
-            grid_options:
-              columns: full
-              rows: 5
-            card_mod:
-              style: |
-                ha-card {
-                  border-radius: 18px;
-                  overflow: hidden;
-                  background: var(--card-background-color);
-                  border: 1px solid var(--divider-color);
-                  box-shadow: 0 3px 12px rgba(0,30,53,.05);
-                }
-  - title: Plan de maison
-    path: plan
-    icon: mdi:floor-plan
+    icon: mdi:home-variant
     type: panel
     cards:
       - type: custom:maquette-card
-        id: kimia_plan_maison
-        title: Plan de ma maison
+        id: kimia_plan_accueil_v08
+        title: "KIMIA Smart · plan témoin à personnaliser"
         language: fr
         full_page: true
+        margin: 25
+        summary: false
+        legend: false
+        room_labels:
+          name: true
+          temperature: false
+          humidity: false
+        temperature_tint: false
+        # Le mode tablette conserve volontairement le panneau des commandes.
+        # Maquette ajuste automatiquement la hauteur à l'écran.
+        tablet:
+          summary: false
+          panels: true
+          burn_in: true
+        animation_level: reduced
+        ambience:
+          day_night:
+            sun: sun.sun
+            intensity: 0.95
+            marker: false
+          weather:
+            entity: weather.forecast_lbv
+            intensity: 0.7
+            direction: wind
+        panels:
+          right:
+            - type: tile
+              title: "Libreville · météo"
+              icon: mdi:weather-partly-cloudy
+              color: "#F4C85A"
+              entity: sensor.kimia_temperature_libreville
+              unit: "°C"
+              decimals: 0
+              rows:
+                - entity: sensor.kimia_humidite_libreville
+                  name: Humidité
+                  icon: mdi:water-percent
+                  decimals: 0
+            - type: entities
+              title: "Ma maison · raccourcis"
+              icon: mdi:gesture-tap-button
+              entities:
+                - entity: script.kimia_au_lit
+                  name: Au lit
+                  icon: mdi:bed-clock
+                - entity: script.kimia_depart
+                  name: Départ
+                  icon: mdi:door-open
+                - entity: script.kimia_retour
+                  name: Retour
+                  icon: mdi:home-import-outline
+                - entity: script.kimia_reveil
+                  name: Réveil
+                  icon: mdi:weather-sunset-up
+            - type: entities
+              title: "L'info en bref"
+              icon: mdi:newspaper-variant-outline
+              entities:
+                - entity: sensor.kimia_flash_gabon
+                  name: Gabon
+                  icon: mdi:flag-variant
+                - entity: sensor.kimia_flash_monde
+                  name: Monde
+                  icon: mdi:earth
+        # PLAN TÉMOIN, SANS AUCUNE COMMANDE D'ÉQUIPEMENT :
+        # à redessiner depuis Maquette (administrateur) pour le logement réel.
+        # Une vraie installation doit aussi associer les pièces HA et capteurs.
+        rooms:
+          - name: Séjour
+            poly: [[0, 0], [470, 0], [470, 370], [0, 370]]
+            label: [235, 185]
+          - name: Cuisine
+            poly: [[470, 0], [800, 0], [800, 220], [470, 220]]
+            label: [635, 110]
+          - name: Salle d'eau
+            poly: [[470, 220], [800, 220], [800, 370], [470, 370]]
+            label: [635, 295]
+          - name: Chambre 1
+            poly: [[0, 370], [320, 370], [320, 670], [0, 670]]
+            label: [160, 520]
+          - name: Chambre 2
+            poly: [[320, 370], [580, 370], [580, 670], [320, 670]]
+            label: [450, 520]
+          - name: Entrée
+            poly: [[580, 370], [800, 370], [800, 670], [580, 670]]
+            label: [690, 520]
+        walls:
+          - [0, 0, 800, 0]
+          - [800, 0, 800, 670]
+          - [800, 670, 0, 670]
+          - [0, 670, 0, 0]
+          - [470, 0, 470, 370]
+          - [470, 220, 800, 220]
+          - [0, 370, 800, 370]
+          - [320, 370, 320, 670]
+          - [580, 370, 580, 670]
   - title: Lumières
     path: lumieres
     icon: mdi:lightbulb-group-outline
@@ -582,6 +353,68 @@ views:
             grid_options:
               columns: 6
               rows: 1
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Ambiances lumineuses
+            icon: mdi:palette
+            grid_options:
+              columns: full
+              rows: 1
+          - type: markdown
+            content: >-
+              Scènes personnalisables pour chaque maison.
+              Les boutons sont prêts ; ils n'activent aucun appareil
+              tant que l'installateur n'a pas associé les scripts.
+            grid_options:
+              columns: full
+              rows: auto
+          - type: custom:button-card
+            template: kimia_v08_scene
+            entity: script.kimia_ambiance_detente
+            name: Détente
+            icon: mdi:sofa
+            variables:
+              couleur: "#25CBBB"
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.kimia_ambiance_detente
+            grid_options:
+              columns: 4
+              rows: 2
+          - type: custom:button-card
+            template: kimia_v08_scene
+            entity: script.kimia_ambiance_soiree
+            name: Soirée
+            icon: mdi:party-popper
+            variables:
+              couleur: "#F2B84D"
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.kimia_ambiance_soiree
+            grid_options:
+              columns: 4
+              rows: 2
+          - type: custom:button-card
+            template: kimia_v08_scene
+            entity: script.kimia_ambiance_cinema
+            name: Cinéma
+            icon: mdi:movie-open
+            variables:
+              couleur: "#B29EFF"
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.kimia_ambiance_cinema
+            grid_options:
+              columns: 4
+              rows: 2
   - title: Volets
     path: volets
     icon: mdi:window-shutter
@@ -1166,6 +999,81 @@ views:
                   border: 1px solid var(--divider-color);
                   color: var(--primary-text-color);
                 }
+    # KIMIA Smart V0.8 — journal détaillé, séparé de l'accueil Maquette.
+  - title: Actualités
+    path: actualites
+    icon: mdi:newspaper-variant-outline
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: "🇬🇦 Gabon · L'essentiel"
+            icon: mdi:map-marker-radius-outline
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:rss-news-card
+            title: "Gabon Actu · GabonReview"
+            sources:
+              - entity: sensor.rss_gabon_actu
+                name: Gabon Actu
+                color: "#28C8AD"
+              - entity: sensor.rss_gabonreview
+                name: GabonReview
+                color: "#50A7D8"
+            max_articles: 8
+            show_description: true
+            show_source: true
+            show_date: true
+            image_width: 120
+            image_height: 72
+            grid_options:
+              columns: full
+              rows: auto
+            card_mod:
+              style: |
+                ha-card {
+                  border: 1px solid rgba(49,190,186,.35);
+                  background: var(--card-background-color);
+                  border-radius: 21px;
+                  overflow: hidden;
+                }
+      - type: grid
+        cards:
+          - type: heading
+            heading: "🌍 Afrique & Monde"
+            icon: mdi:earth
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:rss-news-card
+            title: "RFI Afrique · France 24"
+            sources:
+              - entity: sensor.rss_rfi_afrique
+                name: RFI Afrique
+                color: "#E7AD49"
+              - entity: sensor.rss_france_24
+                name: France 24
+                color: "#528FD6"
+            max_articles: 8
+            show_description: true
+            show_source: true
+            show_date: true
+            image_width: 120
+            image_height: 72
+            grid_options:
+              columns: full
+              rows: auto
+            card_mod:
+              style: |
+                ha-card {
+                  border: 1px solid rgba(88,150,210,.35);
+                  background: var(--card-background-color);
+                  border-radius: 21px;
+                  overflow: hidden;
+                }
   - title: Paramètres
     path: parametres
     icon: mdi:cog-outline
@@ -1197,10 +1105,10 @@ views:
           - type: markdown
             content: >-
               **KIMIA Smart by PROMAINT**
-    
+
               La configuration technique des équipements, du réseau,
               des intégrations et des accès distants est réservée
               à l'installateur, sauf ouverture volontaire des droits
               administrateur au client.
-    
+
               Les commandes locales restent indépendantes du thème choisi.
