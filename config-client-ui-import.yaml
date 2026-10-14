@@ -13,14 +13,14 @@ views:
             icon: mdi:floor-plan
           - type: markdown
             content: >-
-              Découvrez votre logement sur un plan interactif.
-              L'installateur peut y placer lumières, volets et capteurs.
+              Le plan interactif Maquette est désormais l'accueil de KIMIA.
+              L'installateur peut y associer les lumières, volets et capteurs, et configurer les scénarios.
           - type: button
-            name: Ouvrir le plan de maison
+            name: Ouvrir ma maison
             icon: mdi:floor-plan
             tap_action:
               action: navigate
-              navigation_path: /kimia-smart/plan
+              navigation_path: /kimia-smart/accueil
             grid_options:
               columns: 12
               rows: 2
