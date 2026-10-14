@@ -1,0 +1,45 @@
+# KIMIA Smart v0.7 — sources RSS Gabon / Afrique / Monde.
+# Compatible avec RSS News Card (attributs articles).
+# Nécessite /config/kimia/rss_reader.py ; aucune intégration Feedreader requise.
+# Les données ne sont actualisées que si l'accès Internet est disponible.
+command_line:
+  - sensor:
+      name: RSS Gabon Actu
+      unique_id: kimia_rss_gabon_actu
+      icon: mdi:newspaper
+      command: 'python3 /config/kimia/rss_reader.py https://gabonactu.com/feed/'
+      command_timeout: 20
+      scan_interval: 1800
+      value_template: '{{ value_json.articles | count }}'
+      json_attributes:
+        - articles
+  - sensor:
+      name: RSS GabonReview
+      unique_id: kimia_rss_gabonreview
+      icon: mdi:newspaper
+      command: 'python3 /config/kimia/rss_reader.py https://www.gabonreview.com/feed/'
+      command_timeout: 20
+      scan_interval: 1800
+      value_template: '{{ value_json.articles | count }}'
+      json_attributes:
+        - articles
+  - sensor:
+      name: RSS RFI Afrique
+      unique_id: kimia_rss_rfi_afrique
+      icon: mdi:newspaper
+      command: 'python3 /config/kimia/rss_reader.py https://www.rfi.fr/fr/afrique/rss'
+      command_timeout: 20
+      scan_interval: 1800
+      value_template: '{{ value_json.articles | count }}'
+      json_attributes:
+        - articles
+  - sensor:
+      name: RSS France 24
+      unique_id: kimia_rss_france_24
+      icon: mdi:newspaper
+      command: 'python3 /config/kimia/rss_reader.py https://www.france24.com/fr/rss'
+      command_timeout: 20
+      scan_interval: 1800
+      value_template: '{{ value_json.articles | count }}'
+      json_attributes:
+        - articles
