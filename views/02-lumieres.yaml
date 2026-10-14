@@ -137,3 +137,65 @@ sections:
         grid_options:
           columns: 6
           rows: 1
+  - type: grid
+    column_span: 2
+    cards:
+      - type: heading
+        heading: Ambiances lumineuses
+        icon: mdi:palette
+        grid_options:
+          columns: full
+          rows: 1
+      - type: markdown
+        content: >-
+          Scènes personnalisables pour chaque maison.
+          Les boutons sont prêts ; ils n'activent aucun appareil
+          tant que l'installateur n'a pas associé les scripts.
+        grid_options:
+          columns: full
+          rows: auto
+      - type: custom:button-card
+        template: kimia_v08_scene
+        entity: script.kimia_ambiance_detente
+        name: Détente
+        icon: mdi:sofa
+        variables:
+          couleur: "#25CBBB"
+        tap_action:
+          action: perform-action
+          perform_action: script.turn_on
+          target:
+            entity_id: script.kimia_ambiance_detente
+        grid_options:
+          columns: 4
+          rows: 2
+      - type: custom:button-card
+        template: kimia_v08_scene
+        entity: script.kimia_ambiance_soiree
+        name: Soirée
+        icon: mdi:party-popper
+        variables:
+          couleur: "#F2B84D"
+        tap_action:
+          action: perform-action
+          perform_action: script.turn_on
+          target:
+            entity_id: script.kimia_ambiance_soiree
+        grid_options:
+          columns: 4
+          rows: 2
+      - type: custom:button-card
+        template: kimia_v08_scene
+        entity: script.kimia_ambiance_cinema
+        name: Cinéma
+        icon: mdi:movie-open
+        variables:
+          couleur: "#B29EFF"
+        tap_action:
+          action: perform-action
+          perform_action: script.turn_on
+          target:
+            entity_id: script.kimia_ambiance_cinema
+        grid_options:
+          columns: 4
+          rows: 2
