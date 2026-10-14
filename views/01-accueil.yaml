@@ -38,18 +38,6 @@ cards:
         direction: wind
     panels:
       right:
-        - type: tile
-          title: "Libreville · météo"
-          icon: mdi:weather-partly-cloudy
-          color: "#F4C85A"
-          entity: sensor.kimia_temperature_libreville
-          unit: "°C"
-          decimals: 0
-          rows:
-            - entity: sensor.kimia_humidite_libreville
-              name: Humidité
-              icon: mdi:water-percent
-              decimals: 0
         - type: entities
           title: "Ma maison · raccourcis"
           icon: mdi:gesture-tap-button
@@ -66,6 +54,18 @@ cards:
             - entity: script.kimia_reveil
               name: Réveil
               icon: mdi:weather-sunset-up
+        - type: tile
+          title: "Libreville · météo"
+          icon: mdi:weather-partly-cloudy
+          color: "#F4C85A"
+          entity: sensor.kimia_temperature_libreville
+          unit: "°C"
+          decimals: 0
+          rows:
+            - entity: sensor.kimia_humidite_libreville
+              name: Humidité
+              icon: mdi:water-percent
+              decimals: 0
         - type: entities
           title: "L'info en bref"
           icon: mdi:newspaper-variant-outline
