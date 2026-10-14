@@ -85,13 +85,15 @@ puis importer `installateur-ui-import.yaml`. Ne pas donner aux comptes clients l
 - Le panneau d'accueil n'affiche que les **dernières brèves** (`sensor.kimia_flash_gabon` et `sensor.kimia_flash_monde`).
 - L'onglet Actualités conserve les **cartes illustrées**, avec liens et dates.
 
+La terrasse du plan témoin est liée à `weather.forecast_lbv` afin que Maquette puisse afficher l'ambiance extérieure. Le cycle jour/nuit utilise `sun.sun` et donc la **position du domicile définie dans Home Assistant**, à vérifier chez chaque client.
+
 L'accès Internet sert aux données météo et RSS, **pas aux commandes domotiques locales**. Les scripts et capteurs
 ne garantissent aucune mise à jour lorsque le fournisseur est inaccessible. Avant commercialisation, évaluer la disponibilité
 des services et les conditions de réutilisation des articles.
 
 ## Plan témoin et personnalisation
 
-La page d'accueil inclut un plan simple de six pièces destiné à vérifier la mise en page.
+La page d'accueil inclut un plan simple de sept zones (six pièces et une terrasse) destiné à vérifier la mise en page.
 **Ce plan est explicitement fictif** : il ne correspond pas à une habitation gabonaise réelle, et ne porte
 aucune commande de lampe/volet/capteur. L'installateur doit le remplacer :
 1. Ouvrir Accueil avec un compte administrateur, lancer l'éditeur Maquette.
