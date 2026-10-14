@@ -195,14 +195,15 @@ views:
           - type: heading
             heading: Contenu de l'accueil
             icon: mdi:view-dashboard-outline
-            - type: markdown
-              content: >-
-                L'accueil réunit le plan interactif, les raccourcis,
-                la météo et un aperçu du journal.
-                Les panneaux et widgets sont personnalisés
-                par l'installateur dans l'éditeur Maquette.
-                Les actualités détaillées restent disponibles
-                dans leur propre onglet.
+          - type: markdown
+            content: >-
+              L'accueil réunit le plan interactif, les raccourcis,
+              la météo et un aperçu du journal.
+              Les panneaux et widgets sont personnalisés
+              par l'installateur dans l'éditeur Maquette.
+              Les actualités détaillées restent disponibles
+              dans leur propre onglet.
+          - type: heading
             heading: Maintenance
             icon: mdi:wrench-clock
           - type: markdown
