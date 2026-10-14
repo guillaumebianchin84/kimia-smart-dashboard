@@ -204,11 +204,23 @@ views:
           - name: Entrée
             poly: [[580, 370], [800, 370], [800, 670], [580, 670]]
             label: [690, 520]
+          - name: Terrasse · météo
+            poly: [[0, 670], [800, 670], [800, 850], [0, 850]]
+            label: [400, 760]
+            outside: true
+            zoom: false
+            temperature: weather.forecast_lbv
+            temperature_attribute: temperature
+            humidity: weather.forecast_lbv
+            humidity_attribute: humidity
         walls:
           - [0, 0, 800, 0]
           - [800, 0, 800, 670]
           - [800, 670, 0, 670]
           - [0, 670, 0, 0]
+          - [0, 670, 0, 850]
+          - [0, 850, 800, 850]
+          - [800, 850, 800, 670]
           - [470, 0, 470, 370]
           - [470, 220, 800, 220]
           - [0, 370, 800, 370]
