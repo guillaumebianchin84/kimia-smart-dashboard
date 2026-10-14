@@ -162,7 +162,15 @@ sections:
           icon:
             - width: 60px
             - height: 60px
-            - color: '#C9FFF5'
+            - color: |
+                [[[
+                  const condition = entity?.state;
+                  if (['sunny','partlycloudy'].includes(condition)) return '#FFCC59';
+                  if (['rainy','pouring'].includes(condition)) return '#50C8FF';
+                  if (['lightning','lightning-rainy'].includes(condition)) return '#BDA8FF';
+                  if (condition === 'clear-night') return '#FFE09B';
+                  return '#D9E8F6';
+                ]]]
           custom_fields:
             location:
               - justify-self: start
@@ -194,10 +202,15 @@ sections:
             ha-card {
               border-radius: 17px;
               overflow: hidden;
-              background: var(--card-background-color);
-              color: var(--primary-text-color);
-              border: 1px solid var(--ha-card-border-color, var(--divider-color));
+              background: linear-gradient(125deg, #253C4C, #314051);
+              color: #F0F6FB;
+              border: 1px solid rgba(123, 194, 218, .28);
               box-shadow: none;
+              --weather-icon-cloud-front-color: #F1F7FF;
+              --weather-icon-cloud-back-color: #88AFCB;
+              --weather-icon-sun-color: #FFC44F;
+              --weather-icon-rain-color: #35B7FC;
+              --weather-icon-moon-color: #F5DB94;
             }
       - type: custom:button-card
         template: kimia_v2_tile
