@@ -12,69 +12,51 @@ sections:
         grid_options:
           columns: full
           rows: 1
-      - type: tile
-        entity: sensor.temperature_interieure_netatmo
+      - type: custom:button-card
+        template: kimia_v2_tile
         name: Température intérieure
         icon: mdi:home-thermometer-outline
         tap_action:
-          action: more-info
+          action: none
         grid_options:
           columns: 6
           rows: 1
-        card_mod:
-          style: |
-            ha-card {
-              border-radius: 17px;
-              border: 1px solid var(--divider-color);
-              background: var(--card-background-color);
-            }
-      - type: tile
-        entity: sensor.temperature_exterieure_meteo_france
-        name: Température extérieure
+        label: Capteur à associer
+      - type: custom:button-card
+        template: kimia_v2_tile
+        entity: weather.forecast_lbv
+        name: Température extérieure · Libreville
         icon: mdi:weather-partly-cloudy
         tap_action:
           action: more-info
         grid_options:
           columns: 6
           rows: 1
-        card_mod:
-          style: |
-            ha-card {
-              border-radius: 17px;
-              border: 1px solid var(--divider-color);
-              background: var(--card-background-color);
-            }
+        label: |
+          [[[
+            const t = entity?.attributes?.temperature;
+            return t !== undefined && t !== null ? String(t).replace('.', ',') + ' °C' : 'Indisponible';
+          ]]]
       - type: custom:button-card
         template: kimia_v2_tile
-        entity: input_boolean.gestion_clim_chauffage_maison
         name: Gestion automatique
         icon: mdi:autorenew
         tap_action:
-          action: more-info
-        label: |
-          [[[
-            if(!entity||['unknown','unavailable'].includes(entity.state))return 'Indisponible';
-            return entity.state==='on'?'Activée':'Désactivée';
-          ]]]
+          action: none
         grid_options:
           columns: 6
           rows: 1
-      - type: tile
-        entity: input_number.consigne_maison
+        label: À configurer
+      - type: custom:button-card
+        template: kimia_v2_tile
         name: Consigne maison
         icon: mdi:thermometer-lines
         tap_action:
-          action: more-info
+          action: none
         grid_options:
           columns: 6
           rows: 1
-        card_mod:
-          style: |
-            ha-card {
-              border-radius: 17px;
-              border: 1px solid var(--divider-color);
-              background: var(--card-background-color);
-            }
+        label: À configurer
   - type: grid
     cards:
       - type: heading
@@ -85,37 +67,27 @@ sections:
           rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
-        entity: climate.clim_salon
         name: Salon
         icon: mdi:sofa-outline
         tap_action:
-          action: more-info
-        label: |
-          [[[
-            if(!entity||['unknown','unavailable'].includes(entity.state))return 'Indisponible';
-            const mode=entity.state==='off'?'Arrêt':entity.state==='cool'?'Froid':entity.state==='heat'?'Chaud':entity.state;return mode+(entity.attributes?.temperature!==undefined?' · '+entity.attributes.temperature+'°':'');
-          ]]]
+          action: none
         grid_options:
           columns: 6
           rows: 1
+        label: Climatisation à associer
       - type: custom:button-card
         template: kimia_v2_tile
-        entity: climate.clim_chambre
         name: Chambre
         icon: mdi:bed-king-outline
         tap_action:
-          action: more-info
-        label: |
-          [[[
-            if(!entity||['unknown','unavailable'].includes(entity.state))return 'Indisponible';
-            const mode=entity.state==='off'?'Arrêt':entity.state==='cool'?'Froid':entity.state==='heat'?'Chaud':entity.state;return mode+(entity.attributes?.temperature!==undefined?' · '+entity.attributes.temperature+'°':'');
-          ]]]
+          action: none
         grid_options:
           columns: 6
           rows: 1
+        label: Climatisation à associer
       - type: markdown
         content: >-
-          Ces entités sont celles de la maison témoin. Sur une installation client, l'installateur les associe aux climatiseurs réellement présents.
+          Ces emplacements sont inactifs jusqu'à l'association avec les vrais climatiseurs et capteurs du logement.
         grid_options:
           columns: full
           rows: auto
