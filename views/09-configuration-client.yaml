@@ -193,25 +193,14 @@ sections:
       - type: heading
         heading: Contenu de l'accueil
         icon: mdi:view-dashboard-outline
-      - type: tile
-        entity: input_select.kimia_meteo_visible
-        name: Afficher la météo
-        icon: mdi:weather-partly-cloudy
-        tap_action:
-          action: more-info
-        grid_options:
-          columns: 6
-          rows: 1
-      - type: tile
-        entity: input_select.kimia_journal_visible
-        name: Afficher les actualités
-        icon: mdi:newspaper-variant-outline
-        tap_action:
-          action: more-info
-        grid_options:
-          columns: 6
-          rows: 1
-      - type: heading
+        - type: markdown
+          content: >-
+            L'accueil réunit le plan interactif, les raccourcis,
+            la météo et un aperçu du journal.
+            Les panneaux et widgets sont personnalisés
+            par l'installateur dans l'éditeur Maquette.
+            Les actualités détaillées restent disponibles
+            dans leur propre onglet.
         heading: Maintenance
         icon: mdi:wrench-clock
       - type: markdown
