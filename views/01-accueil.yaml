@@ -64,7 +64,7 @@ sections:
     cards:
       - type: custom:maquette-card
         grid_options:
-          columns: 11
+          columns: full
           rows: auto
         id: kimia_plan_accueil_v08
         title: ""
