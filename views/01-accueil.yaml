@@ -76,47 +76,154 @@ cards:
             - entity: sensor.kimia_flash_monde
               name: Monde
               icon: mdi:earth
-    # PLAN TÉMOIN, SANS AUCUNE COMMANDE D'ÉQUIPEMENT :
-    # à redessiner depuis Maquette (administrateur) pour le logement réel.
-    # Une vraie installation doit aussi associer les pièces HA et capteurs.
-    rooms:
-      - name: Séjour
-        poly: [[0, 0], [470, 0], [470, 370], [0, 370]]
-        label: [235, 185]
-      - name: Cuisine
-        poly: [[470, 0], [800, 0], [800, 220], [470, 220]]
-        label: [635, 110]
-      - name: Salle d'eau
-        poly: [[470, 220], [800, 220], [800, 370], [470, 370]]
-        label: [635, 295]
-      - name: Chambre 1
-        poly: [[0, 370], [320, 370], [320, 670], [0, 670]]
-        label: [160, 520]
-      - name: Chambre 2
-        poly: [[320, 370], [580, 370], [580, 670], [320, 670]]
-        label: [450, 520]
-      - name: Entrée
-        poly: [[580, 370], [800, 370], [800, 670], [580, 670]]
-        label: [690, 520]
-      - name: Terrasse · météo
-        poly: [[0, 670], [800, 670], [800, 850], [0, 850]]
-        label: [400, 760]
-        outside: true
-        zoom: false
-        temperature: weather.forecast_lbv
-        temperature_attribute: temperature
-        humidity: weather.forecast_lbv
-        humidity_attribute: humidity
-    walls:
-      - [0, 0, 800, 0]
-      - [800, 0, 800, 670]
-      - [800, 670, 0, 670]
-      - [0, 670, 0, 0]
-      - [0, 670, 0, 850]
-      - [0, 850, 800, 850]
-      - [800, 850, 800, 670]
-      - [470, 0, 470, 370]
-      - [470, 220, 800, 220]
-      - [0, 370, 800, 370]
-      - [320, 370, 320, 670]
-      - [580, 370, 580, 670]
+    # Maison témoin du 15/10 : même géométrie que le plan déjà calibré dans Maquette.
+    # Image uploadée dans Home Assistant KIMIA : URL interne à CETTE instance.
+    # Ouvertures et points lumineux décoratifs sans entités connectées.
+    floors:
+      - id: rdc
+        name: Rez-de-chaussée
+        short: RDC
+        rooms:
+          - name: Salon / Séjour
+            poly: [[40, 80], [905, 80], [905, 560], [40, 560]]
+            label: [470, 320]
+          - name: Cuisine
+            poly: [[905, 80], [1455, 80], [1455, 500], [905, 500]]
+            label: [1180, 250]
+          - name: Chambre 1
+            poly: [[40, 560], [490, 560], [490, 1040], [40, 1040]]
+            label: [265, 805]
+          - name: Chambre 2
+            poly: [[490, 560], [905, 560], [905, 1040], [490, 1040]]
+            label: [700, 805]
+          - name: Terrasse
+            poly: [[905, 500], [1455, 500], [1455, 1040], [905, 1040]]
+            label: [1180, 780]
+            outside: true
+            temperature: weather.forecast_lbv
+            temperature_attribute: temperature
+            humidity: weather.forecast_lbv
+            humidity_attribute: humidity
+        walls:
+          - [40, 80, 1455, 80]
+          - [1455, 80, 1455, 1040]
+          - [1455, 1040, 40, 1040]
+          - [40, 1040, 40, 80]
+          - [905, 80, 905, 1040]
+          - [40, 560, 905, 560]
+          - [490, 560, 490, 1040]
+          - [905, 500, 1455, 500]
+        openings:
+          # Toutes les ouvertures sont purement décoratives, sans capteurs / volets.
+          - type: door
+            name: Porte d'entrée
+            seg: [40, 340, 40, 440]
+            leaves: 1
+            swing: right
+            outside: [-1, 0]
+            tap: none
+          - type: door
+            name: Passage cuisine
+            seg: [905, 260, 905, 350]
+            leaves: 1
+            swing: left
+            tap: none
+          - type: door
+            name: Porte chambre 1
+            seg: [365, 560, 455, 560]
+            leaves: 1
+            swing: right
+            tap: none
+          - type: door
+            name: Porte chambre 2
+            seg: [610, 560, 700, 560]
+            leaves: 1
+            swing: left
+            tap: none
+          - type: door
+            name: Baie vitrée terrasse
+            seg: [1090, 500, 1350, 500]
+            leaves: 2
+            swing: sliding
+            glazed: full
+            sill: 0
+            height: 220
+            outside: [0, 1]
+            tap: none
+          - type: window
+            name: Grande fenêtre séjour
+            seg: [175, 80, 430, 80]
+            leaves: 2
+            swing: sliding
+            outside: [0, -1]
+            sill: 90
+            height: 220
+            tap: none
+          - type: window
+            name: Fenêtre latérale séjour
+            seg: [40, 150, 40, 265]
+            outside: [-1, 0]
+            tap: none
+          - type: window
+            name: Fenêtre cuisine
+            seg: [1090, 80, 1320, 80]
+            leaves: 2
+            swing: sliding
+            outside: [0, -1]
+            tap: none
+          - type: window
+            name: Fenêtre chambre 1
+            seg: [135, 1040, 355, 1040]
+            leaves: 2
+            swing: sliding
+            outside: [0, 1]
+            tap: none
+          - type: window
+            name: Fenêtre chambre 2
+            seg: [595, 1040, 805, 1040]
+            leaves: 2
+            swing: sliding
+            outside: [0, 1]
+            tap: none
+        badges:
+          # Six lampes symboliques ; aucun light.*, pas de commande.
+          - name: Plafonnier séjour
+            pos: [550, 185]
+            icon: mdi:ceiling-light
+            color: "#FFD166"
+            tap: none
+          - name: Lampe salon
+            pos: [250, 435]
+            icon: mdi:floor-lamp
+            color: "#FFC857"
+            tap: none
+          - name: Éclairage cuisine
+            pos: [1190, 340]
+            icon: mdi:ceiling-light
+            color: "#FFD166"
+            tap: none
+          - name: Lampe chambre 1
+            pos: [375, 625]
+            icon: mdi:lamp
+            color: "#FFD166"
+            tap: none
+          - name: Lampe chambre 2
+            pos: [790, 625]
+            icon: mdi:lamp
+            color: "#FFD166"
+            tap: none
+          - name: Éclairage terrasse
+            pos: [1300, 850]
+            icon: mdi:outdoor-lamp
+            color: "#FFC857"
+            tap: none
+        furniture: []
+        background:
+          image: /api/image/serve/ff117c7cfa8067ef6fc7005b20d1d041/original
+          pos: [0, 0]
+          width: 1499
+          height: 1049
+          rotation: 0
+          opacity: 1
+          room_opacity: 0.6
+          show: always
