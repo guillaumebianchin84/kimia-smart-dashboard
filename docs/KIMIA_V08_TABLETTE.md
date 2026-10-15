@@ -93,16 +93,22 @@ des services et les conditions de réutilisation des articles.
 
 ## Plan témoin et personnalisation
 
-La page d'accueil inclut un plan simple de sept zones (six pièces et une terrasse) destiné à vérifier la mise en page.
-**Ce plan est explicitement fictif** : il ne correspond pas à une habitation gabonaise réelle, et ne porte
-aucune commande de lampe/volet/capteur. L'installateur doit le remplacer :
-1. Ouvrir Accueil avec un compte administrateur, lancer l'éditeur Maquette.
-2. Effacer / adapter les pièces de démonstration et dessiner le logement réel (plans, murs, fenêtres, étages).
-3. Lier chaque pièce aux *Areas* de Home Assistant.
-4. Associer les équipements réels et tester chaque commande sur place.
-5. Contrôler que les panneaux, scénarios et widgets fonctionnent avec un compte client non admin.
+La V0.8 intègre désormais le plan **maison témoin KIMIA** configuré le 15 octobre 2026 :
 
-Une démo officielle indépendante (`maquette-demo-ui-import.yaml`) reste utilisable sans action sur les appareils.
+- Cinq zones : **Salon / Séjour**, **Cuisine**, **Chambre 1**, **Chambre 2**, **Terrasse**.
+- Coordonnées Maquette conservées : salon X=40–905/Y=80–560, cuisine X=905–1455/Y=80–500, chambres et terrasse jusqu'à Y=1040.
+- **Dix ouvertures décoratives** (cinq portes dont la baie vitrée, cinq fenêtres) et **six lampes repères**, sans aucune entité domotique.
+- Calque image existant : `/api/image/serve/ff117c7cfa8067ef6fc7005b20d1d041/original`. Il est hébergé **sur la VM Home Assistant KIMIA uniquement**. GitHub ne contient **pas les octets de ce PNG**, seulement son lien interne. Ne pas copier cette URL vers d'autres clients.
+- Calibrage : `pos: [0, 0]`, `width: 1499`, `height: 1049`, `opacity: 1`, `room_opacity: 0.6`, `show: always`.
+- Carte `id: kimia_plan_accueil_v08` : modèle intégré dans `views/01-accueil.yaml` et dans l'import complet `dashboard-ui-import.yaml`. Ne jamais remplacer l'un sans synchroniser l'autre.
+
+**Avant import dans le dashboard existant : exporter et conserver une copie du YAML de la vue actuelle / du dashboard.**
+L'import brut du dashboard réécrit les vues et peut écraser des retouches locales ultérieures effectuées dans l'éditeur Maquette.
+Le gabarit GitHub correspond aux dernières coordonnées communiquées dans la conversation, mais pas forcément aux éditions locales faites depuis.
+
+Pour personnaliser une autre maison : ouvrir l'accueil administrateur, utiliser l'éditeur Maquette, dessiner ou modifier les
+pièces et les murs, lier les `Areas` HA, puis associer les entités réelles et tester les commandes.
+Les lampes et ouvertures de démonstration ne commandent rien.
 
 ## Liste d'essais obligatoire avant validation
 
