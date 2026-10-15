@@ -1,6 +1,6 @@
-# KIMIA Smart V0.9 — Accueil « Ma maison » (prototype visuel)
+# KIMIA Smart V0.9 — Accueil « Ma maison » (cartes indépendantes)
 
-**Statut : code enregistré sur GitHub ; non testé dans la VM Home Assistant KIMIA.**
+**Statut : V0.9 corrigée sur GitHub après retour « erreur de configuration » ; rendu non encore testé dans la VM Home Assistant KIMIA.**
 Cette branche découle de `feat/tablette-maquette-v08`. Ne pas fusionner avant essai tablette.
 
 ## Ce qui change
@@ -9,7 +9,7 @@ Cette branche découle de `feat/tablette-maquette-v08`. Ne pas fusionner avant e
 - Maquette affiche uniquement le titre **Ma maison**. La forme des cinq pièces, portes, fenêtres, six lampes décoratives,
   le calque, ses coordonnées 1499×1049 et son URL `/api/image/serve/ff117c7cfa8067ef6fc7005b20d1d041/original` **n'ont pas été modifiés**.
 - Le calque garde exactement la même position et les mêmes dimensions ; la transparence du sol des pièces passe de 0,6 à **0,18** pour voir plus clairement les meubles et couleurs du PNG.
-- La page est un **panel** avec `custom:layout-card` en grille responsive : plan principal large, colonne droite compacte.
+- La page utilise désormais **les sections natives Home Assistant** (`type: sections`, `max_columns: 3`) : une première section pleine largeur pour la marque, une section sur deux colonnes pour la carte Maquette, une dernière pour les cartes météo / scènes / actualités. **Plus de `custom:layout-card`**.
 - **Météo :** `custom:clock-weather-card`, grandes icônes colorées animées, 4 jours de prévision,
   alimentée directement par **`weather.forecast_lbv`**. Ce composant n'attend plus
   `sensor.kimia_temperature_libreville`.
@@ -22,15 +22,14 @@ Cette branche découle de `feat/tablette-maquette-v08`. Ne pas fusionner avant e
 - Le choix **Gris Premium / Clair / Sombre / Signature** demeure ; couleurs turquoise, ciel, or en accents.
 - Les onglets détaillés Lumières, Volets, Climatisation, Musique, Sécurité, Prises, Actualités et Paramètres restent en place.
 
-## Prérequis HACS — DEUX nouvelles cartes
+## Prérequis HACS — météo et cartes
 
-En plus de Maquette, Button Card, Card Mod et RSS News Card (déjà utilisés en V0.8) :
+Maquette, Button Card, Card Mod, RSS News Card et **Clock Weather Card** sont requis.
+- **Clock Weather Card** : https://github.com/pkissling/clock-weather-card
+- **Layout Card n'est plus utilisée**. L'utilisateur l'a installée, mais le nouveau YAML repose uniquement sur les **sections natives Home Assistant** et n'en a pas besoin.
 
-1. **Layout Card** — https://github.com/thomasloven/lovelace-layout-card
-2. **Clock Weather Card** — https://github.com/pkissling/clock-weather-card
-
-Installer via HACS, vérifier les ressources frontend et actualiser Home Assistant dans le navigateur.
-L'import d'un dashboard qui référence une carte non installée affichera **« Élément personnalisé introuvable »**.
+Actualiser le navigateur pour charger les ressources frontend après installation HACS.
+Les options météo suivent la syntaxe historique de Clock Weather Card V2 ; vérifier la version HACS installée si une erreur persiste (l'API de la V3 peut différer).
 
 ## Ce qui ne marche pas sans le package / capteurs
 
@@ -65,7 +64,7 @@ Le fichier V0.9 conserve l'entité Met.no déjà fonctionnelle.
 
 1. **Sauvegarder le dashboard HA courant** : copier l'intégralité du YAML brut
    dans un fichier local avant remplacement ; faire aussi une sauvegarde Home Assistant.
-2. Dans HACS, installer **Layout Card** et **Clock Weather Card**.
+2. Vérifier dans HACS que **Clock Weather Card** est installée et que sa ressource est chargée (Layout Card n'est pas nécessaire).
 3. Vérifier les entités nécessaires (voir plus haut) ; installer le package si absent.
 4. Ouvrir `dashboard-ui-import.yaml` de la branche `feat/accueil-v09-wow` et copier son **Raw**.
 5. Coller dans KIMIA Smart → Modifier dashboard → Éditeur de configuration brute et sauvegarder.
@@ -78,7 +77,7 @@ Le fichier V0.9 conserve l'entité Met.no déjà fonctionnelle.
 
 ### Limites et précautions
 
-- Ce layout est un **prototype** : dimension exacte et comportement sans défilement
+- Cette mise en page en **sections natives** est un **prototype** : dimension exacte et comportement sans défilement
   vertical restent à vérifier sur la tablette (zoom, barre du navigateur/HA,
   navigation Android, densité des prévisions).
 - L'URL du calque est **hébergée dans Home Assistant** ; elle n'est pas un fichier
@@ -87,7 +86,7 @@ Le fichier V0.9 conserve l'entité Met.no déjà fonctionnelle.
   **écrasée si l'on importe ultérieurement une autre version complète**.
   Toujours exporter le YAML avant import.
 - Une carte météo Home Assistant ne peut pas être directement insérée dans
-  le panneau interne de Maquette : la colonne droite est ici une pile Lovelace
-  indépendante construite avec Layout Card.
+  le panneau interne de Maquette : la météo, les boutons et les actualités sont désormais
+  des **cartes Lovelace séparées dans une section HA native**.
 - Les contenus RSS et météo requièrent une connexion Internet ; les commandes
   HA locales peuvent rester fonctionnelles sans Internet.
