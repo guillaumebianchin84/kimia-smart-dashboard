@@ -6,7 +6,7 @@ Cette branche découle de `feat/tablette-maquette-v08`. Ne pas fusionner avant e
 ## Ce qui change
 
 - La **signature KIMIA Smart by PROMAINT** est à gauche dans un bandeau discret turquoise.
-- Maquette affiche uniquement le titre **Ma maison**. La forme des cinq pièces, portes, fenêtres, six lampes décoratives,
+- Le bandeau KIMIA porte le titre **Ma maison**, et la carte Maquette n'affiche pas de second titre. La forme des cinq pièces, portes, fenêtres, six lampes décoratives,
   le calque, ses coordonnées 1499×1049 et son URL `/api/image/serve/ff117c7cfa8067ef6fc7005b20d1d041/original` **n'ont pas été modifiés**.
 - Le calque garde exactement la même position et les mêmes dimensions ; la transparence du sol des pièces passe de 0,6 à **0,18** pour voir plus clairement les meubles et couleurs du PNG.
 - La page utilise désormais **les sections natives Home Assistant** (`type: sections`, `max_columns: 3`) : une première section pleine largeur pour la marque, une section sur deux colonnes pour la carte Maquette, une dernière pour les cartes météo / scènes / actualités. **Plus de `custom:layout-card`**.
