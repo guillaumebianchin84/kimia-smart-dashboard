@@ -9,6 +9,22 @@ views:
       - type: grid
         cards:
           - type: heading
+            heading: Mon logement
+            icon: mdi:floor-plan
+          - type: markdown
+            content: >-
+              Découvrez votre logement sur un plan interactif.
+              L'installateur peut y placer lumières, volets et capteurs.
+          - type: button
+            name: Ouvrir le plan de maison
+            icon: mdi:floor-plan
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-smart/plan
+            grid_options:
+              columns: 12
+              rows: 2
+          - type: heading
             heading: Personnaliser KIMIA
             icon: mdi:palette-outline
           - type: markdown

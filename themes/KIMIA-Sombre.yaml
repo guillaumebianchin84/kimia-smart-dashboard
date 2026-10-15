@@ -1,24 +1,7 @@
-# Thème KIMIA. Modes clair/sombre identiques pour garantir la lisibilité
-# si le téléphone change son apparence système.
+# KIMIA — mode sombre exclusif pour préserver le contraste des menus HA.
+# Vérifier le rendu dans la VM avant tout déploiement client.
 KIMIA Sombre:
   modes:
-    light:
-      primary-background-color: "#0D1925"
-      secondary-background-color: "#172838"
-      card-background-color: "#1A2A3A"
-      primary-text-color: "#F0F6FA"
-      secondary-text-color: "#B8CAD6"
-      primary-color: "#52C4D0"
-      accent-color: "#3BDBC4"
-      app-header-background-color: "#102338"
-      app-header-text-color: "#F0F6FA"
-      sidebar-background-color: "#122334"
-      sidebar-text-color: "#F0F6FA"
-      state-icon-color: "#80BDCA"
-      state-icon-active-color: "#39D7C2"
-      ha-card-border-color: "#304858"
-      ha-card-border-radius: "18px"
-      ha-card-box-shadow: "0 3px 12px rgba(0,0,0,0.22)"
     dark:
       primary-background-color: "#0D1925"
       secondary-background-color: "#172838"
@@ -36,3 +19,16 @@ KIMIA Sombre:
       ha-card-border-color: "#304858"
       ha-card-border-radius: "18px"
       ha-card-box-shadow: "0 3px 12px rgba(0,0,0,0.22)"
+      input-fill-color: "#1A2A3A"
+      input-ink-color: "#F0F6FA"
+      input-label-ink-color: "#B8CAD6"
+      input-dropdown-icon-color: "#F0F6FA"
+      mdc-select-fill-color: "#1A2A3A"
+      mdc-select-ink-color: "#F0F6FA"
+      mdc-select-label-ink-color: "#B8CAD6"
+      mdc-select-dropdown-icon-color: "#F0F6FA"
+      overlay-background-color: "#172838"
+      md-sys-color-surface: "#1A2A3A"
+      md-sys-color-on-surface: "#F0F6FA"
+      md-sys-color-surface-container: "#172838"
+      md-sys-color-on-surface-variant: "#B8CAD6"

@@ -1,0 +1,13 @@
+# Carte de démonstration officielle : appartement fictif, aucune action sur ta maison.
+# Importer dans un dashboard de test distinct après l'installation HACS.
+title: Démonstration Maquette
+views:
+  - title: Démonstration
+    path: demonstration
+    icon: mdi:floor-plan
+    type: panel
+    cards:
+      - type: custom:maquette-card
+        demo: true
+        language: fr
+        title: Appartement de démonstration

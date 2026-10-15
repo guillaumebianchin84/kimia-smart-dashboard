@@ -1,0 +1,10 @@
+title: Plan de maison
+path: plan
+icon: mdi:floor-plan
+type: panel
+cards:
+  - type: custom:maquette-card
+    id: kimia_plan_maison
+    title: Plan de ma maison
+    language: fr
+    full_page: true

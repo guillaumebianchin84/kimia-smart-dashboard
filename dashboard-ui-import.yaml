@@ -112,9 +112,9 @@ views:
                   - justify-self: end
                   - text-align: right
     
-      # 02 — Météo visible immédiatement. Données RÉELLES ou tirets si absentes.
+      # 02 — Météo Libreville. La localisation et les capteurs sont adaptés au client.
           - type: heading
-            heading: Météo et températures
+            heading: Météo · Libreville
             icon: mdi:weather-partly-cloudy
             visibility:
               - condition: state
@@ -123,14 +123,135 @@ views:
             grid_options:
               columns: full
               rows: 1
+          - type: custom:button-card
+            entity: weather.forecast_lbv
+            show_icon: true
+            show_name: false
+            show_state: false
+            show_label: false
+            icon: |
+              [[[
+                const icons = {
+                  'sunny': 'mdi:weather-sunny',
+                  'clear-night': 'mdi:weather-night',
+                  'partlycloudy': 'mdi:weather-partly-cloudy',
+                  'cloudy': 'mdi:weather-cloudy',
+                  'rainy': 'mdi:weather-rainy',
+                  'pouring': 'mdi:weather-pouring',
+                  'lightning': 'mdi:weather-lightning',
+                  'lightning-rainy': 'mdi:weather-lightning-rainy',
+                  'fog': 'mdi:weather-fog',
+                  'windy': 'mdi:weather-windy',
+                  'windy-variant': 'mdi:weather-windy-variant',
+                  'hail': 'mdi:weather-hail',
+                  'snowy': 'mdi:weather-snowy',
+                  'snowy-rainy': 'mdi:weather-snowy-rainy'
+                };
+                return icons[entity?.state] || 'mdi:weather-partly-cloudy';
+              ]]]
+            tap_action:
+              action: more-info
+            visibility:
+              - condition: state
+                entity: input_select.kimia_meteo_visible
+                state: "Oui"
+            grid_options:
+              columns: full
+              rows: auto
+            custom_fields:
+              location: |
+                [[[
+                  return '<span style="font-size:11px;font-weight:800;letter-spacing:1.8px;color:#A8F6EC">LIBREVILLE · GABON</span>';
+                ]]]
+              temperature: |
+                [[[
+                  const t = entity?.attributes?.temperature;
+                  const value = t !== undefined && t !== null && !Number.isNaN(Number(t))
+                    ? Number(t).toFixed(1).replace('.', ',') : '—';
+                  return '<span style="font-size:49px;font-weight:800;letter-spacing:-2px;line-height:1">' + value +
+                    '<span style="font-size:21px;font-weight:500;margin-left:5px;letter-spacing:0">°C</span></span>';
+                ]]]
+              condition: |
+                [[[
+                  const labels = {
+                    'sunny':'Ensoleillé', 'clear-night':'Ciel dégagé',
+                    'partlycloudy':'Partiellement nuageux', 'cloudy':'Nuageux',
+                    'rainy':'Pluie', 'pouring':'Fortes pluies',
+                    'lightning':'Orage', 'lightning-rainy':'Orages et pluie',
+                    'fog':'Brouillard', 'windy':'Venteux',
+                    'windy-variant':'Venteux et nuageux', 'hail':'Grêle',
+                    'snowy':'Neige', 'snowy-rainy':'Neige et pluie'
+                  };
+                  return '<span style="font-size:14px;color:#E1F5F5">' +
+                    (labels[entity?.state] || 'Météo actuelle') + '</span>';
+                ]]]
+              details: |
+                [[[
+                  const a = entity?.attributes || {};
+                  const parts = [];
+                  if (a.humidity !== undefined && a.humidity !== null)
+                    parts.push('Humidité ' + a.humidity + ' %');
+                  if (a.wind_speed !== undefined && a.wind_speed !== null)
+                    parts.push('Vent ' + a.wind_speed + ' ' + (a.wind_speed_unit || 'km/h'));
+                  return '<span style="font-size:11px;color:#D1E9EE">' +
+                    (parts.length ? parts.join('  ·  ') : 'Conditions actualisées automatiquement') +
+                    '</span>';
+                ]]]
+            styles:
+              card:
+                - background: 'linear-gradient(115deg, #0D324F 0%, #15597B 63%, #138586 100%)'
+                - color: '#FFFFFF'
+                - border: '1px solid rgba(255,255,255,.13)'
+                - border-radius: 20px
+                - box-shadow: '0 5px 16px rgba(0,35,55,.14)'
+                - padding: 17px 22px
+                - overflow: hidden
+              grid:
+                - grid-template-areas: '"location i" "temperature i" "condition i" "details details"'
+                - grid-template-columns: 'minmax(0, 1fr) 80px'
+                - grid-template-rows: 'auto auto auto auto'
+                - row-gap: 4px
+                - align-items: center
+              img_cell:
+                - grid-area: i
+                - justify-self: end
+                - align-self: center
+                - width: 76px
+                - height: 76px
+              icon:
+                - width: 60px
+                - height: 60px
+                - color: |
+                    [[[
+                      const condition = entity?.state;
+                      if (['sunny','partlycloudy'].includes(condition)) return '#FFCC59';
+                      if (['rainy','pouring'].includes(condition)) return '#50C8FF';
+                      if (['lightning','lightning-rainy'].includes(condition)) return '#BDA8FF';
+                      if (condition === 'clear-night') return '#FFE09B';
+                      return '#D9E8F6';
+                    ]]]
+              custom_fields:
+                location:
+                  - justify-self: start
+                  - text-align: left
+                temperature:
+                  - justify-self: start
+                  - text-align: left
+                condition:
+                  - justify-self: start
+                  - text-align: left
+                details:
+                  - justify-self: start
+                  - text-align: left
+                  - margin-top: 10px
           - type: weather-forecast
-            entity: weather.meteo_france_forecast_for_city_le_pontet_provence_alpes_cote_d_azur_84_fr_le_pontet
+            entity: weather.forecast_lbv
             visibility:
               - condition: state
                 entity: input_select.kimia_meteo_visible
                 state: "Oui"
             forecast_type: daily
-            show_current: true
+            show_current: false
             show_forecast: true
             grid_options:
               columns: full
@@ -138,45 +259,43 @@ views:
             card_mod:
               style: |
                 ha-card {
-                  border-radius: 18px;
+                  border-radius: 17px;
                   overflow: hidden;
-                  background: var(--card-background-color);
-                  color: var(--primary-text-color);
-                  border: 1px solid var(--divider-color);
-                  box-shadow: 0 3px 12px rgba(0,30,53,.05);
+                  background: linear-gradient(125deg, #253C4C, #314051);
+                  color: #F0F6FB;
+                  border: 1px solid rgba(123, 194, 218, .28);
+                  box-shadow: none;
+                  --weather-icon-cloud-front-color: #F1F7FF;
+                  --weather-icon-cloud-back-color: #88AFCB;
+                  --weather-icon-sun-color: #FFC44F;
+                  --weather-icon-rain-color: #35B7FC;
+                  --weather-icon-moon-color: #F5DB94;
                 }
-          - type: tile
-            entity: sensor.temperature_interieure_netatmo
-            visibility:
-              - condition: state
-                entity: input_select.kimia_meteo_visible
-                state: "Oui"
-            name: Intérieur
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Température intérieure
             icon: mdi:home-thermometer-outline
-            vertical: false
+            tap_action:
+              action: none
+            grid_options:
+              columns: 6
+              rows: 1
+            label: Capteur à associer
+          - type: custom:button-card
+            template: kimia_v2_tile
+            entity: weather.forecast_lbv
+            name: Température extérieure · Libreville
+            icon: mdi:weather-partly-cloudy
             tap_action:
               action: more-info
             grid_options:
               columns: 6
               rows: 1
-            card_mod:
-              style: ha-card { border-radius:17px; border:1px solid var(--divider-color); box-shadow:none; }
-          - type: tile
-            entity: sensor.temperature_exterieure_meteo_france
-            visibility:
-              - condition: state
-                entity: input_select.kimia_meteo_visible
-                state: "Oui"
-            name: Extérieur
-            icon: mdi:weather-sunny
-            vertical: false
-            tap_action:
-              action: more-info
-            grid_options:
-              columns: 6
-              rows: 1
-            card_mod:
-              style: ha-card { border-radius:17px; border:1px solid var(--divider-color); box-shadow:none; }
+            label: |
+              [[[
+                const t = entity?.attributes?.temperature;
+                return t !== undefined && t !== null ? String(t).replace('.', ',') + ' °C' : 'Indisponible';
+              ]]]
           - type: heading
             heading: Ma maison
             icon: mdi:home-heart
@@ -185,26 +304,14 @@ views:
               rows: 1
           - type: custom:button-card
             template: kimia_v2_tile
-            entity: input_boolean.mode_absence
             name: Présence
             icon: mdi:home-account
             tap_action:
-              action: more-info
+              action: none
             grid_options:
               columns: 6
               rows: 1
-            label: |
-              [[[
-                if(!entity || ['unknown','unavailable'].includes(entity.state)) return 'Indisponible';
-                return entity.state==='on'?'Mode absence':'Maison occupée';
-              ]]]
-            state:
-              - value: 'on'
-                styles:
-                  icon:
-                    - color: '#EDA94A'
-                  img_cell:
-                    - background: rgba(237,169,74,.14)
+            label: Mode à configurer
           - type: custom:button-card
             template: kimia_v2_tile
             name: Lumières
@@ -233,20 +340,14 @@ views:
               ]]]
           - type: custom:button-card
             template: kimia_v2_tile
-            entity: input_boolean.gestion_clim_chauffage_maison
-            name: Clim auto
+            name: Gestion automatique
             icon: mdi:autorenew
             tap_action:
-              action: more-info
+              action: none
             grid_options:
               columns: 6
               rows: 1
-            label: |
-              [[[
-                if(!entity || ['unknown','unavailable'].includes(entity.state)) return 'Indisponible';
-                return entity.state==='on'?'Activée':'Désactivée';
-              ]]]
-    
+            label: À configurer
           - type: heading
             heading: Confort
             icon: mdi:thermostat
@@ -255,55 +356,35 @@ views:
               rows: 1
           - type: custom:button-card
             template: kimia_v2_tile
-            entity: climate.clim_salon
             name: Salon
             icon: mdi:sofa-outline
             tap_action:
-              action: more-info
+              action: none
             grid_options:
               columns: 6
               rows: 1
-            label: |
-              [[[
-                if(!entity || ['unknown','unavailable'].includes(entity.state)) return 'Indisponible';
-                const m=entity.state==='off'?'Arrêt':entity.state==='cool'?'Froid':entity.state==='heat'?'Chaud':entity.state;
-                const t=entity.attributes?.temperature;
-                return m+(t!==undefined&&t!==null?' · '+String(t).replace('.',',')+'°':'');
-              ]]]
+            label: Climatisation à associer
           - type: custom:button-card
             template: kimia_v2_tile
-            entity: climate.clim_chambre
             name: Chambre
             icon: mdi:bed-king-outline
             tap_action:
-              action: more-info
+              action: none
             grid_options:
               columns: 6
               rows: 1
-            label: |
-              [[[
-                if(!entity || ['unknown','unavailable'].includes(entity.state)) return 'Indisponible';
-                const m=entity.state==='off'?'Arrêt':entity.state==='cool'?'Froid':entity.state==='heat'?'Chaud':entity.state;
-                const t=entity.attributes?.temperature;
-                return m+(t!==undefined&&t!==null?' · '+String(t).replace('.',',')+'°':'');
-              ]]]
+            label: Climatisation à associer
           - type: custom:button-card
             template: kimia_v2_tile
-            entity: input_number.consigne_maison
             name: Consigne maison
             icon: mdi:thermometer-lines
             tap_action:
-              action: more-info
+              action: none
             grid_options:
               columns: 12
               rows: 1
-            label: |
-              [[[
-                if(!entity || ['unknown','unavailable'].includes(entity.state)) return 'Indisponible';
-                return entity.state.replace('.',',')+' °C · toucher pour régler';
-              ]]]
-    
-      # 04 — À remplacer par ton vrai RSS News après récupération de son YAML.
+            label: À configurer
+      # 04 — Sources RSS de la VM KIMIA : Gabon, Afrique et Monde.
           - type: heading
             heading: Le journal
             icon: mdi:newspaper-variant-outline
@@ -319,14 +400,20 @@ views:
               - condition: state
                 entity: input_select.kimia_journal_visible
                 state: "Oui"
-            title: 📰 Flash Info
+            title: 📰 Gabon · Afrique · Monde
             sources:
-              - entity: sensor.rss_bfmtv
-                name: BFMTV
-                color: '#0072CE'
-              - entity: sensor.rss_le_monde
-                name: Le Monde
-                color: '#222222'
+              - entity: sensor.rss_gabon_actu
+                name: Gabon Actu
+                color: '#00A879'
+              - entity: sensor.rss_gabonreview
+                name: GabonReview
+                color: '#3797C6'
+              - entity: sensor.rss_rfi_afrique
+                name: RFI Afrique
+                color: '#F39836'
+              - entity: sensor.rss_france_24
+                name: France 24
+                color: '#2377C4'
             max_articles: 5
             card_height: 265
             show_description: false
@@ -346,6 +433,16 @@ views:
                   border: 1px solid var(--divider-color);
                   box-shadow: 0 3px 12px rgba(0,30,53,.05);
                 }
+  - title: Plan de maison
+    path: plan
+    icon: mdi:floor-plan
+    type: panel
+    cards:
+      - type: custom:maquette-card
+        id: kimia_plan_maison
+        title: Plan de ma maison
+        language: fr
+        full_page: true
   - title: Lumières
     path: lumieres
     icon: mdi:lightbulb-group-outline
@@ -638,69 +735,51 @@ views:
             grid_options:
               columns: full
               rows: 1
-          - type: tile
-            entity: sensor.temperature_interieure_netatmo
+          - type: custom:button-card
+            template: kimia_v2_tile
             name: Température intérieure
             icon: mdi:home-thermometer-outline
             tap_action:
-              action: more-info
+              action: none
             grid_options:
               columns: 6
               rows: 1
-            card_mod:
-              style: |
-                ha-card {
-                  border-radius: 17px;
-                  border: 1px solid var(--divider-color);
-                  background: var(--card-background-color);
-                }
-          - type: tile
-            entity: sensor.temperature_exterieure_meteo_france
-            name: Température extérieure
+            label: Capteur à associer
+          - type: custom:button-card
+            template: kimia_v2_tile
+            entity: weather.forecast_lbv
+            name: Température extérieure · Libreville
             icon: mdi:weather-partly-cloudy
             tap_action:
               action: more-info
             grid_options:
               columns: 6
               rows: 1
-            card_mod:
-              style: |
-                ha-card {
-                  border-radius: 17px;
-                  border: 1px solid var(--divider-color);
-                  background: var(--card-background-color);
-                }
+            label: |
+              [[[
+                const t = entity?.attributes?.temperature;
+                return t !== undefined && t !== null ? String(t).replace('.', ',') + ' °C' : 'Indisponible';
+              ]]]
           - type: custom:button-card
             template: kimia_v2_tile
-            entity: input_boolean.gestion_clim_chauffage_maison
             name: Gestion automatique
             icon: mdi:autorenew
             tap_action:
-              action: more-info
-            label: |
-              [[[
-                if(!entity||['unknown','unavailable'].includes(entity.state))return 'Indisponible';
-                return entity.state==='on'?'Activée':'Désactivée';
-              ]]]
+              action: none
             grid_options:
               columns: 6
               rows: 1
-          - type: tile
-            entity: input_number.consigne_maison
+            label: À configurer
+          - type: custom:button-card
+            template: kimia_v2_tile
             name: Consigne maison
             icon: mdi:thermometer-lines
             tap_action:
-              action: more-info
+              action: none
             grid_options:
               columns: 6
               rows: 1
-            card_mod:
-              style: |
-                ha-card {
-                  border-radius: 17px;
-                  border: 1px solid var(--divider-color);
-                  background: var(--card-background-color);
-                }
+            label: À configurer
       - type: grid
         cards:
           - type: heading
@@ -711,37 +790,27 @@ views:
               rows: 1
           - type: custom:button-card
             template: kimia_v2_tile
-            entity: climate.clim_salon
             name: Salon
             icon: mdi:sofa-outline
             tap_action:
-              action: more-info
-            label: |
-              [[[
-                if(!entity||['unknown','unavailable'].includes(entity.state))return 'Indisponible';
-                const mode=entity.state==='off'?'Arrêt':entity.state==='cool'?'Froid':entity.state==='heat'?'Chaud':entity.state;return mode+(entity.attributes?.temperature!==undefined?' · '+entity.attributes.temperature+'°':'');
-              ]]]
+              action: none
             grid_options:
               columns: 6
               rows: 1
+            label: Climatisation à associer
           - type: custom:button-card
             template: kimia_v2_tile
-            entity: climate.clim_chambre
             name: Chambre
             icon: mdi:bed-king-outline
             tap_action:
-              action: more-info
-            label: |
-              [[[
-                if(!entity||['unknown','unavailable'].includes(entity.state))return 'Indisponible';
-                const mode=entity.state==='off'?'Arrêt':entity.state==='cool'?'Froid':entity.state==='heat'?'Chaud':entity.state;return mode+(entity.attributes?.temperature!==undefined?' · '+entity.attributes.temperature+'°':'');
-              ]]]
+              action: none
             grid_options:
               columns: 6
               rows: 1
+            label: Climatisation à associer
           - type: markdown
             content: >-
-              Ces entités sont celles de la maison témoin. Sur une installation client, l'installateur les associe aux climatiseurs réellement présents.
+              Ces emplacements sont inactifs jusqu'à l'association avec les vrais climatiseurs et capteurs du logement.
             grid_options:
               columns: full
               rows: auto

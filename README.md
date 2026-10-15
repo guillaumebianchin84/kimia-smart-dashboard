@@ -1,5 +1,17 @@
 # KIMIA Smart — dashboards premium et configuration client
 
+> **Reprise du 14 octobre 2026 :** [état de la VM de test, fichiers RSS, météo Libreville et prochaines étapes](docs/REPRISE_2026-10-14.md). Les dernières modifications restent sur la branche de travail et ne sont pas fusionnées dans `main`.
+
+
+## Nouvelle option : plan interactif Maquette Card
+
+Cette branche ajoute une vue **Plan de maison** avec [Maquette Card](https://github.com/TooMuhtsh/maquette-card). L'installateur dessine le logement dans l'éditeur graphique de la carte, peut commencer à partir des pièces Home Assistant et associe les véritables entités. Le plan de chaque client est à créer : nous ne connaissons pas les dimensions réelles du logement.
+
+**Installation nécessaire :** Maquette v0.2.0 depuis HACS (dépôt personnalisé). La page principale KIMIA et ses cartes indépendantes restent intactes. Un dashboard de démo isolé (sans action sur tes appareils) est fourni : `maquette-demo-ui-import.yaml`.
+
+Guide d'installation : [Maquette Card dans KIMIA](docs/MAQUETTE_CARD.md).
+
+
 ## V0.6 — Nouvelle base validée visuellement
 
 La V0.6 reprend **l'Accueil V4 Gris Premium testé sur téléphone**,
@@ -49,10 +61,23 @@ avant leur mise en service. Aucun contrôle d'un moteur de volet,
 aucun système d'alarme et aucune caméra n'est mis en service
 par ce prototype.
 
-L'accueil réutilise les entités de **la maison de test**
-(Météo-France du Pontet, Netatmo, climatisations, RSS BFMTV et Le Monde).
-Les installations client devront utiliser **leurs propres** entités
-et sources configurées.
+### Démonstration Gabon — octobre 2026
+
+La branche V0.7 utilise, dans `dashboard-ui-import.yaml`, la météo de Libreville
+(`weather.forecast_lbv`) et quatre capteurs RSS :
+`sensor.rss_gabon_actu`, `sensor.rss_gabonreview`,
+`sensor.rss_rfi_afrique` et `sensor.rss_france_24`.
+Ces capteurs doivent être créés séparément sur l'instance Home Assistant.
+
+Les entités propres à l'ancienne maison témoin (Netatmo, climatisations,
+gestion du chauffage, consigne et présence) ont été remplacées par des
+**emplacements inactifs à associer**, afin de ne pas afficher de commandes
+fonctionnelles fictives chez un client.
+
+Le fichier à importer dans le dashboard éditable via l'interface est
+`dashboard-ui-import.yaml` **depuis cette branche de travail**, et non le ZIP
+plus ancien déjà téléchargé. Les sources `views/*.yaml` sont synchronisées.
+Adapter météo, actualités et entités à chaque logement avant livraison.
 
 **Guide détaillé : [DASHBOARDS_PREMIUM_V06](docs/DASHBOARDS_PREMIUM_V06.md)**
 
