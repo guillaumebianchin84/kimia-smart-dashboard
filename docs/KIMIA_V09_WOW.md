@@ -92,50 +92,65 @@ Le fichier V0.9 conserve l'entité Met.no déjà fonctionnelle.
   HA locales peuvent rester fonctionnelles sans Internet.
 
 
-## Navbar KIMIA — navigation client / tablette (15 octobre)
+## Navbar KIMIA — bandeau gauche natif Navbar Card
 
-La V0.9 contient maintenant une **Navbar Card flottante partagée** sur chacune des neuf vues du dashboard `kimia-smart`.
-Les routes sont définies **une fois** dans `navbar-templates.kimia_navigation` à la racine du
-`dashboard-ui-import.yaml` et utilisées par neuf cartes `type: custom:navbar-card`, avec `template: kimia_navigation`.
+**Révision après test utilisateur.** La précédente configuration était `desktop.mode: floating`
+avec des routes définies dans un modèle partagé. Elle a été remplacée **sur les neuf vues** :
 
-Sur écran large et tablette en paysage : **barre flottante verticale à gauche**, icônes sans texte.
-Sur mobile : barre **flottante en bas** avec Accueil, Lumières, Volets, Clim et **Plus** (Musique, Sécurité,
-Prises, Actualités, Paramètres). Couleur d'accent turquoise KIMIA.
-Le réglage `layout.auto_padding` réserve 90 px à gauche sur tablette et 85 px sous le contenu sur mobile.
-Ces valeurs sont **à vérifier sur la tablette 11 pouces** (pas de garantie d'absence de scroll avant essai).
+```yaml
+- type: custom:navbar-card
+  desktop:
+    mode: docked
+    position: left
+    min_width: 768
+    show_labels: false
+  mobile:
+    mode: docked
+    show_labels: false
+    safe_area: true
+  layout:
+    auto_padding:
+      enabled: true
+      desktop_px: 80
+      mobile_px: 70
+  routes:
+    - url: /kimia-smart/accueil
+      icon: mdi:home-variant
+      label: Accueil
+    # … huit autres routes (inline, dans chaque vue)
+```
 
-**Pré-requis HACS supplémentaires :**
-1. **Navbar Card** : https://github.com/joseluis9595/lovelace-navbar-card
-2. **Kiosk Mode** : https://github.com/NemesisRE/kiosk-mode (uniquement pour cacher la navigation HA native).
+Cette fois, chaque carte Navbar est **autonome** : `routes`, `desktop`, `mobile`
+figurent directement dans `custom:navbar-card`. Le bloc racine
+`navbar-templates` a été retiré. Aucune surcharge CSS de positionnement.
 
-Le dashboard contient :
+- **Tablette/PC** : `docked + left` = barre verticale collée au bord gauche,
+  sans texte, tout en conservant un espace de 80 px autour du contenu.
+- **Téléphone** : barre fixe en bas avec 4 raccourcis et `Plus`, pour les
+  5 rubriques secondaires.
+- La carte Navbar est ajoutée dans les neuf vues en `type: sections`.
+- **En mode édition Home Assistant, Navbar Card se dessine volontairement comme
+  une carte normale dans la grille**, et PAS en position fixe (comportement confirmé
+  dans le code de Navbar Card `.navbar.edit-mode { position: relative !important; }`).
+  **Quitter le mode édition pour observer le bandeau gauche**.
+- Des espaces réservés par les sections peuvent rester visibles : test sur la
+  tablette indispensable avant validation du mode sans défilement.
+
+**Attention** : pour masquer l'en-tête et le volet natifs Home Assistant sur
+le compte utilisateur non-administrateur, le dashboard conserve :
 ```yaml
 kiosk_mode:
   non_admin_settings:
     hide_sidebar: true
     hide_header: true
 ```
+Kiosk Mode doit être installé depuis HACS, et ce n'est **qu'un masquage visuel**,
+pas une restriction des droits HA. Les comptes administrateurs gardent les menus
+natifs pendant la maintenance.
 
-Cette configuration **n'affecte pas les comptes administrateurs** : l'admin garde en haut les onglets natifs HA
-et la barre latérale pour la maintenance. Le compte client doit être **non administrateur** pour bénéficier
-de l'affichage épuré (et le plugin Kiosk Mode doit être chargé). Tous les liens Navbar utilisent le
-dashboard KIMIA réel : `/kimia-smart/accueil`, `/kimia-smart/lumieres`,
-`/kimia-smart/volets`, `/kimia-smart/climatisation`, `/kimia-smart/musique`,
-`/kimia-smart/securite`, `/kimia-smart/prises`, `/kimia-smart/actualites`,
-`/kimia-smart/parametres` ; **ne pas reprendre les liens `/dashboard-test/*` de
-la maison privée**.
+Dépannage Kiosk Mode : ajouter `?disable_km` à l'URL pour retrouver
+temporairement les menus, puis quitter le mode édition pour évaluer la Navbar.
 
-La carte Navbar s'affiche sur **tous les comptes** pendant les tests, mais Kiosk Mode cache les
-barres HA seulement aux utilisateurs non-admin. Les identifiants de visibilité `visible.user` fournis
-pour une autre installation **ne sont pas transposables** au compte client KIMIA.
-
-**Dépannage :** sur l'installation qui dispose de Kiosk Mode, ajouter `?disable_km` à la fin
-de l'URL du dashboard pour désactiver temporairement le masquage et accéder à l'éditeur.
-Le masquage du menu est uniquement **visuel, pas une mesure de sécurité ni un contrôle
-d'accès**. Garder les contrôles d'authentification et les permissions des comptes HA.
-
-**Validation avant livraison :** après installation des deux plugins, rafraîchir le navigateur, puis
-vérifier : passage entre les 9 vues avec un compte client ; possibilité de maintenance sur le
-compte admin ; navbar hors des zones du plan Maquette ; hauteur de la page sans défilement
-sur tablette en paysage ; navigation à 5 boutons + popup sur téléphone.
+Documentation officielle Navbar Card :
+https://joseluis9595.github.io/lovelace-navbar-card/docs/configuration/desktop/
 
