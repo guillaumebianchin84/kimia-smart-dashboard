@@ -146,3 +146,10 @@ sections:
               border: 1px solid var(--divider-color);
               color: var(--primary-text-color);
             }
+      # Barre KIMIA flottante, identique sur les 9 vues.
+      # Sa config et ses routes sont centralisées dans navbar-templates.
+      - type: custom:navbar-card
+        template: kimia_navigation
+        grid_options:
+          columns: full
+          rows: 1
