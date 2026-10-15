@@ -8,6 +8,7 @@ Cette branche découle de `feat/tablette-maquette-v08`. Ne pas fusionner avant e
 - La **signature KIMIA Smart by PROMAINT** est à gauche dans un bandeau discret turquoise.
 - Maquette affiche uniquement le titre **Ma maison**. La forme des cinq pièces, portes, fenêtres, six lampes décoratives,
   le calque, ses coordonnées 1499×1049 et son URL `/api/image/serve/ff117c7cfa8067ef6fc7005b20d1d041/original` **n'ont pas été modifiés**.
+- Le calque garde exactement la même position et les mêmes dimensions ; la transparence du sol des pièces passe de 0,6 à **0,18** pour voir plus clairement les meubles et couleurs du PNG.
 - La page est un **panel** avec `custom:layout-card` en grille responsive : plan principal large, colonne droite compacte.
 - **Météo :** `custom:clock-weather-card`, grandes icônes colorées animées, 4 jours de prévision,
   alimentée directement par **`weather.forecast_lbv`**. Ce composant n'attend plus
