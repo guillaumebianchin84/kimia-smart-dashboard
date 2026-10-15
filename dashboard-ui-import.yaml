@@ -104,40 +104,27 @@ button_card_templates:
         - align-self: start
         - color: var(--secondary-text-color)
 views:
-    # KIMIA V0.9 — accueil "Ma maison" sur tablette paysage
-    # Nécessite dans HACS : Maquette, Button Card, Card Mod, RSS News Card,
-    #                       Layout Card et Clock Weather Card.
-    # Plan géométrique/calque EXACTEMENT préservés depuis V0.8.
+    # KIMIA V0.9 — Maquette dans sa propre carte, sections natives Home Assistant.
+    # Aucun custom:layout-card n'est utilisé. Une carte par fonction.
+    # Géométrie Maquette et image conservées à l'identique de la V0.8.
   - title: Accueil
     path: accueil
     icon: mdi:home-variant
-    type: panel
-    cards:
-      - type: custom:layout-card
-        layout_type: custom:grid-layout
-        layout:
-          margin: 0
-          grid-gap: 12px
-          grid-template-columns: minmax(0, 2.3fr) minmax(310px, 1fr)
-          grid-template-areas: |
-            "brand brand"
-            "plan sidebar"
-          mediaquery:
-            "(max-width: 850px)":
-              grid-template-columns: minmax(0, 1fr)
-              grid-template-areas: |
-                "brand"
-                "plan"
-                "sidebar"
+    type: sections
+    max_columns: 3
+    sections:
+      # Bandeau sur toute la largeur (identité KIMIA / titre / lieu).
+      - type: grid
+        column_span: 3
         cards:
-          # LOGO KIMIA ET SIGNATURE : en-tête compact, pas de bandeau technique HA.
           - type: custom:button-card
-            view_layout:
-              grid-area: brand
             show_icon: false
             show_name: false
             show_state: false
             show_label: false
+            grid_options:
+              columns: full
+              rows: auto
             tap_action:
               action: none
             custom_fields:
@@ -147,7 +134,7 @@ views:
                 ]]]
               slogan: |
                 [[[
-                  return '<div style="font-size:15px;font-weight:700;letter-spacing:.2px;">Votre maison, simplement.</div>';
+                  return '<div style="font-size:20px;font-weight:800;letter-spacing:.2px;">Ma maison</div>';
                 ]]]
               localisation: |
                 [[[
@@ -177,12 +164,16 @@ views:
                   - justify-self: end
                   - color: var(--secondary-text-color)
 
-          # PLAN : dimensions, murs, ouvertures, lampes et URL du calque inchangés.
+      # Plan principal : une carte Maquette classique intégrée à une section.
+      - type: grid
+        column_span: 2
+        cards:
           - type: custom:maquette-card
-            view_layout:
-              grid-area: plan
+            grid_options:
+              columns: full
+              rows: auto
             id: kimia_plan_accueil_v08
-            title: Ma maison
+            title: ""
             language: fr
             full_page: false
             margin: 10
@@ -351,114 +342,119 @@ views:
                   room_opacity: 0.18
                   show: always
 
-          # COLONNE DE DROITE : cartes dédiées à leur fonction, non limitées
-          # aux seuls widgets Maquette (qui ne savent pas rendre 5 jours météo).
-          - type: vertical-stack
-            view_layout:
-              grid-area: sidebar
+      # Trois cartes indépendantes, faciles à modifier dans l'interface HA.
+      - type: grid
+        column_span: 1
+        cards:
+          - type: custom:clock-weather-card
+            grid_options:
+              columns: full
+              rows: auto
+            entity: weather.forecast_lbv
+            title: Libreville
+            weather_icon_type: fill
+            animated_icon: true
+            forecast_rows: 4
+            locale: fr
+            hide_clock: true
+            hide_date: true
+            show_humidity: true
+            hourly_forecast: false
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 20px !important;
+                  background: linear-gradient(145deg, rgba(26,109,143,.30), var(--card-background-color) 74%) !important;
+                  border: 1px solid rgba(91,187,230,.38);
+                  box-shadow: 0 6px 20px rgba(3,37,57,.15);
+                  overflow: hidden;
+                }
+
+          # Scénarios rapides avec véritables boutons ; raccordement par package.
+          - type: grid
+            grid_options:
+              columns: full
+              rows: auto
+            columns: 2
+            square: false
             cards:
-              # Météo directe : aucune dépendance au template sensor.kimia_*.
-              # Icônes animées en couleur et prévisions via weather.forecast_lbv.
-              - type: custom:clock-weather-card
-                entity: weather.forecast_lbv
-                title: Libreville
-                weather_icon_type: fill
-                animated_icon: true
-                forecast_rows: 4
-                locale: fr
-                hide_clock: true
-                hide_date: true
-                show_humidity: true
-                hourly_forecast: false
-                card_mod:
-                  style: |
-                    ha-card {
-                      border-radius: 20px !important;
-                      background: linear-gradient(145deg, rgba(26,109,143,.30), var(--card-background-color) 74%) !important;
-                      border: 1px solid rgba(91,187,230,.38);
-                      box-shadow: 0 6px 20px rgba(3,37,57,.15);
-                      overflow: hidden;
-                    }
+              - type: custom:button-card
+                template: kimia_v08_scene
+                entity: script.kimia_au_lit
+                name: Au lit
+                icon: mdi:weather-night
+                variables:
+                  couleur: '#B6ACFF'
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.kimia_au_lit
+              - type: custom:button-card
+                template: kimia_v08_scene
+                entity: script.kimia_depart
+                name: Départ
+                icon: mdi:door-open
+                variables:
+                  couleur: '#4FE39B'
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.kimia_depart
+              - type: custom:button-card
+                template: kimia_v08_scene
+                entity: script.kimia_retour
+                name: Retour
+                icon: mdi:home-import-outline
+                variables:
+                  couleur: '#4BCBFF'
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.kimia_retour
+              - type: custom:button-card
+                template: kimia_v08_scene
+                entity: script.kimia_reveil
+                name: Réveil
+                icon: mdi:weather-sunny
+                variables:
+                  couleur: '#FFCE56'
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.kimia_reveil
 
-              # Scénarios rapides avec véritables boutons ; raccordement par package.
-              - type: grid
-                columns: 2
-                square: false
-                cards:
-                  - type: custom:button-card
-                    template: kimia_v08_scene
-                    entity: script.kimia_au_lit
-                    name: Au lit
-                    icon: mdi:weather-night
-                    variables:
-                      couleur: '#B6ACFF'
-                    tap_action:
-                      action: perform-action
-                      perform_action: script.turn_on
-                      target:
-                        entity_id: script.kimia_au_lit
-                  - type: custom:button-card
-                    template: kimia_v08_scene
-                    entity: script.kimia_depart
-                    name: Départ
-                    icon: mdi:door-open
-                    variables:
-                      couleur: '#4FE39B'
-                    tap_action:
-                      action: perform-action
-                      perform_action: script.turn_on
-                      target:
-                        entity_id: script.kimia_depart
-                  - type: custom:button-card
-                    template: kimia_v08_scene
-                    entity: script.kimia_retour
-                    name: Retour
-                    icon: mdi:home-import-outline
-                    variables:
-                      couleur: '#4BCBFF'
-                    tap_action:
-                      action: perform-action
-                      perform_action: script.turn_on
-                      target:
-                        entity_id: script.kimia_retour
-                  - type: custom:button-card
-                    template: kimia_v08_scene
-                    entity: script.kimia_reveil
-                    name: Réveil
-                    icon: mdi:weather-sunny
-                    variables:
-                      couleur: '#FFCE56'
-                    tap_action:
-                      action: perform-action
-                      perform_action: script.turn_on
-                      target:
-                        entity_id: script.kimia_reveil
-
-              # RSS réels, sans dépendre des sensor.kimia_flash_*.
-              - type: custom:rss-news-card
-                title: "🇬🇦 L'essentiel au Gabon"
-                sources:
-                  - entity: sensor.rss_gabon_actu
-                    name: Gabon Actu
-                    color: '#33CDB7'
-                  - entity: sensor.rss_gabonreview
-                    name: GabonReview
-                    color: '#6AAEDC'
-                max_articles: 3
-                card_height: 145
-                show_description: false
-                show_source: true
-                show_date: false
-                image_width: 76
-                image_height: 56
-                card_mod:
-                  style: |
-                    ha-card {
-                      border-radius: 18px !important;
-                      border: 1px solid rgba(53,205,184,.32);
-                      background: var(--card-background-color);
-                      overflow: hidden;
-                    }
+          # RSS réels, sans dépendre des sensor.kimia_flash_*.
+          - type: custom:rss-news-card
+            grid_options:
+              columns: full
+              rows: auto
+            title: "🇬🇦 L'essentiel au Gabon"
+            sources:
+              - entity: sensor.rss_gabon_actu
+                name: Gabon Actu
+                color: '#33CDB7'
+              - entity: sensor.rss_gabonreview
+                name: GabonReview
+                color: '#6AAEDC'
+            max_articles: 3
+            card_height: 145
+            show_description: false
+            show_source: true
+            show_date: false
+            image_width: 76
+            image_height: 56
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 18px !important;
+                  border: 1px solid rgba(53,205,184,.32);
+                  background: var(--card-background-color);
+                  overflow: hidden;
+                }
   - title: Lumières
     path: lumieres
     icon: mdi:lightbulb-group-outline
