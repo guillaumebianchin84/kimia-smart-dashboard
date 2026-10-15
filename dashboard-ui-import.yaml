@@ -348,7 +348,7 @@ views:
                   height: 1049
                   rotation: 0
                   opacity: 1
-                  room_opacity: 0.6
+                  room_opacity: 0.18
                   show: always
 
           # COLONNE DE DROITE : cartes dédiées à leur fonction, non limitées
