@@ -103,6 +103,100 @@ button_card_templates:
         - justify-self: start
         - align-self: start
         - color: var(--secondary-text-color)
+navbar-templates:
+  kimia_navigation:
+    desktop:
+      mode: floating
+      position: left
+      min_width: 768
+      show_labels: false
+    mobile:
+      mode: floating
+      show_labels: true
+      safe_area: true
+    layout:
+      reflect_child_state: true
+      auto_padding:
+        enabled: true
+        desktop_px: 90
+        mobile_px: 85
+    styles: |
+      .navbar {
+        --navbar-primary-color: #35D7C7;
+        --navbar-border-radius: 21px;
+        --navbar-background-color: var(--card-background-color);
+        --navbar-route-icon-size: 23px;
+      }
+    routes:
+      - url: /kimia-smart/accueil
+        icon: mdi:home-variant
+        label: Accueil
+        selected_color: '#35D7C7'
+      - url: /kimia-smart/lumieres
+        icon: mdi:lightbulb-group-outline
+        label: Lumières
+        selected_color: '#FBC75F'
+      - url: /kimia-smart/volets
+        icon: mdi:window-shutter
+        label: Volets
+        selected_color: '#35D7C7'
+      - url: /kimia-smart/climatisation
+        icon: mdi:air-conditioner
+        label: Clim
+        selected_color: '#69C9FF'
+      - url: /kimia-smart/musique
+        icon: mdi:music-note
+        label: Musique
+        hidden: |
+          [[[ return !navbar.isDesktop; ]]]
+      - url: /kimia-smart/securite
+        icon: mdi:shield-home-outline
+        label: Sécurité
+        hidden: |
+          [[[ return !navbar.isDesktop; ]]]
+      - url: /kimia-smart/prises
+        icon: mdi:power-socket-eu
+        label: Prises
+        hidden: |
+          [[[ return !navbar.isDesktop; ]]]
+      - url: /kimia-smart/actualites
+        icon: mdi:newspaper-variant-outline
+        label: Actualités
+        hidden: |
+          [[[ return !navbar.isDesktop; ]]]
+      - url: /kimia-smart/parametres
+        icon: mdi:cog-outline
+        label: Paramètres
+        hidden: |
+          [[[ return !navbar.isDesktop; ]]]
+      - icon: mdi:dots-horizontal
+        label: Plus
+        hidden: |
+          [[[ return navbar.isDesktop; ]]]
+        tap_action:
+          action: open-popup
+        popup:
+          - url: /kimia-smart/musique
+            icon: mdi:music-note
+            label: Musique
+          - url: /kimia-smart/securite
+            icon: mdi:shield-home-outline
+            label: Sécurité
+          - url: /kimia-smart/prises
+            icon: mdi:power-socket-eu
+            label: Prises
+          - url: /kimia-smart/actualites
+            icon: mdi:newspaper-variant-outline
+            label: Actualités
+          - url: /kimia-smart/parametres
+            icon: mdi:cog-outline
+            label: Paramètres
+# Kiosk Mode est nécessaire pour retirer les menus Home Assistant.
+# Pas de modification de permissions, uniquement un masquage visuel.
+kiosk_mode:
+  non_admin_settings:
+    hide_sidebar: true
+    hide_header: true
 views:
     # KIMIA V0.9 — Maquette dans sa propre carte, sections natives Home Assistant.
     # Aucun custom:layout-card n'est utilisé. Une carte par fonction.
@@ -455,6 +549,13 @@ views:
                   background: var(--card-background-color);
                   overflow: hidden;
                 }
+          # Barre KIMIA flottante, identique sur les 9 vues.
+          # Sa config et ses routes sont centralisées dans navbar-templates.
+          - type: custom:navbar-card
+            template: kimia_navigation
+            grid_options:
+              columns: full
+              rows: 1
   - title: Lumières
     path: lumieres
     icon: mdi:lightbulb-group-outline
@@ -656,6 +757,13 @@ views:
             grid_options:
               columns: 4
               rows: 2
+          # Barre KIMIA flottante, identique sur les 9 vues.
+          # Sa config et ses routes sont centralisées dans navbar-templates.
+          - type: custom:navbar-card
+            template: kimia_navigation
+            grid_options:
+              columns: full
+              rows: 1
   - title: Volets
     path: volets
     icon: mdi:window-shutter
@@ -795,6 +903,13 @@ views:
             grid_options:
               columns: 6
               rows: 1
+          # Barre KIMIA flottante, identique sur les 9 vues.
+          # Sa config et ses routes sont centralisées dans navbar-templates.
+          - type: custom:navbar-card
+            template: kimia_navigation
+            grid_options:
+              columns: full
+              rows: 1
   - title: Climatisation
     path: climatisation
     icon: mdi:air-conditioner
@@ -896,6 +1011,13 @@ views:
                   border: 1px solid var(--divider-color);
                   color: var(--primary-text-color);
                 }
+          # Barre KIMIA flottante, identique sur les 9 vues.
+          # Sa config et ses routes sont centralisées dans navbar-templates.
+          - type: custom:navbar-card
+            template: kimia_navigation
+            grid_options:
+              columns: full
+              rows: 1
   - title: Musique
     path: musique
     icon: mdi:music
@@ -1016,6 +1138,13 @@ views:
                   border: 1px solid var(--divider-color);
                   color: var(--primary-text-color);
                 }
+          # Barre KIMIA flottante, identique sur les 9 vues.
+          # Sa config et ses routes sont centralisées dans navbar-templates.
+          - type: custom:navbar-card
+            template: kimia_navigation
+            grid_options:
+              columns: full
+              rows: 1
   - title: Sécurité
     path: securite
     icon: mdi:shield-home-outline
@@ -1164,6 +1293,13 @@ views:
                   border: 1px solid var(--divider-color);
                   color: var(--primary-text-color);
                 }
+          # Barre KIMIA flottante, identique sur les 9 vues.
+          # Sa config et ses routes sont centralisées dans navbar-templates.
+          - type: custom:navbar-card
+            template: kimia_navigation
+            grid_options:
+              columns: full
+              rows: 1
   - title: Prises
     path: prises
     icon: mdi:power-socket-eu
@@ -1240,6 +1376,13 @@ views:
                   border: 1px solid var(--divider-color);
                   color: var(--primary-text-color);
                 }
+          # Barre KIMIA flottante, identique sur les 9 vues.
+          # Sa config et ses routes sont centralisées dans navbar-templates.
+          - type: custom:navbar-card
+            template: kimia_navigation
+            grid_options:
+              columns: full
+              rows: 1
     # KIMIA Smart V0.8 — journal détaillé, séparé de l'accueil Maquette.
   - title: Actualités
     path: actualites
@@ -1315,6 +1458,13 @@ views:
                   border-radius: 21px;
                   overflow: hidden;
                 }
+          # Barre KIMIA flottante, identique sur les 9 vues.
+          # Sa config et ses routes sont centralisées dans navbar-templates.
+          - type: custom:navbar-card
+            template: kimia_navigation
+            grid_options:
+              columns: full
+              rows: 1
   - title: Paramètres
     path: parametres
     icon: mdi:cog-outline
@@ -1353,3 +1503,8 @@ views:
               administrateur au client.
 
               Les commandes locales restent indépendantes du thème choisi.
+          - type: custom:navbar-card
+            template: kimia_navigation
+            grid_options:
+              columns: full
+              rows: 1
