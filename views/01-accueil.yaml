@@ -1,229 +1,355 @@
-# KIMIA Smart V0.8 — PAGE D'ACCUEIL TABLETTE
-# Maquette seule dans une vue panel : édition native et hauteur d'écran,
-# aucun empilement de cartes qui obligerait à défiler sur tablette.
-# Plan générique de démonstration : NE représente PAS le logement du client.
+# KIMIA V0.9 — accueil "Ma maison" sur tablette paysage
+# Nécessite dans HACS : Maquette, Button Card, Card Mod, RSS News Card,
+#                       Layout Card et Clock Weather Card.
+# Plan géométrique/calque EXACTEMENT préservés depuis V0.8.
 title: Accueil
 path: accueil
 icon: mdi:home-variant
 type: panel
 cards:
-  - type: custom:maquette-card
-    id: kimia_plan_accueil_v08
-    title: "KIMIA Smart · plan témoin à personnaliser"
-    language: fr
-    full_page: true
-    margin: 25
-    summary: false
-    legend: false
-    room_labels:
-      name: true
-      temperature: false
-      humidity: false
-    temperature_tint: false
-    # Le mode tablette conserve volontairement le panneau des commandes.
-    # Maquette ajuste automatiquement la hauteur à l'écran.
-    tablet:
-      summary: false
-      panels: true
-      burn_in: true
-    animation_level: reduced
-    ambience:
-      day_night:
-        sun: sun.sun
-        intensity: 0.95
-        marker: false
-      weather:
-        entity: weather.forecast_lbv
-        intensity: 0.7
-        direction: wind
-    panels:
-      right:
-        - type: entities
-          title: "Ma maison · raccourcis"
-          icon: mdi:gesture-tap-button
-          entities:
-            - entity: script.kimia_au_lit
-              name: Au lit
-              icon: mdi:bed-clock
-            - entity: script.kimia_depart
-              name: Départ
-              icon: mdi:door-open
-            - entity: script.kimia_retour
-              name: Retour
-              icon: mdi:home-import-outline
-            - entity: script.kimia_reveil
-              name: Réveil
-              icon: mdi:weather-sunset-up
-        - type: tile
-          title: "Libreville · météo"
-          icon: mdi:weather-partly-cloudy
-          color: "#F4C85A"
-          entity: sensor.kimia_temperature_libreville
-          unit: "°C"
-          decimals: 0
-          rows:
-            - entity: sensor.kimia_humidite_libreville
-              name: Humidité
-              icon: mdi:water-percent
-              decimals: 0
-        - type: entities
-          title: "L'info en bref"
-          icon: mdi:newspaper-variant-outline
-          entities:
-            - entity: sensor.kimia_flash_gabon
-              name: Gabon
-              icon: mdi:flag-variant
-            - entity: sensor.kimia_flash_monde
-              name: Monde
-              icon: mdi:earth
-    # Maison témoin du 15/10 : même géométrie que le plan déjà calibré dans Maquette.
-    # Image uploadée dans Home Assistant KIMIA : URL interne à CETTE instance.
-    # Ouvertures et points lumineux décoratifs sans entités connectées.
-    floors:
-      - id: rdc
-        name: Rez-de-chaussée
-        short: RDC
-        rooms:
-          - name: Salon / Séjour
-            poly: [[40, 80], [905, 80], [905, 560], [40, 560]]
-            label: [470, 320]
-          - name: Cuisine
-            poly: [[905, 80], [1455, 80], [1455, 500], [905, 500]]
-            label: [1180, 250]
-          - name: Chambre 1
-            poly: [[40, 560], [490, 560], [490, 1040], [40, 1040]]
-            label: [265, 805]
-          - name: Chambre 2
-            poly: [[490, 560], [905, 560], [905, 1040], [490, 1040]]
-            label: [700, 805]
-          - name: Terrasse
-            poly: [[905, 500], [1455, 500], [1455, 1040], [905, 1040]]
-            label: [1180, 780]
-            outside: true
-            temperature: weather.forecast_lbv
-            temperature_attribute: temperature
-            humidity: weather.forecast_lbv
-            humidity_attribute: humidity
-        walls:
-          - [40, 80, 1455, 80]
-          - [1455, 80, 1455, 1040]
-          - [1455, 1040, 40, 1040]
-          - [40, 1040, 40, 80]
-          - [905, 80, 905, 1040]
-          - [40, 560, 905, 560]
-          - [490, 560, 490, 1040]
-          - [905, 500, 1455, 500]
-        openings:
-          # Toutes les ouvertures sont purement décoratives, sans capteurs / volets.
-          - type: door
-            name: Porte d'entrée
-            seg: [40, 340, 40, 440]
-            leaves: 1
-            swing: right
-            outside: [-1, 0]
-            tap: none
-          - type: door
-            name: Passage cuisine
-            seg: [905, 260, 905, 350]
-            leaves: 1
-            swing: left
-            tap: none
-          - type: door
-            name: Porte chambre 1
-            seg: [365, 560, 455, 560]
-            leaves: 1
-            swing: right
-            tap: none
-          - type: door
-            name: Porte chambre 2
-            seg: [610, 560, 700, 560]
-            leaves: 1
-            swing: left
-            tap: none
-          - type: door
-            name: Baie vitrée terrasse
-            seg: [1090, 500, 1350, 500]
-            leaves: 2
-            swing: sliding
-            glazed: full
-            sill: 0
-            height: 220
-            outside: [0, 1]
-            tap: none
-          - type: window
-            name: Grande fenêtre séjour
-            seg: [175, 80, 430, 80]
-            leaves: 2
-            swing: sliding
-            outside: [0, -1]
-            sill: 90
-            height: 220
-            tap: none
-          - type: window
-            name: Fenêtre latérale séjour
-            seg: [40, 150, 40, 265]
-            outside: [-1, 0]
-            tap: none
-          - type: window
-            name: Fenêtre cuisine
-            seg: [1090, 80, 1320, 80]
-            leaves: 2
-            swing: sliding
-            outside: [0, -1]
-            tap: none
-          - type: window
-            name: Fenêtre chambre 1
-            seg: [135, 1040, 355, 1040]
-            leaves: 2
-            swing: sliding
-            outside: [0, 1]
-            tap: none
-          - type: window
-            name: Fenêtre chambre 2
-            seg: [595, 1040, 805, 1040]
-            leaves: 2
-            swing: sliding
-            outside: [0, 1]
-            tap: none
-        badges:
-          # Six lampes symboliques ; aucun light.*, pas de commande.
-          - name: Plafonnier séjour
-            pos: [550, 185]
-            icon: mdi:ceiling-light
-            color: "#FFD166"
-            tap: none
-          - name: Lampe salon
-            pos: [250, 435]
-            icon: mdi:floor-lamp
-            color: "#FFC857"
-            tap: none
-          - name: Éclairage cuisine
-            pos: [1190, 340]
-            icon: mdi:ceiling-light
-            color: "#FFD166"
-            tap: none
-          - name: Lampe chambre 1
-            pos: [375, 625]
-            icon: mdi:lamp
-            color: "#FFD166"
-            tap: none
-          - name: Lampe chambre 2
-            pos: [790, 625]
-            icon: mdi:lamp
-            color: "#FFD166"
-            tap: none
-          - name: Éclairage terrasse
-            pos: [1300, 850]
-            icon: mdi:outdoor-lamp
-            color: "#FFC857"
-            tap: none
-        furniture: []
-        background:
-          image: /api/image/serve/ff117c7cfa8067ef6fc7005b20d1d041/original
-          pos: [0, 0]
-          width: 1499
-          height: 1049
-          rotation: 0
-          opacity: 1
-          room_opacity: 0.6
-          show: always
+  - type: custom:layout-card
+    layout_type: custom:grid-layout
+    layout:
+      margin: 0
+      grid-gap: 12px
+      grid-template-columns: minmax(0, 2.3fr) minmax(310px, 1fr)
+      grid-template-areas: |
+        "brand brand"
+        "plan sidebar"
+      mediaquery:
+        "(max-width: 850px)":
+          grid-template-columns: minmax(0, 1fr)
+          grid-template-areas: |
+            "brand"
+            "plan"
+            "sidebar"
+    cards:
+      # LOGO KIMIA ET SIGNATURE : en-tête compact, pas de bandeau technique HA.
+      - type: custom:button-card
+        view_layout:
+          grid-area: brand
+        show_icon: false
+        show_name: false
+        show_state: false
+        show_label: false
+        tap_action:
+          action: none
+        custom_fields:
+          logo: |
+            [[[
+              return '<div style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA <span style="color:#3FD6CB">Smart</span><div style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by PROMAINT</div></div>';
+            ]]]
+          slogan: |
+            [[[
+              return '<div style="font-size:15px;font-weight:700;letter-spacing:.2px;">Votre maison, simplement.</div>';
+            ]]]
+          localisation: |
+            [[[
+              return '<div style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE · GABON</div>';
+            ]]]
+        styles:
+          card:
+            - background: 'linear-gradient(105deg, rgba(12,137,147,.25), var(--card-background-color) 68%)'
+            - border: '1px solid rgba(56,205,203,.28)'
+            - border-radius: 18px
+            - padding: 9px 18px
+            - box-shadow: '0 5px 22px rgba(0,25,35,.12)'
+          grid:
+            - grid-template-areas: '"logo slogan localisation"'
+            - grid-template-columns: '225px 1fr 150px'
+            - grid-template-rows: auto
+            - align-items: center
+          custom_fields:
+            logo:
+              - text-align: left
+              - justify-self: start
+            slogan:
+              - text-align: center
+              - color: var(--primary-text-color)
+            localisation:
+              - text-align: right
+              - justify-self: end
+              - color: var(--secondary-text-color)
+
+      # PLAN : dimensions, murs, ouvertures, lampes et URL du calque inchangés.
+      - type: custom:maquette-card
+        view_layout:
+          grid-area: plan
+        id: kimia_plan_accueil_v08
+        title: Ma maison
+        language: fr
+        full_page: false
+        margin: 10
+        summary: false
+        legend: false
+        room_labels:
+          name: true
+          temperature: false
+          humidity: false
+        temperature_tint: false
+        ambience:
+          day_night:
+            sun: sun.sun
+            intensity: 0.95
+            marker: false
+          weather:
+            entity: weather.forecast_lbv
+            intensity: 0.7
+            direction: wind
+        floors:
+          - id: rdc
+            name: Rez-de-chaussée
+            short: RDC
+            rooms:
+              - name: Salon / Séjour
+                poly: [[40, 80], [905, 80], [905, 560], [40, 560]]
+                label: [470, 320]
+              - name: Cuisine
+                poly: [[905, 80], [1455, 80], [1455, 500], [905, 500]]
+                label: [1180, 250]
+              - name: Chambre 1
+                poly: [[40, 560], [490, 560], [490, 1040], [40, 1040]]
+                label: [265, 805]
+              - name: Chambre 2
+                poly: [[490, 560], [905, 560], [905, 1040], [490, 1040]]
+                label: [700, 805]
+              - name: Terrasse
+                poly: [[905, 500], [1455, 500], [1455, 1040], [905, 1040]]
+                label: [1180, 780]
+                outside: true
+                temperature: weather.forecast_lbv
+                temperature_attribute: temperature
+                humidity: weather.forecast_lbv
+                humidity_attribute: humidity
+            walls:
+              - [40, 80, 1455, 80]
+              - [1455, 80, 1455, 1040]
+              - [1455, 1040, 40, 1040]
+              - [40, 1040, 40, 80]
+              - [905, 80, 905, 1040]
+              - [40, 560, 905, 560]
+              - [490, 560, 490, 1040]
+              - [905, 500, 1455, 500]
+            openings:
+              # Toutes les ouvertures sont purement décoratives, sans capteurs / volets.
+              - type: door
+                name: Porte d'entrée
+                seg: [40, 340, 40, 440]
+                leaves: 1
+                swing: right
+                outside: [-1, 0]
+                tap: none
+              - type: door
+                name: Passage cuisine
+                seg: [905, 260, 905, 350]
+                leaves: 1
+                swing: left
+                tap: none
+              - type: door
+                name: Porte chambre 1
+                seg: [365, 560, 455, 560]
+                leaves: 1
+                swing: right
+                tap: none
+              - type: door
+                name: Porte chambre 2
+                seg: [610, 560, 700, 560]
+                leaves: 1
+                swing: left
+                tap: none
+              - type: door
+                name: Baie vitrée terrasse
+                seg: [1090, 500, 1350, 500]
+                leaves: 2
+                swing: sliding
+                glazed: full
+                sill: 0
+                height: 220
+                outside: [0, 1]
+                tap: none
+              - type: window
+                name: Grande fenêtre séjour
+                seg: [175, 80, 430, 80]
+                leaves: 2
+                swing: sliding
+                outside: [0, -1]
+                sill: 90
+                height: 220
+                tap: none
+              - type: window
+                name: Fenêtre latérale séjour
+                seg: [40, 150, 40, 265]
+                outside: [-1, 0]
+                tap: none
+              - type: window
+                name: Fenêtre cuisine
+                seg: [1090, 80, 1320, 80]
+                leaves: 2
+                swing: sliding
+                outside: [0, -1]
+                tap: none
+              - type: window
+                name: Fenêtre chambre 1
+                seg: [135, 1040, 355, 1040]
+                leaves: 2
+                swing: sliding
+                outside: [0, 1]
+                tap: none
+              - type: window
+                name: Fenêtre chambre 2
+                seg: [595, 1040, 805, 1040]
+                leaves: 2
+                swing: sliding
+                outside: [0, 1]
+                tap: none
+            badges:
+              # Six lampes symboliques ; aucun light.*, pas de commande.
+              - name: Plafonnier séjour
+                pos: [550, 185]
+                icon: mdi:ceiling-light
+                color: "#FFD166"
+                tap: none
+              - name: Lampe salon
+                pos: [250, 435]
+                icon: mdi:floor-lamp
+                color: "#FFC857"
+                tap: none
+              - name: Éclairage cuisine
+                pos: [1190, 340]
+                icon: mdi:ceiling-light
+                color: "#FFD166"
+                tap: none
+              - name: Lampe chambre 1
+                pos: [375, 625]
+                icon: mdi:lamp
+                color: "#FFD166"
+                tap: none
+              - name: Lampe chambre 2
+                pos: [790, 625]
+                icon: mdi:lamp
+                color: "#FFD166"
+                tap: none
+              - name: Éclairage terrasse
+                pos: [1300, 850]
+                icon: mdi:outdoor-lamp
+                color: "#FFC857"
+                tap: none
+            furniture: []
+            background:
+              image: /api/image/serve/ff117c7cfa8067ef6fc7005b20d1d041/original
+              pos: [0, 0]
+              width: 1499
+              height: 1049
+              rotation: 0
+              opacity: 1
+              room_opacity: 0.6
+              show: always
+
+      # COLONNE DE DROITE : cartes dédiées à leur fonction, non limitées
+      # aux seuls widgets Maquette (qui ne savent pas rendre 5 jours météo).
+      - type: vertical-stack
+        view_layout:
+          grid-area: sidebar
+        cards:
+          # Météo directe : aucune dépendance au template sensor.kimia_*.
+          # Icônes animées en couleur et prévisions via weather.forecast_lbv.
+          - type: custom:clock-weather-card
+            entity: weather.forecast_lbv
+            title: Libreville
+            weather_icon_type: fill
+            animated_icon: true
+            forecast_rows: 4
+            locale: fr
+            hide_clock: true
+            hide_date: true
+            show_humidity: true
+            hourly_forecast: false
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 20px !important;
+                  background: linear-gradient(145deg, rgba(26,109,143,.30), var(--card-background-color) 74%) !important;
+                  border: 1px solid rgba(91,187,230,.38);
+                  box-shadow: 0 6px 20px rgba(3,37,57,.15);
+                  overflow: hidden;
+                }
+
+          # Scénarios rapides avec véritables boutons ; raccordement par package.
+          - type: grid
+            columns: 2
+            square: false
+            cards:
+              - type: custom:button-card
+                template: kimia_v08_scene
+                entity: script.kimia_au_lit
+                name: Au lit
+                icon: mdi:weather-night
+                variables:
+                  couleur: '#B6ACFF'
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.kimia_au_lit
+              - type: custom:button-card
+                template: kimia_v08_scene
+                entity: script.kimia_depart
+                name: Départ
+                icon: mdi:door-open
+                variables:
+                  couleur: '#4FE39B'
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.kimia_depart
+              - type: custom:button-card
+                template: kimia_v08_scene
+                entity: script.kimia_retour
+                name: Retour
+                icon: mdi:home-import-outline
+                variables:
+                  couleur: '#4BCBFF'
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.kimia_retour
+              - type: custom:button-card
+                template: kimia_v08_scene
+                entity: script.kimia_reveil
+                name: Réveil
+                icon: mdi:weather-sunny
+                variables:
+                  couleur: '#FFCE56'
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.kimia_reveil
+
+          # RSS réels, sans dépendre des sensor.kimia_flash_*.
+          - type: custom:rss-news-card
+            title: "🇬🇦 L'essentiel au Gabon"
+            sources:
+              - entity: sensor.rss_gabon_actu
+                name: Gabon Actu
+                color: '#33CDB7'
+              - entity: sensor.rss_gabonreview
+                name: GabonReview
+                color: '#6AAEDC'
+            max_articles: 3
+            card_height: 145
+            show_description: false
+            show_source: true
+            show_date: false
+            image_width: 76
+            image_height: 56
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 18px !important;
+                  border: 1px solid rgba(53,205,184,.32);
+                  background: var(--card-background-color);
+                  overflow: hidden;
+                }
