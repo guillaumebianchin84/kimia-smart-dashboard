@@ -36,3 +36,8 @@ sections:
           administrateur au client.
 
           Les commandes locales restent indépendantes du thème choisi.
+      - type: custom:navbar-card
+        template: kimia_navigation
+        grid_options:
+          columns: full
+          rows: 1
