@@ -90,3 +90,52 @@ Le fichier V0.9 conserve l'entité Met.no déjà fonctionnelle.
   des **cartes Lovelace séparées dans une section HA native**.
 - Les contenus RSS et météo requièrent une connexion Internet ; les commandes
   HA locales peuvent rester fonctionnelles sans Internet.
+
+
+## Navbar KIMIA — navigation client / tablette (15 octobre)
+
+La V0.9 contient maintenant une **Navbar Card flottante partagée** sur chacune des neuf vues du dashboard `kimia-smart`.
+Les routes sont définies **une fois** dans `navbar-templates.kimia_navigation` à la racine du
+`dashboard-ui-import.yaml` et utilisées par neuf cartes `type: custom:navbar-card`, avec `template: kimia_navigation`.
+
+Sur écran large et tablette en paysage : **barre flottante verticale à gauche**, icônes sans texte.
+Sur mobile : barre **flottante en bas** avec Accueil, Lumières, Volets, Clim et **Plus** (Musique, Sécurité,
+Prises, Actualités, Paramètres). Couleur d'accent turquoise KIMIA.
+Le réglage `layout.auto_padding` réserve 90 px à gauche sur tablette et 85 px sous le contenu sur mobile.
+Ces valeurs sont **à vérifier sur la tablette 11 pouces** (pas de garantie d'absence de scroll avant essai).
+
+**Pré-requis HACS supplémentaires :**
+1. **Navbar Card** : https://github.com/joseluis9595/lovelace-navbar-card
+2. **Kiosk Mode** : https://github.com/NemesisRE/kiosk-mode (uniquement pour cacher la navigation HA native).
+
+Le dashboard contient :
+```yaml
+kiosk_mode:
+  non_admin_settings:
+    hide_sidebar: true
+    hide_header: true
+```
+
+Cette configuration **n'affecte pas les comptes administrateurs** : l'admin garde en haut les onglets natifs HA
+et la barre latérale pour la maintenance. Le compte client doit être **non administrateur** pour bénéficier
+de l'affichage épuré (et le plugin Kiosk Mode doit être chargé). Tous les liens Navbar utilisent le
+dashboard KIMIA réel : `/kimia-smart/accueil`, `/kimia-smart/lumieres`,
+`/kimia-smart/volets`, `/kimia-smart/climatisation`, `/kimia-smart/musique`,
+`/kimia-smart/securite`, `/kimia-smart/prises`, `/kimia-smart/actualites`,
+`/kimia-smart/parametres` ; **ne pas reprendre les liens `/dashboard-test/*` de
+la maison privée**.
+
+La carte Navbar s'affiche sur **tous les comptes** pendant les tests, mais Kiosk Mode cache les
+barres HA seulement aux utilisateurs non-admin. Les identifiants de visibilité `visible.user` fournis
+pour une autre installation **ne sont pas transposables** au compte client KIMIA.
+
+**Dépannage :** sur l'installation qui dispose de Kiosk Mode, ajouter `?disable_km` à la fin
+de l'URL du dashboard pour désactiver temporairement le masquage et accéder à l'éditeur.
+Le masquage du menu est uniquement **visuel, pas une mesure de sécurité ni un contrôle
+d'accès**. Garder les contrôles d'authentification et les permissions des comptes HA.
+
+**Validation avant livraison :** après installation des deux plugins, rafraîchir le navigateur, puis
+vérifier : passage entre les 9 vues avec un compte client ; possibilité de maintenance sur le
+compte admin ; navbar hors des zones du plan Maquette ; hauteur de la page sans défilement
+sur tablette en paysage ; navigation à 5 boutons + popup sur téléphone.
+
