@@ -176,7 +176,7 @@ views:
         cards:
           - type: custom:maquette-card
             grid_options:
-              columns: full
+              columns: 11
               rows: auto
             id: kimia_plan_accueil_v08
             title: ""
