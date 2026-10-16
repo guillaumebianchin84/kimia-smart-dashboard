@@ -5,37 +5,14 @@ type: sections
 max_columns: 2
 sections:
   - type: grid
+    column_span: 2
     cards:
-      - type: heading
-        heading: Personnalisation
-        icon: mdi:palette-outline
-      - type: markdown
-        content: >-
-          Choisissez les couleurs de votre maison depuis le
-          dashboard **Configuration client KIMIA**.
-          Le choix sera appliqué automatiquement aux écrans
-          utilisant le thème Home Assistant par défaut.
       - type: button
         name: Ouvrir Configuration client
         icon: mdi:palette
         tap_action:
           action: navigate
           navigation_path: /kimia-client/configuration
-  - type: grid
-    cards:
-      - type: heading
-        heading: Aide et informations
-        icon: mdi:information-outline
-      - type: markdown
-        content: >-
-          **KIMIA Smart by PROMAINT**
-
-          La configuration technique des équipements, du réseau,
-          des intégrations et des accès distants est réservée
-          à l'installateur, sauf ouverture volontaire des droits
-          administrateur au client.
-
-          Les commandes locales restent indépendantes du thème choisi.
       - type: custom:navbar-card
         grid_options:
           columns: 1
