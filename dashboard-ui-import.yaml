@@ -110,9 +110,6 @@ kiosk_mode:
     hide_header: true
 
 views:
-    # KIMIA V0.9 — Maquette dans sa propre carte, sections natives Home Assistant.
-    # Aucun custom:layout-card n'est utilisé. Une carte par fonction.
-    # Géométrie Maquette et image conservées à l'identique de la V0.8.
   - title: Accueil
     path: accueil
     icon: mdi:home-variant
@@ -546,13 +543,8 @@ views:
     max_columns: 2
     sections:
       - type: grid
+        column_span: 2
         cards:
-          - type: heading
-            heading: Éclairage de la maison
-            icon: mdi:lightbulb-group-outline
-            grid_options:
-              columns: full
-              rows: 1
           - type: custom:button-card
             template: kimia_v2_tile
             name: Allumées
@@ -567,28 +559,6 @@ views:
               action: none
             grid_options:
               columns: 6
-              rows: 1
-          - type: markdown
-            content: >-
-              Touchez les commandes des lampes après leur association à Home Assistant. Les ampoules et spots retenus dans le catalogue sont **LEDVANCE SMART+ Zigbee**.
-            grid_options:
-              columns: full
-              rows: auto
-            card_mod:
-              style: |
-                ha-card {
-                  border-radius: 17px;
-                  background: var(--card-background-color);
-                  border: 1px solid var(--divider-color);
-                  color: var(--primary-text-color);
-                }
-      - type: grid
-        cards:
-          - type: heading
-            heading: Pièces de vie
-            icon: mdi:sofa-outline
-            grid_options:
-              columns: full
               rows: 1
           - type: custom:button-card
             template: kimia_v2_tile
@@ -630,14 +600,6 @@ views:
             grid_options:
               columns: 6
               rows: 1
-      - type: grid
-        cards:
-          - type: heading
-            heading: Chambres
-            icon: mdi:bed-outline
-            grid_options:
-              columns: full
-              rows: 1
           - type: custom:button-card
             template: kimia_v2_tile
             name: Parents
@@ -678,23 +640,6 @@ views:
             grid_options:
               columns: 6
               rows: 1
-      - type: grid
-        column_span: 2
-        cards:
-          - type: heading
-            heading: Ambiances lumineuses
-            icon: mdi:palette
-            grid_options:
-              columns: full
-              rows: 1
-          - type: markdown
-            content: >-
-              Scènes personnalisables pour chaque maison.
-              Les boutons sont prêts ; ils n'activent aucun appareil
-              tant que l'installateur n'a pas associé les scripts.
-            grid_options:
-              columns: full
-              rows: auto
           - type: custom:button-card
             template: kimia_v08_scene
             entity: script.kimia_ambiance_detente
@@ -825,13 +770,8 @@ views:
     max_columns: 2
     sections:
       - type: grid
+        column_span: 2
         cards:
-          - type: heading
-            heading: Ouvertures
-            icon: mdi:window-shutter
-            grid_options:
-              columns: full
-              rows: 1
           - type: custom:button-card
             template: kimia_v2_tile
             name: Volets ouverts
@@ -846,28 +786,6 @@ views:
               action: none
             grid_options:
               columns: 6
-              rows: 1
-          - type: markdown
-            content: >-
-              Le pilotage réel des volets nécessite un contrôleur moteur compatible et une entité **cover**. Les commandes générales ne sont activées qu'après contrôle des moteurs.
-            grid_options:
-              columns: full
-              rows: auto
-            card_mod:
-              style: |
-                ha-card {
-                  border-radius: 17px;
-                  background: var(--card-background-color);
-                  border: 1px solid var(--divider-color);
-                  color: var(--primary-text-color);
-                }
-      - type: grid
-        cards:
-          - type: heading
-            heading: Pièces de vie
-            icon: mdi:sofa-outline
-            grid_options:
-              columns: full
               rows: 1
           - type: custom:button-card
             template: kimia_v2_tile
@@ -908,14 +826,6 @@ views:
               action: none
             grid_options:
               columns: 6
-              rows: 1
-      - type: grid
-        cards:
-          - type: heading
-            heading: Chambres
-            icon: mdi:bed-outline
-            grid_options:
-              columns: full
               rows: 1
           - type: custom:button-card
             template: kimia_v2_tile
@@ -1042,13 +952,8 @@ views:
     max_columns: 2
     sections:
       - type: grid
+        column_span: 2
         cards:
-          - type: heading
-            heading: Confort de la maison
-            icon: mdi:home-thermometer-outline
-            grid_options:
-              columns: full
-              rows: 1
           - type: custom:button-card
             template: kimia_v2_tile
             name: Température intérieure
@@ -1094,14 +999,6 @@ views:
               columns: 6
               rows: 1
             label: À configurer
-      - type: grid
-        cards:
-          - type: heading
-            heading: Climatiseurs
-            icon: mdi:air-conditioner
-            grid_options:
-              columns: full
-              rows: 1
           - type: custom:button-card
             template: kimia_v2_tile
             name: Salon
@@ -1122,20 +1019,6 @@ views:
               columns: 6
               rows: 1
             label: Climatisation à associer
-          - type: markdown
-            content: >-
-              Ces emplacements sont inactifs jusqu'à l'association avec les vrais climatiseurs et capteurs du logement.
-            grid_options:
-              columns: full
-              rows: auto
-            card_mod:
-              style: |
-                ha-card {
-                  border-radius: 17px;
-                  background: var(--card-background-color);
-                  border: 1px solid var(--divider-color);
-                  color: var(--primary-text-color);
-                }
           - type: custom:navbar-card
             grid_options:
               columns: 1
@@ -1221,13 +1104,8 @@ views:
     max_columns: 2
     sections:
       - type: grid
+        column_span: 2
         cards:
-          - type: heading
-            heading: Enceintes et diffusion
-            icon: mdi:cast-audio
-            grid_options:
-              columns: full
-              rows: 1
           - type: custom:button-card
             template: kimia_v2_tile
             name: Salon
@@ -1268,28 +1146,6 @@ views:
             grid_options:
               columns: 6
               rows: 1
-          - type: markdown
-            content: >-
-              Google Cast et le Bluetooth seront proposés selon les modèles et la connexion. Les lecteurs devront être détectés dans Home Assistant avant leur configuration.
-            grid_options:
-              columns: full
-              rows: auto
-            card_mod:
-              style: |
-                ha-card {
-                  border-radius: 17px;
-                  background: var(--card-background-color);
-                  border: 1px solid var(--divider-color);
-                  color: var(--primary-text-color);
-                }
-      - type: grid
-        cards:
-          - type: heading
-            heading: Musique locale
-            icon: mdi:folder-music-outline
-            grid_options:
-              columns: full
-              rows: 1
           - type: custom:button-card
             template: kimia_v2_tile
             name: Réveil doux
@@ -1320,20 +1176,6 @@ views:
             grid_options:
               columns: 6
               rows: 1
-          - type: markdown
-            content: >-
-              Les MP3 seront conservés dans les dossiers du client. Aucun abonnement Music Assistant n'est prévu comme obligation.
-            grid_options:
-              columns: full
-              rows: auto
-            card_mod:
-              style: |
-                ha-card {
-                  border-radius: 17px;
-                  background: var(--card-background-color);
-                  border: 1px solid var(--divider-color);
-                  color: var(--primary-text-color);
-                }
           - type: custom:navbar-card
             grid_options:
               columns: 1
@@ -1419,13 +1261,8 @@ views:
     max_columns: 2
     sections:
       - type: grid
+        column_span: 2
         cards:
-          - type: heading
-            heading: Sécurité et capteurs
-            icon: mdi:shield-home-outline
-            grid_options:
-              columns: full
-              rows: 1
           - type: custom:button-card
             template: kimia_v2_tile
             name: Ouvertures actives
@@ -1455,28 +1292,6 @@ views:
               action: none
             grid_options:
               columns: 6
-              rows: 1
-          - type: markdown
-            content: >-
-              Ces nombres proviennent des capteurs reconnus. Aucun système d'alarme certifié n'est installé par cette page.
-            grid_options:
-              columns: full
-              rows: auto
-            card_mod:
-              style: |
-                ha-card {
-                  border-radius: 17px;
-                  background: var(--card-background-color);
-                  border: 1px solid var(--divider-color);
-                  color: var(--primary-text-color);
-                }
-      - type: grid
-        cards:
-          - type: heading
-            heading: Portes et fenêtres
-            icon: mdi:door
-            grid_options:
-              columns: full
               rows: 1
           - type: custom:button-card
             template: kimia_v2_tile
@@ -1518,14 +1333,6 @@ views:
             grid_options:
               columns: 6
               rows: 1
-      - type: grid
-        cards:
-          - type: heading
-            heading: Caméras
-            icon: mdi:cctv
-            grid_options:
-              columns: full
-              rows: 1
           - type: custom:button-card
             template: kimia_v2_tile
             name: Entrée
@@ -1546,20 +1353,6 @@ views:
             grid_options:
               columns: 6
               rows: 1
-          - type: markdown
-            content: >-
-              Les flux vidéo ne seront activés qu'après sélection et validation d'une caméra compatible avec Home Assistant.
-            grid_options:
-              columns: full
-              rows: auto
-            card_mod:
-              style: |
-                ha-card {
-                  border-radius: 17px;
-                  background: var(--card-background-color);
-                  border: 1px solid var(--divider-color);
-                  color: var(--primary-text-color);
-                }
           - type: custom:navbar-card
             grid_options:
               columns: 1
@@ -1645,13 +1438,8 @@ views:
     max_columns: 2
     sections:
       - type: grid
+        column_span: 2
         cards:
-          - type: heading
-            heading: Prises connectées
-            icon: mdi:power-socket-eu
-            grid_options:
-              columns: full
-              rows: 1
           - type: custom:button-card
             template: kimia_v2_tile
             name: Salon
@@ -1692,28 +1480,6 @@ views:
             grid_options:
               columns: 6
               rows: 1
-      - type: grid
-        cards:
-          - type: heading
-            heading: Énergie
-            icon: mdi:lightning-bolt-outline
-            grid_options:
-              columns: full
-              rows: 1
-          - type: markdown
-            content: >-
-              Une prise SONOFF Zigbee S60ZBTPF peut mesurer la puissance et la consommation lorsque ses entités sont disponibles. Les mesures réelles seront affichées après association de la prise.
-            grid_options:
-              columns: full
-              rows: auto
-            card_mod:
-              style: |
-                ha-card {
-                  border-radius: 17px;
-                  background: var(--card-background-color);
-                  border: 1px solid var(--divider-color);
-                  color: var(--primary-text-color);
-                }
           - type: custom:navbar-card
             grid_options:
               columns: 1
@@ -1800,13 +1566,8 @@ views:
     max_columns: 2
     sections:
       - type: grid
+        column_span: 2
         cards:
-          - type: heading
-            heading: "🇬🇦 Gabon · L'essentiel"
-            icon: mdi:map-marker-radius-outline
-            grid_options:
-              columns: full
-              rows: 1
           - type: custom:rss-news-card
             title: "Gabon Actu · GabonReview"
             sources:
@@ -1833,14 +1594,6 @@ views:
                   border-radius: 21px;
                   overflow: hidden;
                 }
-      - type: grid
-        cards:
-          - type: heading
-            heading: "🌍 Afrique & Monde"
-            icon: mdi:earth
-            grid_options:
-              columns: full
-              rows: 1
           - type: custom:rss-news-card
             title: "RFI Afrique · France 24"
             sources:
@@ -1952,37 +1705,14 @@ views:
     max_columns: 2
     sections:
       - type: grid
+        column_span: 2
         cards:
-          - type: heading
-            heading: Personnalisation
-            icon: mdi:palette-outline
-          - type: markdown
-            content: >-
-              Choisissez les couleurs de votre maison depuis le
-              dashboard **Configuration client KIMIA**.
-              Le choix sera appliqué automatiquement aux écrans
-              utilisant le thème Home Assistant par défaut.
           - type: button
             name: Ouvrir Configuration client
             icon: mdi:palette
             tap_action:
               action: navigate
               navigation_path: /kimia-client/configuration
-      - type: grid
-        cards:
-          - type: heading
-            heading: Aide et informations
-            icon: mdi:information-outline
-          - type: markdown
-            content: >-
-              **KIMIA Smart by PROMAINT**
-
-              La configuration technique des équipements, du réseau,
-              des intégrations et des accès distants est réservée
-              à l'installateur, sauf ouverture volontaire des droits
-              administrateur au client.
-
-              Les commandes locales restent indépendantes du thème choisi.
           - type: custom:navbar-card
             grid_options:
               columns: 1
