@@ -5,13 +5,8 @@ type: sections
 max_columns: 2
 sections:
   - type: grid
+    column_span: 2
     cards:
-      - type: heading
-        heading: Éclairage de la maison
-        icon: mdi:lightbulb-group-outline
-        grid_options:
-          columns: full
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Allumées
@@ -26,28 +21,6 @@ sections:
           action: none
         grid_options:
           columns: 6
-          rows: 1
-      - type: markdown
-        content: >-
-          Touchez les commandes des lampes après leur association à Home Assistant. Les ampoules et spots retenus dans le catalogue sont **LEDVANCE SMART+ Zigbee**.
-        grid_options:
-          columns: full
-          rows: auto
-        card_mod:
-          style: |
-            ha-card {
-              border-radius: 17px;
-              background: var(--card-background-color);
-              border: 1px solid var(--divider-color);
-              color: var(--primary-text-color);
-            }
-  - type: grid
-    cards:
-      - type: heading
-        heading: Pièces de vie
-        icon: mdi:sofa-outline
-        grid_options:
-          columns: full
           rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
@@ -89,14 +62,6 @@ sections:
         grid_options:
           columns: 6
           rows: 1
-  - type: grid
-    cards:
-      - type: heading
-        heading: Chambres
-        icon: mdi:bed-outline
-        grid_options:
-          columns: full
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Parents
@@ -137,23 +102,6 @@ sections:
         grid_options:
           columns: 6
           rows: 1
-  - type: grid
-    column_span: 2
-    cards:
-      - type: heading
-        heading: Ambiances lumineuses
-        icon: mdi:palette
-        grid_options:
-          columns: full
-          rows: 1
-      - type: markdown
-        content: >-
-          Scènes personnalisables pour chaque maison.
-          Les boutons sont prêts ; ils n'activent aucun appareil
-          tant que l'installateur n'a pas associé les scripts.
-        grid_options:
-          columns: full
-          rows: auto
       - type: custom:button-card
         template: kimia_v08_scene
         entity: script.kimia_ambiance_detente
