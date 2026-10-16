@@ -6,13 +6,8 @@ type: sections
 max_columns: 2
 sections:
   - type: grid
+    column_span: 2
     cards:
-      - type: heading
-        heading: "🇬🇦 Gabon · L'essentiel"
-        icon: mdi:map-marker-radius-outline
-        grid_options:
-          columns: full
-          rows: 1
       - type: custom:rss-news-card
         title: "Gabon Actu · GabonReview"
         sources:
@@ -39,14 +34,6 @@ sections:
               border-radius: 21px;
               overflow: hidden;
             }
-  - type: grid
-    cards:
-      - type: heading
-        heading: "🌍 Afrique & Monde"
-        icon: mdi:earth
-        grid_options:
-          columns: full
-          rows: 1
       - type: custom:rss-news-card
         title: "RFI Afrique · France 24"
         sources:
