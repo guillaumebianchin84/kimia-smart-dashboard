@@ -5,13 +5,8 @@ type: sections
 max_columns: 2
 sections:
   - type: grid
+    column_span: 2
     cards:
-      - type: heading
-        heading: Sécurité et capteurs
-        icon: mdi:shield-home-outline
-        grid_options:
-          columns: full
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Ouvertures actives
@@ -41,28 +36,6 @@ sections:
           action: none
         grid_options:
           columns: 6
-          rows: 1
-      - type: markdown
-        content: >-
-          Ces nombres proviennent des capteurs reconnus. Aucun système d'alarme certifié n'est installé par cette page.
-        grid_options:
-          columns: full
-          rows: auto
-        card_mod:
-          style: |
-            ha-card {
-              border-radius: 17px;
-              background: var(--card-background-color);
-              border: 1px solid var(--divider-color);
-              color: var(--primary-text-color);
-            }
-  - type: grid
-    cards:
-      - type: heading
-        heading: Portes et fenêtres
-        icon: mdi:door
-        grid_options:
-          columns: full
           rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
@@ -104,14 +77,6 @@ sections:
         grid_options:
           columns: 6
           rows: 1
-  - type: grid
-    cards:
-      - type: heading
-        heading: Caméras
-        icon: mdi:cctv
-        grid_options:
-          columns: full
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Entrée
@@ -132,20 +97,6 @@ sections:
         grid_options:
           columns: 6
           rows: 1
-      - type: markdown
-        content: >-
-          Les flux vidéo ne seront activés qu'après sélection et validation d'une caméra compatible avec Home Assistant.
-        grid_options:
-          columns: full
-          rows: auto
-        card_mod:
-          style: |
-            ha-card {
-              border-radius: 17px;
-              background: var(--card-background-color);
-              border: 1px solid var(--divider-color);
-              color: var(--primary-text-color);
-            }
       - type: custom:navbar-card
         grid_options:
           columns: 1
