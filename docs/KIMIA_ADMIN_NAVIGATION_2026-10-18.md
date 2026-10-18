@@ -1,3 +1,5 @@
+> **État au 18 octobre — correctif de navigation :** la Navbar dynamique avec interrupteurs rendait les raccourcis inutilisables sur la VM. Pour rétablir l'accès aux vues, `dashboard-ui-import.yaml`, `dashboard.yaml` et `views/*.yaml` ont été restaurés à la version de Navbar qui fonctionnait avant cette fonction. **Les huit interrupteurs du dashboard KIMIA Administration existent, mais ils ne modifient plus la navigation pour l'instant.** Ne pas utiliser les étapes de validation ci-dessous comme preuve de fonctionnement ; une implémentation séparée, testée progressivement, reste à réaliser. Les vues et l'Accueil sont préservés.
+
 # KIMIA Administration — afficher et masquer les onglets
 
 ## Principe
