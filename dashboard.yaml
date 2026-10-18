@@ -1,5 +1,4 @@
-# KIMIA Smart V0.8 - source YAML modulaire ; maquette est l'accueil
-# Pour déplacer les cartes dans l'éditeur visuel, importer dashboard-ui-import.yaml dans un dashboard géré par l'UI.
+# KIMIA Smart — fichier complet synchronisé avec dashboard-ui-import.yaml
 title: KIMIA Smart
 button_card_templates:
   kimia_v2_tile:
@@ -112,12 +111,1678 @@ kiosk_mode:
     hide_header: true
 
 views:
-  - !include /config/kimia/views/01-accueil.yaml
-  - !include /config/kimia/views/02-lumieres.yaml
-  - !include /config/kimia/views/03-volets.yaml
-  - !include /config/kimia/views/04-climatisation.yaml
-  - !include /config/kimia/views/05-musique.yaml
-  - !include /config/kimia/views/06-securite.yaml
-  - !include /config/kimia/views/08-prises.yaml
-  - !include /config/kimia/views/11-actualites.yaml
-  - !include /config/kimia/views/07-parametres.yaml
+  - title: Accueil
+    path: accueil
+    icon: mdi:home-variant
+    type: sections
+    max_columns: 3
+    sections:
+      # Bandeau sur toute la largeur (identité KIMIA / titre / lieu).
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_label: false
+            grid_options:
+              columns: full
+              rows: auto
+            tap_action:
+              action: none
+            custom_fields:
+              logo: |
+                [[[
+                  return '<div style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA <span style="color:#3FD6CB">Smart</span><div style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by PROMAINT</div></div>';
+                ]]]
+              slogan: |
+                [[[
+                  return '<div style="font-size:20px;font-weight:800;letter-spacing:.2px;">Ma maison</div>';
+                ]]]
+              localisation: |
+                [[[
+                  return '<div style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE · GABON</div>';
+                ]]]
+            styles:
+              card:
+                - background: 'linear-gradient(105deg, rgba(12,137,147,.25), var(--card-background-color) 68%)'
+                - border: '1px solid rgba(56,205,203,.28)'
+                - border-radius: 18px
+                - padding: 9px 18px
+                - box-shadow: '0 5px 22px rgba(0,25,35,.12)'
+              grid:
+                - grid-template-areas: '"logo slogan localisation"'
+                - grid-template-columns: '225px 1fr 150px'
+                - grid-template-rows: auto
+                - align-items: center
+              custom_fields:
+                logo:
+                  - text-align: left
+                  - justify-self: start
+                slogan:
+                  - text-align: center
+                  - color: var(--primary-text-color)
+                localisation:
+                  - text-align: right
+                  - justify-self: end
+                  - color: var(--secondary-text-color)
+
+      # Plan principal : une carte Maquette classique intégrée à une section.
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:maquette-card
+            grid_options:
+              columns: full
+              rows: auto
+            id: kimia_plan_accueil_v08
+            title: ""
+            language: fr
+            full_page: false
+            margin: 10
+            summary: false
+            legend: false
+            room_labels:
+              name: true
+              temperature: false
+              humidity: false
+            temperature_tint: false
+            ambience:
+              day_night:
+                sun: sun.sun
+                intensity: 0.95
+                marker: false
+              weather:
+                entity: weather.forecast_lbv
+                intensity: 0.7
+                direction: wind
+            floors:
+              - id: rdc
+                name: Rez-de-chaussée
+                short: RDC
+                rooms:
+                  - name: Salon / Séjour
+                    poly: [[40, 80], [905, 80], [905, 560], [40, 560]]
+                  - name: Cuisine
+                    poly: [[905, 80], [1455, 80], [1455, 500], [905, 500]]
+                  - name: Chambre 1
+                    poly: [[40, 560], [490, 560], [490, 1040], [40, 1040]]
+                  - name: Chambre 2
+                    poly: [[490, 560], [905, 560], [905, 1040], [490, 1040]]
+                  - name: Terrasse
+                    poly: [[905, 500], [1455, 500], [1455, 1040], [905, 1040]]
+                    outside: true
+                    temperature: weather.forecast_lbv
+                    temperature_attribute: temperature
+                    humidity: weather.forecast_lbv
+                    humidity_attribute: humidity
+                walls:
+                  - [40, 80, 1455, 80]
+                  - [1455, 80, 1455, 1040]
+                  - [1455, 1040, 40, 1040]
+                  - [40, 1040, 40, 80]
+                  - [905, 80, 905, 1040]
+                  - [40, 560, 905, 560]
+                  - [490, 560, 490, 1040]
+                  - [905, 500, 1455, 500]
+                openings:
+                  # Toutes les ouvertures sont purement décoratives, sans capteurs / volets.
+                  - type: door
+                    name: Porte d'entrée
+                    seg: [40, 340, 40, 440]
+                    leaves: 1
+                    swing: right
+                    outside: [-1, 0]
+                    tap: none
+                  - type: door
+                    name: Passage cuisine
+                    seg: [905, 260, 905, 350]
+                    leaves: 1
+                    swing: left
+                    tap: none
+                  - type: door
+                    name: Porte chambre 1
+                    seg: [365, 560, 455, 560]
+                    leaves: 1
+                    swing: right
+                    tap: none
+                  - type: door
+                    name: Porte chambre 2
+                    seg: [610, 560, 700, 560]
+                    leaves: 1
+                    swing: left
+                    tap: none
+                  - type: door
+                    name: Baie vitrée terrasse
+                    seg: [1090, 500, 1350, 500]
+                    leaves: 2
+                    swing: sliding
+                    glazed: full
+                    sill: 0
+                    height: 220
+                    outside: [0, 1]
+                    tap: none
+                  - type: window
+                    name: Grande fenêtre séjour
+                    seg: [175, 80, 430, 80]
+                    leaves: 2
+                    swing: sliding
+                    outside: [0, -1]
+                    sill: 90
+                    height: 220
+                    tap: none
+                  - type: window
+                    name: Fenêtre latérale séjour
+                    seg: [40, 150, 40, 265]
+                    outside: [-1, 0]
+                    tap: none
+                  - type: window
+                    name: Fenêtre cuisine
+                    seg: [1090, 80, 1320, 80]
+                    leaves: 2
+                    swing: sliding
+                    outside: [0, -1]
+                    tap: none
+                  - type: window
+                    name: Fenêtre chambre 1
+                    seg: [135, 1040, 355, 1040]
+                    leaves: 2
+                    swing: sliding
+                    outside: [0, 1]
+                    tap: none
+                  - type: window
+                    name: Fenêtre chambre 2
+                    seg: [595, 1040, 805, 1040]
+                    leaves: 2
+                    swing: sliding
+                    outside: [0, 1]
+                    tap: none
+                badges:
+                  # Six lampes symboliques ; aucun light.*, pas de commande.
+                  - name: Plafonnier séjour
+                    pos: [550, 185]
+                    icon: mdi:ceiling-light
+                    color: "#FFD166"
+                    tap: none
+                  - name: Lampe salon
+                    pos: [250, 435]
+                    icon: mdi:floor-lamp
+                    color: "#FFC857"
+                    tap: none
+                  - name: Éclairage cuisine
+                    pos: [1190, 340]
+                    icon: mdi:ceiling-light
+                    color: "#FFD166"
+                    tap: none
+                  - name: Lampe chambre 1
+                    pos: [375, 625]
+                    icon: mdi:lamp
+                    color: "#FFD166"
+                    tap: none
+                  - name: Lampe chambre 2
+                    pos: [790, 625]
+                    icon: mdi:lamp
+                    color: "#FFD166"
+                    tap: none
+                  - name: Éclairage terrasse
+                    pos: [1300, 850]
+                    icon: mdi:outdoor-lamp
+                    color: "#FFC857"
+                    tap: none
+                furniture: []
+                background:
+                  image: /api/image/serve/ebec086d86139c746e6c96840972461c/original
+                  pos: [0, 0]
+                  width: 1499
+                  height: 1049
+                  opacity: 1
+                  room_opacity: 0.18
+                  show: always
+
+      # Trois cartes indépendantes, faciles à modifier dans l'interface HA.
+      - type: grid
+        column_span: 1
+        cards:
+          - type: custom:clock-weather-card
+            grid_options:
+              columns: full
+              rows: auto
+            entity: weather.forecast_lbv
+            title: Libreville
+            weather_icon_type: fill
+            animated_icon: true
+            forecast_rows: 4
+            locale: fr
+            hide_clock: true
+            hide_date: true
+            show_humidity: true
+            hourly_forecast: false
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 20px !important;
+                  background: linear-gradient(145deg, rgba(26,109,143,.30), var(--card-background-color) 74%) !important;
+                  border: 1px solid rgba(91,187,230,.38);
+                  box-shadow: 0 6px 20px rgba(3,37,57,.15);
+                  overflow: hidden;
+                }
+
+          # Scénarios rapides avec véritables boutons ; raccordement par package.
+          - type: grid
+            grid_options:
+              columns: full
+              rows: auto
+            columns: 2
+            square: false
+            cards:
+              - type: custom:button-card
+                template: kimia_v08_scene
+                entity: script.kimia_au_lit
+                name: Au lit
+                icon: mdi:weather-night
+                variables:
+                  couleur: '#B6ACFF'
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.kimia_au_lit
+              - type: custom:button-card
+                template: kimia_v08_scene
+                entity: script.kimia_depart
+                name: Départ
+                icon: mdi:door-open
+                variables:
+                  couleur: '#4FE39B'
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.kimia_depart
+              - type: custom:button-card
+                template: kimia_v08_scene
+                entity: script.kimia_retour
+                name: Retour
+                icon: mdi:home-import-outline
+                variables:
+                  couleur: '#4BCBFF'
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.kimia_retour
+              - type: custom:button-card
+                template: kimia_v08_scene
+                entity: script.kimia_reveil
+                name: Réveil
+                icon: mdi:weather-sunny
+                variables:
+                  couleur: '#FFCE56'
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.kimia_reveil
+
+          # RSS réels, sans dépendre des sensor.kimia_flash_*.
+          - type: custom:rss-news-card
+            grid_options:
+              columns: full
+              rows: auto
+            title: "🇬🇦 L'essentiel au Gabon"
+            sources:
+              - entity: sensor.rss_gabon_actu
+                name: Gabon Actu
+                color: '#33CDB7'
+              - entity: sensor.rss_gabonreview
+                name: GabonReview
+                color: '#6AAEDC'
+            max_articles: 3
+            card_height: 145
+            show_description: false
+            show_source: true
+            show_date: false
+            image_width: 76
+            image_height: 56
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 18px !important;
+                  border: 1px solid rgba(53,205,184,.32);
+                  background: var(--card-background-color);
+                  overflow: hidden;
+                }
+          - type: custom:navbar-card
+            grid_options:
+              columns: 1
+              rows: 1
+            desktop:
+              mode: docked
+              position: left
+              show_labels: false
+              min_width: 768
+            mobile:
+              mode: docked
+              show_labels: false
+              safe_area: true
+            layout:
+              auto_padding:
+                enabled: true
+                desktop_px: 80
+                mobile_px: 70
+            routes:
+              - url: /kimia-smart/accueil
+                icon: mdi:home-variant
+                label: Accueil
+              - url: /kimia-smart/lumieres
+                icon: mdi:lightbulb-group-outline
+                label: Lumières
+              - url: /kimia-smart/volets
+                icon: mdi:window-shutter
+                label: Volets
+              - url: /kimia-smart/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+              - url: /kimia-smart/musique
+                icon: mdi:music-note
+                label: Musique
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - icon: mdi:dots-horizontal
+                label: Plus
+                hidden: |
+                  [[[ return navbar.isDesktop; ]]]
+                tap_action:
+                  action: open-popup
+                popup:
+                  - url: /kimia-smart/musique
+                    icon: mdi:music-note
+                    label: Musique
+                  - url: /kimia-smart/securite
+                    icon: mdi:shield-home-outline
+                    label: Sécurité
+                  - url: /kimia-smart/prises
+                    icon: mdi:power-socket-eu
+                    label: Prises
+                  - url: /kimia-smart/actualites
+                    icon: mdi:newspaper-variant-outline
+                    label: Actualités
+                  - url: /kimia-smart/parametres
+                    icon: mdi:cog-outline
+                    label: Réglages
+  - title: Lumières
+    path: lumieres
+    icon: mdi:lightbulb-group-outline
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Allumées
+            icon: mdi:lightbulb-group
+            triggers_update: all
+            label: |
+              [[[
+                const n=Object.values(states).filter(e=>e.entity_id?.startsWith('light.') && e.state==='on').length;
+                return n+' actif'+(n>1?'s':'');
+              ]]]
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Salon
+            icon: mdi:ceiling-light
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Cuisine
+            icon: mdi:lightbulb-spot
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Entrée
+            icon: mdi:wall-sconce-flat
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Terrasse
+            icon: mdi:outdoor-lamp
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Parents
+            icon: mdi:lamp
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Chambre 1
+            icon: mdi:lightbulb-outline
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Chambre 2
+            icon: mdi:lightbulb-outline
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Chambre 3
+            icon: mdi:lightbulb-outline
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v08_scene
+            entity: script.kimia_ambiance_detente
+            name: Détente
+            icon: mdi:sofa
+            variables:
+              couleur: "#25CBBB"
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.kimia_ambiance_detente
+          - type: custom:button-card
+            template: kimia_v08_scene
+            entity: script.kimia_ambiance_soiree
+            name: Soirée
+            icon: mdi:party-popper
+            variables:
+              couleur: "#F2B84D"
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.kimia_ambiance_soiree
+          - type: custom:button-card
+            template: kimia_v08_scene
+            entity: script.kimia_ambiance_cinema
+            name: Cinéma
+            icon: mdi:movie-open
+            variables:
+              couleur: "#B29EFF"
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.kimia_ambiance_cinema
+          - type: custom:navbar-card
+            desktop:
+              mode: docked
+              position: left
+              show_labels: false
+              min_width: 768
+            mobile:
+              mode: docked
+              show_labels: false
+              safe_area: true
+            layout:
+              auto_padding:
+                enabled: true
+                desktop_px: 80
+                mobile_px: 70
+            routes:
+              - url: /kimia-smart/accueil
+                icon: mdi:home-variant
+                label: Accueil
+              - url: /kimia-smart/lumieres
+                icon: mdi:lightbulb-group-outline
+                label: Lumières
+              - url: /kimia-smart/volets
+                icon: mdi:window-shutter
+                label: Volets
+              - url: /kimia-smart/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+              - url: /kimia-smart/musique
+                icon: mdi:music-note
+                label: Musique
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - icon: mdi:dots-horizontal
+                label: Plus
+                hidden: |
+                  [[[ return navbar.isDesktop; ]]]
+                tap_action:
+                  action: open-popup
+                popup:
+                  - url: /kimia-smart/musique
+                    icon: mdi:music-note
+                    label: Musique
+                  - url: /kimia-smart/securite
+                    icon: mdi:shield-home-outline
+                    label: Sécurité
+                  - url: /kimia-smart/prises
+                    icon: mdi:power-socket-eu
+                    label: Prises
+                  - url: /kimia-smart/actualites
+                    icon: mdi:newspaper-variant-outline
+                    label: Actualités
+                  - url: /kimia-smart/parametres
+                    icon: mdi:cog-outline
+                    label: Réglages
+  - title: Volets
+    path: volets
+    icon: mdi:window-shutter
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Volets ouverts
+            icon: mdi:window-shutter-open
+            triggers_update: all
+            label: |
+              [[[
+                const n=Object.values(states).filter(e=>e.entity_id?.startsWith('cover.') && e.state==='open').length;
+                return n+' actif'+(n>1?'s':'');
+              ]]]
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Salon
+            icon: mdi:window-shutter
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Baie vitrée
+            icon: mdi:window-shutter
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Cuisine
+            icon: mdi:window-shutter
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Terrasse
+            icon: mdi:window-shutter
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Parents
+            icon: mdi:window-shutter
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Chambre 1
+            icon: mdi:window-shutter
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Chambre 2
+            icon: mdi:window-shutter
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Chambre 3
+            icon: mdi:window-shutter
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:navbar-card
+            desktop:
+              mode: docked
+              position: left
+              show_labels: false
+              min_width: 768
+            mobile:
+              mode: docked
+              show_labels: false
+              safe_area: true
+            layout:
+              auto_padding:
+                enabled: true
+                desktop_px: 80
+                mobile_px: 70
+            routes:
+              - url: /kimia-smart/accueil
+                icon: mdi:home-variant
+                label: Accueil
+              - url: /kimia-smart/lumieres
+                icon: mdi:lightbulb-group-outline
+                label: Lumières
+              - url: /kimia-smart/volets
+                icon: mdi:window-shutter
+                label: Volets
+              - url: /kimia-smart/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+              - url: /kimia-smart/musique
+                icon: mdi:music-note
+                label: Musique
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - icon: mdi:dots-horizontal
+                label: Plus
+                hidden: |
+                  [[[ return navbar.isDesktop; ]]]
+                tap_action:
+                  action: open-popup
+                popup:
+                  - url: /kimia-smart/musique
+                    icon: mdi:music-note
+                    label: Musique
+                  - url: /kimia-smart/securite
+                    icon: mdi:shield-home-outline
+                    label: Sécurité
+                  - url: /kimia-smart/prises
+                    icon: mdi:power-socket-eu
+                    label: Prises
+                  - url: /kimia-smart/actualites
+                    icon: mdi:newspaper-variant-outline
+                    label: Actualités
+                  - url: /kimia-smart/parametres
+                    icon: mdi:cog-outline
+                    label: Réglages
+  - title: Climatisation
+    path: climatisation
+    icon: mdi:air-conditioner
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Température intérieure
+            icon: mdi:home-thermometer-outline
+            tap_action:
+              action: none
+            label: Capteur à associer
+          - type: custom:button-card
+            template: kimia_v2_tile
+            entity: weather.forecast_lbv
+            name: Température extérieure · Libreville
+            icon: mdi:weather-partly-cloudy
+            tap_action:
+              action: more-info
+            label: |
+              [[[
+                const t = entity?.attributes?.temperature;
+                return t !== undefined && t !== null ? String(t).replace('.', ',') + ' °C' : 'Indisponible';
+              ]]]
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Gestion automatique
+            icon: mdi:autorenew
+            tap_action:
+              action: none
+            label: À configurer
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Consigne maison
+            icon: mdi:thermometer-lines
+            tap_action:
+              action: none
+            label: À configurer
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Salon
+            icon: mdi:sofa-outline
+            tap_action:
+              action: none
+            label: Climatisation à associer
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Chambre
+            icon: mdi:bed-king-outline
+            tap_action:
+              action: none
+            label: Climatisation à associer
+          - type: custom:navbar-card
+            desktop:
+              mode: docked
+              position: left
+              show_labels: false
+              min_width: 768
+            mobile:
+              mode: docked
+              show_labels: false
+              safe_area: true
+            layout:
+              auto_padding:
+                enabled: true
+                desktop_px: 80
+                mobile_px: 70
+            routes:
+              - url: /kimia-smart/accueil
+                icon: mdi:home-variant
+                label: Accueil
+              - url: /kimia-smart/lumieres
+                icon: mdi:lightbulb-group-outline
+                label: Lumières
+              - url: /kimia-smart/volets
+                icon: mdi:window-shutter
+                label: Volets
+              - url: /kimia-smart/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+              - url: /kimia-smart/musique
+                icon: mdi:music-note
+                label: Musique
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - icon: mdi:dots-horizontal
+                label: Plus
+                hidden: |
+                  [[[ return navbar.isDesktop; ]]]
+                tap_action:
+                  action: open-popup
+                popup:
+                  - url: /kimia-smart/musique
+                    icon: mdi:music-note
+                    label: Musique
+                  - url: /kimia-smart/securite
+                    icon: mdi:shield-home-outline
+                    label: Sécurité
+                  - url: /kimia-smart/prises
+                    icon: mdi:power-socket-eu
+                    label: Prises
+                  - url: /kimia-smart/actualites
+                    icon: mdi:newspaper-variant-outline
+                    label: Actualités
+                  - url: /kimia-smart/parametres
+                    icon: mdi:cog-outline
+                    label: Réglages
+  - title: Musique
+    path: musique
+    icon: mdi:music
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Salon
+            icon: mdi:speaker-wireless
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Cuisine
+            icon: mdi:speaker-wireless
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Chambre parents
+            icon: mdi:speaker-wireless
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Autre enceinte
+            icon: mdi:speaker-wireless
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Réveil doux
+            icon: mdi:weather-sunset-up
+            label: Lecture MP3 à configurer
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Louanges
+            icon: mdi:music-note
+            label: Lecture MP3 à configurer
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Musique personnelle
+            icon: mdi:playlist-music
+            label: Lecture MP3 à configurer
+            tap_action:
+              action: none
+          - type: custom:navbar-card
+            desktop:
+              mode: docked
+              position: left
+              show_labels: false
+              min_width: 768
+            mobile:
+              mode: docked
+              show_labels: false
+              safe_area: true
+            layout:
+              auto_padding:
+                enabled: true
+                desktop_px: 80
+                mobile_px: 70
+            routes:
+              - url: /kimia-smart/accueil
+                icon: mdi:home-variant
+                label: Accueil
+              - url: /kimia-smart/lumieres
+                icon: mdi:lightbulb-group-outline
+                label: Lumières
+              - url: /kimia-smart/volets
+                icon: mdi:window-shutter
+                label: Volets
+              - url: /kimia-smart/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+              - url: /kimia-smart/musique
+                icon: mdi:music-note
+                label: Musique
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - icon: mdi:dots-horizontal
+                label: Plus
+                hidden: |
+                  [[[ return navbar.isDesktop; ]]]
+                tap_action:
+                  action: open-popup
+                popup:
+                  - url: /kimia-smart/musique
+                    icon: mdi:music-note
+                    label: Musique
+                  - url: /kimia-smart/securite
+                    icon: mdi:shield-home-outline
+                    label: Sécurité
+                  - url: /kimia-smart/prises
+                    icon: mdi:power-socket-eu
+                    label: Prises
+                  - url: /kimia-smart/actualites
+                    icon: mdi:newspaper-variant-outline
+                    label: Actualités
+                  - url: /kimia-smart/parametres
+                    icon: mdi:cog-outline
+                    label: Réglages
+  - title: Sécurité
+    path: securite
+    icon: mdi:shield-home-outline
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Ouvertures actives
+            icon: mdi:door-open
+            triggers_update: all
+            label: |
+              [[[
+                const n=Object.values(states).filter(e=>e.entity_id?.startsWith('binary_sensor.') && ['door','window','opening'].includes(e.attributes?.device_class) && e.state==='on').length;
+                return n+' actif'+(n>1?'s':'');
+              ]]]
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Mouvements actifs
+            icon: mdi:motion-sensor
+            triggers_update: all
+            label: |
+              [[[
+                const n=Object.values(states).filter(e=>e.entity_id?.startsWith('binary_sensor.') && ['motion','occupancy','presence'].includes(e.attributes?.device_class) && e.state==='on').length;
+                return n+' actif'+(n>1?'s':'');
+              ]]]
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Porte d'entrée
+            icon: mdi:door-closed
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Fenêtre salon
+            icon: mdi:window-closed
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Fenêtre chambre
+            icon: mdi:window-closed
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Détecteur d'eau
+            icon: mdi:water-alert
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Entrée
+            icon: mdi:cctv
+            label: Caméra à associer
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Extérieur
+            icon: mdi:cctv
+            label: Caméra à associer
+            tap_action:
+              action: none
+          - type: custom:navbar-card
+            desktop:
+              mode: docked
+              position: left
+              show_labels: false
+              min_width: 768
+            mobile:
+              mode: docked
+              show_labels: false
+              safe_area: true
+            layout:
+              auto_padding:
+                enabled: true
+                desktop_px: 80
+                mobile_px: 70
+            routes:
+              - url: /kimia-smart/accueil
+                icon: mdi:home-variant
+                label: Accueil
+              - url: /kimia-smart/lumieres
+                icon: mdi:lightbulb-group-outline
+                label: Lumières
+              - url: /kimia-smart/volets
+                icon: mdi:window-shutter
+                label: Volets
+              - url: /kimia-smart/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+              - url: /kimia-smart/musique
+                icon: mdi:music-note
+                label: Musique
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - icon: mdi:dots-horizontal
+                label: Plus
+                hidden: |
+                  [[[ return navbar.isDesktop; ]]]
+                tap_action:
+                  action: open-popup
+                popup:
+                  - url: /kimia-smart/musique
+                    icon: mdi:music-note
+                    label: Musique
+                  - url: /kimia-smart/securite
+                    icon: mdi:shield-home-outline
+                    label: Sécurité
+                  - url: /kimia-smart/prises
+                    icon: mdi:power-socket-eu
+                    label: Prises
+                  - url: /kimia-smart/actualites
+                    icon: mdi:newspaper-variant-outline
+                    label: Actualités
+                  - url: /kimia-smart/parametres
+                    icon: mdi:cog-outline
+                    label: Réglages
+  - title: Prises
+    path: prises
+    icon: mdi:power-socket-eu
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Salon
+            icon: mdi:power-socket-eu
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Cuisine
+            icon: mdi:power-socket-eu
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Chambre
+            icon: mdi:power-socket-eu
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:button-card
+            template: kimia_v2_tile
+            name: Autre prise
+            icon: mdi:power-socket-eu
+            label: À associer à un équipement
+            tap_action:
+              action: none
+          - type: custom:navbar-card
+            desktop:
+              mode: docked
+              position: left
+              show_labels: false
+              min_width: 768
+            mobile:
+              mode: docked
+              show_labels: false
+              safe_area: true
+            layout:
+              auto_padding:
+                enabled: true
+                desktop_px: 80
+                mobile_px: 70
+            routes:
+              - url: /kimia-smart/accueil
+                icon: mdi:home-variant
+                label: Accueil
+              - url: /kimia-smart/lumieres
+                icon: mdi:lightbulb-group-outline
+                label: Lumières
+              - url: /kimia-smart/volets
+                icon: mdi:window-shutter
+                label: Volets
+              - url: /kimia-smart/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+              - url: /kimia-smart/musique
+                icon: mdi:music-note
+                label: Musique
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - icon: mdi:dots-horizontal
+                label: Plus
+                hidden: |
+                  [[[ return navbar.isDesktop; ]]]
+                tap_action:
+                  action: open-popup
+                popup:
+                  - url: /kimia-smart/musique
+                    icon: mdi:music-note
+                    label: Musique
+                  - url: /kimia-smart/securite
+                    icon: mdi:shield-home-outline
+                    label: Sécurité
+                  - url: /kimia-smart/prises
+                    icon: mdi:power-socket-eu
+                    label: Prises
+                  - url: /kimia-smart/actualites
+                    icon: mdi:newspaper-variant-outline
+                    label: Actualités
+                  - url: /kimia-smart/parametres
+                    icon: mdi:cog-outline
+                    label: Réglages
+    # KIMIA Smart V0.8 — journal détaillé, séparé de l'accueil Maquette.
+  - title: Actualités
+    path: actualites
+    icon: mdi:newspaper-variant-outline
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:rss-news-card
+            title: "Gabon Actu · GabonReview"
+            sources:
+              - entity: sensor.rss_gabon_actu
+                name: Gabon Actu
+                color: "#28C8AD"
+              - entity: sensor.rss_gabonreview
+                name: GabonReview
+                color: "#50A7D8"
+            max_articles: 8
+            show_description: true
+            show_source: true
+            show_date: true
+            image_width: 120
+            image_height: 72
+            card_mod:
+              style: |
+                ha-card {
+                  border: 1px solid rgba(49,190,186,.35);
+                  background: var(--card-background-color);
+                  border-radius: 21px;
+                  overflow: hidden;
+                }
+          - type: custom:rss-news-card
+            title: "RFI Afrique · France 24"
+            sources:
+              - entity: sensor.rss_rfi_afrique
+                name: RFI Afrique
+                color: "#E7AD49"
+              - entity: sensor.rss_france_24
+                name: France 24
+                color: "#528FD6"
+            max_articles: 8
+            show_description: true
+            show_source: true
+            show_date: true
+            image_width: 120
+            image_height: 72
+            card_mod:
+              style: |
+                ha-card {
+                  border: 1px solid rgba(88,150,210,.35);
+                  background: var(--card-background-color);
+                  border-radius: 21px;
+                  overflow: hidden;
+                }
+          - type: custom:navbar-card
+            desktop:
+              mode: docked
+              position: left
+              show_labels: false
+              min_width: 768
+            mobile:
+              mode: docked
+              show_labels: false
+              safe_area: true
+            layout:
+              auto_padding:
+                enabled: true
+                desktop_px: 80
+                mobile_px: 70
+            routes:
+              - url: /kimia-smart/accueil
+                icon: mdi:home-variant
+                label: Accueil
+              - url: /kimia-smart/lumieres
+                icon: mdi:lightbulb-group-outline
+                label: Lumières
+              - url: /kimia-smart/volets
+                icon: mdi:window-shutter
+                label: Volets
+              - url: /kimia-smart/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+              - url: /kimia-smart/musique
+                icon: mdi:music-note
+                label: Musique
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - icon: mdi:dots-horizontal
+                label: Plus
+                hidden: |
+                  [[[ return navbar.isDesktop; ]]]
+                tap_action:
+                  action: open-popup
+                popup:
+                  - url: /kimia-smart/musique
+                    icon: mdi:music-note
+                    label: Musique
+                  - url: /kimia-smart/securite
+                    icon: mdi:shield-home-outline
+                    label: Sécurité
+                  - url: /kimia-smart/prises
+                    icon: mdi:power-socket-eu
+                    label: Prises
+                  - url: /kimia-smart/actualites
+                    icon: mdi:newspaper-variant-outline
+                    label: Actualités
+                  - url: /kimia-smart/parametres
+                    icon: mdi:cog-outline
+                    label: Réglages
+  - title: Paramètres
+    path: parametres
+    icon: mdi:cog-outline
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Choisir un thème
+            icon: mdi:palette
+          - type: custom:button-card
+            section_mode: true
+            entity: input_select.kimia_theme_global
+            name: "Gris Premium"
+            icon: mdi:palette
+            show_name: true
+            show_icon: true
+            show_state: false
+            show_label: true
+            variables:
+              option: "KIMIA Gris Premium"
+            label: |
+              [[[
+                return entity?.state === variables.option ? "✓ Sélectionné" : "Choisir";
+              ]]]
+            tap_action:
+              action: perform-action
+              perform_action: input_select.select_option
+              target:
+                entity_id: input_select.kimia_theme_global
+              data:
+                option: "KIMIA Gris Premium"
+            styles:
+              card:
+                - background: "#353D46"
+                - color: "#F4F7FA"
+                - border: 1px solid "#36C8BE"
+                - border-radius: 17px
+                - padding: 12px
+              icon:
+                - width: 28px
+                - color: "#36C8BE"
+              name:
+                - font-size: 14px
+                - font-weight: 650
+              label:
+                - font-size: 11px
+                - opacity: 0.85
+          - type: custom:button-card
+            section_mode: true
+            entity: input_select.kimia_theme_global
+            name: "Clair"
+            icon: mdi:weather-sunny
+            show_name: true
+            show_icon: true
+            show_state: false
+            show_label: true
+            variables:
+              option: "KIMIA Clair"
+            label: |
+              [[[
+                return entity?.state === variables.option ? "✓ Sélectionné" : "Choisir";
+              ]]]
+            tap_action:
+              action: perform-action
+              perform_action: input_select.select_option
+              target:
+                entity_id: input_select.kimia_theme_global
+              data:
+                option: "KIMIA Clair"
+            styles:
+              card:
+                - background: "#FFFFFF"
+                - color: "#1A3143"
+                - border: 1px solid "#008F91"
+                - border-radius: 17px
+                - padding: 12px
+              icon:
+                - width: 28px
+                - color: "#008F91"
+              name:
+                - font-size: 14px
+                - font-weight: 650
+              label:
+                - font-size: 11px
+                - opacity: 0.85
+          - type: custom:button-card
+            section_mode: true
+            entity: input_select.kimia_theme_global
+            name: "Sombre"
+            icon: mdi:weather-night
+            show_name: true
+            show_icon: true
+            show_state: false
+            show_label: true
+            variables:
+              option: "KIMIA Sombre"
+            label: |
+              [[[
+                return entity?.state === variables.option ? "✓ Sélectionné" : "Choisir";
+              ]]]
+            tap_action:
+              action: perform-action
+              perform_action: input_select.select_option
+              target:
+                entity_id: input_select.kimia_theme_global
+              data:
+                option: "KIMIA Sombre"
+            styles:
+              card:
+                - background: "#1A2A3A"
+                - color: "#F0F6FA"
+                - border: 1px solid "#3BDBC4"
+                - border-radius: 17px
+                - padding: 12px
+              icon:
+                - width: 28px
+                - color: "#3BDBC4"
+              name:
+                - font-size: 14px
+                - font-weight: 650
+              label:
+                - font-size: 11px
+                - opacity: 0.85
+          - type: custom:button-card
+            section_mode: true
+            entity: input_select.kimia_theme_global
+            name: "Signature"
+            icon: mdi:home-heart
+            show_name: true
+            show_icon: true
+            show_state: false
+            show_label: true
+            variables:
+              option: "KIMIA Signature"
+            label: |
+              [[[
+                return entity?.state === variables.option ? "✓ Sélectionné" : "Choisir";
+              ]]]
+            tap_action:
+              action: perform-action
+              perform_action: input_select.select_option
+              target:
+                entity_id: input_select.kimia_theme_global
+              data:
+                option: "KIMIA Signature"
+            styles:
+              card:
+                - background: "#10446D"
+                - color: "#FFFFFF"
+                - border: 1px solid "#28CEC0"
+                - border-radius: 17px
+                - padding: 12px
+              icon:
+                - width: 28px
+                - color: "#28CEC0"
+              name:
+                - font-size: 14px
+                - font-weight: 650
+              label:
+                - font-size: 11px
+                - opacity: 0.85
+      - type: grid
+        cards:
+          - type: heading
+            heading: Configuration
+            icon: mdi:cog-outline
+          - type: entities
+            title: "Thème KIMIA sélectionné"
+            entities:
+              - entity: input_select.kimia_theme_global
+                name: "Style de la maison"
+          - type: markdown
+            content: >-
+              **Le thème ne change pas à l'écran ?** Dans votre profil
+              Home Assistant, réglez le thème sur **Utiliser le thème par défaut**.
+              Les préférences propres à un utilisateur sont prioritaires.
+              La météo et le journal restent affichés sur l'Accueil :
+              leurs interrupteurs n'y sont pas raccordés et sont donc
+              volontairement absents de cette page.
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            desktop:
+              mode: docked
+              position: left
+              show_labels: false
+              min_width: 768
+            mobile:
+              mode: docked
+              show_labels: false
+              safe_area: true
+            layout:
+              auto_padding:
+                enabled: true
+                desktop_px: 80
+                mobile_px: 70
+            routes:
+              - url: /kimia-smart/accueil
+                icon: mdi:home-variant
+                label: Accueil
+              - url: /kimia-smart/lumieres
+                icon: mdi:lightbulb-group-outline
+                label: Lumières
+              - url: /kimia-smart/volets
+                icon: mdi:window-shutter
+                label: Volets
+              - url: /kimia-smart/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+              - url: /kimia-smart/musique
+                icon: mdi:music-note
+                label: Musique
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - url: /kimia-smart/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: |
+                  [[[ return !navbar.isDesktop; ]]]
+              - icon: mdi:dots-horizontal
+                label: Plus
+                hidden: |
+                  [[[ return navbar.isDesktop; ]]]
+                tap_action:
+                  action: open-popup
+                popup:
+                  - url: /kimia-smart/musique
+                    icon: mdi:music-note
+                    label: Musique
+                  - url: /kimia-smart/securite
+                    icon: mdi:shield-home-outline
+                    label: Sécurité
+                  - url: /kimia-smart/prises
+                    icon: mdi:power-socket-eu
+                    label: Prises
+                  - url: /kimia-smart/actualites
+                    icon: mdi:newspaper-variant-outline
+                    label: Actualités
+                  - url: /kimia-smart/parametres
+                    icon: mdi:cog-outline
+                    label: Réglages
