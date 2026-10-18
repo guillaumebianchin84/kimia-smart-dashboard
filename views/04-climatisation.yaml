@@ -7,53 +7,63 @@ sections:
   - type: grid
     column_span: 2
     cards:
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Température intérieure
+      - type: button
+        name: "Température intérieure"
         icon: mdi:home-thermometer-outline
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-        label: Capteur à associer
-      - type: custom:button-card
-        template: kimia_v2_tile
+        hold_action:
+          action: none
+      - type: tile
         entity: weather.forecast_lbv
-        name: Température extérieure · Libreville
+        name: "Température extérieure · Libreville"
         icon: mdi:weather-partly-cloudy
+        state_content: temperature
         tap_action:
           action: more-info
-        label: |
-          [[[
-            const t = entity?.attributes?.temperature;
-            return t !== undefined && t !== null ? String(t).replace('.', ',') + ' °C' : 'Indisponible';
-          ]]]
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Gestion automatique
+      - type: button
+        name: "Gestion automatique"
         icon: mdi:autorenew
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-        label: À configurer
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Consigne maison
+        hold_action:
+          action: none
+      - type: button
+        name: "Consigne maison"
         icon: mdi:thermometer-lines
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-        label: À configurer
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Salon
+        hold_action:
+          action: none
+      - type: button
+        name: "Salon"
         icon: mdi:sofa-outline
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-        label: Climatisation à associer
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Chambre
+        hold_action:
+          action: none
+      - type: button
+        name: "Chambre"
         icon: mdi:bed-king-outline
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-        label: Climatisation à associer
+        hold_action:
+          action: none
       - type: custom:navbar-card
         desktop:
           mode: docked
