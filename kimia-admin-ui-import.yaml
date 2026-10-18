@@ -134,41 +134,19 @@ views:
             icon: mdi:home-plus-outline
           - type: markdown
             content: >-
-              Créez les vraies pièces de la maison, puis associez-y les
-              prises, lumières, capteurs, volets et autres équipements.
-              Les boutons ouvrent les écrans natifs Home Assistant.
+              Créez et modifiez les pièces et les étages directement ici.
+              Affectez ensuite les appareils déjà installés à leur pièce.
+              L'appairage Zigbee via ZHA est la prochaine étape.
       - type: grid
+        column_span: 2
         cards:
           - type: heading
-            heading: "1 · Créer les pièces"
+            heading: "1 · Configurer les pièces dans KIMIA"
             icon: mdi:floor-plan
-          - type: button
-            name: "Créer ou modifier une pièce"
-            icon: mdi:home-plus
-            show_name: true
-            show_icon: true
-            tap_action:
-              action: navigate
-              navigation_path: /config/areas/dashboard
-          - type: button
-            name: "Gérer les étages"
-            icon: mdi:layers-outline
-            show_name: true
-            show_icon: true
-            tap_action:
-              action: navigate
-              navigation_path: /config/areas/dashboard
-          - type: markdown
-            content: |
-              **Pièces enregistrées**
-              {% set ids = areas() %}
-              {% if ids | count == 0 %}
-              Aucune pièce enregistrée.
-              {% else %}
-              {% for id in ids | sort %}
-              - **{{ area_name(id) }}** · {{ area_devices(id) | count }} appareil(s)
-              {% endfor %}
-              {% endif %}
+          - type: custom:kimia-room-manager-card
+            grid_options:
+              columns: full
+              rows: auto
       - type: grid
         cards:
           - type: heading
@@ -211,9 +189,10 @@ views:
             icon: mdi:home-switch-outline
           - type: markdown
             content: |
-              1. Ouvrez **Voir et organiser les appareils**.
-              2. Sélectionnez la prise, lampe ou le capteur ajouté.
-              3. Affectez-le à sa **Zone** (la pièce créée plus haut).
+              1. Créez vos pièces dans la carte **KIMIA · Gestion des pièces**.
+              2. Appairez les équipements via ZHA si nécessaire.
+              3. Cliquez sur une pièce dans la carte KIMIA et choisissez
+                 l'appareil dans la liste pour l'y associer.
 
               **Attention :** créer une zone n'ajoute pas automatiquement
               une carte à la vue personnalisée KIMIA. Cette fonction
