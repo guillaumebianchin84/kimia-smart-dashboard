@@ -1,0 +1,124 @@
+title: KIMIA Administration
+views:
+  - title: Navigation
+    path: navigation
+    icon: mdi:shield-cog
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: "KIMIA · Administration"
+            icon: mdi:shield-cog-outline
+          - type: markdown
+            content: >-
+              **Navigation de la maison** — activez les onglets que vous
+              souhaitez afficher aux habitants. L'Accueil reste toujours
+              visible. Les choix sont conservés après redémarrage.
+          - type: markdown
+            content: |
+              **Onglets visibles :** {{ [
+                'input_boolean.kimia_onglet_lumieres',
+                'input_boolean.kimia_onglet_volets',
+                'input_boolean.kimia_onglet_climatisation',
+                'input_boolean.kimia_onglet_musique',
+                'input_boolean.kimia_onglet_securite',
+                'input_boolean.kimia_onglet_prises',
+                'input_boolean.kimia_onglet_actualites',
+                'input_boolean.kimia_onglet_parametres'
+              ] | map('states') | select('eq', 'on') | list | count }} / 8
+      - type: grid
+        cards:
+          - type: heading
+            heading: Afficher / masquer un onglet
+            icon: mdi:eye-settings-outline
+          - type: tile
+            entity: input_boolean.kimia_onglet_lumieres
+            name: Lumières
+            icon: mdi:lightbulb-group-outline
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - type: tile
+            entity: input_boolean.kimia_onglet_volets
+            name: Volets
+            icon: mdi:window-shutter
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - type: tile
+            entity: input_boolean.kimia_onglet_climatisation
+            name: Climatisation
+            icon: mdi:air-conditioner
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - type: tile
+            entity: input_boolean.kimia_onglet_musique
+            name: Musique
+            icon: mdi:music
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - type: tile
+            entity: input_boolean.kimia_onglet_securite
+            name: Sécurité
+            icon: mdi:shield-home-outline
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - type: tile
+            entity: input_boolean.kimia_onglet_prises
+            name: Prises
+            icon: mdi:power-socket-eu
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - type: tile
+            entity: input_boolean.kimia_onglet_actualites
+            name: Actualités
+            icon: mdi:newspaper-variant-outline
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - type: tile
+            entity: input_boolean.kimia_onglet_parametres
+            name: Paramètres
+            icon: mdi:cog-outline
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+      - type: grid
+        cards:
+          - type: heading
+            heading: Organisation des pièces
+            icon: mdi:floor-plan
+          - type: markdown
+            content: >-
+              **Étape suivante :** créer les pièces avec les **Zones**
+              natives de Home Assistant, puis associer les équipements
+              et afficher une carte indépendante par pièce.
+              Les onglets de navigation et les pièces sont deux
+              réglages différents. Aucun équipement n'est modifié ici.
+      - type: grid
+        cards:
+          - type: heading
+            heading: Informations
+            icon: mdi:information-outline
+          - type: markdown
+            content: >-
+              **Attention :** masquer un onglet masque son bouton et
+              son onglet natif, mais ne bloque pas un accès direct
+              à son adresse. Cela ne constitue pas une sécurité.
+              Réservez ce dashboard Administration aux comptes
+              administrateurs depuis **Paramètres > Tableaux de bord**.
