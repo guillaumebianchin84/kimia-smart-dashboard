@@ -2,7 +2,6 @@ title: Climatisation
 path: climatisation
 icon: mdi:air-conditioner
 type: sections
-visible: false
 max_columns: 2
 sections:
   - type: grid
