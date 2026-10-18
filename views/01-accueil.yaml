@@ -1,6 +1,3 @@
-# KIMIA V0.9 — Maquette dans sa propre carte, sections natives Home Assistant.
-# Aucun custom:layout-card n'est utilisé. Une carte par fonction.
-# Géométrie Maquette et image conservées à l'identique de la V0.8.
 title: Accueil
 path: accueil
 icon: mdi:home-variant
@@ -94,19 +91,14 @@ sections:
             rooms:
               - name: Salon / Séjour
                 poly: [[40, 80], [905, 80], [905, 560], [40, 560]]
-                label: [470, 320]
               - name: Cuisine
                 poly: [[905, 80], [1455, 80], [1455, 500], [905, 500]]
-                label: [1180, 250]
               - name: Chambre 1
                 poly: [[40, 560], [490, 560], [490, 1040], [40, 1040]]
-                label: [265, 805]
               - name: Chambre 2
                 poly: [[490, 560], [905, 560], [905, 1040], [490, 1040]]
-                label: [700, 805]
               - name: Terrasse
                 poly: [[905, 500], [1455, 500], [1455, 1040], [905, 1040]]
-                label: [1180, 780]
                 outside: true
                 temperature: weather.forecast_lbv
                 temperature_attribute: temperature
@@ -227,11 +219,10 @@ sections:
                 tap: none
             furniture: []
             background:
-              image: /api/image/serve/ff117c7cfa8067ef6fc7005b20d1d041/original
+              image: /api/image/serve/ebec086d86139c746e6c96840972461c/original
               pos: [0, 0]
               width: 1499
               height: 1049
-              rotation: 0
               opacity: 1
               room_opacity: 0.18
               show: always
