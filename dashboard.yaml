@@ -1676,6 +1676,62 @@ views:
                 entity_id: input_select.kimia_theme_global
               data:
                 option: "KIMIA Signature"
+          - type: button
+            name: "Vert Sauge"
+            icon: mdi:leaf
+            show_name: true
+            show_icon: true
+            show_state: false
+            color: green
+            tap_action:
+              action: perform-action
+              perform_action: input_select.select_option
+              target:
+                entity_id: input_select.kimia_theme_global
+              data:
+                option: "KIMIA Vert Sauge"
+          - type: button
+            name: "Violet Nuit"
+            icon: mdi:weather-night
+            show_name: true
+            show_icon: true
+            show_state: false
+            color: deep-purple
+            tap_action:
+              action: perform-action
+              perform_action: input_select.select_option
+              target:
+                entity_id: input_select.kimia_theme_global
+              data:
+                option: "KIMIA Violet Nuit"
+          - type: button
+            name: "Sable Doré"
+            icon: mdi:weather-sunny
+            show_name: true
+            show_icon: true
+            show_state: false
+            color: amber
+            tap_action:
+              action: perform-action
+              perform_action: input_select.select_option
+              target:
+                entity_id: input_select.kimia_theme_global
+              data:
+                option: "KIMIA Sable Doré"
+          - type: button
+            name: "Terracotta"
+            icon: mdi:fireplace
+            show_name: true
+            show_icon: true
+            show_state: false
+            color: deep-orange
+            tap_action:
+              action: perform-action
+              perform_action: input_select.select_option
+              target:
+                entity_id: input_select.kimia_theme_global
+              data:
+                option: "KIMIA Terracotta"
       - type: grid
         cards:
           - type: heading
