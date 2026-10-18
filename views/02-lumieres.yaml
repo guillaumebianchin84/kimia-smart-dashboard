@@ -7,110 +7,131 @@ sections:
   - type: grid
     column_span: 2
     cards:
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Allumées
-        icon: mdi:lightbulb-group
-        triggers_update: all
-        label: |
-          [[[
-            const n=Object.values(states).filter(e=>e.entity_id?.startsWith('light.') && e.state==='on').length;
-            return n+' actif'+(n>1?'s':'');
-          ]]]
-        tap_action:
-          action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Salon
+      - type: markdown
+        content: >-
+          **Lumières allumées** : {{ states.light | selectattr('state', 'eq', 'on') | list | count }}
+      - type: button
+        name: "Salon"
         icon: mdi:ceiling-light
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Cuisine
+        hold_action:
+          action: none
+      - type: button
+        name: "Cuisine"
         icon: mdi:lightbulb-spot
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Entrée
+        hold_action:
+          action: none
+      - type: button
+        name: "Entrée"
         icon: mdi:wall-sconce-flat
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Terrasse
+        hold_action:
+          action: none
+      - type: button
+        name: "Terrasse"
         icon: mdi:outdoor-lamp
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Parents
+        hold_action:
+          action: none
+      - type: button
+        name: "Parents"
         icon: mdi:lamp
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Chambre 1
+        hold_action:
+          action: none
+      - type: button
+        name: "Chambre 1"
         icon: mdi:lightbulb-outline
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Chambre 2
+        hold_action:
+          action: none
+      - type: button
+        name: "Chambre 2"
         icon: mdi:lightbulb-outline
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Chambre 3
+        hold_action:
+          action: none
+      - type: button
+        name: "Chambre 3"
         icon: mdi:lightbulb-outline
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v08_scene
-        entity: script.kimia_ambiance_detente
-        name: Détente
+        hold_action:
+          action: none
+      - type: button
+        name: "Détente"
         icon: mdi:sofa
-        variables:
-          couleur: "#25CBBB"
+        show_name: true
+        show_icon: true
+        show_state: false
+        entity: script.kimia_ambiance_detente
         tap_action:
           action: perform-action
           perform_action: script.turn_on
           target:
             entity_id: script.kimia_ambiance_detente
-      - type: custom:button-card
-        template: kimia_v08_scene
-        entity: script.kimia_ambiance_soiree
-        name: Soirée
+        hold_action:
+          action: more-info
+      - type: button
+        name: "Soirée"
         icon: mdi:party-popper
-        variables:
-          couleur: "#F2B84D"
+        show_name: true
+        show_icon: true
+        show_state: false
+        entity: script.kimia_ambiance_soiree
         tap_action:
           action: perform-action
           perform_action: script.turn_on
           target:
             entity_id: script.kimia_ambiance_soiree
-      - type: custom:button-card
-        template: kimia_v08_scene
-        entity: script.kimia_ambiance_cinema
-        name: Cinéma
+        hold_action:
+          action: more-info
+      - type: button
+        name: "Cinéma"
         icon: mdi:movie-open
-        variables:
-          couleur: "#B29EFF"
+        show_name: true
+        show_icon: true
+        show_state: false
+        entity: script.kimia_ambiance_cinema
         tap_action:
           action: perform-action
           perform_action: script.turn_on
           target:
             entity_id: script.kimia_ambiance_cinema
+        hold_action:
+          action: more-info
       - type: custom:navbar-card
         desktop:
           mode: docked
