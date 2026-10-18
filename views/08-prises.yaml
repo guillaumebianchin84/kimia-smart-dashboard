@@ -2,7 +2,6 @@ title: Prises
 path: prises
 icon: mdi:power-socket-eu
 type: sections
-visible: false
 max_columns: 2
 sections:
   - type: grid
