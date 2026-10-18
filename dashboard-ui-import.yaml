@@ -1486,51 +1486,53 @@ views:
         column_span: 2
         cards:
           - type: custom:rss-news-card
-            title: "Gabon Actu · GabonReview"
+            title: "Gabon Actu"
             sources:
               - entity: sensor.rss_gabon_actu
                 name: Gabon Actu
                 color: "#28C8AD"
-              - entity: sensor.rss_gabonreview
-                name: GabonReview
-                color: "#50A7D8"
-            max_articles: 8
+            max_articles: 5
             show_description: true
             show_source: true
             show_date: true
             image_width: 120
             image_height: 72
-            card_mod:
-              style: |
-                ha-card {
-                  border: 1px solid rgba(49,190,186,.35);
-                  background: var(--card-background-color);
-                  border-radius: 21px;
-                  overflow: hidden;
-                }
           - type: custom:rss-news-card
-            title: "RFI Afrique · France 24"
+            title: "GabonReview"
+            sources:
+              - entity: sensor.rss_gabonreview
+                name: GabonReview
+                color: "#50A7D8"
+            max_articles: 5
+            show_description: true
+            show_source: true
+            show_date: true
+            image_width: 120
+            image_height: 72
+          - type: custom:rss-news-card
+            title: "RFI Afrique"
             sources:
               - entity: sensor.rss_rfi_afrique
                 name: RFI Afrique
                 color: "#E7AD49"
-              - entity: sensor.rss_france_24
-                name: France 24
-                color: "#528FD6"
-            max_articles: 8
+            max_articles: 5
             show_description: true
             show_source: true
             show_date: true
             image_width: 120
             image_height: 72
-            card_mod:
-              style: |
-                ha-card {
-                  border: 1px solid rgba(88,150,210,.35);
-                  background: var(--card-background-color);
-                  border-radius: 21px;
-                  overflow: hidden;
-                }
+          - type: custom:rss-news-card
+            title: "France 24"
+            sources:
+              - entity: sensor.rss_france_24
+                name: France 24
+                color: "#528FD6"
+            max_articles: 5
+            show_description: true
+            show_source: true
+            show_date: true
+            image_width: 120
+            image_height: 72
           - type: custom:navbar-card
             desktop:
               mode: docked
