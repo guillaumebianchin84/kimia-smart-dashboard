@@ -14,9 +14,6 @@ sections:
         label: À associer à un équipement
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Cuisine
@@ -24,9 +21,6 @@ sections:
         label: À associer à un équipement
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Chambre parents
@@ -34,9 +28,6 @@ sections:
         label: À associer à un équipement
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Autre enceinte
@@ -44,9 +35,6 @@ sections:
         label: À associer à un équipement
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Réveil doux
@@ -54,9 +42,6 @@ sections:
         label: Lecture MP3 à configurer
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Louanges
@@ -64,9 +49,6 @@ sections:
         label: Lecture MP3 à configurer
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Musique personnelle
@@ -74,13 +56,7 @@ sections:
         label: Lecture MP3 à configurer
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
       - type: custom:navbar-card
-        grid_options:
-          columns: 1
-          rows: 1
         desktop:
           mode: docked
           position: left
