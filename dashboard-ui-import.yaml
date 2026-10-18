@@ -539,110 +539,131 @@ views:
       - type: grid
         column_span: 2
         cards:
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Allumées
-            icon: mdi:lightbulb-group
-            triggers_update: all
-            label: |
-              [[[
-                const n=Object.values(states).filter(e=>e.entity_id?.startsWith('light.') && e.state==='on').length;
-                return n+' actif'+(n>1?'s':'');
-              ]]]
-            tap_action:
-              action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Salon
+          - type: markdown
+            content: >-
+              **Lumières allumées** : {{ states.light | selectattr('state', 'eq', 'on') | list | count }}
+          - type: button
+            name: "Salon"
             icon: mdi:ceiling-light
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Cuisine
+            hold_action:
+              action: none
+          - type: button
+            name: "Cuisine"
             icon: mdi:lightbulb-spot
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Entrée
+            hold_action:
+              action: none
+          - type: button
+            name: "Entrée"
             icon: mdi:wall-sconce-flat
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Terrasse
+            hold_action:
+              action: none
+          - type: button
+            name: "Terrasse"
             icon: mdi:outdoor-lamp
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Parents
+            hold_action:
+              action: none
+          - type: button
+            name: "Parents"
             icon: mdi:lamp
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Chambre 1
+            hold_action:
+              action: none
+          - type: button
+            name: "Chambre 1"
             icon: mdi:lightbulb-outline
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Chambre 2
+            hold_action:
+              action: none
+          - type: button
+            name: "Chambre 2"
             icon: mdi:lightbulb-outline
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Chambre 3
+            hold_action:
+              action: none
+          - type: button
+            name: "Chambre 3"
             icon: mdi:lightbulb-outline
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v08_scene
-            entity: script.kimia_ambiance_detente
-            name: Détente
+            hold_action:
+              action: none
+          - type: button
+            name: "Détente"
             icon: mdi:sofa
-            variables:
-              couleur: "#25CBBB"
+            show_name: true
+            show_icon: true
+            show_state: false
+            entity: script.kimia_ambiance_detente
             tap_action:
               action: perform-action
               perform_action: script.turn_on
               target:
                 entity_id: script.kimia_ambiance_detente
-          - type: custom:button-card
-            template: kimia_v08_scene
-            entity: script.kimia_ambiance_soiree
-            name: Soirée
+            hold_action:
+              action: more-info
+          - type: button
+            name: "Soirée"
             icon: mdi:party-popper
-            variables:
-              couleur: "#F2B84D"
+            show_name: true
+            show_icon: true
+            show_state: false
+            entity: script.kimia_ambiance_soiree
             tap_action:
               action: perform-action
               perform_action: script.turn_on
               target:
                 entity_id: script.kimia_ambiance_soiree
-          - type: custom:button-card
-            template: kimia_v08_scene
-            entity: script.kimia_ambiance_cinema
-            name: Cinéma
+            hold_action:
+              action: more-info
+          - type: button
+            name: "Cinéma"
             icon: mdi:movie-open
-            variables:
-              couleur: "#B29EFF"
+            show_name: true
+            show_icon: true
+            show_state: false
+            entity: script.kimia_ambiance_cinema
             tap_action:
               action: perform-action
               perform_action: script.turn_on
               target:
                 entity_id: script.kimia_ambiance_cinema
+            hold_action:
+              action: more-info
           - type: custom:navbar-card
             desktop:
               mode: docked
@@ -727,73 +748,88 @@ views:
       - type: grid
         column_span: 2
         cards:
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Volets ouverts
-            icon: mdi:window-shutter-open
-            triggers_update: all
-            label: |
-              [[[
-                const n=Object.values(states).filter(e=>e.entity_id?.startsWith('cover.') && e.state==='open').length;
-                return n+' actif'+(n>1?'s':'');
-              ]]]
+          - type: markdown
+            content: >-
+              **Volets ouverts** : {{ states.cover | selectattr('state', 'eq', 'open') | list | count }}
+          - type: button
+            name: "Salon"
+            icon: mdi:window-shutter
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Salon
+            hold_action:
+              action: none
+          - type: button
+            name: "Baie vitrée"
             icon: mdi:window-shutter
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Baie vitrée
+            hold_action:
+              action: none
+          - type: button
+            name: "Cuisine"
             icon: mdi:window-shutter
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Cuisine
+            hold_action:
+              action: none
+          - type: button
+            name: "Terrasse"
             icon: mdi:window-shutter
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Terrasse
+            hold_action:
+              action: none
+          - type: button
+            name: "Parents"
             icon: mdi:window-shutter
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Parents
+            hold_action:
+              action: none
+          - type: button
+            name: "Chambre 1"
             icon: mdi:window-shutter
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Chambre 1
+            hold_action:
+              action: none
+          - type: button
+            name: "Chambre 2"
             icon: mdi:window-shutter
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Chambre 2
+            hold_action:
+              action: none
+          - type: button
+            name: "Chambre 3"
             icon: mdi:window-shutter
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Chambre 3
-            icon: mdi:window-shutter
-            label: À associer à un équipement
-            tap_action:
+            hold_action:
               action: none
           - type: custom:navbar-card
             desktop:
@@ -879,53 +915,63 @@ views:
       - type: grid
         column_span: 2
         cards:
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Température intérieure
+          - type: button
+            name: "Température intérieure"
             icon: mdi:home-thermometer-outline
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-            label: Capteur à associer
-          - type: custom:button-card
-            template: kimia_v2_tile
+            hold_action:
+              action: none
+          - type: tile
             entity: weather.forecast_lbv
-            name: Température extérieure · Libreville
+            name: "Température extérieure · Libreville"
             icon: mdi:weather-partly-cloudy
+            state_content: temperature
             tap_action:
               action: more-info
-            label: |
-              [[[
-                const t = entity?.attributes?.temperature;
-                return t !== undefined && t !== null ? String(t).replace('.', ',') + ' °C' : 'Indisponible';
-              ]]]
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Gestion automatique
+          - type: button
+            name: "Gestion automatique"
             icon: mdi:autorenew
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-            label: À configurer
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Consigne maison
+            hold_action:
+              action: none
+          - type: button
+            name: "Consigne maison"
             icon: mdi:thermometer-lines
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-            label: À configurer
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Salon
+            hold_action:
+              action: none
+          - type: button
+            name: "Salon"
             icon: mdi:sofa-outline
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-            label: Climatisation à associer
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Chambre
+            hold_action:
+              action: none
+          - type: button
+            name: "Chambre"
             icon: mdi:bed-king-outline
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-            label: Climatisation à associer
+            hold_action:
+              action: none
           - type: custom:navbar-card
             desktop:
               mode: docked
@@ -1010,54 +1056,75 @@ views:
       - type: grid
         column_span: 2
         cards:
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Salon
+          - type: button
+            name: "Salon"
             icon: mdi:speaker-wireless
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Cuisine
+            hold_action:
+              action: none
+          - type: button
+            name: "Cuisine"
             icon: mdi:speaker-wireless
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Chambre parents
+            hold_action:
+              action: none
+          - type: button
+            name: "Chambre parents"
             icon: mdi:speaker-wireless
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Autre enceinte
+            hold_action:
+              action: none
+          - type: button
+            name: "Autre enceinte"
             icon: mdi:speaker-wireless
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Réveil doux
+            hold_action:
+              action: none
+          - type: button
+            name: "Réveil doux"
             icon: mdi:weather-sunset-up
-            label: Lecture MP3 à configurer
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Louanges
+            hold_action:
+              action: none
+          - type: button
+            name: "Louanges"
             icon: mdi:music-note
-            label: Lecture MP3 à configurer
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Musique personnelle
+            hold_action:
+              action: none
+          - type: button
+            name: "Musique personnelle"
             icon: mdi:playlist-music
-            label: Lecture MP3 à configurer
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
+              action: none
+            hold_action:
               action: none
           - type: custom:navbar-card
             desktop:
@@ -1143,71 +1210,71 @@ views:
       - type: grid
         column_span: 2
         cards:
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Ouvertures actives
-            icon: mdi:door-open
-            triggers_update: all
-            label: |
-              [[[
-                const n=Object.values(states).filter(e=>e.entity_id?.startsWith('binary_sensor.') && ['door','window','opening'].includes(e.attributes?.device_class) && e.state==='on').length;
-                return n+' actif'+(n>1?'s':'');
-              ]]]
-            tap_action:
-              action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Mouvements actifs
-            icon: mdi:motion-sensor
-            triggers_update: all
-            label: |
-              [[[
-                const n=Object.values(states).filter(e=>e.entity_id?.startsWith('binary_sensor.') && ['motion','occupancy','presence'].includes(e.attributes?.device_class) && e.state==='on').length;
-                return n+' actif'+(n>1?'s':'');
-              ]]]
-            tap_action:
-              action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Porte d'entrée
+          - type: markdown
+            content: >-
+              **Ouvertures détectées** : {{ states.binary_sensor | selectattr('state', 'eq', 'on') | selectattr('attributes.device_class', 'in', ['door', 'window', 'opening']) | list | count }}
+          - type: markdown
+            content: >-
+              **Mouvements détectés** : {{ states.binary_sensor | selectattr('state', 'eq', 'on') | selectattr('attributes.device_class', 'in', ['motion', 'occupancy', 'presence']) | list | count }}
+          - type: button
+            name: "Porte d'entrée"
             icon: mdi:door-closed
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Fenêtre salon
+            hold_action:
+              action: none
+          - type: button
+            name: "Fenêtre salon"
             icon: mdi:window-closed
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Fenêtre chambre
+            hold_action:
+              action: none
+          - type: button
+            name: "Fenêtre chambre"
             icon: mdi:window-closed
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Détecteur d'eau
+            hold_action:
+              action: none
+          - type: button
+            name: "Détecteur d'eau"
             icon: mdi:water-alert
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Entrée
+            hold_action:
+              action: none
+          - type: button
+            name: "Entrée"
             icon: mdi:cctv
-            label: Caméra à associer
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Extérieur
+            hold_action:
+              action: none
+          - type: button
+            name: "Extérieur"
             icon: mdi:cctv
-            label: Caméra à associer
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
+              action: none
+            hold_action:
               action: none
           - type: custom:navbar-card
             desktop:
@@ -1293,33 +1360,45 @@ views:
       - type: grid
         column_span: 2
         cards:
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Salon
+          - type: button
+            name: "Salon"
             icon: mdi:power-socket-eu
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Cuisine
+            hold_action:
+              action: none
+          - type: button
+            name: "Cuisine"
             icon: mdi:power-socket-eu
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Chambre
+            hold_action:
+              action: none
+          - type: button
+            name: "Chambre"
             icon: mdi:power-socket-eu
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
               action: none
-          - type: custom:button-card
-            template: kimia_v2_tile
-            name: Autre prise
+            hold_action:
+              action: none
+          - type: button
+            name: "Autre prise"
             icon: mdi:power-socket-eu
-            label: À associer à un équipement
+            show_name: true
+            show_icon: true
+            show_state: false
             tap_action:
+              action: none
+            hold_action:
               action: none
           - type: custom:navbar-card
             desktop:
@@ -1538,21 +1617,13 @@ views:
           - type: heading
             heading: Choisir un thème
             icon: mdi:palette
-          - type: custom:button-card
-            section_mode: true
-            entity: input_select.kimia_theme_global
+          - type: button
             name: "Gris Premium"
             icon: mdi:palette
             show_name: true
             show_icon: true
             show_state: false
-            show_label: true
-            variables:
-              option: "KIMIA Gris Premium"
-            label: |
-              [[[
-                return entity?.state === variables.option ? "✓ Sélectionné" : "Choisir";
-              ]]]
+            color: teal
             tap_action:
               action: perform-action
               perform_action: input_select.select_option
@@ -1560,37 +1631,13 @@ views:
                 entity_id: input_select.kimia_theme_global
               data:
                 option: "KIMIA Gris Premium"
-            styles:
-              card:
-                - background: "#353D46"
-                - color: "#F4F7FA"
-                - border: 1px solid "#36C8BE"
-                - border-radius: 17px
-                - padding: 12px
-              icon:
-                - width: 28px
-                - color: "#36C8BE"
-              name:
-                - font-size: 14px
-                - font-weight: 650
-              label:
-                - font-size: 11px
-                - opacity: 0.85
-          - type: custom:button-card
-            section_mode: true
-            entity: input_select.kimia_theme_global
+          - type: button
             name: "Clair"
             icon: mdi:weather-sunny
             show_name: true
             show_icon: true
             show_state: false
-            show_label: true
-            variables:
-              option: "KIMIA Clair"
-            label: |
-              [[[
-                return entity?.state === variables.option ? "✓ Sélectionné" : "Choisir";
-              ]]]
+            color: cyan
             tap_action:
               action: perform-action
               perform_action: input_select.select_option
@@ -1598,37 +1645,13 @@ views:
                 entity_id: input_select.kimia_theme_global
               data:
                 option: "KIMIA Clair"
-            styles:
-              card:
-                - background: "#FFFFFF"
-                - color: "#1A3143"
-                - border: 1px solid "#008F91"
-                - border-radius: 17px
-                - padding: 12px
-              icon:
-                - width: 28px
-                - color: "#008F91"
-              name:
-                - font-size: 14px
-                - font-weight: 650
-              label:
-                - font-size: 11px
-                - opacity: 0.85
-          - type: custom:button-card
-            section_mode: true
-            entity: input_select.kimia_theme_global
+          - type: button
             name: "Sombre"
             icon: mdi:weather-night
             show_name: true
             show_icon: true
             show_state: false
-            show_label: true
-            variables:
-              option: "KIMIA Sombre"
-            label: |
-              [[[
-                return entity?.state === variables.option ? "✓ Sélectionné" : "Choisir";
-              ]]]
+            color: indigo
             tap_action:
               action: perform-action
               perform_action: input_select.select_option
@@ -1636,37 +1659,13 @@ views:
                 entity_id: input_select.kimia_theme_global
               data:
                 option: "KIMIA Sombre"
-            styles:
-              card:
-                - background: "#1A2A3A"
-                - color: "#F0F6FA"
-                - border: 1px solid "#3BDBC4"
-                - border-radius: 17px
-                - padding: 12px
-              icon:
-                - width: 28px
-                - color: "#3BDBC4"
-              name:
-                - font-size: 14px
-                - font-weight: 650
-              label:
-                - font-size: 11px
-                - opacity: 0.85
-          - type: custom:button-card
-            section_mode: true
-            entity: input_select.kimia_theme_global
+          - type: button
             name: "Signature"
             icon: mdi:home-heart
             show_name: true
             show_icon: true
             show_state: false
-            show_label: true
-            variables:
-              option: "KIMIA Signature"
-            label: |
-              [[[
-                return entity?.state === variables.option ? "✓ Sélectionné" : "Choisir";
-              ]]]
+            color: blue
             tap_action:
               action: perform-action
               perform_action: input_select.select_option
@@ -1674,22 +1673,6 @@ views:
                 entity_id: input_select.kimia_theme_global
               data:
                 option: "KIMIA Signature"
-            styles:
-              card:
-                - background: "#10446D"
-                - color: "#FFFFFF"
-                - border: 1px solid "#28CEC0"
-                - border-radius: 17px
-                - padding: 12px
-              icon:
-                - width: 28px
-                - color: "#28CEC0"
-              name:
-                - font-size: 14px
-                - font-weight: 650
-              label:
-                - font-size: 11px
-                - opacity: 0.85
       - type: grid
         cards:
           - type: heading
