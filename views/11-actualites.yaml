@@ -7,6 +7,55 @@ sections:
   - type: grid
     column_span: 2
     cards:
+      - type: custom:button-card
+        show_icon: false
+        show_name: false
+        show_state: false
+        show_label: false
+        grid_options:
+          columns: full
+          rows: auto
+        tap_action:
+          action: none
+        custom_fields:
+          logo: |
+            [[[
+              return '<div style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA <span style="color:#3FD6CB">Smart</span><div style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by PROMAINT</div></div>';
+            ]]]
+          slogan: |
+            [[[
+              return '<div style="font-size:20px;font-weight:800;letter-spacing:.2px;">Ma maison</div>';
+            ]]]
+          localisation: |
+            [[[
+              return '<div style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE · GABON</div>';
+            ]]]
+        styles:
+          card:
+            - background: 'linear-gradient(105deg, rgba(12,137,147,.25), var(--card-background-color) 68%)'
+            - border: '1px solid rgba(56,205,203,.28)'
+            - border-radius: 18px
+            - padding: 9px 18px
+            - box-shadow: '0 5px 22px rgba(0,25,35,.12)'
+          grid:
+            - grid-template-areas: '"logo slogan localisation"'
+            - grid-template-columns: '225px 1fr 150px'
+            - grid-template-rows: auto
+            - align-items: center
+          custom_fields:
+            logo:
+              - text-align: left
+              - justify-self: start
+            slogan:
+              - text-align: center
+              - color: var(--primary-text-color)
+            localisation:
+              - text-align: right
+              - justify-self: end
+              - color: var(--secondary-text-color)
+  - type: grid
+    column_span: 2
+    cards:
       - type: custom:rss-news-card
         title: "Gabon Actu"
         sources:
