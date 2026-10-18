@@ -2,7 +2,6 @@ title: Sécurité
 path: securite
 icon: mdi:shield-home-outline
 type: sections
-visible: false
 max_columns: 2
 sections:
   - type: grid
