@@ -2,7 +2,6 @@ title: Actualités
 path: actualites
 icon: mdi:newspaper-variant-outline
 type: sections
-visible: false
 max_columns: 2
 sections:
   - type: grid
