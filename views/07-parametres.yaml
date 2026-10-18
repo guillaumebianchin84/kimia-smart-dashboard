@@ -5,18 +5,183 @@ type: sections
 max_columns: 2
 sections:
   - type: grid
-    column_span: 2
     cards:
-      - type: button
-        name: Ouvrir Configuration client
+      - type: heading
+        heading: Choisir un thème
         icon: mdi:palette
+      - type: custom:button-card
+        section_mode: true
+        entity: input_select.kimia_theme_global
+        name: "Gris Premium"
+        icon: mdi:palette
+        show_name: true
+        show_icon: true
+        show_state: false
+        show_label: true
+        variables:
+          option: "KIMIA Gris Premium"
+        label: |
+          [[[
+            return entity?.state === variables.option ? "✓ Sélectionné" : "Choisir";
+          ]]]
         tap_action:
-          action: navigate
-          navigation_path: /kimia-client/configuration
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Gris Premium"
+        styles:
+          card:
+            - background: "#353D46"
+            - color: "#F4F7FA"
+            - border: 1px solid "#36C8BE"
+            - border-radius: 17px
+            - padding: 12px
+          icon:
+            - width: 28px
+            - color: "#36C8BE"
+          name:
+            - font-size: 14px
+            - font-weight: 650
+          label:
+            - font-size: 11px
+            - opacity: 0.85
+      - type: custom:button-card
+        section_mode: true
+        entity: input_select.kimia_theme_global
+        name: "Clair"
+        icon: mdi:weather-sunny
+        show_name: true
+        show_icon: true
+        show_state: false
+        show_label: true
+        variables:
+          option: "KIMIA Clair"
+        label: |
+          [[[
+            return entity?.state === variables.option ? "✓ Sélectionné" : "Choisir";
+          ]]]
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Clair"
+        styles:
+          card:
+            - background: "#FFFFFF"
+            - color: "#1A3143"
+            - border: 1px solid "#008F91"
+            - border-radius: 17px
+            - padding: 12px
+          icon:
+            - width: 28px
+            - color: "#008F91"
+          name:
+            - font-size: 14px
+            - font-weight: 650
+          label:
+            - font-size: 11px
+            - opacity: 0.85
+      - type: custom:button-card
+        section_mode: true
+        entity: input_select.kimia_theme_global
+        name: "Sombre"
+        icon: mdi:weather-night
+        show_name: true
+        show_icon: true
+        show_state: false
+        show_label: true
+        variables:
+          option: "KIMIA Sombre"
+        label: |
+          [[[
+            return entity?.state === variables.option ? "✓ Sélectionné" : "Choisir";
+          ]]]
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Sombre"
+        styles:
+          card:
+            - background: "#1A2A3A"
+            - color: "#F0F6FA"
+            - border: 1px solid "#3BDBC4"
+            - border-radius: 17px
+            - padding: 12px
+          icon:
+            - width: 28px
+            - color: "#3BDBC4"
+          name:
+            - font-size: 14px
+            - font-weight: 650
+          label:
+            - font-size: 11px
+            - opacity: 0.85
+      - type: custom:button-card
+        section_mode: true
+        entity: input_select.kimia_theme_global
+        name: "Signature"
+        icon: mdi:home-heart
+        show_name: true
+        show_icon: true
+        show_state: false
+        show_label: true
+        variables:
+          option: "KIMIA Signature"
+        label: |
+          [[[
+            return entity?.state === variables.option ? "✓ Sélectionné" : "Choisir";
+          ]]]
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Signature"
+        styles:
+          card:
+            - background: "#10446D"
+            - color: "#FFFFFF"
+            - border: 1px solid "#28CEC0"
+            - border-radius: 17px
+            - padding: 12px
+          icon:
+            - width: 28px
+            - color: "#28CEC0"
+          name:
+            - font-size: 14px
+            - font-weight: 650
+          label:
+            - font-size: 11px
+            - opacity: 0.85
+  - type: grid
+    cards:
+      - type: heading
+        heading: Configuration
+        icon: mdi:cog-outline
+      - type: entities
+        title: "Thème KIMIA sélectionné"
+        entities:
+          - entity: input_select.kimia_theme_global
+            name: "Style de la maison"
+      - type: markdown
+        content: >-
+          **Le thème ne change pas à l'écran ?** Dans votre profil
+          Home Assistant, réglez le thème sur **Utiliser le thème par défaut**.
+          Les préférences propres à un utilisateur sont prioritaires.
+          La météo et le journal restent affichés sur l'Accueil :
+          leurs interrupteurs n'y sont pas raccordés et sont donc
+          volontairement absents de cette page.
+  - type: grid
+    cards:
       - type: custom:navbar-card
-        grid_options:
-          columns: 1
-          rows: 1
         desktop:
           mode: docked
           position: left
