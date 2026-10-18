@@ -2,7 +2,6 @@ title: Musique
 path: musique
 icon: mdi:music
 type: sections
-visible: false
 max_columns: 2
 sections:
   - type: grid
