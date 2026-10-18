@@ -62,3 +62,18 @@ Pour un futur bouton « Ajouter une pièce » directement depuis KIMIA et une g�
 Documentation officielle :
 - https://www.home-assistant.io/docs/organizing/areas/
 - https://www.home-assistant.io/dashboards/area/
+
+## Deuxième onglet Administration : Pièces et appareils
+
+Fichier : `kimia-admin-ui-import.yaml`, avec deux vues : **Navigation** et **Pièces et appareils**.
+
+La deuxième vue fournit 5 boutons de navigation natifs, chacun indépendant et modifiable dans l'éditeur :
+
+- **Créer/modifier une pièce** → `/config/areas/dashboard` ; également utilisé pour les étages.
+- **Ajouter une prise Zigbee (ZHA)** → `/config/zha/dashboard` (nécessite ZHA installé ; sur les versions actuelles, lancer « Ajouter un appareil » dans cette page).
+- **Ajouter une intégration / appareil** → `/config/integrations/dashboard` (intégrations Wi-Fi, MQTT, etc.).
+- **Organiser les appareils** → `/config/devices/dashboard`, puis choisir la Zone de l'appareil.
+
+Le compteur et la liste des pièces sont calculés depuis le registre réel avec `areas()`, `area_name()` et `area_devices()`; pas de pièces fictives. Le dashboard Administration doit rester **réservé aux administrateurs**, car les écrans officiels d'ajout et de configuration des appareils nécessitent des droits HA administrateur.
+
+**Limites :** les boutons ouvrent l'écran natif de Home Assistant pour créer ou appairer ; un vrai assistant intégré à KIMIA nécessiterait une carte/panneau personnalisé avec appels aux API HA et contrôle des permissions. Ajouter une Zone n'insère pas automatiquement une carte dans les vues KIMIA personnalisées. L'application sur la VM n'a pas encore été testée.
