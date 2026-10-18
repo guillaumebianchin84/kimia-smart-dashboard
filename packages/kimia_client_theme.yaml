@@ -22,6 +22,10 @@ input_select:
       - KIMIA Clair
       - KIMIA Sombre
       - KIMIA Signature
+      - KIMIA Vert Sauge
+      - KIMIA Violet Nuit
+      - KIMIA Sable Doré
+      - KIMIA Terracotta
     # PAS de initial: le dernier choix est restauré après redémarrage.
 
 automation:
@@ -41,7 +45,9 @@ automation:
         value_template: >-
           {{ states('input_select.kimia_theme_global') in [
               'KIMIA Gris Premium', 'KIMIA Clair',
-              'KIMIA Sombre', 'KIMIA Signature'
+              'KIMIA Sombre', 'KIMIA Signature',
+              'KIMIA Vert Sauge', 'KIMIA Violet Nuit',
+              'KIMIA Sable Doré', 'KIMIA Terracotta'
           ] }}
     actions:
       - action: frontend.set_theme
