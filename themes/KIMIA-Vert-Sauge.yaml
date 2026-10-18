@@ -1,0 +1,38 @@
+# KIMIA Smart — KIMIA Vert Sauge.
+# Teintes adaptées au mode natif Home Assistant et aux menus déroulants.
+KIMIA Vert Sauge:
+  modes:
+    light:
+      primary-background-color: "#EDF4EA"
+      secondary-background-color: "#DFEBDE"
+      card-background-color: "#FFFFFF"
+      primary-text-color: "#223A2E"
+      secondary-text-color: "#536E60"
+      primary-color: "#306A4C"
+      accent-color: "#379C75"
+      app-header-background-color: "#295E48"
+      app-header-text-color: "#FFFFFF"
+      sidebar-background-color: "#F2F8F0"
+      sidebar-text-color: "#223A2E"
+      state-icon-color: "#679883"
+      state-icon-active-color: "#23B380"
+      ha-card-border-color: "#CEDFD2"
+      ha-card-border-radius: "18px"
+      ha-card-box-shadow: "0 3px 12px rgba(31,75,46,0.07)"
+    dark:
+      primary-background-color: "#EDF4EA"
+      secondary-background-color: "#DFEBDE"
+      card-background-color: "#FFFFFF"
+      primary-text-color: "#223A2E"
+      secondary-text-color: "#536E60"
+      primary-color: "#306A4C"
+      accent-color: "#379C75"
+      app-header-background-color: "#295E48"
+      app-header-text-color: "#FFFFFF"
+      sidebar-background-color: "#F2F8F0"
+      sidebar-text-color: "#223A2E"
+      state-icon-color: "#679883"
+      state-icon-active-color: "#23B380"
+      ha-card-border-color: "#CEDFD2"
+      ha-card-border-radius: "18px"
+      ha-card-box-shadow: "0 3px 12px rgba(31,75,46,0.07)"
