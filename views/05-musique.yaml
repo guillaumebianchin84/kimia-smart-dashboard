@@ -7,54 +7,75 @@ sections:
   - type: grid
     column_span: 2
     cards:
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Salon
+      - type: button
+        name: "Salon"
         icon: mdi:speaker-wireless
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Cuisine
+        hold_action:
+          action: none
+      - type: button
+        name: "Cuisine"
         icon: mdi:speaker-wireless
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Chambre parents
+        hold_action:
+          action: none
+      - type: button
+        name: "Chambre parents"
         icon: mdi:speaker-wireless
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Autre enceinte
+        hold_action:
+          action: none
+      - type: button
+        name: "Autre enceinte"
         icon: mdi:speaker-wireless
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Réveil doux
+        hold_action:
+          action: none
+      - type: button
+        name: "Réveil doux"
         icon: mdi:weather-sunset-up
-        label: Lecture MP3 à configurer
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Louanges
+        hold_action:
+          action: none
+      - type: button
+        name: "Louanges"
         icon: mdi:music-note
-        label: Lecture MP3 à configurer
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Musique personnelle
+        hold_action:
+          action: none
+      - type: button
+        name: "Musique personnelle"
         icon: mdi:playlist-music
-        label: Lecture MP3 à configurer
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
+          action: none
+        hold_action:
           action: none
       - type: custom:navbar-card
         desktop:
