@@ -6,13 +6,8 @@ type: sections
 max_columns: 2
 sections:
   - type: grid
+    column_span: 2
     cards:
-      - type: heading
-        heading: "🇬🇦 Gabon · L'essentiel"
-        icon: mdi:map-marker-radius-outline
-        grid_options:
-          columns: full
-          rows: 1
       - type: custom:rss-news-card
         title: "Gabon Actu · GabonReview"
         sources:
@@ -39,14 +34,6 @@ sections:
               border-radius: 21px;
               overflow: hidden;
             }
-  - type: grid
-    cards:
-      - type: heading
-        heading: "🌍 Afrique & Monde"
-        icon: mdi:earth
-        grid_options:
-          columns: full
-          rows: 1
       - type: custom:rss-news-card
         title: "RFI Afrique · France 24"
         sources:
@@ -73,3 +60,81 @@ sections:
               border-radius: 21px;
               overflow: hidden;
             }
+      - type: custom:navbar-card
+        grid_options:
+          columns: 1
+          rows: 1
+        desktop:
+          mode: docked
+          position: left
+          show_labels: false
+          min_width: 768
+        mobile:
+          mode: docked
+          show_labels: false
+          safe_area: true
+        layout:
+          auto_padding:
+            enabled: true
+            desktop_px: 80
+            mobile_px: 70
+        routes:
+          - url: /kimia-smart/accueil
+            icon: mdi:home-variant
+            label: Accueil
+          - url: /kimia-smart/lumieres
+            icon: mdi:lightbulb-group-outline
+            label: Lumières
+          - url: /kimia-smart/volets
+            icon: mdi:window-shutter
+            label: Volets
+          - url: /kimia-smart/climatisation
+            icon: mdi:air-conditioner
+            label: Clim
+          - url: /kimia-smart/musique
+            icon: mdi:music-note
+            label: Musique
+            hidden: |
+              [[[ return !navbar.isDesktop; ]]]
+          - url: /kimia-smart/securite
+            icon: mdi:shield-home-outline
+            label: Sécurité
+            hidden: |
+              [[[ return !navbar.isDesktop; ]]]
+          - url: /kimia-smart/prises
+            icon: mdi:power-socket-eu
+            label: Prises
+            hidden: |
+              [[[ return !navbar.isDesktop; ]]]
+          - url: /kimia-smart/actualites
+            icon: mdi:newspaper-variant-outline
+            label: Actualités
+            hidden: |
+              [[[ return !navbar.isDesktop; ]]]
+          - url: /kimia-smart/parametres
+            icon: mdi:cog-outline
+            label: Réglages
+            hidden: |
+              [[[ return !navbar.isDesktop; ]]]
+          - icon: mdi:dots-horizontal
+            label: Plus
+            hidden: |
+              [[[ return navbar.isDesktop; ]]]
+            tap_action:
+              action: open-popup
+            popup:
+              - url: /kimia-smart/musique
+                icon: mdi:music-note
+                label: Musique
+              - url: /kimia-smart/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+              - url: /kimia-smart/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+              - url: /kimia-smart/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+              - url: /kimia-smart/parametres
+                icon: mdi:cog-outline
+                label: Réglages

@@ -5,13 +5,8 @@ type: sections
 max_columns: 2
 sections:
   - type: grid
+    column_span: 2
     cards:
-      - type: heading
-        heading: Ouvertures
-        icon: mdi:window-shutter
-        grid_options:
-          columns: full
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Volets ouverts
@@ -26,28 +21,6 @@ sections:
           action: none
         grid_options:
           columns: 6
-          rows: 1
-      - type: markdown
-        content: >-
-          Le pilotage réel des volets nécessite un contrôleur moteur compatible et une entité **cover**. Les commandes générales ne sont activées qu'après contrôle des moteurs.
-        grid_options:
-          columns: full
-          rows: auto
-        card_mod:
-          style: |
-            ha-card {
-              border-radius: 17px;
-              background: var(--card-background-color);
-              border: 1px solid var(--divider-color);
-              color: var(--primary-text-color);
-            }
-  - type: grid
-    cards:
-      - type: heading
-        heading: Pièces de vie
-        icon: mdi:sofa-outline
-        grid_options:
-          columns: full
           rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
@@ -89,14 +62,6 @@ sections:
         grid_options:
           columns: 6
           rows: 1
-  - type: grid
-    cards:
-      - type: heading
-        heading: Chambres
-        icon: mdi:bed-outline
-        grid_options:
-          columns: full
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Parents
@@ -137,3 +102,81 @@ sections:
         grid_options:
           columns: 6
           rows: 1
+      - type: custom:navbar-card
+        grid_options:
+          columns: 1
+          rows: 1
+        desktop:
+          mode: docked
+          position: left
+          show_labels: false
+          min_width: 768
+        mobile:
+          mode: docked
+          show_labels: false
+          safe_area: true
+        layout:
+          auto_padding:
+            enabled: true
+            desktop_px: 80
+            mobile_px: 70
+        routes:
+          - url: /kimia-smart/accueil
+            icon: mdi:home-variant
+            label: Accueil
+          - url: /kimia-smart/lumieres
+            icon: mdi:lightbulb-group-outline
+            label: Lumières
+          - url: /kimia-smart/volets
+            icon: mdi:window-shutter
+            label: Volets
+          - url: /kimia-smart/climatisation
+            icon: mdi:air-conditioner
+            label: Clim
+          - url: /kimia-smart/musique
+            icon: mdi:music-note
+            label: Musique
+            hidden: |
+              [[[ return !navbar.isDesktop; ]]]
+          - url: /kimia-smart/securite
+            icon: mdi:shield-home-outline
+            label: Sécurité
+            hidden: |
+              [[[ return !navbar.isDesktop; ]]]
+          - url: /kimia-smart/prises
+            icon: mdi:power-socket-eu
+            label: Prises
+            hidden: |
+              [[[ return !navbar.isDesktop; ]]]
+          - url: /kimia-smart/actualites
+            icon: mdi:newspaper-variant-outline
+            label: Actualités
+            hidden: |
+              [[[ return !navbar.isDesktop; ]]]
+          - url: /kimia-smart/parametres
+            icon: mdi:cog-outline
+            label: Réglages
+            hidden: |
+              [[[ return !navbar.isDesktop; ]]]
+          - icon: mdi:dots-horizontal
+            label: Plus
+            hidden: |
+              [[[ return navbar.isDesktop; ]]]
+            tap_action:
+              action: open-popup
+            popup:
+              - url: /kimia-smart/musique
+                icon: mdi:music-note
+                label: Musique
+              - url: /kimia-smart/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+              - url: /kimia-smart/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+              - url: /kimia-smart/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+              - url: /kimia-smart/parametres
+                icon: mdi:cog-outline
+                label: Réglages

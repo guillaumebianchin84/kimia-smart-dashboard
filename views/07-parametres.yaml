@@ -5,34 +5,89 @@ type: sections
 max_columns: 2
 sections:
   - type: grid
+    column_span: 2
     cards:
-      - type: heading
-        heading: Personnalisation
-        icon: mdi:palette-outline
-      - type: markdown
-        content: >-
-          Choisissez les couleurs de votre maison depuis le
-          dashboard **Configuration client KIMIA**.
-          Le choix sera appliqué automatiquement aux écrans
-          utilisant le thème Home Assistant par défaut.
       - type: button
         name: Ouvrir Configuration client
         icon: mdi:palette
         tap_action:
           action: navigate
           navigation_path: /kimia-client/configuration
-  - type: grid
-    cards:
-      - type: heading
-        heading: Aide et informations
-        icon: mdi:information-outline
-      - type: markdown
-        content: >-
-          **KIMIA Smart by PROMAINT**
-
-          La configuration technique des équipements, du réseau,
-          des intégrations et des accès distants est réservée
-          à l'installateur, sauf ouverture volontaire des droits
-          administrateur au client.
-
-          Les commandes locales restent indépendantes du thème choisi.
+      - type: custom:navbar-card
+        grid_options:
+          columns: 1
+          rows: 1
+        desktop:
+          mode: docked
+          position: left
+          show_labels: false
+          min_width: 768
+        mobile:
+          mode: docked
+          show_labels: false
+          safe_area: true
+        layout:
+          auto_padding:
+            enabled: true
+            desktop_px: 80
+            mobile_px: 70
+        routes:
+          - url: /kimia-smart/accueil
+            icon: mdi:home-variant
+            label: Accueil
+          - url: /kimia-smart/lumieres
+            icon: mdi:lightbulb-group-outline
+            label: Lumières
+          - url: /kimia-smart/volets
+            icon: mdi:window-shutter
+            label: Volets
+          - url: /kimia-smart/climatisation
+            icon: mdi:air-conditioner
+            label: Clim
+          - url: /kimia-smart/musique
+            icon: mdi:music-note
+            label: Musique
+            hidden: |
+              [[[ return !navbar.isDesktop; ]]]
+          - url: /kimia-smart/securite
+            icon: mdi:shield-home-outline
+            label: Sécurité
+            hidden: |
+              [[[ return !navbar.isDesktop; ]]]
+          - url: /kimia-smart/prises
+            icon: mdi:power-socket-eu
+            label: Prises
+            hidden: |
+              [[[ return !navbar.isDesktop; ]]]
+          - url: /kimia-smart/actualites
+            icon: mdi:newspaper-variant-outline
+            label: Actualités
+            hidden: |
+              [[[ return !navbar.isDesktop; ]]]
+          - url: /kimia-smart/parametres
+            icon: mdi:cog-outline
+            label: Réglages
+            hidden: |
+              [[[ return !navbar.isDesktop; ]]]
+          - icon: mdi:dots-horizontal
+            label: Plus
+            hidden: |
+              [[[ return navbar.isDesktop; ]]]
+            tap_action:
+              action: open-popup
+            popup:
+              - url: /kimia-smart/musique
+                icon: mdi:music-note
+                label: Musique
+              - url: /kimia-smart/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+              - url: /kimia-smart/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+              - url: /kimia-smart/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+              - url: /kimia-smart/parametres
+                icon: mdi:cog-outline
+                label: Réglages

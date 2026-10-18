@@ -1,3 +1,12 @@
+# KIMIA Smart V0.9 — accueil « Ma maison » (branche expérimentale)
+
+> Nouvelle direction : **logo KIMIA à gauche**, plan Maquette conservé,
+> météo animée sur plusieurs jours et actualités illustrées.
+> [Guide V0.9, prérequis HACS et procédure d'essai](docs/KIMIA_V09_WOW.md).
+> **Ne pas remplacer un dashboard de production ni fusionner sans vérification tablette.**
+
+--- 
+
 # KIMIA Smart — accueil Maquette V0.8 (prototype tablette)
 
 > **V0.8 en cours de validation.** [Guide complet, installations, scripts, plan et tests](docs/KIMIA_V08_TABLETTE.md).

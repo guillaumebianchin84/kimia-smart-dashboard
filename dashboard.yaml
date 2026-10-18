@@ -105,6 +105,12 @@ button_card_templates:
         - justify-self: start
         - align-self: start
         - color: var(--secondary-text-color)
+# Kiosk Mode masque les menus natifs UNIQUEMENT pour les comptes non-admin.
+kiosk_mode:
+  non_admin_settings:
+    hide_sidebar: true
+    hide_header: true
+
 views:
   - !include /config/kimia/views/01-accueil.yaml
   - !include /config/kimia/views/02-lumieres.yaml
