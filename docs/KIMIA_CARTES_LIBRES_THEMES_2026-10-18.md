@@ -1,41 +1,47 @@
-# KIMIA Smart — onglets déplaçables et sélection de thème
+# KIMIA Smart — cartes éditables visuellement
 18 octobre 2026 — branche `fix/kimia-cartes-libres-themes-20261018`
 
-## Ce qui est modifié
+## Objectif
+Un dashboard adapté au client, avec chaque carte déplaçable et surtout **redimensionnable dans l'éditeur visuel Home Assistant**, sans devoir modifier du code YAML.
 
-- **Accueil préservé** : plan Maquette, zones, badges, scènes, météo, actualités et barre de navigation ; URL du calque actualisée d'après l'export Home Assistant fourni.
-- Onglets **Lumières, Volets, Climatisation, Musique, Sécurité, Prises et Actualités** : cartes d'équipement individuelles, directement dans les sections natives HA. Aucun `horizontal-stack`, `vertical-stack` ni `grid` Lovelace imbriqué n'est ajouté dans ces vues.
-- Les `grid_options` de dimensionnement imposées aux cartes secondaires ont été retirées ; leur taille et position se règlent normalement dans **Modifier le tableau de bord > Modifier la carte > Disposition**.
-- **Paramètres** : 4 cartes de thème indépendantes, affichant le choix actif, et la liste native du sélecteur `input_select.kimia_theme_global`.
-- Suppression du bouton cassé vers `/kimia-client/configuration` (dashboard inexistant dans la VM).
-- Les paramètres Météo/Journal ne sont pas présentés comme des commandes fonctionnelles : les helpers existent, mais leur effet n'est pas connecté à l'Accueil, volontairement conservé.
-- `dashboard-ui-import.yaml`, `dashboard.yaml` et les 9 `views/*.yaml` sont synchronisés dans cette branche.
+## Ce qui change
+- **Accueil inchangé depuis la précédente version de cette branche** : plan, image, scènes, météo, RSS et Navbar.
+- Les cartes des onglets Lumières, Volets, Climatisation, Musique, Sécurité, Prises, Paramètres utilisent des **cartes natives Home Assistant** :
+  - `type: button` pour équipements non associés, ambiances et choix de thème ;
+  - `type: tile` pour la météo Libreville ;
+  - `type: markdown` pour les compteurs dynamiques ;
+  - `type: entities` pour le sélecteur de thème.
+- Dans Actualités, **une carte RSS indépendante par source** (Gabon Actu, GabonReview, RFI Afrique, France 24). RSS News Card dispose de son éditeur visuel HACS.
+- Seule `custom:navbar-card` est conservée sur les onglets secondaires comme composant spécialisé de navigation ; ne pas la redimensionner.
+- Aucune grille Lovelace `type: grid`, `vertical-stack` ou `horizontal-stack` imbriquée dans les vues secondaires. Toutes les cartes sont au premier niveau des sections natives.
+- Les anciens `custom:button-card` sont conservés **uniquement sur l'Accueil** pour respecter sa composition.
 
-## Installation de test sur la VM
+## Réglage de la taille
+Dans KIMIA Smart :
+1. Ouvrir le dashboard en mode édition.
+2. Aller sur Lumières ou un autre onglet secondaire.
+3. Toucher la **carte** souhaitée, puis **Modifier**.
+4. Ouvrir l'onglet **Disposition** (`Layout`).
+5. Changer les colonnes/lignes via la grille native (ou choisir pleine largeur).
+6. Enregistrer. Déplacer les cartes par glisser-déposer en mode édition.
 
-1. Sauvegarder **le YAML actuel de KIMIA Smart** et, si possible, effectuer une sauvegarde HA.
-2. Ouvrir le fichier **`dashboard-ui-import.yaml` sur cette branche**, choisir **Raw**, copier le contenu entier.
-3. Dans le dashboard KIMIA Smart (mode interface / storage) : **Modifier > Éditeur de configuration brute**, remplacer le YAML complet et enregistrer. **Ne pas coller le contenu dans une seule carte**, cela crée une erreur de configuration.
-4. Contrôler Accueil / onglets / Navbar en dehors du mode édition, et essayer le déplacement d'une carte depuis le mode édition.
-5. Tester dans Paramètres la sélection de **KIMIA Gris Premium**, **KIMIA Clair**, **KIMIA Sombre**, **KIMIA Signature**. Le texte « Sélectionné » doit changer immédiatement.
+L'éditeur visuel reste disponible pour les cartes natives même si le dashboard a été importé en YAML brut : **il doit être un dashboard géré par l'interface (storage)**, comme le dashboard KIMIA Smart de la VM.
 
-## Si le thème choisi ne modifie pas l'écran
+## Fonctions
+- Scènes Détente, Soirée, Cinéma : commandes de scripts conservées.
+- Équipements `À associer` : aucune action tant que les entités du client ne sont pas configurées. Sur les boutons natifs la mention textuelle disparaît, mais ils restent inactifs.
+- Compteurs : Markdown Jinja alimenté par les états HA.
+- Thèmes : quatre boutons natifs qui choisissent une option dans `input_select.kimia_theme_global`. Le choix actif est visible dans la carte de sélection. Le rendu effectif exige l'automatisation `KIMIA - Appliquer le thème client`, les thèmes installés et le profil utilisateur réglé sur le **thème par défaut**.
+- Les boutons de préférences Météo et Journal ne sont pas présentés : ils ne pilotent pas encore l'Accueil, qui ne doit pas être modifié.
 
-Le bouton modifie `input_select.kimia_theme_global`. Le package `packages/kimia_client_theme.yaml` contient l'automatisation `KIMIA - Appliquer le thème client` qui appelle `frontend.set_theme`. Vérifier :
+## Déploiement
+1. **Sauvegarder le YAML actuellement installé**, ainsi que la VM/une sauvegarde HA si possible.
+2. Sur cette branche, ouvrir `dashboard-ui-import.yaml`, choisir Raw, copier tout le fichier.
+3. Dans KIMIA Smart, ouvrir l'éditeur de configuration brute **du dashboard**, coller le contenu entier et enregistrer.
+4. Vérifier l'Accueil inchangé, puis ouvrir une carte de scène et constater qu'elle propose les onglets de l'éditeur visuel (Configuration et Disposition).
+5. Tester le déplacement/redimensionnement, la navigation, les RSS et les quatre thèmes.
 
-- L'helper change bien de valeur dans Outils de développement > États.
-- L'automatisation `KIMIA - Appliquer le thème client` existe, est activée et s'exécute sans erreur (traces).
-- Les 4 thèmes sont réellement chargés via `frontend.themes` et leur nom correspond exactement aux options de l'helper.
-- **Dans le profil de l'utilisateur connecté**, sélectionner « Utiliser le thème par défaut » : un thème choisi explicitement dans le profil prend le dessus sur `frontend.set_theme`.
-- Rafraîchir l'application / le navigateur après le changement de thème si nécessaire.
+Cette configuration n'a pas été testée directement sur la VM. Garder la PR en brouillon jusqu'à validation.
 
-Un retour « Sélectionné » sans changement visuel ne démontre donc pas que la chaîne de mise en thème fonctionne.
-
-## Ce qui reste volontairement hors périmètre
-
-- Les cartes « À associer » **ne pilotent pas de matériel** avant association aux entités réelles de chaque client.
-- Les commandes météo / journal ne peuvent pas être rendues opérantes sans modifier l'Accueil. Les helpers sont conservés, mais les commandes masquées.
-- Le calque `/api/image/serve/ebec086d86139c746e6c96840972461c/original` est **interne à la VM actuelle** et n'est pas exporté comme image dans GitHub.
-- Cette branche n'a **pas été testée sur la VM ni sur une tablette physique**. Tester avant toute fusion/déploiement client.
-
-La branche `main` reste inchangée.
+## Mise en garde esthétique
+Les nouveaux boutons natifs peuvent sembler plus simples que les anciennes Button Cards HACS. C'est un compromis volontaire : **la priorité est donnée à une édition visuelle fiable par le client**, pas à un habillage CSS complexe qui masque les réglages de dimension.
