@@ -7,73 +7,88 @@ sections:
   - type: grid
     column_span: 2
     cards:
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Volets ouverts
-        icon: mdi:window-shutter-open
-        triggers_update: all
-        label: |
-          [[[
-            const n=Object.values(states).filter(e=>e.entity_id?.startsWith('cover.') && e.state==='open').length;
-            return n+' actif'+(n>1?'s':'');
-          ]]]
+      - type: markdown
+        content: >-
+          **Volets ouverts** : {{ states.cover | selectattr('state', 'eq', 'open') | list | count }}
+      - type: button
+        name: "Salon"
+        icon: mdi:window-shutter
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Salon
+        hold_action:
+          action: none
+      - type: button
+        name: "Baie vitrée"
         icon: mdi:window-shutter
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Baie vitrée
+        hold_action:
+          action: none
+      - type: button
+        name: "Cuisine"
         icon: mdi:window-shutter
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Cuisine
+        hold_action:
+          action: none
+      - type: button
+        name: "Terrasse"
         icon: mdi:window-shutter
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Terrasse
+        hold_action:
+          action: none
+      - type: button
+        name: "Parents"
         icon: mdi:window-shutter
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Parents
+        hold_action:
+          action: none
+      - type: button
+        name: "Chambre 1"
         icon: mdi:window-shutter
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Chambre 1
+        hold_action:
+          action: none
+      - type: button
+        name: "Chambre 2"
         icon: mdi:window-shutter
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Chambre 2
+        hold_action:
+          action: none
+      - type: button
+        name: "Chambre 3"
         icon: mdi:window-shutter
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Chambre 3
-        icon: mdi:window-shutter
-        label: À associer à un équipement
-        tap_action:
+        hold_action:
           action: none
       - type: custom:navbar-card
         desktop:
