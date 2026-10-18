@@ -101,15 +101,12 @@ views:
       - type: grid
         cards:
           - type: heading
-            heading: Organisation des pièces
+            heading: Configuration des pièces
             icon: mdi:floor-plan
           - type: markdown
             content: >-
-              **Étape suivante :** créer les pièces avec les **Zones**
-              natives de Home Assistant, puis associer les équipements
-              et afficher une carte indépendante par pièce.
-              Les onglets de navigation et les pièces sont deux
-              réglages différents. Aucun équipement n'est modifié ici.
+              Pour créer des pièces et ajouter des équipements, ouvrez
+              le deuxième onglet **Pièces et appareils**.
       - type: grid
         cards:
           - type: heading
@@ -117,8 +114,109 @@ views:
             icon: mdi:information-outline
           - type: markdown
             content: >-
-              **Attention :** masquer un onglet masque son bouton et
-              son onglet natif, mais ne bloque pas un accès direct
-              à son adresse. Cela ne constitue pas une sécurité.
+              **Attention :** masquer un onglet retire son bouton
+              de la Navbar KIMIA, mais ne masque pas les onglets natifs
+              Home Assistant et ne bloque pas l'accès direct aux pages.
+              Cela ne constitue pas une sécurité.
               Réservez ce dashboard Administration aux comptes
               administrateurs depuis **Paramètres > Tableaux de bord**.
+  - title: Pièces et appareils
+    path: pieces-equipements
+    icon: mdi:home-plus-outline
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: KIMIA · Pièces et appareils
+            icon: mdi:home-plus-outline
+          - type: markdown
+            content: >-
+              Créez les vraies pièces de la maison, puis associez-y les
+              prises, lumières, capteurs, volets et autres équipements.
+              Les boutons ouvrent les écrans natifs Home Assistant.
+      - type: grid
+        cards:
+          - type: heading
+            heading: "1 · Créer les pièces"
+            icon: mdi:floor-plan
+          - type: button
+            name: "Créer ou modifier une pièce"
+            icon: mdi:home-plus
+            show_name: true
+            show_icon: true
+            tap_action:
+              action: navigate
+              navigation_path: /config/areas/dashboard
+          - type: button
+            name: "Gérer les étages"
+            icon: mdi:layers-outline
+            show_name: true
+            show_icon: true
+            tap_action:
+              action: navigate
+              navigation_path: /config/areas/dashboard
+          - type: markdown
+            content: |
+              **Pièces enregistrées**
+              {% set ids = areas() %}
+              {% if ids | count == 0 %}
+              Aucune pièce enregistrée.
+              {% else %}
+              {% for id in ids | sort %}
+              - **{{ area_name(id) }}** · {{ area_devices(id) | count }} appareil(s)
+              {% endfor %}
+              {% endif %}
+      - type: grid
+        cards:
+          - type: heading
+            heading: "2 · Ajouter les équipements"
+            icon: mdi:devices
+          - type: button
+            name: "Ajouter une prise Zigbee (ZHA)"
+            icon: mdi:zigbee
+            show_name: true
+            show_icon: true
+            tap_action:
+              action: navigate
+              navigation_path: /config/zha/dashboard
+          - type: button
+            name: "Ajouter une intégration / un appareil"
+            icon: mdi:puzzle-plus-outline
+            show_name: true
+            show_icon: true
+            tap_action:
+              action: navigate
+              navigation_path: /config/integrations/dashboard
+          - type: button
+            name: "Voir et organiser les appareils"
+            icon: mdi:devices
+            show_name: true
+            show_icon: true
+            tap_action:
+              action: navigate
+              navigation_path: /config/devices/dashboard
+          - type: markdown
+            content: >-
+              Pour une prise Zigbee, mettez-la en mode appairage puis ouvrez
+              **Zigbee (ZHA) → Ajouter un appareil**. Ce raccourci nécessite
+              ZHA installé. Avec Zigbee2MQTT ou le Wi-Fi, utilisez plutôt
+              l'intégration correspondante.
+      - type: grid
+        cards:
+          - type: heading
+            heading: "3 · Ranger les appareils dans les pièces"
+            icon: mdi:home-switch-outline
+          - type: markdown
+            content: |
+              1. Ouvrez **Voir et organiser les appareils**.
+              2. Sélectionnez la prise, lampe ou le capteur ajouté.
+              3. Affectez-le à sa **Zone** (la pièce créée plus haut).
+
+              **Attention :** créer une zone n'ajoute pas automatiquement
+              une carte à la vue personnalisée KIMIA. Cette fonction
+              demanderait un développement supplémentaire.
+
+              **Accès administrateur Home Assistant requis.**
