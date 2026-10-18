@@ -471,39 +471,39 @@ views:
                 desktop_px: 80
                 mobile_px: 70
             routes:
-              - url: /kimia-smart/accueil
+              - url: /dashboard-test/accueil
                 icon: mdi:home-variant
                 label: Accueil
-              - url: /kimia-smart/lumieres
+              - url: /dashboard-test/lumieres
                 icon: mdi:lightbulb-group-outline
                 label: Lumières
-              - url: /kimia-smart/volets
+              - url: /dashboard-test/volets
                 icon: mdi:window-shutter
                 label: Volets
-              - url: /kimia-smart/climatisation
+              - url: /dashboard-test/climatisation
                 icon: mdi:air-conditioner
                 label: Clim
-              - url: /kimia-smart/musique
+              - url: /dashboard-test/musique
                 icon: mdi:music-note
                 label: Musique
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/securite
+              - url: /dashboard-test/securite
                 icon: mdi:shield-home-outline
                 label: Sécurité
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/prises
+              - url: /dashboard-test/prises
                 icon: mdi:power-socket-eu
                 label: Prises
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/actualites
+              - url: /dashboard-test/actualites
                 icon: mdi:newspaper-variant-outline
                 label: Actualités
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/parametres
+              - url: /dashboard-test/parametres
                 icon: mdi:cog-outline
                 label: Réglages
                 hidden: |
@@ -515,19 +515,19 @@ views:
                 tap_action:
                   action: open-popup
                 popup:
-                  - url: /kimia-smart/musique
+                  - url: /dashboard-test/musique
                     icon: mdi:music-note
                     label: Musique
-                  - url: /kimia-smart/securite
+                  - url: /dashboard-test/securite
                     icon: mdi:shield-home-outline
                     label: Sécurité
-                  - url: /kimia-smart/prises
+                  - url: /dashboard-test/prises
                     icon: mdi:power-socket-eu
                     label: Prises
-                  - url: /kimia-smart/actualites
+                  - url: /dashboard-test/actualites
                     icon: mdi:newspaper-variant-outline
                     label: Actualités
-                  - url: /kimia-smart/parametres
+                  - url: /dashboard-test/parametres
                     icon: mdi:cog-outline
                     label: Réglages
   - title: Lumières
@@ -729,39 +729,39 @@ views:
                 desktop_px: 80
                 mobile_px: 70
             routes:
-              - url: /kimia-smart/accueil
+              - url: /dashboard-test/accueil
                 icon: mdi:home-variant
                 label: Accueil
-              - url: /kimia-smart/lumieres
+              - url: /dashboard-test/lumieres
                 icon: mdi:lightbulb-group-outline
                 label: Lumières
-              - url: /kimia-smart/volets
+              - url: /dashboard-test/volets
                 icon: mdi:window-shutter
                 label: Volets
-              - url: /kimia-smart/climatisation
+              - url: /dashboard-test/climatisation
                 icon: mdi:air-conditioner
                 label: Clim
-              - url: /kimia-smart/musique
+              - url: /dashboard-test/musique
                 icon: mdi:music-note
                 label: Musique
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/securite
+              - url: /dashboard-test/securite
                 icon: mdi:shield-home-outline
                 label: Sécurité
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/prises
+              - url: /dashboard-test/prises
                 icon: mdi:power-socket-eu
                 label: Prises
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/actualites
+              - url: /dashboard-test/actualites
                 icon: mdi:newspaper-variant-outline
                 label: Actualités
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/parametres
+              - url: /dashboard-test/parametres
                 icon: mdi:cog-outline
                 label: Réglages
                 hidden: |
@@ -773,19 +773,19 @@ views:
                 tap_action:
                   action: open-popup
                 popup:
-                  - url: /kimia-smart/musique
+                  - url: /dashboard-test/musique
                     icon: mdi:music-note
                     label: Musique
-                  - url: /kimia-smart/securite
+                  - url: /dashboard-test/securite
                     icon: mdi:shield-home-outline
                     label: Sécurité
-                  - url: /kimia-smart/prises
+                  - url: /dashboard-test/prises
                     icon: mdi:power-socket-eu
                     label: Prises
-                  - url: /kimia-smart/actualites
+                  - url: /dashboard-test/actualites
                     icon: mdi:newspaper-variant-outline
                     label: Actualités
-                  - url: /kimia-smart/parametres
+                  - url: /dashboard-test/parametres
                     icon: mdi:cog-outline
                     label: Réglages
   - title: Volets
@@ -945,39 +945,39 @@ views:
                 desktop_px: 80
                 mobile_px: 70
             routes:
-              - url: /kimia-smart/accueil
+              - url: /dashboard-test/accueil
                 icon: mdi:home-variant
                 label: Accueil
-              - url: /kimia-smart/lumieres
+              - url: /dashboard-test/lumieres
                 icon: mdi:lightbulb-group-outline
                 label: Lumières
-              - url: /kimia-smart/volets
+              - url: /dashboard-test/volets
                 icon: mdi:window-shutter
                 label: Volets
-              - url: /kimia-smart/climatisation
+              - url: /dashboard-test/climatisation
                 icon: mdi:air-conditioner
                 label: Clim
-              - url: /kimia-smart/musique
+              - url: /dashboard-test/musique
                 icon: mdi:music-note
                 label: Musique
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/securite
+              - url: /dashboard-test/securite
                 icon: mdi:shield-home-outline
                 label: Sécurité
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/prises
+              - url: /dashboard-test/prises
                 icon: mdi:power-socket-eu
                 label: Prises
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/actualites
+              - url: /dashboard-test/actualites
                 icon: mdi:newspaper-variant-outline
                 label: Actualités
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/parametres
+              - url: /dashboard-test/parametres
                 icon: mdi:cog-outline
                 label: Réglages
                 hidden: |
@@ -989,19 +989,19 @@ views:
                 tap_action:
                   action: open-popup
                 popup:
-                  - url: /kimia-smart/musique
+                  - url: /dashboard-test/musique
                     icon: mdi:music-note
                     label: Musique
-                  - url: /kimia-smart/securite
+                  - url: /dashboard-test/securite
                     icon: mdi:shield-home-outline
                     label: Sécurité
-                  - url: /kimia-smart/prises
+                  - url: /dashboard-test/prises
                     icon: mdi:power-socket-eu
                     label: Prises
-                  - url: /kimia-smart/actualites
+                  - url: /dashboard-test/actualites
                     icon: mdi:newspaper-variant-outline
                     label: Actualités
-                  - url: /kimia-smart/parametres
+                  - url: /dashboard-test/parametres
                     icon: mdi:cog-outline
                     label: Réglages
   - title: Climatisation
@@ -1135,39 +1135,39 @@ views:
                 desktop_px: 80
                 mobile_px: 70
             routes:
-              - url: /kimia-smart/accueil
+              - url: /dashboard-test/accueil
                 icon: mdi:home-variant
                 label: Accueil
-              - url: /kimia-smart/lumieres
+              - url: /dashboard-test/lumieres
                 icon: mdi:lightbulb-group-outline
                 label: Lumières
-              - url: /kimia-smart/volets
+              - url: /dashboard-test/volets
                 icon: mdi:window-shutter
                 label: Volets
-              - url: /kimia-smart/climatisation
+              - url: /dashboard-test/climatisation
                 icon: mdi:air-conditioner
                 label: Clim
-              - url: /kimia-smart/musique
+              - url: /dashboard-test/musique
                 icon: mdi:music-note
                 label: Musique
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/securite
+              - url: /dashboard-test/securite
                 icon: mdi:shield-home-outline
                 label: Sécurité
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/prises
+              - url: /dashboard-test/prises
                 icon: mdi:power-socket-eu
                 label: Prises
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/actualites
+              - url: /dashboard-test/actualites
                 icon: mdi:newspaper-variant-outline
                 label: Actualités
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/parametres
+              - url: /dashboard-test/parametres
                 icon: mdi:cog-outline
                 label: Réglages
                 hidden: |
@@ -1179,19 +1179,19 @@ views:
                 tap_action:
                   action: open-popup
                 popup:
-                  - url: /kimia-smart/musique
+                  - url: /dashboard-test/musique
                     icon: mdi:music-note
                     label: Musique
-                  - url: /kimia-smart/securite
+                  - url: /dashboard-test/securite
                     icon: mdi:shield-home-outline
                     label: Sécurité
-                  - url: /kimia-smart/prises
+                  - url: /dashboard-test/prises
                     icon: mdi:power-socket-eu
                     label: Prises
-                  - url: /kimia-smart/actualites
+                  - url: /dashboard-test/actualites
                     icon: mdi:newspaper-variant-outline
                     label: Actualités
-                  - url: /kimia-smart/parametres
+                  - url: /dashboard-test/parametres
                     icon: mdi:cog-outline
                     label: Réglages
   - title: Musique
@@ -1338,39 +1338,39 @@ views:
                 desktop_px: 80
                 mobile_px: 70
             routes:
-              - url: /kimia-smart/accueil
+              - url: /dashboard-test/accueil
                 icon: mdi:home-variant
                 label: Accueil
-              - url: /kimia-smart/lumieres
+              - url: /dashboard-test/lumieres
                 icon: mdi:lightbulb-group-outline
                 label: Lumières
-              - url: /kimia-smart/volets
+              - url: /dashboard-test/volets
                 icon: mdi:window-shutter
                 label: Volets
-              - url: /kimia-smart/climatisation
+              - url: /dashboard-test/climatisation
                 icon: mdi:air-conditioner
                 label: Clim
-              - url: /kimia-smart/musique
+              - url: /dashboard-test/musique
                 icon: mdi:music-note
                 label: Musique
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/securite
+              - url: /dashboard-test/securite
                 icon: mdi:shield-home-outline
                 label: Sécurité
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/prises
+              - url: /dashboard-test/prises
                 icon: mdi:power-socket-eu
                 label: Prises
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/actualites
+              - url: /dashboard-test/actualites
                 icon: mdi:newspaper-variant-outline
                 label: Actualités
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/parametres
+              - url: /dashboard-test/parametres
                 icon: mdi:cog-outline
                 label: Réglages
                 hidden: |
@@ -1382,19 +1382,19 @@ views:
                 tap_action:
                   action: open-popup
                 popup:
-                  - url: /kimia-smart/musique
+                  - url: /dashboard-test/musique
                     icon: mdi:music-note
                     label: Musique
-                  - url: /kimia-smart/securite
+                  - url: /dashboard-test/securite
                     icon: mdi:shield-home-outline
                     label: Sécurité
-                  - url: /kimia-smart/prises
+                  - url: /dashboard-test/prises
                     icon: mdi:power-socket-eu
                     label: Prises
-                  - url: /kimia-smart/actualites
+                  - url: /dashboard-test/actualites
                     icon: mdi:newspaper-variant-outline
                     label: Actualités
-                  - url: /kimia-smart/parametres
+                  - url: /dashboard-test/parametres
                     icon: mdi:cog-outline
                     label: Réglages
   - title: Sécurité
@@ -1537,39 +1537,39 @@ views:
                 desktop_px: 80
                 mobile_px: 70
             routes:
-              - url: /kimia-smart/accueil
+              - url: /dashboard-test/accueil
                 icon: mdi:home-variant
                 label: Accueil
-              - url: /kimia-smart/lumieres
+              - url: /dashboard-test/lumieres
                 icon: mdi:lightbulb-group-outline
                 label: Lumières
-              - url: /kimia-smart/volets
+              - url: /dashboard-test/volets
                 icon: mdi:window-shutter
                 label: Volets
-              - url: /kimia-smart/climatisation
+              - url: /dashboard-test/climatisation
                 icon: mdi:air-conditioner
                 label: Clim
-              - url: /kimia-smart/musique
+              - url: /dashboard-test/musique
                 icon: mdi:music-note
                 label: Musique
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/securite
+              - url: /dashboard-test/securite
                 icon: mdi:shield-home-outline
                 label: Sécurité
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/prises
+              - url: /dashboard-test/prises
                 icon: mdi:power-socket-eu
                 label: Prises
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/actualites
+              - url: /dashboard-test/actualites
                 icon: mdi:newspaper-variant-outline
                 label: Actualités
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/parametres
+              - url: /dashboard-test/parametres
                 icon: mdi:cog-outline
                 label: Réglages
                 hidden: |
@@ -1581,19 +1581,19 @@ views:
                 tap_action:
                   action: open-popup
                 popup:
-                  - url: /kimia-smart/musique
+                  - url: /dashboard-test/musique
                     icon: mdi:music-note
                     label: Musique
-                  - url: /kimia-smart/securite
+                  - url: /dashboard-test/securite
                     icon: mdi:shield-home-outline
                     label: Sécurité
-                  - url: /kimia-smart/prises
+                  - url: /dashboard-test/prises
                     icon: mdi:power-socket-eu
                     label: Prises
-                  - url: /kimia-smart/actualites
+                  - url: /dashboard-test/actualites
                     icon: mdi:newspaper-variant-outline
                     label: Actualités
-                  - url: /kimia-smart/parametres
+                  - url: /dashboard-test/parametres
                     icon: mdi:cog-outline
                     label: Réglages
   - title: Prises
@@ -1710,39 +1710,39 @@ views:
                 desktop_px: 80
                 mobile_px: 70
             routes:
-              - url: /kimia-smart/accueil
+              - url: /dashboard-test/accueil
                 icon: mdi:home-variant
                 label: Accueil
-              - url: /kimia-smart/lumieres
+              - url: /dashboard-test/lumieres
                 icon: mdi:lightbulb-group-outline
                 label: Lumières
-              - url: /kimia-smart/volets
+              - url: /dashboard-test/volets
                 icon: mdi:window-shutter
                 label: Volets
-              - url: /kimia-smart/climatisation
+              - url: /dashboard-test/climatisation
                 icon: mdi:air-conditioner
                 label: Clim
-              - url: /kimia-smart/musique
+              - url: /dashboard-test/musique
                 icon: mdi:music-note
                 label: Musique
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/securite
+              - url: /dashboard-test/securite
                 icon: mdi:shield-home-outline
                 label: Sécurité
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/prises
+              - url: /dashboard-test/prises
                 icon: mdi:power-socket-eu
                 label: Prises
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/actualites
+              - url: /dashboard-test/actualites
                 icon: mdi:newspaper-variant-outline
                 label: Actualités
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/parametres
+              - url: /dashboard-test/parametres
                 icon: mdi:cog-outline
                 label: Réglages
                 hidden: |
@@ -1754,19 +1754,19 @@ views:
                 tap_action:
                   action: open-popup
                 popup:
-                  - url: /kimia-smart/musique
+                  - url: /dashboard-test/musique
                     icon: mdi:music-note
                     label: Musique
-                  - url: /kimia-smart/securite
+                  - url: /dashboard-test/securite
                     icon: mdi:shield-home-outline
                     label: Sécurité
-                  - url: /kimia-smart/prises
+                  - url: /dashboard-test/prises
                     icon: mdi:power-socket-eu
                     label: Prises
-                  - url: /kimia-smart/actualites
+                  - url: /dashboard-test/actualites
                     icon: mdi:newspaper-variant-outline
                     label: Actualités
-                  - url: /kimia-smart/parametres
+                  - url: /dashboard-test/parametres
                     icon: mdi:cog-outline
                     label: Réglages
     # KIMIA Smart V0.8 — journal détaillé, séparé de l'accueil Maquette.
@@ -1892,39 +1892,39 @@ views:
                 desktop_px: 80
                 mobile_px: 70
             routes:
-              - url: /kimia-smart/accueil
+              - url: /dashboard-test/accueil
                 icon: mdi:home-variant
                 label: Accueil
-              - url: /kimia-smart/lumieres
+              - url: /dashboard-test/lumieres
                 icon: mdi:lightbulb-group-outline
                 label: Lumières
-              - url: /kimia-smart/volets
+              - url: /dashboard-test/volets
                 icon: mdi:window-shutter
                 label: Volets
-              - url: /kimia-smart/climatisation
+              - url: /dashboard-test/climatisation
                 icon: mdi:air-conditioner
                 label: Clim
-              - url: /kimia-smart/musique
+              - url: /dashboard-test/musique
                 icon: mdi:music-note
                 label: Musique
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/securite
+              - url: /dashboard-test/securite
                 icon: mdi:shield-home-outline
                 label: Sécurité
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/prises
+              - url: /dashboard-test/prises
                 icon: mdi:power-socket-eu
                 label: Prises
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/actualites
+              - url: /dashboard-test/actualites
                 icon: mdi:newspaper-variant-outline
                 label: Actualités
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/parametres
+              - url: /dashboard-test/parametres
                 icon: mdi:cog-outline
                 label: Réglages
                 hidden: |
@@ -1936,19 +1936,19 @@ views:
                 tap_action:
                   action: open-popup
                 popup:
-                  - url: /kimia-smart/musique
+                  - url: /dashboard-test/musique
                     icon: mdi:music-note
                     label: Musique
-                  - url: /kimia-smart/securite
+                  - url: /dashboard-test/securite
                     icon: mdi:shield-home-outline
                     label: Sécurité
-                  - url: /kimia-smart/prises
+                  - url: /dashboard-test/prises
                     icon: mdi:power-socket-eu
                     label: Prises
-                  - url: /kimia-smart/actualites
+                  - url: /dashboard-test/actualites
                     icon: mdi:newspaper-variant-outline
                     label: Actualités
-                  - url: /kimia-smart/parametres
+                  - url: /dashboard-test/parametres
                     icon: mdi:cog-outline
                     label: Réglages
   - title: Paramètres
@@ -2159,39 +2159,39 @@ views:
                 desktop_px: 80
                 mobile_px: 70
             routes:
-              - url: /kimia-smart/accueil
+              - url: /dashboard-test/accueil
                 icon: mdi:home-variant
                 label: Accueil
-              - url: /kimia-smart/lumieres
+              - url: /dashboard-test/lumieres
                 icon: mdi:lightbulb-group-outline
                 label: Lumières
-              - url: /kimia-smart/volets
+              - url: /dashboard-test/volets
                 icon: mdi:window-shutter
                 label: Volets
-              - url: /kimia-smart/climatisation
+              - url: /dashboard-test/climatisation
                 icon: mdi:air-conditioner
                 label: Clim
-              - url: /kimia-smart/musique
+              - url: /dashboard-test/musique
                 icon: mdi:music-note
                 label: Musique
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/securite
+              - url: /dashboard-test/securite
                 icon: mdi:shield-home-outline
                 label: Sécurité
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/prises
+              - url: /dashboard-test/prises
                 icon: mdi:power-socket-eu
                 label: Prises
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/actualites
+              - url: /dashboard-test/actualites
                 icon: mdi:newspaper-variant-outline
                 label: Actualités
                 hidden: |
                   [[[ return !navbar.isDesktop; ]]]
-              - url: /kimia-smart/parametres
+              - url: /dashboard-test/parametres
                 icon: mdi:cog-outline
                 label: Réglages
                 hidden: |
@@ -2203,18 +2203,18 @@ views:
                 tap_action:
                   action: open-popup
                 popup:
-                  - url: /kimia-smart/musique
+                  - url: /dashboard-test/musique
                     icon: mdi:music-note
                     label: Musique
-                  - url: /kimia-smart/securite
+                  - url: /dashboard-test/securite
                     icon: mdi:shield-home-outline
                     label: Sécurité
-                  - url: /kimia-smart/prises
+                  - url: /dashboard-test/prises
                     icon: mdi:power-socket-eu
                     label: Prises
-                  - url: /kimia-smart/actualites
+                  - url: /dashboard-test/actualites
                     icon: mdi:newspaper-variant-outline
                     label: Actualités
-                  - url: /kimia-smart/parametres
+                  - url: /dashboard-test/parametres
                     icon: mdi:cog-outline
                     label: Réglages
