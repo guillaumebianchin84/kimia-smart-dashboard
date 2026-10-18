@@ -13,9 +13,6 @@ sections:
         icon: mdi:home-thermometer-outline
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
         label: Capteur à associer
       - type: custom:button-card
         template: kimia_v2_tile
@@ -24,9 +21,6 @@ sections:
         icon: mdi:weather-partly-cloudy
         tap_action:
           action: more-info
-        grid_options:
-          columns: 6
-          rows: 1
         label: |
           [[[
             const t = entity?.attributes?.temperature;
@@ -38,9 +32,6 @@ sections:
         icon: mdi:autorenew
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
         label: À configurer
       - type: custom:button-card
         template: kimia_v2_tile
@@ -48,9 +39,6 @@ sections:
         icon: mdi:thermometer-lines
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
         label: À configurer
       - type: custom:button-card
         template: kimia_v2_tile
@@ -58,9 +46,6 @@ sections:
         icon: mdi:sofa-outline
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
         label: Climatisation à associer
       - type: custom:button-card
         template: kimia_v2_tile
@@ -68,14 +53,8 @@ sections:
         icon: mdi:bed-king-outline
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
         label: Climatisation à associer
       - type: custom:navbar-card
-        grid_options:
-          columns: 1
-          rows: 1
         desktop:
           mode: docked
           position: left
