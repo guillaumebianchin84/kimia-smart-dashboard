@@ -478,59 +478,69 @@ views:
               - url: /kimia-smart/lumieres
                 icon: mdi:lightbulb-group-outline
                 label: Lumières
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_lumieres"]?.state === "off"; ]]]
               - url: /kimia-smart/volets
                 icon: mdi:window-shutter
                 label: Volets
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state === "off"; ]]]
               - url: /kimia-smart/climatisation
                 icon: mdi:air-conditioner
                 label: Clim
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_climatisation"]?.state === "off"; ]]]
               - url: /kimia-smart/musique
                 icon: mdi:music-note
                 label: Musique
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_musique"]?.state === "off"; ]]]
               - url: /kimia-smart/securite
                 icon: mdi:shield-home-outline
                 label: Sécurité
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_securite"]?.state === "off"; ]]]
               - url: /kimia-smart/prises
                 icon: mdi:power-socket-eu
                 label: Prises
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_prises"]?.state === "off"; ]]]
               - url: /kimia-smart/actualites
                 icon: mdi:newspaper-variant-outline
                 label: Actualités
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_actualites"]?.state === "off"; ]]]
               - url: /kimia-smart/parametres
                 icon: mdi:cog-outline
                 label: Réglages
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_parametres"]?.state === "off"; ]]]
               - icon: mdi:dots-horizontal
                 label: Plus
                 hidden: |
-                  [[[ return navbar.isDesktop; ]]]
+                  [[[
+                    return navbar.isDesktop || [
+                      "input_boolean.kimia_onglet_musique",
+                      "input_boolean.kimia_onglet_securite",
+                      "input_boolean.kimia_onglet_prises",
+                      "input_boolean.kimia_onglet_actualites",
+                      "input_boolean.kimia_onglet_parametres"
+                    ].every(id => states[id]?.state === "off");
+                  ]]]
                 tap_action:
                   action: open-popup
-                popup:
-                  - url: /kimia-smart/musique
-                    icon: mdi:music-note
-                    label: Musique
-                  - url: /kimia-smart/securite
-                    icon: mdi:shield-home-outline
-                    label: Sécurité
-                  - url: /kimia-smart/prises
-                    icon: mdi:power-socket-eu
-                    label: Prises
-                  - url: /kimia-smart/actualites
-                    icon: mdi:newspaper-variant-outline
-                    label: Actualités
-                  - url: /kimia-smart/parametres
-                    icon: mdi:cog-outline
-                    label: Réglages
+                popup: |
+                  [[[
+                    return [
+                      { url: "/kimia-smart/musique", icon: "mdi:music-note", label: "Musique", helper: "input_boolean.kimia_onglet_musique" },
+                      { url: "/kimia-smart/securite", icon: "mdi:shield-home-outline", label: "Sécurité", helper: "input_boolean.kimia_onglet_securite" },
+                      { url: "/kimia-smart/prises", icon: "mdi:power-socket-eu", label: "Prises", helper: "input_boolean.kimia_onglet_prises" },
+                      { url: "/kimia-smart/actualites", icon: "mdi:newspaper-variant-outline", label: "Actualités", helper: "input_boolean.kimia_onglet_actualites" },
+                      { url: "/kimia-smart/parametres", icon: "mdi:cog-outline", label: "Réglages", helper: "input_boolean.kimia_onglet_parametres" }
+                    ]
+                      .filter(item => states[item.helper]?.state !== "off")
+                      .map(({helper, ...item}) => item);
+                  ]]]
   - title: Lumières
     path: lumieres
     icon: mdi:lightbulb-group-outline
@@ -736,59 +746,69 @@ views:
               - url: /kimia-smart/lumieres
                 icon: mdi:lightbulb-group-outline
                 label: Lumières
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_lumieres"]?.state === "off"; ]]]
               - url: /kimia-smart/volets
                 icon: mdi:window-shutter
                 label: Volets
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state === "off"; ]]]
               - url: /kimia-smart/climatisation
                 icon: mdi:air-conditioner
                 label: Clim
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_climatisation"]?.state === "off"; ]]]
               - url: /kimia-smart/musique
                 icon: mdi:music-note
                 label: Musique
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_musique"]?.state === "off"; ]]]
               - url: /kimia-smart/securite
                 icon: mdi:shield-home-outline
                 label: Sécurité
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_securite"]?.state === "off"; ]]]
               - url: /kimia-smart/prises
                 icon: mdi:power-socket-eu
                 label: Prises
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_prises"]?.state === "off"; ]]]
               - url: /kimia-smart/actualites
                 icon: mdi:newspaper-variant-outline
                 label: Actualités
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_actualites"]?.state === "off"; ]]]
               - url: /kimia-smart/parametres
                 icon: mdi:cog-outline
                 label: Réglages
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_parametres"]?.state === "off"; ]]]
               - icon: mdi:dots-horizontal
                 label: Plus
                 hidden: |
-                  [[[ return navbar.isDesktop; ]]]
+                  [[[
+                    return navbar.isDesktop || [
+                      "input_boolean.kimia_onglet_musique",
+                      "input_boolean.kimia_onglet_securite",
+                      "input_boolean.kimia_onglet_prises",
+                      "input_boolean.kimia_onglet_actualites",
+                      "input_boolean.kimia_onglet_parametres"
+                    ].every(id => states[id]?.state === "off");
+                  ]]]
                 tap_action:
                   action: open-popup
-                popup:
-                  - url: /kimia-smart/musique
-                    icon: mdi:music-note
-                    label: Musique
-                  - url: /kimia-smart/securite
-                    icon: mdi:shield-home-outline
-                    label: Sécurité
-                  - url: /kimia-smart/prises
-                    icon: mdi:power-socket-eu
-                    label: Prises
-                  - url: /kimia-smart/actualites
-                    icon: mdi:newspaper-variant-outline
-                    label: Actualités
-                  - url: /kimia-smart/parametres
-                    icon: mdi:cog-outline
-                    label: Réglages
+                popup: |
+                  [[[
+                    return [
+                      { url: "/kimia-smart/musique", icon: "mdi:music-note", label: "Musique", helper: "input_boolean.kimia_onglet_musique" },
+                      { url: "/kimia-smart/securite", icon: "mdi:shield-home-outline", label: "Sécurité", helper: "input_boolean.kimia_onglet_securite" },
+                      { url: "/kimia-smart/prises", icon: "mdi:power-socket-eu", label: "Prises", helper: "input_boolean.kimia_onglet_prises" },
+                      { url: "/kimia-smart/actualites", icon: "mdi:newspaper-variant-outline", label: "Actualités", helper: "input_boolean.kimia_onglet_actualites" },
+                      { url: "/kimia-smart/parametres", icon: "mdi:cog-outline", label: "Réglages", helper: "input_boolean.kimia_onglet_parametres" }
+                    ]
+                      .filter(item => states[item.helper]?.state !== "off")
+                      .map(({helper, ...item}) => item);
+                  ]]]
   - title: Volets
     path: volets
     icon: mdi:window-shutter
@@ -952,59 +972,69 @@ views:
               - url: /kimia-smart/lumieres
                 icon: mdi:lightbulb-group-outline
                 label: Lumières
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_lumieres"]?.state === "off"; ]]]
               - url: /kimia-smart/volets
                 icon: mdi:window-shutter
                 label: Volets
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state === "off"; ]]]
               - url: /kimia-smart/climatisation
                 icon: mdi:air-conditioner
                 label: Clim
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_climatisation"]?.state === "off"; ]]]
               - url: /kimia-smart/musique
                 icon: mdi:music-note
                 label: Musique
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_musique"]?.state === "off"; ]]]
               - url: /kimia-smart/securite
                 icon: mdi:shield-home-outline
                 label: Sécurité
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_securite"]?.state === "off"; ]]]
               - url: /kimia-smart/prises
                 icon: mdi:power-socket-eu
                 label: Prises
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_prises"]?.state === "off"; ]]]
               - url: /kimia-smart/actualites
                 icon: mdi:newspaper-variant-outline
                 label: Actualités
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_actualites"]?.state === "off"; ]]]
               - url: /kimia-smart/parametres
                 icon: mdi:cog-outline
                 label: Réglages
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_parametres"]?.state === "off"; ]]]
               - icon: mdi:dots-horizontal
                 label: Plus
                 hidden: |
-                  [[[ return navbar.isDesktop; ]]]
+                  [[[
+                    return navbar.isDesktop || [
+                      "input_boolean.kimia_onglet_musique",
+                      "input_boolean.kimia_onglet_securite",
+                      "input_boolean.kimia_onglet_prises",
+                      "input_boolean.kimia_onglet_actualites",
+                      "input_boolean.kimia_onglet_parametres"
+                    ].every(id => states[id]?.state === "off");
+                  ]]]
                 tap_action:
                   action: open-popup
-                popup:
-                  - url: /kimia-smart/musique
-                    icon: mdi:music-note
-                    label: Musique
-                  - url: /kimia-smart/securite
-                    icon: mdi:shield-home-outline
-                    label: Sécurité
-                  - url: /kimia-smart/prises
-                    icon: mdi:power-socket-eu
-                    label: Prises
-                  - url: /kimia-smart/actualites
-                    icon: mdi:newspaper-variant-outline
-                    label: Actualités
-                  - url: /kimia-smart/parametres
-                    icon: mdi:cog-outline
-                    label: Réglages
+                popup: |
+                  [[[
+                    return [
+                      { url: "/kimia-smart/musique", icon: "mdi:music-note", label: "Musique", helper: "input_boolean.kimia_onglet_musique" },
+                      { url: "/kimia-smart/securite", icon: "mdi:shield-home-outline", label: "Sécurité", helper: "input_boolean.kimia_onglet_securite" },
+                      { url: "/kimia-smart/prises", icon: "mdi:power-socket-eu", label: "Prises", helper: "input_boolean.kimia_onglet_prises" },
+                      { url: "/kimia-smart/actualites", icon: "mdi:newspaper-variant-outline", label: "Actualités", helper: "input_boolean.kimia_onglet_actualites" },
+                      { url: "/kimia-smart/parametres", icon: "mdi:cog-outline", label: "Réglages", helper: "input_boolean.kimia_onglet_parametres" }
+                    ]
+                      .filter(item => states[item.helper]?.state !== "off")
+                      .map(({helper, ...item}) => item);
+                  ]]]
   - title: Climatisation
     path: climatisation
     icon: mdi:air-conditioner
@@ -1142,59 +1172,69 @@ views:
               - url: /kimia-smart/lumieres
                 icon: mdi:lightbulb-group-outline
                 label: Lumières
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_lumieres"]?.state === "off"; ]]]
               - url: /kimia-smart/volets
                 icon: mdi:window-shutter
                 label: Volets
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state === "off"; ]]]
               - url: /kimia-smart/climatisation
                 icon: mdi:air-conditioner
                 label: Clim
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_climatisation"]?.state === "off"; ]]]
               - url: /kimia-smart/musique
                 icon: mdi:music-note
                 label: Musique
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_musique"]?.state === "off"; ]]]
               - url: /kimia-smart/securite
                 icon: mdi:shield-home-outline
                 label: Sécurité
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_securite"]?.state === "off"; ]]]
               - url: /kimia-smart/prises
                 icon: mdi:power-socket-eu
                 label: Prises
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_prises"]?.state === "off"; ]]]
               - url: /kimia-smart/actualites
                 icon: mdi:newspaper-variant-outline
                 label: Actualités
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_actualites"]?.state === "off"; ]]]
               - url: /kimia-smart/parametres
                 icon: mdi:cog-outline
                 label: Réglages
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_parametres"]?.state === "off"; ]]]
               - icon: mdi:dots-horizontal
                 label: Plus
                 hidden: |
-                  [[[ return navbar.isDesktop; ]]]
+                  [[[
+                    return navbar.isDesktop || [
+                      "input_boolean.kimia_onglet_musique",
+                      "input_boolean.kimia_onglet_securite",
+                      "input_boolean.kimia_onglet_prises",
+                      "input_boolean.kimia_onglet_actualites",
+                      "input_boolean.kimia_onglet_parametres"
+                    ].every(id => states[id]?.state === "off");
+                  ]]]
                 tap_action:
                   action: open-popup
-                popup:
-                  - url: /kimia-smart/musique
-                    icon: mdi:music-note
-                    label: Musique
-                  - url: /kimia-smart/securite
-                    icon: mdi:shield-home-outline
-                    label: Sécurité
-                  - url: /kimia-smart/prises
-                    icon: mdi:power-socket-eu
-                    label: Prises
-                  - url: /kimia-smart/actualites
-                    icon: mdi:newspaper-variant-outline
-                    label: Actualités
-                  - url: /kimia-smart/parametres
-                    icon: mdi:cog-outline
-                    label: Réglages
+                popup: |
+                  [[[
+                    return [
+                      { url: "/kimia-smart/musique", icon: "mdi:music-note", label: "Musique", helper: "input_boolean.kimia_onglet_musique" },
+                      { url: "/kimia-smart/securite", icon: "mdi:shield-home-outline", label: "Sécurité", helper: "input_boolean.kimia_onglet_securite" },
+                      { url: "/kimia-smart/prises", icon: "mdi:power-socket-eu", label: "Prises", helper: "input_boolean.kimia_onglet_prises" },
+                      { url: "/kimia-smart/actualites", icon: "mdi:newspaper-variant-outline", label: "Actualités", helper: "input_boolean.kimia_onglet_actualites" },
+                      { url: "/kimia-smart/parametres", icon: "mdi:cog-outline", label: "Réglages", helper: "input_boolean.kimia_onglet_parametres" }
+                    ]
+                      .filter(item => states[item.helper]?.state !== "off")
+                      .map(({helper, ...item}) => item);
+                  ]]]
   - title: Musique
     path: musique
     icon: mdi:music
@@ -1345,59 +1385,69 @@ views:
               - url: /kimia-smart/lumieres
                 icon: mdi:lightbulb-group-outline
                 label: Lumières
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_lumieres"]?.state === "off"; ]]]
               - url: /kimia-smart/volets
                 icon: mdi:window-shutter
                 label: Volets
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state === "off"; ]]]
               - url: /kimia-smart/climatisation
                 icon: mdi:air-conditioner
                 label: Clim
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_climatisation"]?.state === "off"; ]]]
               - url: /kimia-smart/musique
                 icon: mdi:music-note
                 label: Musique
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_musique"]?.state === "off"; ]]]
               - url: /kimia-smart/securite
                 icon: mdi:shield-home-outline
                 label: Sécurité
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_securite"]?.state === "off"; ]]]
               - url: /kimia-smart/prises
                 icon: mdi:power-socket-eu
                 label: Prises
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_prises"]?.state === "off"; ]]]
               - url: /kimia-smart/actualites
                 icon: mdi:newspaper-variant-outline
                 label: Actualités
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_actualites"]?.state === "off"; ]]]
               - url: /kimia-smart/parametres
                 icon: mdi:cog-outline
                 label: Réglages
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_parametres"]?.state === "off"; ]]]
               - icon: mdi:dots-horizontal
                 label: Plus
                 hidden: |
-                  [[[ return navbar.isDesktop; ]]]
+                  [[[
+                    return navbar.isDesktop || [
+                      "input_boolean.kimia_onglet_musique",
+                      "input_boolean.kimia_onglet_securite",
+                      "input_boolean.kimia_onglet_prises",
+                      "input_boolean.kimia_onglet_actualites",
+                      "input_boolean.kimia_onglet_parametres"
+                    ].every(id => states[id]?.state === "off");
+                  ]]]
                 tap_action:
                   action: open-popup
-                popup:
-                  - url: /kimia-smart/musique
-                    icon: mdi:music-note
-                    label: Musique
-                  - url: /kimia-smart/securite
-                    icon: mdi:shield-home-outline
-                    label: Sécurité
-                  - url: /kimia-smart/prises
-                    icon: mdi:power-socket-eu
-                    label: Prises
-                  - url: /kimia-smart/actualites
-                    icon: mdi:newspaper-variant-outline
-                    label: Actualités
-                  - url: /kimia-smart/parametres
-                    icon: mdi:cog-outline
-                    label: Réglages
+                popup: |
+                  [[[
+                    return [
+                      { url: "/kimia-smart/musique", icon: "mdi:music-note", label: "Musique", helper: "input_boolean.kimia_onglet_musique" },
+                      { url: "/kimia-smart/securite", icon: "mdi:shield-home-outline", label: "Sécurité", helper: "input_boolean.kimia_onglet_securite" },
+                      { url: "/kimia-smart/prises", icon: "mdi:power-socket-eu", label: "Prises", helper: "input_boolean.kimia_onglet_prises" },
+                      { url: "/kimia-smart/actualites", icon: "mdi:newspaper-variant-outline", label: "Actualités", helper: "input_boolean.kimia_onglet_actualites" },
+                      { url: "/kimia-smart/parametres", icon: "mdi:cog-outline", label: "Réglages", helper: "input_boolean.kimia_onglet_parametres" }
+                    ]
+                      .filter(item => states[item.helper]?.state !== "off")
+                      .map(({helper, ...item}) => item);
+                  ]]]
   - title: Sécurité
     path: securite
     icon: mdi:shield-home-outline
@@ -1544,59 +1594,69 @@ views:
               - url: /kimia-smart/lumieres
                 icon: mdi:lightbulb-group-outline
                 label: Lumières
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_lumieres"]?.state === "off"; ]]]
               - url: /kimia-smart/volets
                 icon: mdi:window-shutter
                 label: Volets
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state === "off"; ]]]
               - url: /kimia-smart/climatisation
                 icon: mdi:air-conditioner
                 label: Clim
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_climatisation"]?.state === "off"; ]]]
               - url: /kimia-smart/musique
                 icon: mdi:music-note
                 label: Musique
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_musique"]?.state === "off"; ]]]
               - url: /kimia-smart/securite
                 icon: mdi:shield-home-outline
                 label: Sécurité
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_securite"]?.state === "off"; ]]]
               - url: /kimia-smart/prises
                 icon: mdi:power-socket-eu
                 label: Prises
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_prises"]?.state === "off"; ]]]
               - url: /kimia-smart/actualites
                 icon: mdi:newspaper-variant-outline
                 label: Actualités
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_actualites"]?.state === "off"; ]]]
               - url: /kimia-smart/parametres
                 icon: mdi:cog-outline
                 label: Réglages
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_parametres"]?.state === "off"; ]]]
               - icon: mdi:dots-horizontal
                 label: Plus
                 hidden: |
-                  [[[ return navbar.isDesktop; ]]]
+                  [[[
+                    return navbar.isDesktop || [
+                      "input_boolean.kimia_onglet_musique",
+                      "input_boolean.kimia_onglet_securite",
+                      "input_boolean.kimia_onglet_prises",
+                      "input_boolean.kimia_onglet_actualites",
+                      "input_boolean.kimia_onglet_parametres"
+                    ].every(id => states[id]?.state === "off");
+                  ]]]
                 tap_action:
                   action: open-popup
-                popup:
-                  - url: /kimia-smart/musique
-                    icon: mdi:music-note
-                    label: Musique
-                  - url: /kimia-smart/securite
-                    icon: mdi:shield-home-outline
-                    label: Sécurité
-                  - url: /kimia-smart/prises
-                    icon: mdi:power-socket-eu
-                    label: Prises
-                  - url: /kimia-smart/actualites
-                    icon: mdi:newspaper-variant-outline
-                    label: Actualités
-                  - url: /kimia-smart/parametres
-                    icon: mdi:cog-outline
-                    label: Réglages
+                popup: |
+                  [[[
+                    return [
+                      { url: "/kimia-smart/musique", icon: "mdi:music-note", label: "Musique", helper: "input_boolean.kimia_onglet_musique" },
+                      { url: "/kimia-smart/securite", icon: "mdi:shield-home-outline", label: "Sécurité", helper: "input_boolean.kimia_onglet_securite" },
+                      { url: "/kimia-smart/prises", icon: "mdi:power-socket-eu", label: "Prises", helper: "input_boolean.kimia_onglet_prises" },
+                      { url: "/kimia-smart/actualites", icon: "mdi:newspaper-variant-outline", label: "Actualités", helper: "input_boolean.kimia_onglet_actualites" },
+                      { url: "/kimia-smart/parametres", icon: "mdi:cog-outline", label: "Réglages", helper: "input_boolean.kimia_onglet_parametres" }
+                    ]
+                      .filter(item => states[item.helper]?.state !== "off")
+                      .map(({helper, ...item}) => item);
+                  ]]]
   - title: Prises
     path: prises
     icon: mdi:power-socket-eu
@@ -1717,59 +1777,69 @@ views:
               - url: /kimia-smart/lumieres
                 icon: mdi:lightbulb-group-outline
                 label: Lumières
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_lumieres"]?.state === "off"; ]]]
               - url: /kimia-smart/volets
                 icon: mdi:window-shutter
                 label: Volets
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state === "off"; ]]]
               - url: /kimia-smart/climatisation
                 icon: mdi:air-conditioner
                 label: Clim
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_climatisation"]?.state === "off"; ]]]
               - url: /kimia-smart/musique
                 icon: mdi:music-note
                 label: Musique
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_musique"]?.state === "off"; ]]]
               - url: /kimia-smart/securite
                 icon: mdi:shield-home-outline
                 label: Sécurité
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_securite"]?.state === "off"; ]]]
               - url: /kimia-smart/prises
                 icon: mdi:power-socket-eu
                 label: Prises
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_prises"]?.state === "off"; ]]]
               - url: /kimia-smart/actualites
                 icon: mdi:newspaper-variant-outline
                 label: Actualités
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_actualites"]?.state === "off"; ]]]
               - url: /kimia-smart/parametres
                 icon: mdi:cog-outline
                 label: Réglages
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_parametres"]?.state === "off"; ]]]
               - icon: mdi:dots-horizontal
                 label: Plus
                 hidden: |
-                  [[[ return navbar.isDesktop; ]]]
+                  [[[
+                    return navbar.isDesktop || [
+                      "input_boolean.kimia_onglet_musique",
+                      "input_boolean.kimia_onglet_securite",
+                      "input_boolean.kimia_onglet_prises",
+                      "input_boolean.kimia_onglet_actualites",
+                      "input_boolean.kimia_onglet_parametres"
+                    ].every(id => states[id]?.state === "off");
+                  ]]]
                 tap_action:
                   action: open-popup
-                popup:
-                  - url: /kimia-smart/musique
-                    icon: mdi:music-note
-                    label: Musique
-                  - url: /kimia-smart/securite
-                    icon: mdi:shield-home-outline
-                    label: Sécurité
-                  - url: /kimia-smart/prises
-                    icon: mdi:power-socket-eu
-                    label: Prises
-                  - url: /kimia-smart/actualites
-                    icon: mdi:newspaper-variant-outline
-                    label: Actualités
-                  - url: /kimia-smart/parametres
-                    icon: mdi:cog-outline
-                    label: Réglages
+                popup: |
+                  [[[
+                    return [
+                      { url: "/kimia-smart/musique", icon: "mdi:music-note", label: "Musique", helper: "input_boolean.kimia_onglet_musique" },
+                      { url: "/kimia-smart/securite", icon: "mdi:shield-home-outline", label: "Sécurité", helper: "input_boolean.kimia_onglet_securite" },
+                      { url: "/kimia-smart/prises", icon: "mdi:power-socket-eu", label: "Prises", helper: "input_boolean.kimia_onglet_prises" },
+                      { url: "/kimia-smart/actualites", icon: "mdi:newspaper-variant-outline", label: "Actualités", helper: "input_boolean.kimia_onglet_actualites" },
+                      { url: "/kimia-smart/parametres", icon: "mdi:cog-outline", label: "Réglages", helper: "input_boolean.kimia_onglet_parametres" }
+                    ]
+                      .filter(item => states[item.helper]?.state !== "off")
+                      .map(({helper, ...item}) => item);
+                  ]]]
     # KIMIA Smart V0.8 — journal détaillé, séparé de l'accueil Maquette.
   - title: Actualités
     path: actualites
@@ -1899,59 +1969,69 @@ views:
               - url: /kimia-smart/lumieres
                 icon: mdi:lightbulb-group-outline
                 label: Lumières
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_lumieres"]?.state === "off"; ]]]
               - url: /kimia-smart/volets
                 icon: mdi:window-shutter
                 label: Volets
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state === "off"; ]]]
               - url: /kimia-smart/climatisation
                 icon: mdi:air-conditioner
                 label: Clim
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_climatisation"]?.state === "off"; ]]]
               - url: /kimia-smart/musique
                 icon: mdi:music-note
                 label: Musique
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_musique"]?.state === "off"; ]]]
               - url: /kimia-smart/securite
                 icon: mdi:shield-home-outline
                 label: Sécurité
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_securite"]?.state === "off"; ]]]
               - url: /kimia-smart/prises
                 icon: mdi:power-socket-eu
                 label: Prises
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_prises"]?.state === "off"; ]]]
               - url: /kimia-smart/actualites
                 icon: mdi:newspaper-variant-outline
                 label: Actualités
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_actualites"]?.state === "off"; ]]]
               - url: /kimia-smart/parametres
                 icon: mdi:cog-outline
                 label: Réglages
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_parametres"]?.state === "off"; ]]]
               - icon: mdi:dots-horizontal
                 label: Plus
                 hidden: |
-                  [[[ return navbar.isDesktop; ]]]
+                  [[[
+                    return navbar.isDesktop || [
+                      "input_boolean.kimia_onglet_musique",
+                      "input_boolean.kimia_onglet_securite",
+                      "input_boolean.kimia_onglet_prises",
+                      "input_boolean.kimia_onglet_actualites",
+                      "input_boolean.kimia_onglet_parametres"
+                    ].every(id => states[id]?.state === "off");
+                  ]]]
                 tap_action:
                   action: open-popup
-                popup:
-                  - url: /kimia-smart/musique
-                    icon: mdi:music-note
-                    label: Musique
-                  - url: /kimia-smart/securite
-                    icon: mdi:shield-home-outline
-                    label: Sécurité
-                  - url: /kimia-smart/prises
-                    icon: mdi:power-socket-eu
-                    label: Prises
-                  - url: /kimia-smart/actualites
-                    icon: mdi:newspaper-variant-outline
-                    label: Actualités
-                  - url: /kimia-smart/parametres
-                    icon: mdi:cog-outline
-                    label: Réglages
+                popup: |
+                  [[[
+                    return [
+                      { url: "/kimia-smart/musique", icon: "mdi:music-note", label: "Musique", helper: "input_boolean.kimia_onglet_musique" },
+                      { url: "/kimia-smart/securite", icon: "mdi:shield-home-outline", label: "Sécurité", helper: "input_boolean.kimia_onglet_securite" },
+                      { url: "/kimia-smart/prises", icon: "mdi:power-socket-eu", label: "Prises", helper: "input_boolean.kimia_onglet_prises" },
+                      { url: "/kimia-smart/actualites", icon: "mdi:newspaper-variant-outline", label: "Actualités", helper: "input_boolean.kimia_onglet_actualites" },
+                      { url: "/kimia-smart/parametres", icon: "mdi:cog-outline", label: "Réglages", helper: "input_boolean.kimia_onglet_parametres" }
+                    ]
+                      .filter(item => states[item.helper]?.state !== "off")
+                      .map(({helper, ...item}) => item);
+                  ]]]
   - title: Paramètres
     path: parametres
     icon: mdi:cog-outline
@@ -2166,56 +2246,66 @@ views:
               - url: /kimia-smart/lumieres
                 icon: mdi:lightbulb-group-outline
                 label: Lumières
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_lumieres"]?.state === "off"; ]]]
               - url: /kimia-smart/volets
                 icon: mdi:window-shutter
                 label: Volets
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state === "off"; ]]]
               - url: /kimia-smart/climatisation
                 icon: mdi:air-conditioner
                 label: Clim
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_climatisation"]?.state === "off"; ]]]
               - url: /kimia-smart/musique
                 icon: mdi:music-note
                 label: Musique
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_musique"]?.state === "off"; ]]]
               - url: /kimia-smart/securite
                 icon: mdi:shield-home-outline
                 label: Sécurité
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_securite"]?.state === "off"; ]]]
               - url: /kimia-smart/prises
                 icon: mdi:power-socket-eu
                 label: Prises
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_prises"]?.state === "off"; ]]]
               - url: /kimia-smart/actualites
                 icon: mdi:newspaper-variant-outline
                 label: Actualités
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_actualites"]?.state === "off"; ]]]
               - url: /kimia-smart/parametres
                 icon: mdi:cog-outline
                 label: Réglages
                 hidden: |
-                  [[[ return !navbar.isDesktop; ]]]
+                  [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_parametres"]?.state === "off"; ]]]
               - icon: mdi:dots-horizontal
                 label: Plus
                 hidden: |
-                  [[[ return navbar.isDesktop; ]]]
+                  [[[
+                    return navbar.isDesktop || [
+                      "input_boolean.kimia_onglet_musique",
+                      "input_boolean.kimia_onglet_securite",
+                      "input_boolean.kimia_onglet_prises",
+                      "input_boolean.kimia_onglet_actualites",
+                      "input_boolean.kimia_onglet_parametres"
+                    ].every(id => states[id]?.state === "off");
+                  ]]]
                 tap_action:
                   action: open-popup
-                popup:
-                  - url: /kimia-smart/musique
-                    icon: mdi:music-note
-                    label: Musique
-                  - url: /kimia-smart/securite
-                    icon: mdi:shield-home-outline
-                    label: Sécurité
-                  - url: /kimia-smart/prises
-                    icon: mdi:power-socket-eu
-                    label: Prises
-                  - url: /kimia-smart/actualites
-                    icon: mdi:newspaper-variant-outline
-                    label: Actualités
-                  - url: /kimia-smart/parametres
-                    icon: mdi:cog-outline
-                    label: Réglages
+                popup: |
+                  [[[
+                    return [
+                      { url: "/kimia-smart/musique", icon: "mdi:music-note", label: "Musique", helper: "input_boolean.kimia_onglet_musique" },
+                      { url: "/kimia-smart/securite", icon: "mdi:shield-home-outline", label: "Sécurité", helper: "input_boolean.kimia_onglet_securite" },
+                      { url: "/kimia-smart/prises", icon: "mdi:power-socket-eu", label: "Prises", helper: "input_boolean.kimia_onglet_prises" },
+                      { url: "/kimia-smart/actualites", icon: "mdi:newspaper-variant-outline", label: "Actualités", helper: "input_boolean.kimia_onglet_actualites" },
+                      { url: "/kimia-smart/parametres", icon: "mdi:cog-outline", label: "Réglages", helper: "input_boolean.kimia_onglet_parametres" }
+                    ]
+                      .filter(item => states[item.helper]?.state !== "off")
+                      .map(({helper, ...item}) => item);
+                  ]]]
