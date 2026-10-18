@@ -40,7 +40,9 @@ sections:
 
           {% if states('input_select.kimia_theme_global') not in [
             'KIMIA Gris Premium', 'KIMIA Clair', 'KIMIA Sombre',
-            'KIMIA Signature'] %}
+          'KIMIA Signature', 'KIMIA Vert Sauge',
+          'KIMIA Violet Nuit', 'KIMIA Sable Doré',
+          'KIMIA Terracotta'] %}
           *Configuration en cours. Prévenez votre installateur.*
           {% endif %}
         grid_options:
@@ -150,6 +152,94 @@ sections:
               box-shadow: 0 4px 12px rgba(0,0,0,.10);
             }
             ha-icon { color: #28CEC0 !important; }
+      - type: button
+        name: "Vert Sauge"
+        icon: mdi:leaf
+        show_name: true
+        show_icon: true
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Vert Sauge"
+        card_mod:
+          style: |
+            ha-card {
+              background: #EDF4EA !important;
+              color: #223A2E !important;
+              border: 2px solid #379C75 !important;
+              border-radius: 18px !important;
+            }
+            ha-icon { color: #379C75 !important; }
+      - type: button
+        name: "Violet Nuit"
+        icon: mdi:weather-night
+        show_name: true
+        show_icon: true
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Violet Nuit"
+        card_mod:
+          style: |
+            ha-card {
+              background: #29233E !important;
+              color: #F5F0FB !important;
+              border: 2px solid #AA80F3 !important;
+              border-radius: 18px !important;
+            }
+            ha-icon { color: #AA80F3 !important; }
+      - type: button
+        name: "Sable Doré"
+        icon: mdi:weather-sunny
+        show_name: true
+        show_icon: true
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Sable Doré"
+        card_mod:
+          style: |
+            ha-card {
+              background: #FFFDF7 !important;
+              color: #473723 !important;
+              border: 2px solid #C79437 !important;
+              border-radius: 18px !important;
+            }
+            ha-icon { color: #C79437 !important; }
+      - type: button
+        name: "Terracotta"
+        icon: mdi:fireplace
+        show_name: true
+        show_icon: true
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Terracotta"
+        card_mod:
+          style: |
+            ha-card {
+              background: #45312D !important;
+              color: #FFF3EB !important;
+              border: 2px solid #ED8C66 !important;
+              border-radius: 18px !important;
+            }
+            ha-icon { color: #ED8C66 !important; }
       - type: entities
         title: Choisir dans la liste
         entities:
