@@ -18,7 +18,7 @@ Ce dashboard contient **8 interrupteurs natifs** et un compteur d'onglets actifs
 
 Un bouton OFF masque la route correspondante dans **Navbar Card**, y compris dans le menu « Plus » du téléphone. Un bouton ON la réaffiche.
 
-Les 8 autres vues disposent de `visible: false` pour éviter qu'un onglet désactivé reste visible dans les **onglets natifs Home Assistant**. Les huit vues restent accessibles depuis leurs URL directes, et depuis la Navbar lorsqu'elles sont activées. Cette solution est de la **visibilité**, pas une politique de sécurité.
+**Important :** les huit vues restent visibles dans les **onglets natifs Home Assistant**. Les interrupteurs ne masquent que les boutons de la **Navbar Card** et les entrées du menu « Plus ». L'option `visible: false`, initialement utilisée, supprimait tous les onglets secondaires de la barre native et a donc été retirée. Home Assistant ne permet pas de relier directement la visibilité des onglets natifs aux `input_boolean`. Pour une expérience de navigation uniquement via Navbar, il faut masquer la barre d'onglets native séparément via l'interface/Kiosk Mode, après validation de Navbar. Une URL directe reste accessible.
 
 Le bandeau de l'Accueil, la maquette, la météo et les équipements n'ont pas été modifiés pour cette fonctionnalité. Seule sa Navbar Card lit maintenant les interrupteurs.
 
@@ -40,7 +40,7 @@ La branche GitHub ne déploie pas automatiquement ces fichiers sur la VM.
 
 - Le réglage des onglets masque l'accès dans la navigation, **pas l'URL elle-même**. Il ne bloque pas le pilotage d'entités ni les droits d'accès Home Assistant.
 - Le dashboard Administrateur doit être marqué **réservé aux administrateurs** dans les paramètres HA, pas simplement dissimulé dans la navigation.
-- Les autres onglets natifs sont masqués de manière permanente pour conserver une seule navigation cohérente via Navbar Card. La navigation KIMIA est contrôlée par les interrupteurs.
+- Les onglets natifs Home Assistant restent visibles pour garantir l'accès aux vues. Seules les entrées de Navbar Card sont filtrées par les interrupteurs ; les vues elles-mêmes ne sont pas protégées ou désactivées.
 - L'interface Android / PC n'a pas encore été testée en direct : valider d'abord sur la VM de test.
 
 ## Étape suivante : gestion des pièces
