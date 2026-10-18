@@ -544,7 +544,6 @@ views:
     path: lumieres
     icon: mdi:lightbulb-group-outline
     type: sections
-    visible: false
     max_columns: 2
     sections:
       - type: grid
@@ -813,7 +812,6 @@ views:
     path: volets
     icon: mdi:window-shutter
     type: sections
-    visible: false
     max_columns: 2
     sections:
       - type: grid
@@ -1040,7 +1038,6 @@ views:
     path: climatisation
     icon: mdi:air-conditioner
     type: sections
-    visible: false
     max_columns: 2
     sections:
       - type: grid
@@ -1241,7 +1238,6 @@ views:
     path: musique
     icon: mdi:music
     type: sections
-    visible: false
     max_columns: 2
     sections:
       - type: grid
@@ -1455,7 +1451,6 @@ views:
     path: securite
     icon: mdi:shield-home-outline
     type: sections
-    visible: false
     max_columns: 2
     sections:
       - type: grid
@@ -1665,7 +1660,6 @@ views:
     path: prises
     icon: mdi:power-socket-eu
     type: sections
-    visible: false
     max_columns: 2
     sections:
       - type: grid
@@ -1849,7 +1843,6 @@ views:
     path: actualites
     icon: mdi:newspaper-variant-outline
     type: sections
-    visible: false
     max_columns: 2
     sections:
       - type: grid
@@ -2041,7 +2034,6 @@ views:
     path: parametres
     icon: mdi:cog-outline
     type: sections
-    visible: false
     max_columns: 2
     sections:
       - type: grid
