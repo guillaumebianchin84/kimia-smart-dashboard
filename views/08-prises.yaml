@@ -7,33 +7,45 @@ sections:
   - type: grid
     column_span: 2
     cards:
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Salon
+      - type: button
+        name: "Salon"
         icon: mdi:power-socket-eu
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Cuisine
+        hold_action:
+          action: none
+      - type: button
+        name: "Cuisine"
         icon: mdi:power-socket-eu
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Chambre
+        hold_action:
+          action: none
+      - type: button
+        name: "Chambre"
         icon: mdi:power-socket-eu
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Autre prise
+        hold_action:
+          action: none
+      - type: button
+        name: "Autre prise"
         icon: mdi:power-socket-eu
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
+          action: none
+        hold_action:
           action: none
       - type: custom:navbar-card
         desktop:
