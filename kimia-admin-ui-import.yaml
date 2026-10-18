@@ -19,7 +19,7 @@ views:
               visible. Les choix sont conservés après redémarrage.
           - type: markdown
             content: |
-              **Onglets visibles :** {{ [
+              **Onglets visibles :** {{ expand([
                 'input_boolean.kimia_onglet_lumieres',
                 'input_boolean.kimia_onglet_volets',
                 'input_boolean.kimia_onglet_climatisation',
@@ -28,7 +28,7 @@ views:
                 'input_boolean.kimia_onglet_prises',
                 'input_boolean.kimia_onglet_actualites',
                 'input_boolean.kimia_onglet_parametres'
-              ] | map('states') | select('eq', 'on') | list | count }} / 8
+              ]) | selectattr('state', 'eq', 'on') | list | count }} / 8
       - type: grid
         cards:
           - type: heading
