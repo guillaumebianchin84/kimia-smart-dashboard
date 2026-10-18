@@ -120,7 +120,7 @@ views:
               Cela ne constitue pas une sécurité.
               Réservez ce dashboard Administration aux comptes
               administrateurs depuis **Paramètres > Tableaux de bord**.
-  - title: Pièces et appareils
+  - title: Pièces
     path: pieces-equipements
     icon: mdi:home-plus-outline
     type: sections
@@ -134,68 +134,69 @@ views:
             icon: mdi:home-plus-outline
           - type: markdown
             content: >-
-              Créez et modifiez les pièces et les étages directement ici.
-              Affectez ensuite les appareils déjà installés à leur pièce.
-              L'appairage Zigbee via ZHA est la prochaine étape.
+              Ajoutez simplement vos pièces par leur nom : Salon, Cuisine,
+              Chambre… Puis associez les appareils déjà installés.
+              Pour une prise ou une ampoule Zigbee, ouvrez l'onglet Zigbee.
       - type: grid
         column_span: 2
         cards:
           - type: heading
-            heading: "1 · Configurer les pièces dans KIMIA"
+            heading: Gestion des pièces
             icon: mdi:floor-plan
           - type: custom:kimia-room-manager-card
+            grid_options:
+              columns: full
+              rows: auto
+  - title: Zigbee
+    path: zigbee
+    icon: mdi:zigbee
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: KIMIA · Appareils Zigbee
+            icon: mdi:zigbee
+          - type: markdown
+            content: >-
+              Ajoutez une prise SONOFF, une ampoule LEDVANCE SMART+ Zigbee
+              ou tout autre appareil Zigbee compatible via **ZHA**.
+              Votre coordinateur SMLIGHT doit d'abord être configuré dans
+              Home Assistant. L'appairage est ouvert uniquement sur demande.
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:kimia-zigbee-manager-card
             grid_options:
               columns: full
               rows: auto
       - type: grid
         cards:
           - type: heading
-            heading: "2 · Ajouter les équipements"
-            icon: mdi:devices
+            heading: Configuration Zigbee
+            icon: mdi:radio-tower
           - type: button
-            name: "Ajouter une prise Zigbee (ZHA)"
+            name: Configuration du réseau Zigbee (ZHA)
             icon: mdi:zigbee
-            show_name: true
-            show_icon: true
             tap_action:
               action: navigate
               navigation_path: /config/zha/dashboard
-          - type: button
-            name: "Ajouter une intégration / un appareil"
-            icon: mdi:puzzle-plus-outline
-            show_name: true
-            show_icon: true
-            tap_action:
-              action: navigate
-              navigation_path: /config/integrations/dashboard
-          - type: button
-            name: "Voir et organiser les appareils"
-            icon: mdi:devices
-            show_name: true
-            show_icon: true
-            tap_action:
-              action: navigate
-              navigation_path: /config/devices/dashboard
           - type: markdown
             content: >-
-              Pour une prise Zigbee, mettez-la en mode appairage puis ouvrez
-              **Zigbee (ZHA) → Ajouter un appareil**. Ce raccourci nécessite
-              ZHA installé. Avec Zigbee2MQTT ou le Wi-Fi, utilisez plutôt
-              l'intégration correspondante.
+              Si ZHA n'est pas encore installé, commencez par
+              **Paramètres → Appareils et services → Ajouter une intégration
+              → Zigbee Home Automation**. Le SLZB-06U doit être accessible
+              sur le même réseau local.
       - type: grid
         cards:
           - type: heading
-            heading: "3 · Ranger les appareils dans les pièces"
-            icon: mdi:home-switch-outline
-          - type: markdown
-            content: |
-              1. Créez vos pièces dans la carte **KIMIA · Gestion des pièces**.
-              2. Appairez les équipements via ZHA si nécessaire.
-              3. Cliquez sur une pièce dans la carte KIMIA et choisissez
-                 l'appareil dans la liste pour l'y associer.
-
-              **Attention :** créer une zone n'ajoute pas automatiquement
-              une carte à la vue personnalisée KIMIA. Cette fonction
-              demanderait un développement supplémentaire.
-
-              **Accès administrateur Home Assistant requis.**
+            heading: Autres équipements
+            icon: mdi:devices
+          - type: button
+            name: Appareils Wi-Fi ou autres intégrations
+            icon: mdi:puzzle-plus-outline
+            tap_action:
+              action: navigate
+              navigation_path: /config/integrations/dashboard
