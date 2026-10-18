@@ -19,9 +19,6 @@ sections:
           ]]]
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Salon
@@ -29,9 +26,6 @@ sections:
         label: À associer à un équipement
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Baie vitrée
@@ -39,9 +33,6 @@ sections:
         label: À associer à un équipement
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Cuisine
@@ -49,9 +40,6 @@ sections:
         label: À associer à un équipement
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Terrasse
@@ -59,9 +47,6 @@ sections:
         label: À associer à un équipement
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Parents
@@ -69,9 +54,6 @@ sections:
         label: À associer à un équipement
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Chambre 1
@@ -79,9 +61,6 @@ sections:
         label: À associer à un équipement
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Chambre 2
@@ -89,9 +68,6 @@ sections:
         label: À associer à un équipement
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
       - type: custom:button-card
         template: kimia_v2_tile
         name: Chambre 3
@@ -99,13 +75,7 @@ sections:
         label: À associer à un équipement
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
       - type: custom:navbar-card
-        grid_options:
-          columns: 1
-          rows: 1
         desktop:
           mode: docked
           position: left
