@@ -1,0 +1,58 @@
+# KIMIA Smart — gestion admin de la visibilité des onglets.
+# Les input_boolean restaurent leur état précédent lorsqu'aucun initial n'est défini.
+input_boolean:
+  kimia_navigation_initialisee:
+    name: KIMIA Navigation initialisée
+    icon: mdi:check-circle-outline
+  kimia_onglet_lumieres:
+    name: Afficher Lumières
+    icon: mdi:lightbulb-group-outline
+  kimia_onglet_volets:
+    name: Afficher Volets
+    icon: mdi:window-shutter
+  kimia_onglet_climatisation:
+    name: Afficher Climatisation
+    icon: mdi:air-conditioner
+  kimia_onglet_musique:
+    name: Afficher Musique
+    icon: mdi:music
+  kimia_onglet_securite:
+    name: Afficher Sécurité
+    icon: mdi:shield-home-outline
+  kimia_onglet_prises:
+    name: Afficher Prises
+    icon: mdi:power-socket-eu
+  kimia_onglet_actualites:
+    name: Afficher Actualités
+    icon: mdi:newspaper-variant-outline
+  kimia_onglet_parametres:
+    name: Afficher Paramètres
+    icon: mdi:cog-outline
+
+# À la première installation uniquement, conserver tous les onglets visibles.
+# Le marqueur de première installation est restauré ensuite : les choix admin
+# persistent aux redémarrages et ne sont pas réactivés automatiquement.
+automation:
+  - id: kimia_initialisation_navigation_admin
+    alias: "KIMIA - Initialiser les onglets visibles une seule fois"
+    triggers:
+      - trigger: homeassistant
+        event: start
+    conditions:
+      - condition: state
+        entity_id: input_boolean.kimia_navigation_initialisee
+        state: "off"
+    actions:
+      - action: input_boolean.turn_on
+        target:
+          entity_id:
+            - input_boolean.kimia_onglet_lumieres
+            - input_boolean.kimia_onglet_volets
+            - input_boolean.kimia_onglet_climatisation
+            - input_boolean.kimia_onglet_musique
+            - input_boolean.kimia_onglet_securite
+            - input_boolean.kimia_onglet_prises
+            - input_boolean.kimia_onglet_actualites
+            - input_boolean.kimia_onglet_parametres
+            - input_boolean.kimia_navigation_initialisee
+    mode: single
