@@ -224,6 +224,59 @@
       }
       select.value=current.area_id||"";
     }
+    _ieee(d) {
+      const x=(d?.identifiers||[]).filter(p=>Array.isArray(p)&&p[0]==="zha").map(p=>p[1]);
+      return x.length===1 && typeof x[0]==="string" &&
+        /^(?:[0-9a-f]{2}:){7}[0-9a-f]{2}$/i.test(x[0]) ? x[0].toLowerCase():"";
+    }
+    _cancelRemove() {
+      this._el("remove-panel").hidden=true;
+      this._el("remove-name").value="";
+    }
+    _prepareRemove() {
+      if(this._busy || Date.now()<this._endTime)return;
+      const d=this._devices.find(x=>x.id===this._selectedId);
+      if(!d)return;
+      const ieee=this._ieee(d);
+      const node=this._zigbee.find(n=>String(n.ieee).toLowerCase()===ieee);
+      if(!ieee||!node||node.active_coordinator!==false)return;
+      const name=d.name_by_user||d.name||d.model||"Appareil Zigbee";
+      this._el("remove-warning").textContent=
+        "Supprimer « "+name+" » (IEEE "+ieee+") du réseau Zigbee ? "+
+        "L'appareil devra être réappairé pour servir à nouveau. "+
+        "Ses automatisations peuvent cesser de fonctionner.";
+      this._el("remove-panel").hidden=false;
+    }
+    async _removeDevice() {
+      if(this._busy || this._el("remove-panel").hidden || Date.now()<this._endTime)return;
+      const d=this._devices.find(x=>x.id===this._selectedId);
+      if(!d)return;
+      const name=d.name_by_user||d.name||d.model||"Appareil Zigbee";
+      if(this._el("remove-name").value.trim()!==name) {
+        this._message("Recopiez exactement le nom « "+name+" ».",true);
+        return;
+      }
+      this._lock(true);
+      let ok=false;
+      try {
+        const [registered,nodes]=await Promise.all([
+          this._hass.callWS({type:"config/device_registry/list"}),
+          this._hass.callWS({type:"zha/devices"})
+        ]);
+        const fresh=registered.find(x=>x.id===d.id);
+        const ieee=fresh&&this._ieee(fresh);
+        const node=nodes.find(n=>String(n.ieee).toLowerCase()===ieee);
+        if(!ieee||!node||node.active_coordinator!==false)
+          throw new Error("Appareil introuvable ou coordinateur protégé.");
+        await this._hass.callService("zha","remove",{ieee});
+        ok=true;
+        this._selectedId="";
+        this._cancelRemove();
+        this._message("Demande de suppression envoyée à ZHA. Actualisez pour vérifier.");
+      } catch(e) { this._error(e); }
+      finally { this._lock(false); }
+      if(ok)await this._refresh();
+    }
     _stopClock() {
       if(this._clock!==null){clearInterval(this._clock);this._clock=null;}
     }
