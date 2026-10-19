@@ -1,4 +1,4 @@
-/* KIMIA Smart — Zigbee ZHA, v0.1.
+/* KIMIA Smart — Zigbee ZHA, v0.2.
  * Appairage via action officielle zha.permit (60 s), aperçu des appareils,
  * renommage et affectation à une vraie pièce du registre Home Assistant.
  * ZHA + coordinateur requis ; aucun appairage automatique au chargement.
@@ -66,6 +66,7 @@
         ".ok{color:var(--success-color,#27834b)}",
         ".device{border:1px solid var(--divider-color);border-radius:12px;padding:10px;margin-top:8px}",
         ".device button{width:100%;text-align:left}",
+        "button.danger{background:var(--error-color,#b33);color:#fff}",
         "#message{font-size:12px;margin:10px 0;min-height:16px}",
         "[hidden]{display:none!important}",
         "@media(max-width:480px){ha-card{padding:12px}.fields>*{flex:1 1 100%}}"
@@ -95,13 +96,22 @@
         '<label>Pièce<select id="device-area"></select></label>',
         '<button type="submit" id="save">Enregistrer</button></form>',
         '<p class="hint">Vous pouvez créer les pièces dans l’onglet précédent.</p>',
-        '</section>',
+        '<button id="remove-start" type="button" class="danger" hidden>Supprimer cet appareil Zigbee</button>',
+        '<section id="remove-panel" hidden>',
+        '<p class="hint" id="remove-warning"></p>',
+        '<label>Recopiez le nom de l’appareil<input id="remove-name" maxlength="80"></label>',
+        '<button id="remove-confirm" type="button" class="danger">Confirmer la suppression</button>',
+        '<button id="remove-cancel" type="button" class="secondary">Annuler</button>',
+        '</section></section>',
         '<div id="footer" class="hint"></div>'
       ].join("");
       this.shadowRoot.append(style,card);
       this._el("refresh").addEventListener("click",()=>void this._refresh());
       this._el("permit").addEventListener("click",()=>void this._permit());
       this._el("setup-form").addEventListener("submit",e=>void this._saveDevice(e));
+      this._el("remove-start").addEventListener("click",()=>this._prepareRemove());
+      this._el("remove-cancel").addEventListener("click",()=>this._cancelRemove());
+      this._el("remove-confirm").addEventListener("click",()=>void this._removeDevice());
     }
     _message(text,error=false) {
       const el=this._el("message");
@@ -116,6 +126,8 @@
       this._busy=locked;
       this._el("refresh").disabled=locked;
       this._el("save").disabled=locked;
+      this._el("remove-start").disabled=locked;
+      this._el("remove-confirm").disabled=locked;
       this._updateScanUI();
     }
     _error(error) {
@@ -186,6 +198,7 @@
         const area=this._areas.find(a=>a.area_id===d.area_id);
         button.textContent=(this._newIds.has(d.id)?"NOUVEAU · ":"")+name+" · "+(area?.name||"Sans pièce");
         button.addEventListener("click",()=>{
+          if(this._selectedId!==d.id)this._cancelRemove();
           this._selectedId=d.id;
           this._renderDevices();
         });
@@ -194,7 +207,12 @@
       }
       const current=this._devices.find(d=>d.id===this._selectedId);
       this._el("setup").hidden=!current||!list.some(d=>d.id===current.id);
-      if(!current)return;
+      if(!current){this._cancelRemove();return;}
+      const ieee=this._ieee(current);
+      const node=this._zigbee.find(n=>String(n.ieee).toLowerCase()===ieee);
+      const allowed=Boolean(this._zhaAvailable&&node&&node.active_coordinator===false);
+      this._el("remove-start").hidden=!allowed;
+      if(!allowed)this._cancelRemove();
       const name=current.name_by_user||current.name||current.model||"Appareil Zigbee";
       this._el("chosen").textContent="Appareil sélectionné : "+name;
       this._el("device-name").value=name;
