@@ -123,6 +123,10 @@
       for(const id of ["refresh","create-button","rename-button","assign-button","open-delete","delete-confirm","delete-cancel"]) {
         this._el(id).disabled=busy;
       }
+      if(!busy && this._selectedArea) {
+        const count=this._occupancy(this._selectedArea);
+        this._el("open-delete").disabled=count.devices>0||count.entities>0;
+      }
     }
     _error(error) {
       this._message("Erreur : "+(error?.message||error?.code||String(error)),true);
