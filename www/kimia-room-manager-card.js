@@ -1,4 +1,4 @@
-/* KIMIA Smart — Gestion simple des pièces, v0.2.
+/* KIMIA Smart — Gestion simple des pièces, v0.3.
  * Une pièce = un nom. Zones HA réelles, sans étage ni icône obligatoires.
  * Les appareils déjà installés peuvent être affectés à une pièce.
  */
@@ -13,6 +13,7 @@
       this.attachShadow({ mode: "open" });
       this._areas = [];
       this._devices = [];
+      this._entities = [];
       this._selectedArea = null;
       this._started = false;
       this._busy = false;
@@ -52,6 +53,9 @@
         "input,select{min-width:0;width:100%;box-sizing:border-box;background:var(--secondary-background-color,transparent);border:1px solid var(--divider-color);border-radius:10px;padding:10px;color:var(--primary-text-color);font:inherit}",
         "button{background:var(--primary-color);color:var(--text-primary-color,#fff);border:0;border-radius:10px;min-height:40px;padding:8px 14px;cursor:pointer;font:inherit;font-weight:650}",
         "button.secondary{background:var(--secondary-background-color);color:var(--primary-text-color);border:1px solid var(--divider-color)}",
+        "button.danger{background:var(--error-color,#bd3b36);color:white}",
+        ".confirm-delete{margin-top:12px;padding:12px;border:1px solid var(--error-color,#bd3b36);border-radius:12px}",
+        ".confirm-delete .fields{margin-top:10px}",
         "button:disabled{opacity:.5;cursor:wait}",
         ".rooms{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:9px;margin-top:12px}",
         ".room{border:1px solid var(--divider-color);border-radius:13px;padding:12px;text-align:left}",
@@ -82,7 +86,16 @@
         '<label>Appareil installé<select id="device"></select></label>',
         '<button id="assign-button" type="submit">Associer à cette pièce</button></form>',
         '<p class="info">Pour une nouvelle prise ou ampoule Zigbee,',
-        ' ouvrez l’onglet Zigbee afin de l’appairer avec ZHA.</p></section>',
+        ' ouvrez l’onglet Zigbee afin de l’appairer avec ZHA.</p>',
+        '<div style="margin-top:16px"><button type="button" class="danger" id="open-delete">Supprimer cette pièce</button></div>',
+        '<div id="delete-panel" class="confirm-delete" hidden>',
+        '<strong>Suppression définitive de la pièce</strong>',
+        '<p class="info" id="delete-explanation"></p>',
+        '<label>Pour confirmer, recopiez exactement le nom de la pièce',
+        '<input id="delete-typed" autocomplete="off" maxlength="64"></label>',
+        '<div class="fields"><button type="button" id="delete-confirm" class="danger">Confirmer la suppression</button>',
+        '<button type="button" id="delete-cancel" class="secondary">Annuler</button></div>',
+        '</div></section>',
         '<p id="status" class="info"></p>'
       ].join("");
       this.shadowRoot.append(style, card);
@@ -90,6 +103,9 @@
       this._el("create").addEventListener("submit", e => void this._create(e));
       this._el("rename").addEventListener("submit", e => void this._rename(e));
       this._el("assign").addEventListener("submit", e => void this._assign(e));
+      this._el("open-delete").addEventListener("click", () => this._openDelete());
+      this._el("delete-cancel").addEventListener("click", () => this._closeDelete());
+      this._el("delete-confirm").addEventListener("click", () => void this._deleteArea());
     }
     _option(select, value, label) {
       const option = document.createElement("option");
@@ -104,7 +120,7 @@
     }
     _lock(busy) {
       this._busy=busy;
-      for(const id of ["refresh","create-button","rename-button","assign-button"]) {
+      for(const id of ["refresh","create-button","rename-button","assign-button","open-delete","delete-confirm","delete-cancel"]) {
         this._el(id).disabled=busy;
       }
     }
@@ -116,12 +132,14 @@
       this._lock(true);
       this._el("status").textContent="Chargement…";
       try {
-        const [areas,devices]=await Promise.all([
+        const [areas,devices,entities]=await Promise.all([
           this._hass.callWS({type:"config/area_registry/list"}),
-          this._hass.callWS({type:"config/device_registry/list"})
+          this._hass.callWS({type:"config/device_registry/list"}),
+          this._hass.callWS({type:"config/entity_registry/list"})
         ]);
         this._areas=areas;
         this._devices=devices;
+        this._entities=entities;
         if(this._selectedArea&&!areas.some(a=>a.area_id===this._selectedArea)) this._selectedArea=null;
         this._render();
         this._el("status").textContent=areas.length+" pièce(s) enregistrée(s)";
@@ -155,6 +173,7 @@
         summary.textContent=count+" appareil(s) · Modifier";
         btn.append(title,summary);
         btn.addEventListener("click",()=>{
+          if(this._selectedArea!==area.area_id)this._closeDelete();
           this._selectedArea=area.area_id;
           this._render();
         });
@@ -162,8 +181,12 @@
       }
       const current=this._areas.find(a=>a.area_id===this._selectedArea);
       this._el("manage").hidden=!current;
-      if(!current)return;
+      if(!current){this._closeDelete();return;}
       this._el("edit-name").value=current.name;
+      const occupied=this._occupancy(current.area_id);
+      this._el("open-delete").disabled=this._busy||occupied.devices>0||occupied.entities>0;
+      this._el("open-delete").textContent=occupied.devices+occupied.entities>0
+        ?"Suppression impossible · pièce non vide":"Supprimer cette pièce";
       const select=this._el("device");
       const selected=select.value;
       select.replaceChildren();
@@ -221,6 +244,63 @@
       const ok=await this._save({type:"config/area_registry/update",area_id:this._selectedArea,name},
         "Pièce renommée : "+name);
       if(ok)await this._load();
+    }
+    _occupancy(areaId,devices=this._devices,entities=this._entities) {
+      return {
+        devices:devices.filter(d=>d.area_id===areaId).length,
+        entities:entities.filter(e=>e.area_id===areaId).length
+      };
+    }
+    _closeDelete() {
+      this._el("delete-panel").hidden=true;
+      this._el("delete-typed").value="";
+    }
+    _openDelete() {
+      if(this._busy)return;
+      const area=this._areas.find(a=>a.area_id===this._selectedArea);
+      if(!area)return;
+      const n=this._occupancy(area.area_id);
+      if(n.devices||n.entities) {
+        this._message("Déplacez d’abord les appareils et entités de cette pièce avant de la supprimer.",true);
+        return;
+      }
+      this._el("delete-typed").value="";
+      this._el("delete-explanation").textContent=
+        "Vous allez supprimer la pièce « "+area.name+" » dans Home Assistant. "+
+        "Cela peut affecter les automatisations utilisant cette pièce. "+
+        "Les appareils et entités doivent être déplacés avant suppression.";
+      this._el("delete-panel").hidden=false;
+    }
+    async _deleteArea() {
+      if(this._busy||this._el("delete-panel").hidden)return;
+      const area=this._areas.find(a=>a.area_id===this._selectedArea);
+      if(!area)return;
+      if(this._el("delete-typed").value.trim()!==area.name) {
+        this._message("Recopiez exactement « "+area.name+" » pour confirmer.",true);
+        return;
+      }
+      this._lock(true);
+      try {
+        // Nouvelle vérification juste avant la suppression : éviter les états périmés.
+        const [devices,entities]=await Promise.all([
+          this._hass.callWS({type:"config/device_registry/list"}),
+          this._hass.callWS({type:"config/entity_registry/list"})
+        ]);
+        const count=this._occupancy(area.area_id,devices,entities);
+        if(count.devices||count.entities) {
+          throw new Error("Cette pièce possède encore "+count.devices+
+            " appareil(s) et "+count.entities+" entité(s). Déplacez-les avant suppression.");
+        }
+        await this._hass.callWS({type:"config/area_registry/delete",area_id:area.area_id});
+        this._selectedArea=null;
+        this._closeDelete();
+        this._message("Pièce supprimée : "+area.name);
+      } catch(error) {
+        this._error(error);
+      } finally {
+        this._lock(false);
+      }
+      await this._load();
     }
     async _assign(event) {
       event.preventDefault();
