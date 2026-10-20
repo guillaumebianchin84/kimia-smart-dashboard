@@ -59,3 +59,9 @@ Les exports obtenus ne sont **pas encore testés par impression**. Tous les STL/
 - [Waveshare 1.85inch Touch LCD Module](https://www.waveshare.com/product/1.85inch-touch-lcd-module.htm)
 
 *Dossier matériel séparé du code du dashboard KIMIA Smart; sauvegarde initiale du 20 octobre 2026.*
+
+## Prévisualisation 3D interactive sur GitHub
+
+**[Ouvrir le modèle assemblé V1 en 3D](./00_VISUALISATION_ENSEMBLE_V1.stl)** : GitHub affiche directement le STL avec rotation et zoom dans un navigateur compatible WebGL. Cette vue comprend les volumes principaux du boîtier, le cadre de l'écran et le plexiglas supérieur, sans les composants électroniques réels. **C'est un fichier de visualisation, pas une pièce à imprimer en un seul bloc.**
+
+Pour imprimer, utiliser **les STL individuels** présents dans [l'archive complète V1](./KIMIA_Voice_Prototype_3D_V1.zip). Pour reconstruire la vue, exécuter `creer_visu_ensemble.py` après avoir généré les composants avec `generer_kimia.py`.
