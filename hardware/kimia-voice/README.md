@@ -75,3 +75,13 @@ La V3 répond aux corrections esthétiques : face avant et flancs nettement plus
 - [Source CadQuery paramétrique V3](./v3/generer_kimia_v3.py)
 
 **À ne pas confondre :** le STL d'assemblage est réservé à l'aperçu et n'est pas une pièce à imprimer. Les pièces V3 STL/STEP sont régénérables avec le script; l'archive complète est aussi sauvegardée dans la bibliothèque ChatGPT, dossier `KIMIA Voice`. Les emplacements acoustiques du plexiglas et l'interface électronique restent à vérifier sur le matériel réel.
+
+## V4 — silhouette finale validée (20 octobre 2026)
+
+**Forme extérieure figée.** La silhouette approuvée par l'utilisateur est sauvegardée dans [l'image de référence V4](./v4/REFERENCE_FORME_VALIDEE.png). Reproduire uniquement la géométrie triangle-galet très arrondi à face avant droite; ne pas revenir au V3 ni changer de forme sans demande explicite.
+
+- [Visualisation 3D V4 interactive](./v4/00_KIMIA_VOICE_V4_GITHUB.stl)
+- [Fichiers CAO paramétriques V4](./v4/generer_kimia_v4.py)
+- [Notes mécaniques et statut de validation V4](./v4/README_V4.md)
+
+Les fichiers de fabrication STL/STEP V4 et l'image validée sont conservés dans l'archive `KIMIA_Voice_V4_Complet_STL_STEP.zip`, également sauvegardée dans la bibliothèque ChatGPT (`/KIMIA Voice`). **Non testé physiquement.**
