@@ -1,0 +1,102 @@
+KIMIA SMART BY PROMAINT — KIMIA VOICE V1
+=====================================
+Prototype mecanique 3D (20 octobre 2026)
+Unites : millimetres (mm). Tous les STL sont des pieces SEPAREES, a ouvrir dans le slicer.
+Les fichiers STEP et le code generer_kimia.py permettent des modifications futures.
+
+COMPOSANTS PREVUS
+- reSpeaker XVF3800 + XIAO ESP32-S3, CARTE NUE (sans boitier Seeed)
+  Diametre constructeur PCB : 100,0 mm.
+  Le disque tient dans la couronne superieure, retenu par son bord.
+  NE PAS VISSER A TRAVERS LES QUATRE PORTS MICRO : ce sont des ouvertures acoustiques.
+- Visaton FR 7, 4 ohms, 5 W nominal, Art. 2015
+  Face d'environ 66 x 66 mm, profondeur 29 mm.
+  Diametre du trou acoustique : 61 mm.
+  4 trous chassis de diametre 4,2 mm sur cercle de perçage de diametre 74 mm.
+  Quatre vis M3 a travers les trous du HP, trous 3,3 mm et logements d'ecrous M3 dans le socle.
+  Attention : utiliser la sortie haut-parleur AMPLIFIEE JST du XVF3800 (et pas la prise jack).
+- Ecran de reference : Waveshare 1.85inch Touch LCD Module, 360x360
+  Diametre total : 55 mm. Zone d'affichage : 45,68 mm.
+  Interface QSPI et tactile I2C, connecteur a l'arriere.
+  CADRE ET FIXATION MECANIQUES PROPOSES, compatibilite ELECTRONIQUE/ESPHome non validee !
+  La carte XIAO est contrainte en GPIO : verifier le brochage reel AVANT ACHAT.
+- Plexiglas noir FUME TRANSLUCIDE (pas opaque), diametre 106 mm, epaisseur cible 1,5 mm.
+  Feuillure sur la couronne superieure de 106,5 mm, profondeur 2 mm.
+  Quatre encoches acoustiques au-dessus des MIC (position approximative +/-33, +/-33 mm).
+  IMPORTANT : superposer physiquement le patron au XVF pour verifier les quatre ports.
+  Les lumieres LED devraient rester visibles derriere un materiau a transmission ~20-35 %.
+
+ENCOMBREMENT V1
+- Largeur maxi : 130 mm ; profondeur ~122 mm (facade aplatie) ; hauteur ~158 mm pieds compris.
+- Corps imprimes en 7 pieces + gabarit plexiglas (qui n'est pas a imprimer si decoupe laser).
+- Chambre acoustique independante du compartiment ESP32.
+- HP dirige vers le bas, 12 mm de jeu sous le socle (pieds integres).
+- Ecran circulaire sur facade verticale, XVF pose horizontalement au sommet.
+
+CONTENU
+01_base_haut_parleur_FR7.stl        : fond, passage HP et 3 pieds
+02_caisson_acoustique.stl          : paroi chambre HP 46 mm
+03_cloison_etanche.stl             : fermeture de chambre (passage cable 4,6 mm a etancher)
+04_corps_electronique.stl          : facette avant ecran, fentes d'aeration, passage USB provisoire
+05_couronne_XVF3800_plexi.stl      : sommet, feuillure du plexiglas, accès microphones
+06_cadre_ecran_Waveshare185.stl    : entourage avant de l'écran
+07_maintien_arriere_ecran.stl      : bague de pression arriere de l'ecran
+08_gabarit_plexiglas_non_imprimer.stl : verification 3D du plexiglas UNIQUEMENT
+08...step et tous les *.step       : modeles 3D editables CAD
+ensemble_apercu.step               : corps assemble indicatif (sans ecran/capteurs/HP)
+gabarit_plexiglas_106mm.svg/.dxf  : pour decoupe laser plexiglas 1,5 mm (A VERIFIER)
+generer_kimia.py                   : code CAO parametrique (CadQuery)
+creer_visuels.py                  : code vue 3D et patron decoupe
+apercu_assemblage.png             : aperçu visuel indicatif
+
+MONTAGE DE PRINCIPE
+1. Imprimer un TEST de diametres (ou ces pieces en PETG) et verifier le HP reel.
+2. Fixer le Visaton FR7 contre le fond 01, membrane vers l'exterieur / vers la table.
+   Poser un joint mousse EPDM fin sur son pourtour pour assurer l'etancheite.
+   Vis M3 et écrous dans les logements hexagonaux sous le fond.
+3. Fixer le caisson 02 sur le socle 01 (M3 dans les trous pilotes). Joint fin entre les pieces.
+4. Faire passer le fil HP 2 conducteurs dans 03, et etancher le passage au silicone neutre.
+5. Fixer d abord le compartiment 04 SUR la cloison 03 par les vis accessibles sous 03.
+6. Poser cet ensemble sur 02 puis visser la cloison 03 sur le caisson 02 par le haut
+   a travers le compartiment 04. Ajouter un joint périphérique pour fermer la chambre.
+7. Installer l'ecran Waveshare dans son cadre 06 ; le maintenir par la bague 07 et 4 vis M2.5.
+   Le module est retenu par ses bords, sans serrer le verre tactile.
+8. Installer le XVF3800 nu dans la couronne 05, haut de carte/microphones vers le haut.
+   Le retenir par 4 petites rondelles de maintien depuis dessous avec vis M2.
+   Ne PAS obstruer les microphones; ne pas forcer sur les composants de surface.
+9. Fixer la couronne 05 au corps 04, vis M3 laterales sur les deux montants en regard.
+10. Poser le plexiglas teinté (adhesif souple sur le pourtour, ne pas boucher les micros).
+
+REGLAGES IMPRESSION CONSEILLES
+- PETG (de préférence, rigidite et tenue thermique) ; couche 0,2 mm ; 4 perimetres.
+- Remplissage 20-30 % ; plateau bien calibre, adhesions soignées.
+- Utiliser l'orientation naturelle des STL, verifier pontages/porte-a-faux dans le slicer.
+- Un support peut etre necessaire aux ouvertures et pattes internes du corps 04.
+- Ne jamais imprimer le plexiglas en plastique opaque s'il faut voir les LED.
+- Revisser sans excès : les trous pilotes sont dimensionnes pour des essais de taraudage
+  dans la matiere. Ajuster selon vis et imprimante.
+
+ATTENTION — LIMITES IMPORTANTES
+Ce prototype NE PEUT PAS ETRE GARANTI PRET A MONTER SANS ESSAI REEL :
+1. Je n'ai pas pu importer le STEP constructeur complet du XVF3800, bien que le 2D officiel
+   donne le diametre et les positions des microphones. Les degagements connecteurs et
+   clips de retenue doivent etre verifies physiquement avec le vrai PCB avant montage.
+2. Les micro-ouvertures de la lentille sont APPROXIMATIVES. Surtout ne pas percer au mauvais
+   endroit et couvrir un microphone ; valider avec l'implantation carte nue.
+3. Compatibilite ESPHome de cet ecran QSPI + XVF3800 + SHT45 + LD2410 non acquise :
+   tres peu de GPIO restent disponibles sur le XIAO. Risque de devoir choisir un ecran
+   SPI moins gourmand, ou modifier la conception electronique.
+4. Supports capteurs SHT45 et LD2410 ne sont pas encore dimensionnes, faute de references
+   exactes aux modules nus ; une zone ventilée et un mur radar plastique sont prevus.
+5. L'acoustique, le volume reel de la chambre, la sortie JST et l'antiretour micro/HP
+   doivent etre testes dans le prototype physique. Orientation HP 4 ohms, puissance moderee.
+6. En cas de fabrication serie pour client : tests thermiques, CEM et securite electrique.
+
+REFERENCES OFFICIELLES
+XVF3800 : https://wiki.seeedstudio.com/respeaker_xvf3800_introduction/
+Dessin cote XVF3800 : https://files.seeedstudio.com/wiki/respeaker_xvf3800_usb/respeaker_xvf3800_2d_mechanical_drawing.pdf
+Visaton FR7 : https://www.visaton.de/sites/default/files/dd_product/fr7_4.pdf
+Waveshare 1.85 Touch LCD Module : https://www.waveshare.com/product/1.85inch-touch-lcd-module.htm
+
+Le fichier STL est a importer dans Cura, OrcaSlicer, PrusaSlicer etc. Le G-code depend de
+l'imprimante, du filament et de la buse et ne peut pas etre genere generiquement.
