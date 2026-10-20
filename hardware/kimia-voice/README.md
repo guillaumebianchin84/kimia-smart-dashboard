@@ -40,7 +40,7 @@ python generer_kimia.py
 python creer_visuels.py
 ```
 
-Les exports obtenus ne sont **pas encore testés par impression**. Les modèles STL/STEP du premier prototype sont également conservés dans l'archive **KIMIA_Voice_Prototype_3D_V1.zip**, sauvegardée dans la bibliothèque ChatGPT, dossier **KIMIA Voice**.
+Les exports obtenus ne sont **pas encore testés par impression**. Tous les STL/STEP et gabarits de la V1 sont inclus dans l'archive **[KIMIA_Voice_Prototype_3D_V1.zip](./KIMIA_Voice_Prototype_3D_V1.zip)**, versionnée dans ce dépôt GitHub. Une copie de secours est également disponible dans la bibliothèque ChatGPT, dossier **KIMIA Voice**.
 
 ## Points à résoudre avant V2
 
