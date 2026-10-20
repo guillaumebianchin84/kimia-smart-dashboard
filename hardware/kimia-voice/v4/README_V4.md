@@ -1,6 +1,6 @@
 # KIMIA Voice — V4 / contour esthétique validé
 
-**Référence esthétique impérative :** l'image validée par l'utilisateur `REFERENCE_FORME_VALIDEE.png` (vue de dessus, triangle galet à trois sommets très arrondis, face avant droite). **Ne pas remplacer cette silhouette** par un triangle classique ou un cercle. La source est un rendu perspectif, donc le tracé CAO est une reconstruction dimensionnée et non une conversion photographique exacte.
+**Référence esthétique impérative :** l'image validée par l'utilisateur [REFERENCE_FORME_VALIDEE.png](./REFERENCE_FORME_VALIDEE.png) (vue de dessus, triangle galet à trois sommets très arrondis, face avant droite). **Ne pas remplacer cette silhouette** par un triangle classique ou un cercle. La source est un rendu perspectif, donc le tracé CAO est une reconstruction dimensionnée et non une conversion photographique exacte.
 
 ## Dimensions CAD V4 (mm)
 
@@ -51,3 +51,9 @@
 Les **8 fichiers STL individuels** sont watertight et ne contiennent qu'un seul volume chacun. Les 8 objets CadQuery sont valides. La version V4 est **un prototype CAD non imprimé** : les perçages, l'acoustique, la position de l'écran, les alimentations, les jeux et les emplacements exacts des micros nécessitent un essai réel sur les composants. La disponibilité des GPIO pour ESPHome et l'écran reste à confirmer.
 
 **Ne pas modifier la silhouette V4 sans demande explicite.**
+## Consultation GitHub
+
+- [Voir la photo originale approuvée](./REFERENCE_FORME_VALIDEE.png)
+- [Faire pivoter la V4 en 3D](./00_KIMIA_VOICE_V4_GITHUB.stl)
+
+**Règle de projet :** l'extérieur V4 est une référence de forme, pas une proposition de variation. Les modifications futures doivent concerner principalement les pièces internes et la fabricabilité.
