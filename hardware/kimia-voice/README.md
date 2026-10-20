@@ -65,3 +65,13 @@ Les exports obtenus ne sont **pas encore testés par impression**. Tous les STL/
 **[Ouvrir le modèle assemblé V1 en 3D](./00_VISUALISATION_ENSEMBLE_V1.stl)** : GitHub affiche directement le STL avec rotation et zoom dans un navigateur compatible WebGL. Cette vue comprend les volumes principaux du boîtier, le cadre de l'écran et le plexiglas supérieur, sans les composants électroniques réels. **C'est un fichier de visualisation, pas une pièce à imprimer en un seul bloc.**
 
 Pour imprimer, utiliser **les STL individuels** présents dans [l'archive complète V1](./KIMIA_Voice_Prototype_3D_V1.zip). Pour reconstruire la vue, exécuter `creer_visu_ensemble.py` après avoir généré les composants avec `generer_kimia.py`.
+
+## Dernière évolution — V3 (façade plate élargie)
+
+La V3 répond aux corrections esthétiques : face avant et flancs nettement plus plats, écran rond complètement encastré, grand rayon de raccordement et dessus XVF3800 horizontal. Le caisson de haut-parleur inférieur reste indépendant.
+
+- **[Faire tourner le modèle V3 en 3D sur GitHub](./v3/00_KIMIA_VOICE_V3_GITHUB.stl)**
+- [Paramètres, mesures et statut de fabrication V3](./v3/README_V3.md)
+- [Source CadQuery paramétrique V3](./v3/generer_kimia_v3.py)
+
+**À ne pas confondre :** le STL d'assemblage est réservé à l'aperçu et n'est pas une pièce à imprimer. Les pièces V3 STL/STEP sont régénérables avec le script; l'archive complète est aussi sauvegardée dans la bibliothèque ChatGPT, dossier `KIMIA Voice`. Les emplacements acoustiques du plexiglas et l'interface électronique restent à vérifier sur le matériel réel.
