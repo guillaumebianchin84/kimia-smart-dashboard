@@ -1,9 +1,9 @@
-name: KIMIA Voice - compilation ESPHome
+name: KIMIA Voice - CI Olimex S3 N8R8
 
 on:
   push:
     branches:
-      - test/kimia-voice-esp32-unique
+      - test/kimia-voice-olimex-n8r8
     paths:
       - 'firmware/kimia-voice/**'
       - '.github/workflows/kimia-voice-esphome.yml'
@@ -15,7 +15,7 @@ on:
 
 jobs:
   build:
-    name: Verification et compilation (sans materiel)
+    name: Validation + compilation Olimex / voix / ecran / tactile / capteurs
     runs-on: ubuntu-latest
     timeout-minutes: 55
     container:
@@ -24,7 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Secrets factices pour la CI (ne jamais flasher)
+      - name: Identifiants FACTICES CI (ne pas flasher)
         shell: bash
         run: |
           cat > firmware/kimia-voice/secrets.yaml <<'EOF'
@@ -34,19 +34,19 @@ jobs:
           api_key: "MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA="
           EOF
 
-      - name: Validation configuration ESPHome
-        run: esphome config firmware/kimia-voice/kimia_voice_ci.yaml
+      - name: Validation configuration ESPHome (Olimex)
+        run: esphome config firmware/kimia-voice/kimia_voice_olimex_ci.yaml
 
-      - name: Compilation reelle ESPHome
-        run: esphome compile firmware/kimia-voice/kimia_voice_ci.yaml
+      - name: Compilation firmware ESPHome (Olimex)
+        run: esphome compile firmware/kimia-voice/kimia_voice_olimex_ci.yaml
 
-      - name: Publier binaire de test (NON FLASHABLE EN PRODUCTION)
+      - name: Publier les vrais fichiers binaires de test
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: KIMIA-Voice-CI-test-sans-materiel
+          name: KIMIA-Voice-Olimex-CI-NON-FLASHER
           path: |
-            firmware/kimia-voice/.esphome/build/kimia-voice-ci/.pioenvs/kimia-voice-ci/firmware.bin
-            firmware/kimia-voice/.esphome/build/kimia-voice-ci/.pioenvs/kimia-voice-ci/firmware.factory.bin
-          if-no-files-found: warn
+            firmware/kimia-voice/.esphome/build/kimia-voice-olimex-ci/build/firmware.factory.bin
+            firmware/kimia-voice/.esphome/build/kimia-voice-olimex-ci/build/firmware.ota.bin
+          if-no-files-found: error
           retention-days: 5
