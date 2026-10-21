@@ -43,3 +43,14 @@ Toutes les modifications sont isolees de la V5 mecanique et d'Ikabot.
 - Driver XVF3800 audio et ses packages: https://github.com/formatBCE/Respeaker-XVF3800-ESPHome-integration/tree/2026.10.1/packages
 - Seeed reSpeaker XVF3800: https://wiki.seeedstudio.com/respeaker_xvf3800_with_xiao_intro/
 - Waveshare ecran nu: https://www.waveshare.com/product/1.85inch-touch-lcd-module.htm
+
+
+## Resultat compilation ESPHome — 21 octobre 2026
+- [GitHub Actions run 39652116167](https://github.com/guillaumebianchin84/kimia-smart-dashboard/actions/runs/39652116167) : **SUCCESS**.
+- `esphome config` : SUCCESS.
+- `esphome compile` : SUCCESS avec ESPHome 2026.9.1.
+- Code Flash : **3 135 711 octets / 3 932 160 octets**, **79.7 % de la partition application**.
+- RAM interne statique : **154 431 octets / 341 760 octets**, **45.2 %**.
+- Fichiers `firmware.factory.bin` et `firmware.ota.bin` disponibles comme artefact GitHub Actions `KIMIA-Voice-Olimex-CI-NON-FLASHER` (expiration 5 jours).
+- La compilation avec tactile CST816S, capteur SHT45 et radar LD2410 est bien effective (ces blocs figurent dans le YAML de test).
+- Cela ne prouve pas la compatibilite du pilote JC3636W518 avec le module Waveshare, le câblage exact du XMOS après dessoudage du XIAO, ni le fonctionnement du son physique ou AEC. Aucun feu vert pour montage direct sans revue des connexions.
