@@ -1,0 +1,52 @@
+name: KIMIA Voice - compilation ESPHome
+
+on:
+  push:
+    branches:
+      - test/kimia-voice-esp32-unique
+    paths:
+      - 'firmware/kimia-voice/**'
+      - '.github/workflows/kimia-voice-esphome.yml'
+  pull_request:
+    paths:
+      - 'firmware/kimia-voice/**'
+      - '.github/workflows/kimia-voice-esphome.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Verification et compilation (sans materiel)
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    container:
+      image: ghcr.io/esphome/esphome:2026.9.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Secrets factices pour la CI (ne jamais flasher)
+        shell: bash
+        run: |
+          cat > firmware/kimia-voice/secrets.yaml <<'EOF'
+          wifi_ssid: "KIMIA_CI_FAKE"
+          wifi_password: "KIMIA_CI_NOT_REAL_PASSWORD"
+          ota_password: "KIMIA_CI_NOT_REAL_OTA_PASSWORD"
+          api_key: "MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA="
+          EOF
+
+      - name: Validation configuration ESPHome
+        run: esphome config firmware/kimia-voice/kimia_voice_ci.yaml
+
+      - name: Compilation reelle ESPHome
+        run: esphome compile firmware/kimia-voice/kimia_voice_ci.yaml
+
+      - name: Publier binaire de test (NON FLASHABLE EN PRODUCTION)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: KIMIA-Voice-CI-test-sans-materiel
+          path: |
+            firmware/kimia-voice/.esphome/build/kimia-voice-ci/.pioenvs/kimia-voice-ci/firmware.bin
+            firmware/kimia-voice/.esphome/build/kimia-voice-ci/.pioenvs/kimia-voice-ci/firmware.factory.bin
+          if-no-files-found: warn
+          retention-days: 5
