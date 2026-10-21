@@ -1,0 +1,87 @@
+# KIMIA Voice - ESSAI DE COMPILATION SANS MATERIEL.
+# 1 ESP32-S3 N16R8 / XVF3800 / Waveshare 1.85" ST77916 QSPI.
+# NE PAS FLASHER CETTE CONFIG SUR UN APPAREIL EXISTANT.
+#
+# ATTENTION: le package formatBCE vise le XVF3800 avec XIAO soude.
+# Sur un XVF3800 nu, la disponibilite des connexions I2S/I2C et
+# l'alimentation du codec sont a controler sur le PCB.
+# Le preset d'affichage JC3636W518 partage le controleur ST77916,
+# mais sa sequence d'initialisation ne constitue pas une validation
+# du module Waveshare 1.85". Test materiel obligatoire.
+
+substitutions:
+  name: kimia-voice-ci
+  friendly_name: KIMIA Voice CI
+  respeaker_ref: 2026.10.1
+
+# On conserve LES CINQ packages; pas de suppression du pipeline vocal.
+packages:
+  respeaker:
+    url: https://github.com/formatBCE/Respeaker-XVF3800-ESPHome-integration
+    ref: ${respeaker_ref}
+    refresh: 1d
+    files:
+      - packages/base.yaml
+      - packages/hardware.yaml
+      - packages/voice-assistant.yaml
+      - packages/leds.yaml
+      - packages/timers-alarm.yaml
+
+# Valeurs FACTICES injectees seulement par GitHub Actions.
+# En installation reelle creer secrets.yaml personnel hors git.
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  - platform: esphome
+    id: ota_esphome
+    password: !secret ota_password
+
+# GPIO5,6: I2C du package XVF; GPIO7,8,43,44: I2S du XVF.
+# GPIO10-17: ecran seul. Ne pas connecter a une carte sans
+# schema de raccordement et validation des capacites disponibles.
+spi:
+  - id: kimia_lcd_qspi
+    type: quad
+    clk_pin: GPIO10
+    data_pins: [GPIO11, GPIO12, GPIO13, GPIO14]
+
+display:
+  - platform: mipi_spi
+    id: kimia_lcd
+    model: JC3636W518
+    bus_mode: quad
+    spi_id: kimia_lcd_qspi
+    cs_pin: GPIO15
+    reset_pin: GPIO16
+    data_rate: 20MHz
+    dimensions:
+      width: 360
+      height: 360
+    invert_colors: true
+    color_order: rgb
+    update_interval: 1s
+    lambda: |-
+      it.fill(Color(0, 0, 0));
+      it.filled_circle(180, 180, 32, Color(17, 180, 120));
+
+output:
+  - platform: ledc
+    pin: GPIO17
+    id: kimia_lcd_backlight_pwm
+
+light:
+  - platform: monochromatic
+    id: kimia_lcd_backlight
+    name: "KIMIA rétroéclairage"
+    output: kimia_lcd_backlight_pwm
+    restore_mode: ALWAYS_ON
+
+# Non inclus pour isoler les problemes de compilation :
+# - tactile CST816S, SHT45, LD2410
+# Une fois le coeur vocal + LCD compile, ajouter par etapes.
