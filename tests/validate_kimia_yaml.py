@@ -38,4 +38,10 @@ assert any(c.get("type") == "custom:kimia-scenarios-v1-card"
 assert any(c.get("type") == "custom:kimia-setup-v1-card"
            for c in cards(admin_views["demarrer"]))
 assert "kimia-smart/" not in str(main) and "kimia-test/" not in str(main)
+package_text = Path("packages/kimia_tablette_v1.yaml").read_text(encoding="utf-8")
+package = yaml.safe_load(package_text)
+assert len(package["script"]) == 7
+assert len(package["input_text"]) == 7
+assert "script.xxx" not in package_text
+assert "Dans KIMIA Configuration" in package_text
 print("YAML KIMIA v1 : OK - 10 vues client, 5 vues admin, cartes independantes, isolation")
