@@ -1,4 +1,4 @@
-> **Mise à jour du 18 octobre — dashboard `kimia-smart` :** les 9 Navbar Card ont des liens `/kimia-smart/...` (plus de `/dashboard-test/...`). Les boutons sont masqués par `input_boolean.kimia_onglet_*` lorsque leur état est `off`, y compris dans « Plus » sur mobile. **Pas de `tap_action` ajouté aux liens de navigation**, pour conserver le comportement natif de Navbar Card. Les onglets natifs HA restent présents ; les cartes et le bandeau Accueil ne changent pas. **Validation statique GitHub faite ; test sur la VM Home Assistant encore nécessaire.** L'ancien dashboard `dashboard-test` doit être copié/créé sous le chemin `kimia-smart` pour que les raccourcis aboutissent. Les interrupteurs Admin doivent exister (package ci-dessous).
+> **Mise à jour du 25 octobre — dashboard `kimia-smart` :** les neuf Navbar Card adoptent le modèle du dashboard Maison : raccourcis directs, barre flottante à gauche sur ordinateur, libellés masqués. Les neuf routes `/kimia-smart/...` sont identiques sur chaque vue. Les huit interrupteurs `input_boolean.kimia_onglet_*` restent actifs : OFF masque le raccourci associé. L'ancien menu « Plus » et la navigation spécifique docked ont été supprimés pour harmoniser l'interface. Les onglets natifs restent inchangés. Vérifier sur la VM Home Assistant après import.
 
 # KIMIA Administration — afficher et masquer les onglets
 
@@ -18,9 +18,9 @@ Ce dashboard contient **8 interrupteurs natifs** et un compteur d'onglets actifs
 
 **Accueil reste toujours affiché.**
 
-Un bouton OFF masque la route correspondante dans **Navbar Card**, y compris dans le menu « Plus » du téléphone. Un bouton ON la réaffiche.
+Un bouton OFF masque la route correspondante dans **Navbar Card**, sur toutes les résolutions. Un bouton ON la réaffiche.
 
-**Important :** les huit vues restent visibles dans les **onglets natifs Home Assistant**. Les interrupteurs ne masquent que les boutons de la **Navbar Card** et les entrées du menu « Plus ». L'option `visible: false`, initialement utilisée, supprimait tous les onglets secondaires de la barre native et a donc été retirée. Home Assistant ne permet pas de relier directement la visibilité des onglets natifs aux `input_boolean`. Pour une expérience de navigation uniquement via Navbar, il faut masquer la barre d'onglets native séparément via l'interface/Kiosk Mode, après validation de Navbar. Une URL directe reste accessible.
+**Important :** les huit vues restent visibles dans les **onglets natifs Home Assistant**. Les interrupteurs ne masquent que les boutons de la **Navbar Card**. L'option `visible: false`, initialement utilisée, supprimait tous les onglets secondaires de la barre native et a donc été retirée. Home Assistant ne permet pas de relier directement la visibilité des onglets natifs aux `input_boolean`. Pour une expérience de navigation uniquement via Navbar, il faut masquer la barre d'onglets native séparément via l'interface/Kiosk Mode, après validation de Navbar. Une URL directe reste accessible.
 
 Le bandeau de l'Accueil, la maquette, la météo et les équipements n'ont pas été modifiés pour cette fonctionnalité. Seule sa Navbar Card lit maintenant les interrupteurs.
 
@@ -33,7 +33,7 @@ Le bandeau de l'Accueil, la maquette, la météo et les équipements n'ont pas �
 5. Dans **Paramètres > Tableaux de bord**, créer un nouveau dashboard **KIMIA Administration**. Cocher **Admin uniquement** (ou « Visible uniquement pour les administrateurs » selon la version). Il est préférable de le masquer de la barre latérale des comptes non administrateurs. Le créer en mode **interface** pour conserver le déplacement et le redimensionnement des cartes.
 6. Ouvrir **KIMIA Administration > Modifier > Éditeur de configuration brute**. Coller `kimia-admin-ui-import.yaml` au complet, puis enregistrer. Le chemin d'accès est celui attribué par HA lors de la création.
 7. Dans le dashboard KIMIA Smart existant, sauvegarder l'ancien YAML puis importer le nouveau `dashboard-ui-import.yaml`. Ne pas le coller dans une seule carte.
-8. Tester sur PC et sur téléphone : désactiver **Musique**, vérifier son absence dans la Navbar latérale et dans le popup « Plus » sur mobile ; réactiver **Musique** et vérifier son retour. Tester les autres interrupteurs.
+8. Tester sur PC et sur téléphone : désactiver **Musique**, vérifier son absence dans la Navbar flottante et sur mobile ; réactiver **Musique** et vérifier son retour. Tester les autres interrupteurs.
 9. Vérifier que les choix persistent après redémarrage Home Assistant.
 
 La branche GitHub ne déploie pas automatiquement ces fichiers sur la VM.
