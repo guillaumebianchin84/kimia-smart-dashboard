@@ -27,6 +27,18 @@ views:
             grid_options:
               columns: full
               rows: auto
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Mettre à jour mon dashboard
+            icon: mdi:cards-outline
+          - type: custom:kimia-dashboard-sync-card
+            dashboard: kimia-test
+            view: pieces
+            grid_options:
+              columns: full
+              rows: auto
   - title: Appareils
     path: zigbee
     icon: mdi:zigbee
