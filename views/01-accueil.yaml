@@ -263,49 +263,41 @@ sections:
         columns: 2
         square: false
         cards:
-          - type: custom:button-card
-            template: kimia_v08_scene
-            entity: script.kimia_au_lit
-            name: Au lit
+          - type: shortcut
+            label: Au lit
+            description: Préparer la maison pour la nuit
             icon: mdi:weather-night
-            variables:
-              couleur: '#B6ACFF'
+            color: purple
             tap_action:
               action: perform-action
               perform_action: script.turn_on
               target:
                 entity_id: script.kimia_au_lit
-          - type: custom:button-card
-            template: kimia_v08_scene
-            entity: script.kimia_depart
-            name: Départ
+          - type: shortcut
+            label: Départ
+            description: Activer le scénario de départ
             icon: mdi:door-open
-            variables:
-              couleur: '#4FE39B'
+            color: green
             tap_action:
               action: perform-action
               perform_action: script.turn_on
               target:
                 entity_id: script.kimia_depart
-          - type: custom:button-card
-            template: kimia_v08_scene
-            entity: script.kimia_retour
-            name: Retour
+          - type: shortcut
+            label: Retour
+            description: Préparer le retour à la maison
             icon: mdi:home-import-outline
-            variables:
-              couleur: '#4BCBFF'
+            color: blue
             tap_action:
               action: perform-action
               perform_action: script.turn_on
               target:
                 entity_id: script.kimia_retour
-          - type: custom:button-card
-            template: kimia_v08_scene
-            entity: script.kimia_reveil
-            name: Réveil
+          - type: shortcut
+            label: Réveil
+            description: Lancer le scénario du matin
             icon: mdi:weather-sunny
-            variables:
-              couleur: '#FFCE56'
+            color: amber
             tap_action:
               action: perform-action
               perform_action: script.turn_on
