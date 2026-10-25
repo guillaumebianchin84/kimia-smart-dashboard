@@ -1,0 +1,29 @@
+name: KIMIA v1 - validations
+on:
+  push:
+    branches:
+      - feat/kimia-produit-v1-20261025
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verification JavaScript
+        run: |
+          node --check www/kimia-smart-core-v1.js
+          node --check www/kimia-setup-v1-card.js
+          node --check www/kimia-room-manager-v1-card.js
+          node --check www/kimia-zigbee-manager-v1-card.js
+          node --check www/kimia-scenarios-v1-card.js
+          node tests/kimia_v1.test.cjs
+      - name: Verification YAML
+        run: |
+          pip install PyYAML
+          python tests/validate_kimia_yaml.py
