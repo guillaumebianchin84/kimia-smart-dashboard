@@ -62,6 +62,7 @@ Créer chaque dashboard via Paramètres → Tableaux de bord → Ajouter un tabl
 - Navbar Card, Maquette Card, Clock Weather Card, RSS News Card (HACS / ressources existantes).
 - Coordonnateur Zigbee/ZHA installé pour l'appairage. Aucun équipement n'est créé fictivement.
 - Pour le choix des scénarios : package `packages/kimia_tablette_v08.yaml` (helpers et scripts façade) déjà présent **une seule fois**.
+- **Option de finition après validation** : `packages/kimia_tablette_v1.yaml` supprime les références techniques dans les notifications. Remplacer la V08 par la V1 (avec sauvegarde), ne jamais installer les deux ensemble : elles définissent les mêmes entités et scripts. Ce remplacement n'est pas requis pour le premier essai.
 - Pour les thèmes : `packages/kimia_client_theme.yaml`, 8 thèmes YAML déjà installés.
 - Pour masquer la navbar : `packages/kimia_admin_navigation.yaml`.
 - Vérifier une seule inclusion `homeassistant.packages: !include_dir_named packages` dans `configuration.yaml`.
