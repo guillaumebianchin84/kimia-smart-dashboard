@@ -1,0 +1,246 @@
+title: KIMIA · Configuration
+views:
+  - title: Démarrer
+    path: demarrer
+    icon: mdi:home-heart
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Bienvenue chez KIMIA
+            heading_style: title
+            icon: mdi:home-heart
+          - type: markdown
+            content: >-
+              Configurez votre maison en quelques gestes. Vos équipements apparaissent automatiquement dans votre espace personnel.
+
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:kimia-setup-v1-card
+            grid_options:
+              columns: full
+              rows: auto
+      - type: grid
+        cards:
+          - type: heading
+            heading: Mise en route
+            icon: mdi:progress-check
+          - type: shortcut
+            label: Créer mes pièces
+            description: Salon, cuisine, chambre…
+            icon: mdi:home-plus
+            color: teal
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-admin-next/pieces
+          - type: shortcut
+            label: Ajouter un appareil
+            description: Prises et ampoules Zigbee
+            icon: mdi:zigbee
+            color: blue
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-admin-next/appareils
+      - type: grid
+        cards:
+          - type: heading
+            heading: Ma maison
+            icon: mdi:house
+          - type: shortcut
+            label: Ouvrir KIMIA Smart
+            description: Voir le résultat dans mon logement
+            icon: mdi:home-heart-outline
+            color: green
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/accueil
+  - title: Pièces
+    path: pieces
+    icon: mdi:floor-plan
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Les pièces de ma maison
+            heading_style: title
+            icon: mdi:floor-plan
+          - type: markdown
+            content: >-
+              Créez votre salon ou vos chambres avec un simple nom. L'affichage KIMIA se prépare automatiquement.
+
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:kimia-room-manager-v1-card
+            grid_options:
+              columns: full
+              rows: auto
+      - type: grid
+        column_span: 2
+        cards:
+          - type: shortcut
+            label: Voir mes pièces
+            icon: mdi:floor-plan
+            color: teal
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/pieces
+  - title: Appareils
+    path: appareils
+    icon: mdi:zigbee
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Mes appareils
+            heading_style: title
+            icon: mdi:zigbee
+          - type: markdown
+            content: >-
+              Lancez la recherche, mettez votre appareil Zigbee en mode association, donnez-lui un nom et choisissez sa pièce. KIMIA prépare les commandes.
+
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:kimia-zigbee-manager-v1-card
+            grid_options:
+              columns: full
+              rows: auto
+      - type: grid
+        cards:
+          - type: heading
+            heading: Après l'installation
+            icon: mdi:check-circle-outline
+          - type: shortcut
+            label: Piloter mon appareil
+            icon: mdi:home-heart-outline
+            color: teal
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/pieces
+  - title: Apparence
+    path: apparence
+    icon: mdi:palette
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Choisir les rubriques
+            heading_style: title
+            icon: mdi:palette
+          - type: markdown
+            content: >-
+              Affichez seulement ce qui vous sert. L'Accueil reste toujours disponible. Les thèmes restent accessibles à tous depuis Réglages.
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Mes rubriques
+            icon: mdi:eye-settings-outline
+          - type: tile
+            entity: input_boolean.kimia_onglet_lumieres
+            name: Lumières
+            icon: mdi:lightbulb-group-outline
+            tap_action:
+              action: toggle
+          - type: tile
+            entity: input_boolean.kimia_onglet_volets
+            name: Volets
+            icon: mdi:window-shutter
+            tap_action:
+              action: toggle
+          - type: tile
+            entity: input_boolean.kimia_onglet_climatisation
+            name: Climatisation
+            icon: mdi:thermostat
+            tap_action:
+              action: toggle
+          - type: tile
+            entity: input_boolean.kimia_onglet_musique
+            name: Musique
+            icon: mdi:music
+            tap_action:
+              action: toggle
+          - type: tile
+            entity: input_boolean.kimia_onglet_securite
+            name: Sécurité
+            icon: mdi:shield-home-outline
+            tap_action:
+              action: toggle
+          - type: tile
+            entity: input_boolean.kimia_onglet_prises
+            name: Prises
+            icon: mdi:power-socket-eu
+            tap_action:
+              action: toggle
+          - type: tile
+            entity: input_boolean.kimia_onglet_actualites
+            name: Actualités
+            icon: mdi:newspaper-variant-outline
+            tap_action:
+              action: toggle
+          - type: tile
+            entity: input_boolean.kimia_onglet_parametres
+            name: Réglages
+            icon: mdi:cog-outline
+            tap_action:
+              action: toggle
+      - type: grid
+        cards:
+          - type: heading
+            heading: Les thèmes KIMIA
+            icon: mdi:palette-outline
+          - type: shortcut
+            label: Personnaliser l'apparence
+            description: Accessible aussi aux habitants
+            icon: mdi:palette
+            color: teal
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/parametres
+  - title: Scénarios
+    path: scenarios
+    icon: mdi:lightning-bolt
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Mes habitudes
+            heading_style: title
+            icon: mdi:lightning-bolt
+          - type: markdown
+            content: >-
+              Associez les boutons Au lit, Départ, Retour, Réveil et les ambiances à vos routines, sans manipuler de codes.
+
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:kimia-scenarios-v1-card
+            grid_options:
+              columns: full
+              rows: auto
+      - type: grid
+        cards:
+          - type: shortcut
+            label: Tester sur mon Accueil
+            icon: mdi:gesture-tap-button
+            color: teal
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/accueil
