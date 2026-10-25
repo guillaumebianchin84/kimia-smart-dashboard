@@ -372,9 +372,9 @@ views:
             heading: Mes scénarios
             icon: mdi:gesture-tap-button
           - type: shortcut
-              grid_options:
-                columns: 6
-                rows: 2
+            grid_options:
+              columns: 6
+              rows: 2
             label: Au lit
             description: Préparer la maison pour la nuit
             icon: mdi:weather-night
@@ -385,9 +385,9 @@ views:
               target:
                 entity_id: script.kimia_au_lit
           - type: shortcut
-              grid_options:
-                columns: 6
-                rows: 2
+            grid_options:
+              columns: 6
+              rows: 2
             label: Départ
             description: Activer le scénario de départ
             icon: mdi:door-open
@@ -398,9 +398,9 @@ views:
               target:
                 entity_id: script.kimia_depart
           - type: shortcut
-              grid_options:
-                columns: 6
-                rows: 2
+            grid_options:
+              columns: 6
+              rows: 2
             label: Retour
             description: Préparer le retour à la maison
             icon: mdi:home-import-outline
@@ -411,9 +411,9 @@ views:
               target:
                 entity_id: script.kimia_retour
           - type: shortcut
-              grid_options:
-                columns: 6
-                rows: 2
+            grid_options:
+              columns: 6
+              rows: 2
             label: Réveil
             description: Lancer le scénario du matin
             icon: mdi:weather-sunny
