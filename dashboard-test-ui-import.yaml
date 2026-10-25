@@ -367,54 +367,73 @@ views:
                   overflow: hidden;
                 }
 
-          # Scénarios rapides avec véritables boutons ; raccordement par package.
-          - type: grid
+          # Chaque raccourci est une VRAIE carte native independante.
+          - type: heading
+            heading: Mes scénarios
+            icon: mdi:gesture-tap-button
+          - type: shortcut
+              grid_options:
+                columns: 6
+                rows: 2
+            label: Au lit
+            description: Préparer la maison pour la nuit
+            icon: mdi:weather-night
+            color: purple
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.kimia_au_lit
+          - type: shortcut
+              grid_options:
+                columns: 6
+                rows: 2
+            label: Départ
+            description: Activer le scénario de départ
+            icon: mdi:door-open
+            color: green
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.kimia_depart
+          - type: shortcut
+              grid_options:
+                columns: 6
+                rows: 2
+            label: Retour
+            description: Préparer le retour à la maison
+            icon: mdi:home-import-outline
+            color: blue
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.kimia_retour
+          - type: shortcut
+              grid_options:
+                columns: 6
+                rows: 2
+            label: Réveil
+            description: Lancer le scénario du matin
+            icon: mdi:weather-sunny
+            color: amber
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.kimia_reveil
+          - type: shortcut
+            label: Mes pièces
+            description: Retrouver mes pièces et appareils
+            icon: mdi:floor-plan
+            color: teal
             grid_options:
               columns: full
-              rows: auto
-            columns: 2
-            square: false
-            cards:
-              - type: shortcut
-                label: Au lit
-                description: Préparer la maison pour la nuit
-                icon: mdi:weather-night
-                color: purple
-                tap_action:
-                  action: perform-action
-                  perform_action: script.turn_on
-                  target:
-                    entity_id: script.kimia_au_lit
-              - type: shortcut
-                label: Départ
-                description: Activer le scénario de départ
-                icon: mdi:door-open
-                color: green
-                tap_action:
-                  action: perform-action
-                  perform_action: script.turn_on
-                  target:
-                    entity_id: script.kimia_depart
-              - type: shortcut
-                label: Retour
-                description: Préparer le retour à la maison
-                icon: mdi:home-import-outline
-                color: blue
-                tap_action:
-                  action: perform-action
-                  perform_action: script.turn_on
-                  target:
-                    entity_id: script.kimia_retour
-              - type: shortcut
-                label: Réveil
-                description: Lancer le scénario du matin
-                icon: mdi:weather-sunny
-                color: amber
-                tap_action:
-                  action: perform-action
-                  perform_action: script.turn_on
-                  target:
-                    entity_id: script.kimia_reveil
+              rows: 1
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-test/pieces
 
           # RSS réels, sans dépendre des sensor.kimia_flash_*.
           - type: custom:rss-news-card
@@ -1923,6 +1942,73 @@ views:
               volontairement absents de cette page.
       - type: grid
         cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /kimia-test/accueil
+                icon: mdi:home
+                label: Accueil
+              - url: /kimia-test/lumieres
+                icon: mdi:lightbulb-on
+                label: Lumières
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_lumieres"]?.state === "off"; ]]]
+              - url: /kimia-test/volets
+                icon: mdi:window-shutter
+                label: Volets
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state === "off"; ]]]
+              - url: /kimia-test/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_climatisation"]?.state === "off"; ]]]
+              - url: /kimia-test/musique
+                icon: mdi:music
+                label: Musique
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_musique"]?.state === "off"; ]]]
+              - url: /kimia-test/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_securite"]?.state === "off"; ]]]
+              - url: /kimia-test/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_prises"]?.state === "off"; ]]]
+              - url: /kimia-test/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_actualites"]?.state === "off"; ]]]
+              - url: /kimia-test/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: |
+                  [[[ return states["input_boolean.kimia_onglet_parametres"]?.state === "off"; ]]]
+            desktop:
+              mode: floating
+              position: left
+              show_labels: never
+  - title: Pièces
+    path: pieces
+    icon: mdi:floor-plan
+    type: sections
+    max_columns: 3
+    sections:
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading: Pièces de la maison
+            icon: mdi:floor-plan
+          - type: markdown
+            content: >-
+              Les pièces créées dans KIMIA apparaissent ici après
+              synchronisation dans KIMIA Administration.
+              Chaque pièce est une carte Zone native indépendante,
+              que vous pouvez déplacer, redimensionner et personnaliser.
           - type: custom:navbar-card
             routes:
               - url: /kimia-test/accueil
