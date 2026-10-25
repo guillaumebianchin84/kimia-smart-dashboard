@@ -1,6 +1,3 @@
-# KIMIA V0.9 — Maquette dans sa propre carte, sections natives Home Assistant.
-# Aucun custom:layout-card n'est utilisé. Une carte par fonction.
-# Géométrie Maquette et image conservées à l'identique de la V0.8.
 title: Accueil
 path: accueil
 icon: mdi:home-variant
@@ -94,19 +91,14 @@ sections:
             rooms:
               - name: Salon / Séjour
                 poly: [[40, 80], [905, 80], [905, 560], [40, 560]]
-                label: [470, 320]
               - name: Cuisine
                 poly: [[905, 80], [1455, 80], [1455, 500], [905, 500]]
-                label: [1180, 250]
               - name: Chambre 1
                 poly: [[40, 560], [490, 560], [490, 1040], [40, 1040]]
-                label: [265, 805]
               - name: Chambre 2
                 poly: [[490, 560], [905, 560], [905, 1040], [490, 1040]]
-                label: [700, 805]
               - name: Terrasse
                 poly: [[905, 500], [1455, 500], [1455, 1040], [905, 1040]]
-                label: [1180, 780]
                 outside: true
                 temperature: weather.forecast_lbv
                 temperature_attribute: temperature
@@ -227,11 +219,10 @@ sections:
                 tap: none
             furniture: []
             background:
-              image: /api/image/serve/ff117c7cfa8067ef6fc7005b20d1d041/original
+              image: /api/image/serve/ebec086d86139c746e6c96840972461c/original
               pos: [0, 0]
               width: 1499
               height: 1049
-              rotation: 0
               opacity: 1
               room_opacity: 0.18
               show: always
@@ -350,80 +341,51 @@ sections:
               overflow: hidden;
             }
       - type: custom:navbar-card
-        grid_options:
-          columns: 1
-          rows: 1
-        desktop:
-          mode: docked
-          position: left
-          show_labels: false
-          min_width: 768
-        mobile:
-          mode: docked
-          show_labels: false
-          safe_area: true
-        layout:
-          auto_padding:
-            enabled: true
-            desktop_px: 80
-            mobile_px: 70
         routes:
           - url: /kimia-smart/accueil
-            icon: mdi:home-variant
+            icon: mdi:home
             label: Accueil
           - url: /kimia-smart/lumieres
-            icon: mdi:lightbulb-group-outline
+            icon: mdi:lightbulb-on
             label: Lumières
+            hidden: |
+              [[[ return states["input_boolean.kimia_onglet_lumieres"]?.state === "off"; ]]]
           - url: /kimia-smart/volets
             icon: mdi:window-shutter
             label: Volets
+            hidden: |
+              [[[ return states["input_boolean.kimia_onglet_volets"]?.state === "off"; ]]]
           - url: /kimia-smart/climatisation
             icon: mdi:air-conditioner
             label: Clim
+            hidden: |
+              [[[ return states["input_boolean.kimia_onglet_climatisation"]?.state === "off"; ]]]
           - url: /kimia-smart/musique
-            icon: mdi:music-note
+            icon: mdi:music
             label: Musique
             hidden: |
-              [[[ return !navbar.isDesktop; ]]]
+              [[[ return states["input_boolean.kimia_onglet_musique"]?.state === "off"; ]]]
           - url: /kimia-smart/securite
             icon: mdi:shield-home-outline
             label: Sécurité
             hidden: |
-              [[[ return !navbar.isDesktop; ]]]
+              [[[ return states["input_boolean.kimia_onglet_securite"]?.state === "off"; ]]]
           - url: /kimia-smart/prises
             icon: mdi:power-socket-eu
             label: Prises
             hidden: |
-              [[[ return !navbar.isDesktop; ]]]
+              [[[ return states["input_boolean.kimia_onglet_prises"]?.state === "off"; ]]]
           - url: /kimia-smart/actualites
             icon: mdi:newspaper-variant-outline
             label: Actualités
             hidden: |
-              [[[ return !navbar.isDesktop; ]]]
+              [[[ return states["input_boolean.kimia_onglet_actualites"]?.state === "off"; ]]]
           - url: /kimia-smart/parametres
             icon: mdi:cog-outline
             label: Réglages
             hidden: |
-              [[[ return !navbar.isDesktop; ]]]
-          - icon: mdi:dots-horizontal
-            label: Plus
-            hidden: |
-              [[[ return navbar.isDesktop; ]]]
-            tap_action:
-              action: open-popup
-            popup:
-              - url: /kimia-smart/musique
-                icon: mdi:music-note
-                label: Musique
-              - url: /kimia-smart/securite
-                icon: mdi:shield-home-outline
-                label: Sécurité
-              - url: /kimia-smart/prises
-                icon: mdi:power-socket-eu
-                label: Prises
-              - url: /kimia-smart/actualites
-                icon: mdi:newspaper-variant-outline
-                label: Actualités
-              - url: /kimia-smart/parametres
-                icon: mdi:cog-outline
-                label: Réglages
+              [[[ return states["input_boolean.kimia_onglet_parametres"]?.state === "off"; ]]]
+        desktop:
+          mode: floating
+          position: left
+          show_labels: never

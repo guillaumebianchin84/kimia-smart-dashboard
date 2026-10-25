@@ -7,87 +7,235 @@ sections:
   - type: grid
     column_span: 2
     cards:
-      - type: button
-        name: Ouvrir Configuration client
-        icon: mdi:palette
-        tap_action:
-          action: navigate
-          navigation_path: /kimia-client/configuration
-      - type: custom:navbar-card
+      - type: custom:button-card
+        show_icon: false
+        show_name: false
+        show_state: false
+        show_label: false
         grid_options:
-          columns: 1
-          rows: 1
-        desktop:
-          mode: docked
-          position: left
-          show_labels: false
-          min_width: 768
-        mobile:
-          mode: docked
-          show_labels: false
-          safe_area: true
-        layout:
-          auto_padding:
-            enabled: true
-            desktop_px: 80
-            mobile_px: 70
+          columns: full
+          rows: auto
+        tap_action:
+          action: none
+        custom_fields:
+          logo: |
+            [[[
+              return '<div style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA <span style="color:#3FD6CB">Smart</span><div style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by PROMAINT</div></div>';
+            ]]]
+          slogan: |
+            [[[
+              return '<div style="font-size:20px;font-weight:800;letter-spacing:.2px;">Ma maison</div>';
+            ]]]
+          localisation: |
+            [[[
+              return '<div style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE · GABON</div>';
+            ]]]
+        styles:
+          card:
+            - background: 'linear-gradient(105deg, rgba(12,137,147,.25), var(--card-background-color) 68%)'
+            - border: '1px solid rgba(56,205,203,.28)'
+            - border-radius: 18px
+            - padding: 9px 18px
+            - box-shadow: '0 5px 22px rgba(0,25,35,.12)'
+          grid:
+            - grid-template-areas: '"logo slogan localisation"'
+            - grid-template-columns: '225px 1fr 150px'
+            - grid-template-rows: auto
+            - align-items: center
+          custom_fields:
+            logo:
+              - text-align: left
+              - justify-self: start
+            slogan:
+              - text-align: center
+              - color: var(--primary-text-color)
+            localisation:
+              - text-align: right
+              - justify-self: end
+              - color: var(--secondary-text-color)
+  - type: grid
+    cards:
+      - type: heading
+        heading: Choisir un thème
+        icon: mdi:palette
+      - type: button
+        name: "Gris Premium"
+        icon: mdi:palette
+        show_name: true
+        show_icon: true
+        show_state: false
+        color: teal
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Gris Premium"
+      - type: button
+        name: "Clair"
+        icon: mdi:weather-sunny
+        show_name: true
+        show_icon: true
+        show_state: false
+        color: cyan
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Clair"
+      - type: button
+        name: "Sombre"
+        icon: mdi:weather-night
+        show_name: true
+        show_icon: true
+        show_state: false
+        color: indigo
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Sombre"
+      - type: button
+        name: "Signature"
+        icon: mdi:home-heart
+        show_name: true
+        show_icon: true
+        show_state: false
+        color: blue
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Signature"
+      - type: button
+        name: "Vert Sauge"
+        icon: mdi:leaf
+        show_name: true
+        show_icon: true
+        show_state: false
+        color: green
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Vert Sauge"
+      - type: button
+        name: "Violet Nuit"
+        icon: mdi:weather-night
+        show_name: true
+        show_icon: true
+        show_state: false
+        color: deep-purple
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Violet Nuit"
+      - type: button
+        name: "Sable Doré"
+        icon: mdi:weather-sunny
+        show_name: true
+        show_icon: true
+        show_state: false
+        color: amber
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Sable Doré"
+      - type: button
+        name: "Terracotta"
+        icon: mdi:fireplace
+        show_name: true
+        show_icon: true
+        show_state: false
+        color: deep-orange
+        tap_action:
+          action: perform-action
+          perform_action: input_select.select_option
+          target:
+            entity_id: input_select.kimia_theme_global
+          data:
+            option: "KIMIA Terracotta"
+  - type: grid
+    cards:
+      - type: heading
+        heading: Configuration
+        icon: mdi:cog-outline
+      - type: entities
+        title: "Thème KIMIA sélectionné"
+        entities:
+          - entity: input_select.kimia_theme_global
+            name: "Style de la maison"
+      - type: markdown
+        content: >-
+          **Le thème ne change pas à l'écran ?** Dans votre profil
+          Home Assistant, réglez le thème sur **Utiliser le thème par défaut**.
+          Les préférences propres à un utilisateur sont prioritaires.
+          La météo et le journal restent affichés sur l'Accueil :
+          leurs interrupteurs n'y sont pas raccordés et sont donc
+          volontairement absents de cette page.
+  - type: grid
+    cards:
+      - type: custom:navbar-card
         routes:
           - url: /kimia-smart/accueil
-            icon: mdi:home-variant
+            icon: mdi:home
             label: Accueil
           - url: /kimia-smart/lumieres
-            icon: mdi:lightbulb-group-outline
+            icon: mdi:lightbulb-on
             label: Lumières
+            hidden: |
+              [[[ return states["input_boolean.kimia_onglet_lumieres"]?.state === "off"; ]]]
           - url: /kimia-smart/volets
             icon: mdi:window-shutter
             label: Volets
+            hidden: |
+              [[[ return states["input_boolean.kimia_onglet_volets"]?.state === "off"; ]]]
           - url: /kimia-smart/climatisation
             icon: mdi:air-conditioner
             label: Clim
+            hidden: |
+              [[[ return states["input_boolean.kimia_onglet_climatisation"]?.state === "off"; ]]]
           - url: /kimia-smart/musique
-            icon: mdi:music-note
+            icon: mdi:music
             label: Musique
             hidden: |
-              [[[ return !navbar.isDesktop; ]]]
+              [[[ return states["input_boolean.kimia_onglet_musique"]?.state === "off"; ]]]
           - url: /kimia-smart/securite
             icon: mdi:shield-home-outline
             label: Sécurité
             hidden: |
-              [[[ return !navbar.isDesktop; ]]]
+              [[[ return states["input_boolean.kimia_onglet_securite"]?.state === "off"; ]]]
           - url: /kimia-smart/prises
             icon: mdi:power-socket-eu
             label: Prises
             hidden: |
-              [[[ return !navbar.isDesktop; ]]]
+              [[[ return states["input_boolean.kimia_onglet_prises"]?.state === "off"; ]]]
           - url: /kimia-smart/actualites
             icon: mdi:newspaper-variant-outline
             label: Actualités
             hidden: |
-              [[[ return !navbar.isDesktop; ]]]
+              [[[ return states["input_boolean.kimia_onglet_actualites"]?.state === "off"; ]]]
           - url: /kimia-smart/parametres
             icon: mdi:cog-outline
             label: Réglages
             hidden: |
-              [[[ return !navbar.isDesktop; ]]]
-          - icon: mdi:dots-horizontal
-            label: Plus
-            hidden: |
-              [[[ return navbar.isDesktop; ]]]
-            tap_action:
-              action: open-popup
-            popup:
-              - url: /kimia-smart/musique
-                icon: mdi:music-note
-                label: Musique
-              - url: /kimia-smart/securite
-                icon: mdi:shield-home-outline
-                label: Sécurité
-              - url: /kimia-smart/prises
-                icon: mdi:power-socket-eu
-                label: Prises
-              - url: /kimia-smart/actualites
-                icon: mdi:newspaper-variant-outline
-                label: Actualités
-              - url: /kimia-smart/parametres
-                icon: mdi:cog-outline
-                label: Réglages
+              [[[ return states["input_boolean.kimia_onglet_parametres"]?.state === "off"; ]]]
+        desktop:
+          mode: floating
+          position: left
+          show_labels: never

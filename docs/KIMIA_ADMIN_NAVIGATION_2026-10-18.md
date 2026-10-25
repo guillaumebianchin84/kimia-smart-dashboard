@@ -1,0 +1,79 @@
+> **Mise à jour du 25 octobre — dashboard `kimia-smart` :** les neuf Navbar Card adoptent le modèle du dashboard Maison : raccourcis directs, barre flottante à gauche sur ordinateur, libellés masqués. Les neuf routes `/kimia-smart/...` sont identiques sur chaque vue. Les huit interrupteurs `input_boolean.kimia_onglet_*` restent actifs : OFF masque le raccourci associé. L'ancien menu « Plus » et la navigation spécifique docked ont été supprimés pour harmoniser l'interface. Les onglets natifs restent inchangés. Vérifier sur la VM Home Assistant après import.
+
+# KIMIA Administration — afficher et masquer les onglets
+
+## Principe
+Créer un second dashboard **géré par l'interface Home Assistant (storage/UI)**, nommé **KIMIA Administration**, avec l'option **réservé aux administrateurs**. Importer le fichier `kimia-admin-ui-import.yaml` dans son éditeur de configuration brute.
+
+Ce dashboard contient **8 interrupteurs natifs** et un compteur d'onglets actifs.
+
+- `input_boolean.kimia_onglet_lumieres`
+- `input_boolean.kimia_onglet_volets`
+- `input_boolean.kimia_onglet_climatisation`
+- `input_boolean.kimia_onglet_musique`
+- `input_boolean.kimia_onglet_securite`
+- `input_boolean.kimia_onglet_prises`
+- `input_boolean.kimia_onglet_actualites`
+- `input_boolean.kimia_onglet_parametres`
+
+**Accueil reste toujours affiché.**
+
+Un bouton OFF masque la route correspondante dans **Navbar Card**, sur toutes les résolutions. Un bouton ON la réaffiche.
+
+**Important :** les huit vues restent visibles dans les **onglets natifs Home Assistant**. Les interrupteurs ne masquent que les boutons de la **Navbar Card**. L'option `visible: false`, initialement utilisée, supprimait tous les onglets secondaires de la barre native et a donc été retirée. Home Assistant ne permet pas de relier directement la visibilité des onglets natifs aux `input_boolean`. Pour une expérience de navigation uniquement via Navbar, il faut masquer la barre d'onglets native séparément via l'interface/Kiosk Mode, après validation de Navbar. Une URL directe reste accessible.
+
+Le bandeau de l'Accueil, la maquette, la météo et les équipements n'ont pas été modifiés pour cette fonctionnalité. Seule sa Navbar Card lit maintenant les interrupteurs.
+
+## Installation (dans cet ordre)
+
+1. **Sauvegarder** les deux dashboards et la configuration Home Assistant.
+2. Copier `packages/kimia_admin_navigation.yaml` dans `/config/packages/kimia_admin_navigation.yaml`. Il définit les interrupteurs, plus une automatisation de première installation qui les active **une seule fois** et marque l'initialisation comme terminée. Ensuite leurs états restent mémorisés après les redémarrages.
+3. Vérifier que `configuration.yaml` contient déjà l'inclusion `homeassistant.packages: !include_dir_named packages` **sans en créer une seconde**. Contrôler la configuration, puis redémarrer HA.
+4. Dans **Outils de développement > États**, vérifier qu'existent les 8 `input_boolean.kimia_onglet_*` et qu'ils sont activés au premier démarrage.
+5. Dans **Paramètres > Tableaux de bord**, créer un nouveau dashboard **KIMIA Administration**. Cocher **Admin uniquement** (ou « Visible uniquement pour les administrateurs » selon la version). Il est préférable de le masquer de la barre latérale des comptes non administrateurs. Le créer en mode **interface** pour conserver le déplacement et le redimensionnement des cartes.
+6. Ouvrir **KIMIA Administration > Modifier > Éditeur de configuration brute**. Coller `kimia-admin-ui-import.yaml` au complet, puis enregistrer. Le chemin d'accès est celui attribué par HA lors de la création.
+7. Dans le dashboard KIMIA Smart existant, sauvegarder l'ancien YAML puis importer le nouveau `dashboard-ui-import.yaml`. Ne pas le coller dans une seule carte.
+8. Tester sur PC et sur téléphone : désactiver **Musique**, vérifier son absence dans la Navbar flottante et sur mobile ; réactiver **Musique** et vérifier son retour. Tester les autres interrupteurs.
+9. Vérifier que les choix persistent après redémarrage Home Assistant.
+
+La branche GitHub ne déploie pas automatiquement ces fichiers sur la VM.
+
+## Sécurité et limites
+
+- Le réglage des onglets masque l'accès dans la navigation, **pas l'URL elle-même**. Il ne bloque pas le pilotage d'entités ni les droits d'accès Home Assistant.
+- Le dashboard Administrateur doit être marqué **réservé aux administrateurs** dans les paramètres HA, pas simplement dissimulé dans la navigation.
+- Les onglets natifs Home Assistant restent visibles pour garantir l'accès aux vues. Seules les entrées de Navbar Card sont filtrées par les interrupteurs ; les vues elles-mêmes ne sont pas protégées ou désactivées.
+- L'interface Android / PC n'a pas encore été testée en direct : valider d'abord sur la VM de test.
+
+## Étape suivante : gestion des pièces
+
+**Recommandation :** utiliser les **Zones (Areas)** et les **Étages (Floors)** natifs Home Assistant comme référentiel unique des pièces.
+
+Parcours proposé pour l'installateur :
+1. Créer une zone (ex. Salon, Cuisine, Chambre 1) dans **Paramètres > Zones, étiquettes et étages**.
+2. Lui donner un nom, un étage et une icône/photo.
+3. Affecter à cette zone les vrais appareils (lumières, volet, climatisation, prises, capteurs).
+4. Dans KIMIA, ajouter une **carte Zone (type: area)** par pièce, toujours indépendante, déplaçable et redimensionnable. La carte affiche automatiquement les équipements assignés à la zone, selon les options de la carte.
+
+Cette V1 n'exige ni nouvel add-on ni script personnalisé. Elle demande toutefois de **créer la carte Zone dans le dashboard** lorsqu'on ajoute une nouvelle pièce : Home Assistant ne crée pas automatiquement une carte individuelle dans un dashboard personnalisé.
+
+Pour un futur bouton « Ajouter une pièce » directement depuis KIMIA et une génération automatique de la carte, il faudra développer une intégration/une interface dédiée capable de modifier le registre des Zones et la configuration du dashboard. Ne pas présenter un simple helper `input_text` comme une vraie pièce Home Assistant.
+
+Documentation officielle :
+- https://www.home-assistant.io/docs/organizing/areas/
+- https://www.home-assistant.io/dashboards/area/
+
+## Deuxième onglet Administration : Pièces et appareils
+
+Fichier : `kimia-admin-ui-import.yaml`, avec deux vues : **Navigation** et **Pièces et appareils**.
+
+La deuxième vue fournit 5 boutons de navigation natifs, chacun indépendant et modifiable dans l'éditeur :
+
+- **Créer/modifier une pièce** → `/config/areas/dashboard` ; également utilisé pour les étages.
+- **Ajouter une prise Zigbee (ZHA)** → `/config/zha/dashboard` (nécessite ZHA installé ; sur les versions actuelles, lancer « Ajouter un appareil » dans cette page).
+- **Ajouter une intégration / appareil** → `/config/integrations/dashboard` (intégrations Wi-Fi, MQTT, etc.).
+- **Organiser les appareils** → `/config/devices/dashboard`, puis choisir la Zone de l'appareil.
+
+Le compteur et la liste des pièces sont calculés depuis le registre réel avec `areas()`, `area_name()` et `area_devices()`; pas de pièces fictives. Le dashboard Administration doit rester **réservé aux administrateurs**, car les écrans officiels d'ajout et de configuration des appareils nécessitent des droits HA administrateur.
+
+**Limites :** les boutons ouvrent l'écran natif de Home Assistant pour créer ou appairer ; un vrai assistant intégré à KIMIA nécessiterait une carte/panneau personnalisé avec appels aux API HA et contrôle des permissions. Ajouter une Zone n'insère pas automatiquement une carte dans les vues KIMIA personnalisées. L'application sur la VM n'a pas encore été testée.

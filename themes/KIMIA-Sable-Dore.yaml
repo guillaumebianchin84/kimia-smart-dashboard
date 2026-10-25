@@ -1,0 +1,38 @@
+# KIMIA Smart — KIMIA Sable Doré.
+# Teintes adaptées au mode natif Home Assistant et aux menus déroulants.
+KIMIA Sable Doré:
+  modes:
+    light:
+      primary-background-color: "#F8F3E7"
+      secondary-background-color: "#EFE7D5"
+      card-background-color: "#FFFDF7"
+      primary-text-color: "#473723"
+      secondary-text-color: "#756651"
+      primary-color: "#88642D"
+      accent-color: "#C79437"
+      app-header-background-color: "#E9D5A9"
+      app-header-text-color: "#473723"
+      sidebar-background-color: "#FCF8ED"
+      sidebar-text-color: "#473723"
+      state-icon-color: "#A58A5A"
+      state-icon-active-color: "#C79437"
+      ha-card-border-color: "#E2D4B7"
+      ha-card-border-radius: "18px"
+      ha-card-box-shadow: "0 3px 12px rgba(92,64,28,0.065)"
+    dark:
+      primary-background-color: "#F8F3E7"
+      secondary-background-color: "#EFE7D5"
+      card-background-color: "#FFFDF7"
+      primary-text-color: "#473723"
+      secondary-text-color: "#756651"
+      primary-color: "#88642D"
+      accent-color: "#C79437"
+      app-header-background-color: "#E9D5A9"
+      app-header-text-color: "#473723"
+      sidebar-background-color: "#FCF8ED"
+      sidebar-text-color: "#473723"
+      state-icon-color: "#A58A5A"
+      state-icon-active-color: "#C79437"
+      ha-card-border-color: "#E2D4B7"
+      ha-card-border-radius: "18px"
+      ha-card-box-shadow: "0 3px 12px rgba(92,64,28,0.065)"

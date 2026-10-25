@@ -1,5 +1,7 @@
 # KIMIA Smart — Configuration client et thèmes communs (v0.5)
 
+> **Mise à jour du 18 octobre 2026 :** KIMIA dispose maintenant de **8 thèmes** et les boutons sont intégrés directement à l'onglet **Paramètres** du dashboard principal. Le guide ci-dessous décrit l'ancien déploiement v0.5 avec dashboard client séparé. Pour la version actuelle, suivre [Installation des 8 thèmes](KIMIA_8_THEMES_2026-10-18.md).
+
 ## Principe validé
 
 Le client dispose d'un **dashboard Configuration client** indépendant

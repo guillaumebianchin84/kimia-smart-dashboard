@@ -8,175 +8,183 @@ sections:
     column_span: 2
     cards:
       - type: custom:button-card
-        template: kimia_v2_tile
-        name: Volets ouverts
-        icon: mdi:window-shutter-open
-        triggers_update: all
-        label: |
-          [[[
-            const n=Object.values(states).filter(e=>e.entity_id?.startsWith('cover.') && e.state==='open').length;
-            return n+' actif'+(n>1?'s':'');
-          ]]]
+        show_icon: false
+        show_name: false
+        show_state: false
+        show_label: false
+        grid_options:
+          columns: full
+          rows: auto
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Salon
+        custom_fields:
+          logo: |
+            [[[
+              return '<div style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA <span style="color:#3FD6CB">Smart</span><div style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by PROMAINT</div></div>';
+            ]]]
+          slogan: |
+            [[[
+              return '<div style="font-size:20px;font-weight:800;letter-spacing:.2px;">Ma maison</div>';
+            ]]]
+          localisation: |
+            [[[
+              return '<div style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE · GABON</div>';
+            ]]]
+        styles:
+          card:
+            - background: 'linear-gradient(105deg, rgba(12,137,147,.25), var(--card-background-color) 68%)'
+            - border: '1px solid rgba(56,205,203,.28)'
+            - border-radius: 18px
+            - padding: 9px 18px
+            - box-shadow: '0 5px 22px rgba(0,25,35,.12)'
+          grid:
+            - grid-template-areas: '"logo slogan localisation"'
+            - grid-template-columns: '225px 1fr 150px'
+            - grid-template-rows: auto
+            - align-items: center
+          custom_fields:
+            logo:
+              - text-align: left
+              - justify-self: start
+            slogan:
+              - text-align: center
+              - color: var(--primary-text-color)
+            localisation:
+              - text-align: right
+              - justify-self: end
+              - color: var(--secondary-text-color)
+  - type: grid
+    column_span: 2
+    cards:
+      - type: markdown
+        content: >-
+          **Volets ouverts** : {{ states.cover | selectattr('state', 'eq', 'open') | list | count }}
+      - type: button
+        name: "Salon"
         icon: mdi:window-shutter
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Baie vitrée
+        hold_action:
+          action: none
+      - type: button
+        name: "Baie vitrée"
         icon: mdi:window-shutter
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Cuisine
+        hold_action:
+          action: none
+      - type: button
+        name: "Cuisine"
         icon: mdi:window-shutter
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Terrasse
+        hold_action:
+          action: none
+      - type: button
+        name: "Terrasse"
         icon: mdi:window-shutter
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Parents
+        hold_action:
+          action: none
+      - type: button
+        name: "Parents"
         icon: mdi:window-shutter
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Chambre 1
+        hold_action:
+          action: none
+      - type: button
+        name: "Chambre 1"
         icon: mdi:window-shutter
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Chambre 2
+        hold_action:
+          action: none
+      - type: button
+        name: "Chambre 2"
         icon: mdi:window-shutter
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
-      - type: custom:button-card
-        template: kimia_v2_tile
-        name: Chambre 3
+        hold_action:
+          action: none
+      - type: button
+        name: "Chambre 3"
         icon: mdi:window-shutter
-        label: À associer à un équipement
+        show_name: true
+        show_icon: true
+        show_state: false
         tap_action:
           action: none
-        grid_options:
-          columns: 6
-          rows: 1
+        hold_action:
+          action: none
       - type: custom:navbar-card
-        grid_options:
-          columns: 1
-          rows: 1
-        desktop:
-          mode: docked
-          position: left
-          show_labels: false
-          min_width: 768
-        mobile:
-          mode: docked
-          show_labels: false
-          safe_area: true
-        layout:
-          auto_padding:
-            enabled: true
-            desktop_px: 80
-            mobile_px: 70
         routes:
           - url: /kimia-smart/accueil
-            icon: mdi:home-variant
+            icon: mdi:home
             label: Accueil
           - url: /kimia-smart/lumieres
-            icon: mdi:lightbulb-group-outline
+            icon: mdi:lightbulb-on
             label: Lumières
+            hidden: |
+              [[[ return states["input_boolean.kimia_onglet_lumieres"]?.state === "off"; ]]]
           - url: /kimia-smart/volets
             icon: mdi:window-shutter
             label: Volets
+            hidden: |
+              [[[ return states["input_boolean.kimia_onglet_volets"]?.state === "off"; ]]]
           - url: /kimia-smart/climatisation
             icon: mdi:air-conditioner
             label: Clim
+            hidden: |
+              [[[ return states["input_boolean.kimia_onglet_climatisation"]?.state === "off"; ]]]
           - url: /kimia-smart/musique
-            icon: mdi:music-note
+            icon: mdi:music
             label: Musique
             hidden: |
-              [[[ return !navbar.isDesktop; ]]]
+              [[[ return states["input_boolean.kimia_onglet_musique"]?.state === "off"; ]]]
           - url: /kimia-smart/securite
             icon: mdi:shield-home-outline
             label: Sécurité
             hidden: |
-              [[[ return !navbar.isDesktop; ]]]
+              [[[ return states["input_boolean.kimia_onglet_securite"]?.state === "off"; ]]]
           - url: /kimia-smart/prises
             icon: mdi:power-socket-eu
             label: Prises
             hidden: |
-              [[[ return !navbar.isDesktop; ]]]
+              [[[ return states["input_boolean.kimia_onglet_prises"]?.state === "off"; ]]]
           - url: /kimia-smart/actualites
             icon: mdi:newspaper-variant-outline
             label: Actualités
             hidden: |
-              [[[ return !navbar.isDesktop; ]]]
+              [[[ return states["input_boolean.kimia_onglet_actualites"]?.state === "off"; ]]]
           - url: /kimia-smart/parametres
             icon: mdi:cog-outline
             label: Réglages
             hidden: |
-              [[[ return !navbar.isDesktop; ]]]
-          - icon: mdi:dots-horizontal
-            label: Plus
-            hidden: |
-              [[[ return navbar.isDesktop; ]]]
-            tap_action:
-              action: open-popup
-            popup:
-              - url: /kimia-smart/musique
-                icon: mdi:music-note
-                label: Musique
-              - url: /kimia-smart/securite
-                icon: mdi:shield-home-outline
-                label: Sécurité
-              - url: /kimia-smart/prises
-                icon: mdi:power-socket-eu
-                label: Prises
-              - url: /kimia-smart/actualites
-                icon: mdi:newspaper-variant-outline
-                label: Actualités
-              - url: /kimia-smart/parametres
-                icon: mdi:cog-outline
-                label: Réglages
+              [[[ return states["input_boolean.kimia_onglet_parametres"]?.state === "off"; ]]]
+        desktop:
+          mode: floating
+          position: left
+          show_labels: never
