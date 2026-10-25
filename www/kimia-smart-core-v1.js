@@ -197,7 +197,7 @@
         }
         await hass.callWS({ type: "lovelace/config/save", url_path: DASHBOARD, config: next });
         const after = await hass.callWS({
-          type: "lovelace/config", url_path: DASHBOARD, force: true
+          type: "lovelace/config", url_path: DASHBOARD
         });
         if (!after || !Array.isArray(after.views) ||
             countCards(after) < countCards(next)) {
