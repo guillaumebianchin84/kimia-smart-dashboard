@@ -122,8 +122,8 @@
         }
         const answer = window.confirm(
           "Ajouter " + missing.length + " carte(s) Zone native(s) au dashboard " +
-          path + " ?\\n" + missing.map(a => "• " + a.name).join("\\n") +
-          "\\nLes cartes existantes ne seront pas supprimées."
+          path + " ?\n" + missing.map(a => "• " + a.name).join("\n") +
+          "\nLes cartes existantes ne seront pas supprimées."
         );
         if (!answer) {
           this._show("Opération annulée, aucun changement.");
@@ -159,7 +159,7 @@
         if (additions.some(a => !savedIds.has(a.area_id))) {
           throw new Error("Enregistrement envoyé, mais vérification incomplète : contrôlez la page Pièces.");
         }
-        this._show(additions.length + " carte(s) native(s) ajoutée(s) à Mes pièces.\\n"
+        this._show(additions.length + " carte(s) native(s) ajoutée(s) à Mes pièces.\n"
           + "Vous pouvez maintenant les déplacer, redimensionner et personnaliser dans l'éditeur Home Assistant.");
       } catch (error) {
         this._show("Synchronisation non effectuée : " +
