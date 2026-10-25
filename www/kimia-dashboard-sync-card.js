@@ -50,6 +50,10 @@
           typeof config.view !== "string" || !/^[a-z0-9_-]{2,60}$/.test(config.view)) {
         throw new Error("Paramètres KIMIA requis : dashboard et view");
       }
+      // Protection du prototype : refus strict d'agir sur KIMIA production.
+      if (config.dashboard !== "kimia-test" || config.view !== "pieces") {
+        throw new Error("Prototype limité au dashboard kimia-test, vue pieces.");
+      }
       this._config = { dashboard: config.dashboard, view: config.view };
       this._update();
     }
