@@ -140,26 +140,12 @@ sections:
         hold_action:
           action: none
       - type: custom:navbar-card
-        desktop:
-          mode: docked
-          position: left
-          show_labels: false
-          min_width: 768
-        mobile:
-          mode: docked
-          show_labels: false
-          safe_area: true
-        layout:
-          auto_padding:
-            enabled: true
-            desktop_px: 80
-            mobile_px: 70
         routes:
           - url: /kimia-smart/accueil
-            icon: mdi:home-variant
+            icon: mdi:home
             label: Accueil
           - url: /kimia-smart/lumieres
-            icon: mdi:lightbulb-group-outline
+            icon: mdi:lightbulb-on
             label: Lumières
             hidden: |
               [[[ return states["input_boolean.kimia_onglet_lumieres"]?.state === "off"; ]]]
@@ -174,53 +160,31 @@ sections:
             hidden: |
               [[[ return states["input_boolean.kimia_onglet_climatisation"]?.state === "off"; ]]]
           - url: /kimia-smart/musique
-            icon: mdi:music-note
+            icon: mdi:music
             label: Musique
             hidden: |
-              [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_musique"]?.state === "off"; ]]]
+              [[[ return states["input_boolean.kimia_onglet_musique"]?.state === "off"; ]]]
           - url: /kimia-smart/securite
             icon: mdi:shield-home-outline
             label: Sécurité
             hidden: |
-              [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_securite"]?.state === "off"; ]]]
+              [[[ return states["input_boolean.kimia_onglet_securite"]?.state === "off"; ]]]
           - url: /kimia-smart/prises
             icon: mdi:power-socket-eu
             label: Prises
             hidden: |
-              [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_prises"]?.state === "off"; ]]]
+              [[[ return states["input_boolean.kimia_onglet_prises"]?.state === "off"; ]]]
           - url: /kimia-smart/actualites
             icon: mdi:newspaper-variant-outline
             label: Actualités
             hidden: |
-              [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_actualites"]?.state === "off"; ]]]
+              [[[ return states["input_boolean.kimia_onglet_actualites"]?.state === "off"; ]]]
           - url: /kimia-smart/parametres
             icon: mdi:cog-outline
             label: Réglages
             hidden: |
-              [[[ return !navbar.isDesktop || states["input_boolean.kimia_onglet_parametres"]?.state === "off"; ]]]
-          - icon: mdi:dots-horizontal
-            label: Plus
-            hidden: |
-              [[[
-                return navbar.isDesktop || [
-                  "input_boolean.kimia_onglet_musique",
-                  "input_boolean.kimia_onglet_securite",
-                  "input_boolean.kimia_onglet_prises",
-                  "input_boolean.kimia_onglet_actualites",
-                  "input_boolean.kimia_onglet_parametres"
-                ].every(id => states[id]?.state === "off");
-              ]]]
-            tap_action:
-              action: open-popup
-            popup: |
-              [[[
-                return [
-                  { url: "/kimia-smart/musique", icon: "mdi:music-note", label: "Musique", helper: "input_boolean.kimia_onglet_musique" },
-                  { url: "/kimia-smart/securite", icon: "mdi:shield-home-outline", label: "Sécurité", helper: "input_boolean.kimia_onglet_securite" },
-                  { url: "/kimia-smart/prises", icon: "mdi:power-socket-eu", label: "Prises", helper: "input_boolean.kimia_onglet_prises" },
-                  { url: "/kimia-smart/actualites", icon: "mdi:newspaper-variant-outline", label: "Actualités", helper: "input_boolean.kimia_onglet_actualites" },
-                  { url: "/kimia-smart/parametres", icon: "mdi:cog-outline", label: "Réglages", helper: "input_boolean.kimia_onglet_parametres" }
-                ]
-                  .filter(item => states[item.helper]?.state !== "off")
-                  .map(({helper, ...item}) => item);
-              ]]]
+              [[[ return states["input_boolean.kimia_onglet_parametres"]?.state === "off"; ]]]
+        desktop:
+          mode: floating
+          position: left
+          show_labels: never
