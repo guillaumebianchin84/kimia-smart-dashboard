@@ -1,0 +1,269 @@
+title: KIMIA Administration · TEST
+views:
+  - title: Pièces
+    path: pieces-equipements
+    icon: mdi:home-plus-outline
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: KIMIA · Pièces et appareils
+            icon: mdi:home-plus-outline
+          - type: markdown
+            content: >-
+              Ajoutez simplement vos pièces par leur nom : Salon, Cuisine,
+              Chambre… Puis associez les appareils déjà installés.
+              Pour une prise ou une ampoule Zigbee, ouvrez l'onglet Zigbee.
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Gestion des pièces
+            icon: mdi:floor-plan
+          - type: custom:kimia-room-manager-card
+            grid_options:
+              columns: full
+              rows: auto
+  - title: Appareils
+    path: zigbee
+    icon: mdi:zigbee
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: KIMIA · Appareils Zigbee
+            icon: mdi:zigbee
+          - type: markdown
+            content: >-
+              Ajoutez une prise SONOFF, une ampoule LEDVANCE SMART+ Zigbee
+              ou tout autre appareil Zigbee compatible via **ZHA**.
+              Votre coordinateur SMLIGHT doit d'abord être configuré dans
+              Home Assistant. L'appairage est ouvert uniquement sur demande.
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:kimia-zigbee-manager-card
+            grid_options:
+              columns: full
+              rows: auto
+      - type: grid
+        cards:
+          - type: heading
+            heading: Configuration Zigbee
+            icon: mdi:radio-tower
+          - type: button
+            name: Configuration du réseau Zigbee (ZHA)
+            icon: mdi:zigbee
+            tap_action:
+              action: navigate
+              navigation_path: /config/zha/dashboard
+          - type: markdown
+            content: >-
+              Si ZHA n'est pas encore installé, commencez par
+              **Paramètres → Appareils et services → Ajouter une intégration
+              → Zigbee Home Automation**. Le SLZB-06U doit être accessible
+              sur le même réseau local.
+      - type: grid
+        cards:
+          - type: heading
+            heading: Autres équipements
+            icon: mdi:devices
+          - type: button
+            name: Appareils Wi-Fi ou autres intégrations
+            icon: mdi:puzzle-plus-outline
+            tap_action:
+              action: navigate
+              navigation_path: /config/integrations/dashboard
+  - title: Affichage
+    path: navigation
+    icon: mdi:shield-cog
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: "KIMIA · Administration"
+            icon: mdi:shield-cog-outline
+          - type: markdown
+            content: >-
+              **Navigation de la maison** — activez les onglets que vous
+              souhaitez afficher aux habitants. L'Accueil reste toujours
+              visible. Les choix sont conservés après redémarrage.
+          - type: markdown
+            content: |
+              **Onglets visibles :** {{ expand([
+                'input_boolean.kimia_onglet_lumieres',
+                'input_boolean.kimia_onglet_volets',
+                'input_boolean.kimia_onglet_climatisation',
+                'input_boolean.kimia_onglet_musique',
+                'input_boolean.kimia_onglet_securite',
+                'input_boolean.kimia_onglet_prises',
+                'input_boolean.kimia_onglet_actualites',
+                'input_boolean.kimia_onglet_parametres'
+              ]) | selectattr('state', 'eq', 'on') | list | count }} / 8
+      - type: grid
+        cards:
+          - type: heading
+            heading: Afficher / masquer un onglet
+            icon: mdi:eye-settings-outline
+          - type: tile
+            entity: input_boolean.kimia_onglet_lumieres
+            name: Lumières
+            icon: mdi:lightbulb-group-outline
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - type: tile
+            entity: input_boolean.kimia_onglet_volets
+            name: Volets
+            icon: mdi:window-shutter
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - type: tile
+            entity: input_boolean.kimia_onglet_climatisation
+            name: Climatisation
+            icon: mdi:air-conditioner
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - type: tile
+            entity: input_boolean.kimia_onglet_musique
+            name: Musique
+            icon: mdi:music
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - type: tile
+            entity: input_boolean.kimia_onglet_securite
+            name: Sécurité
+            icon: mdi:shield-home-outline
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - type: tile
+            entity: input_boolean.kimia_onglet_prises
+            name: Prises
+            icon: mdi:power-socket-eu
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - type: tile
+            entity: input_boolean.kimia_onglet_actualites
+            name: Actualités
+            icon: mdi:newspaper-variant-outline
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - type: tile
+            entity: input_boolean.kimia_onglet_parametres
+            name: Paramètres
+            icon: mdi:cog-outline
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+      - type: grid
+        cards:
+          - type: heading
+            heading: Thèmes et personnalisation
+            icon: mdi:palette
+          - type: shortcut
+            label: Choisir mon thème KIMIA
+            description: Les thèmes restent accessibles depuis Réglages
+            icon: mdi:palette
+            color: teal
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-test/parametres
+          - type: markdown
+            content: >-
+              Les habitants peuvent modifier le thème depuis la page
+              Réglages de KIMIA Smart. Ce réglage ne nécessite pas
+              d'accéder à l'administration.
+      - type: grid
+        cards:
+          - type: heading
+            heading: Informations
+            icon: mdi:information-outline
+          - type: markdown
+            content: >-
+              **Attention :** masquer un onglet retire son bouton
+              de la Navbar KIMIA, mais ne masque pas les onglets natifs
+              Home Assistant et ne bloque pas l'accès direct aux pages.
+              Cela ne constitue pas une sécurité.
+              Réservez ce dashboard Administration aux comptes
+              administrateurs depuis **Paramètres > Tableaux de bord**.
+  - title: Scénarios
+    path: scenarios
+    icon: mdi:lightning-bolt-outline
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Scénarios de la maison
+            icon: mdi:gesture-tap-button
+          - type: markdown
+            content: >-
+              Associez chaque raccourci KIMIA à un script existant.
+              Les boutons de l'Accueil continuent d'utiliser
+              les scripts KIMIA déjà en place. Les cibles non configurées
+              ne doivent pas déclencher de commande.
+      - type: grid
+        cards:
+          - type: heading
+            heading: Routines rapides
+            icon: mdi:home-lightning-bolt-outline
+          - type: entities
+            title: Accueil
+            entities:
+              - entity: input_text.kimia_cible_au_lit
+                name: Au lit
+              - entity: input_text.kimia_cible_depart
+                name: Départ
+              - entity: input_text.kimia_cible_retour
+                name: Retour
+              - entity: input_text.kimia_cible_reveil
+                name: Réveil
+      - type: grid
+        cards:
+          - type: heading
+            heading: Ambiances lumineuses
+            icon: mdi:lightbulb-group
+          - type: entities
+            title: Lumières
+            entities:
+              - entity: input_text.kimia_cible_ambiance_detente
+                name: Détente
+              - entity: input_text.kimia_cible_ambiance_soiree
+                name: Soirée
+              - entity: input_text.kimia_cible_ambiance_cinema
+                name: Cinéma
+      - type: grid
+        cards:
+          - type: heading
+            heading: Modifier les raccourcis
+            icon: mdi:information-outline
+          - type: markdown
+            content: >-
+              Les cartes de l'Accueil sont maintenant des raccourcis
+              natifs Home Assistant, modifiables dans l'éditeur visuel.
+              La logique de sécurité des scripts KIMIA est conservée.
