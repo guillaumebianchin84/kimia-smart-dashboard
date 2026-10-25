@@ -1,6 +1,86 @@
 title: KIMIA Administration
 views:
-  - title: Navigation
+  - title: Pièces
+    path: pieces-equipements
+    icon: mdi:home-plus-outline
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: KIMIA · Pièces et appareils
+            icon: mdi:home-plus-outline
+          - type: markdown
+            content: >-
+              Ajoutez simplement vos pièces par leur nom : Salon, Cuisine,
+              Chambre… Puis associez les appareils déjà installés.
+              Pour une prise ou une ampoule Zigbee, ouvrez l'onglet Zigbee.
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Gestion des pièces
+            icon: mdi:floor-plan
+          - type: custom:kimia-room-manager-card
+            grid_options:
+              columns: full
+              rows: auto
+  - title: Appareils
+    path: zigbee
+    icon: mdi:zigbee
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: KIMIA · Appareils Zigbee
+            icon: mdi:zigbee
+          - type: markdown
+            content: >-
+              Ajoutez une prise SONOFF, une ampoule LEDVANCE SMART+ Zigbee
+              ou tout autre appareil Zigbee compatible via **ZHA**.
+              Votre coordinateur SMLIGHT doit d'abord être configuré dans
+              Home Assistant. L'appairage est ouvert uniquement sur demande.
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:kimia-zigbee-manager-card
+            grid_options:
+              columns: full
+              rows: auto
+      - type: grid
+        cards:
+          - type: heading
+            heading: Configuration Zigbee
+            icon: mdi:radio-tower
+          - type: button
+            name: Configuration du réseau Zigbee (ZHA)
+            icon: mdi:zigbee
+            tap_action:
+              action: navigate
+              navigation_path: /config/zha/dashboard
+          - type: markdown
+            content: >-
+              Si ZHA n'est pas encore installé, commencez par
+              **Paramètres → Appareils et services → Ajouter une intégration
+              → Zigbee Home Automation**. Le SLZB-06U doit être accessible
+              sur le même réseau local.
+      - type: grid
+        cards:
+          - type: heading
+            heading: Autres équipements
+            icon: mdi:devices
+          - type: button
+            name: Appareils Wi-Fi ou autres intégrations
+            icon: mdi:puzzle-plus-outline
+            tap_action:
+              action: navigate
+              navigation_path: /config/integrations/dashboard
+  - title: Affichage
     path: navigation
     icon: mdi:shield-cog
     type: sections
@@ -101,12 +181,21 @@ views:
       - type: grid
         cards:
           - type: heading
-            heading: Configuration des pièces
-            icon: mdi:floor-plan
+            heading: Thèmes et personnalisation
+            icon: mdi:palette
+          - type: shortcut
+            label: Choisir mon thème KIMIA
+            description: Les thèmes restent accessibles depuis Réglages
+            icon: mdi:palette
+            color: teal
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-smart/parametres
           - type: markdown
             content: >-
-              Pour créer des pièces et ajouter des équipements, ouvrez
-              le deuxième onglet **Pièces et appareils**.
+              Les habitants peuvent modifier le thème depuis la page
+              Réglages de KIMIA Smart. Ce réglage ne nécessite pas
+              d'accéder à l'administration.
       - type: grid
         cards:
           - type: heading
@@ -120,9 +209,9 @@ views:
               Cela ne constitue pas une sécurité.
               Réservez ce dashboard Administration aux comptes
               administrateurs depuis **Paramètres > Tableaux de bord**.
-  - title: Pièces
-    path: pieces-equipements
-    icon: mdi:home-plus-outline
+  - title: Scénarios
+    path: scenarios
+    icon: mdi:lightning-bolt-outline
     type: sections
     max_columns: 2
     sections:
@@ -130,73 +219,51 @@ views:
         column_span: 2
         cards:
           - type: heading
-            heading: KIMIA · Pièces et appareils
-            icon: mdi:home-plus-outline
+            heading: Scénarios de la maison
+            icon: mdi:gesture-tap-button
           - type: markdown
             content: >-
-              Ajoutez simplement vos pièces par leur nom : Salon, Cuisine,
-              Chambre… Puis associez les appareils déjà installés.
-              Pour une prise ou une ampoule Zigbee, ouvrez l'onglet Zigbee.
+              Associez chaque raccourci KIMIA à un script existant.
+              Les boutons de l'Accueil continuent d'utiliser
+              les scripts KIMIA déjà en place. Les cibles non configurées
+              ne doivent pas déclencher de commande.
       - type: grid
-        column_span: 2
         cards:
           - type: heading
-            heading: Gestion des pièces
-            icon: mdi:floor-plan
-          - type: custom:kimia-room-manager-card
-            grid_options:
-              columns: full
-              rows: auto
-  - title: Zigbee
-    path: zigbee
-    icon: mdi:zigbee
-    type: sections
-    max_columns: 2
-    sections:
+            heading: Routines rapides
+            icon: mdi:home-lightning-bolt-outline
+          - type: entities
+            title: Accueil
+            entities:
+              - entity: input_text.kimia_cible_au_lit
+                name: Au lit
+              - entity: input_text.kimia_cible_depart
+                name: Départ
+              - entity: input_text.kimia_cible_retour
+                name: Retour
+              - entity: input_text.kimia_cible_reveil
+                name: Réveil
       - type: grid
-        column_span: 2
         cards:
           - type: heading
-            heading: KIMIA · Appareils Zigbee
-            icon: mdi:zigbee
+            heading: Ambiances lumineuses
+            icon: mdi:lightbulb-group
+          - type: entities
+            title: Lumières
+            entities:
+              - entity: input_text.kimia_cible_ambiance_detente
+                name: Détente
+              - entity: input_text.kimia_cible_ambiance_soiree
+                name: Soirée
+              - entity: input_text.kimia_cible_ambiance_cinema
+                name: Cinéma
+      - type: grid
+        cards:
+          - type: heading
+            heading: Modifier les raccourcis
+            icon: mdi:information-outline
           - type: markdown
             content: >-
-              Ajoutez une prise SONOFF, une ampoule LEDVANCE SMART+ Zigbee
-              ou tout autre appareil Zigbee compatible via **ZHA**.
-              Votre coordinateur SMLIGHT doit d'abord être configuré dans
-              Home Assistant. L'appairage est ouvert uniquement sur demande.
-      - type: grid
-        column_span: 2
-        cards:
-          - type: custom:kimia-zigbee-manager-card
-            grid_options:
-              columns: full
-              rows: auto
-      - type: grid
-        cards:
-          - type: heading
-            heading: Configuration Zigbee
-            icon: mdi:radio-tower
-          - type: button
-            name: Configuration du réseau Zigbee (ZHA)
-            icon: mdi:zigbee
-            tap_action:
-              action: navigate
-              navigation_path: /config/zha/dashboard
-          - type: markdown
-            content: >-
-              Si ZHA n'est pas encore installé, commencez par
-              **Paramètres → Appareils et services → Ajouter une intégration
-              → Zigbee Home Automation**. Le SLZB-06U doit être accessible
-              sur le même réseau local.
-      - type: grid
-        cards:
-          - type: heading
-            heading: Autres équipements
-            icon: mdi:devices
-          - type: button
-            name: Appareils Wi-Fi ou autres intégrations
-            icon: mdi:puzzle-plus-outline
-            tap_action:
-              action: navigate
-              navigation_path: /config/integrations/dashboard
+              Les cartes de l'Accueil sont maintenant des raccourcis
+              natifs Home Assistant, modifiables dans l'éditeur visuel.
+              La logique de sécurité des scripts KIMIA est conservée.
