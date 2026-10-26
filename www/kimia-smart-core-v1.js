@@ -1,6 +1,7 @@
-/* KIMIA Smart by PROMAINT — moteur de tableaux de bord v1 (prototype isolé).
+/* KIMIA Smart by PROMAINT — moteur de tableaux de bord v1.1.1 (prototype isolé).
  * Une pièce / un appareil = cartes natives indépendantes (Area / Tile).
- * Ecriture additive uniquement sur kimia-next. Aucun accès au dashboard actif.
+ * Ecriture limitée au dashboard kimia-next. Aucun accès au dashboard actif.
+ * Retrait uniquement des cartes créées par KIMIA et restées non personnalisées.
  * Les données restent dans les registres officiels Home Assistant.
  */
 (() => {
@@ -68,6 +69,11 @@
   const isGeneratedTile = card =>
     card?.type === "tile" && typeof card.entity === "string" &&
     JSON.stringify(card) === JSON.stringify(safeClone(tile({entity_id:card.entity})));
+  // Une carte Pièce n'est gérée par KIMIA que si toutes ses options sont intactes.
+  // Les variantes personnalisées doivent rester sous contrôle de l'habitant.
+  const isGeneratedRoomCard = card =>
+    card?.type === "area" && typeof card.area === "string" &&
+    JSON.stringify(card) === JSON.stringify(roomCard({ area_id: card.area }));
   const isGeneratedRoomSection = section => {
     if (section?.type !== "grid" || !Array.isArray(section.cards) ||
         section.cards.length < 2) return false;
@@ -139,6 +145,41 @@
 
         const next = safeClone(config), vmap = new Map(next.views.map(v => [v.path, v]));
         let added = 0, removed = 0;
+        // Supprimer les cartes de PIÈCES dont l'area_id n'existe plus.
+        // Ne jamais toucher aux cartes utilisateur personnalisées.
+        const validAreaIds = new Set(orderedAreas.map(a => a.area_id));
+        const welcome = sectionWithHeader(vmap.get("accueil"), "Mes pièces");
+        const homeCount = welcome.cards.length;
+        welcome.cards = welcome.cards.filter(card =>
+          !isGeneratedRoomCard(card) || validAreaIds.has(card.area));
+        removed += homeCount - welcome.cards.length;
+        // Dans Pièces et dans les rubriques, retirer uniquement les sections
+        // entièrement créées par le générateur. Une section personnalisée est
+        // conservée ; sa carte Area standard obsolète est retirée pour éviter
+        // "Pièce non trouvée" tout en préservant les autres contenus.
+        for (const path of ["pieces", ...CATEGORIES.map(c => c[0])]) {
+          const view = vmap.get(path);
+          const retained = [];
+          for (const section of view.sections || []) {
+            if (!isGeneratedRoomSection(section) ||
+                validAreaIds.has(section.cards[1].area)) {
+              retained.push(section);
+              continue;
+            }
+            const generatedOnly = section.cards.slice(2).every(isGeneratedTile);
+            if (generatedOnly) {
+              removed += section.cards.length;
+              continue;
+            }
+            section.cards = section.cards.filter((card, index) => {
+              if (index !== 1) return true;
+              removed++;
+              return false;
+            });
+            retained.push(section);
+          }
+          view.sections = retained;
+        }
         // Réconcilier les cartes standards quand un appareil est retiré,
         // désactivé ou déplacé. Aucun code de suppression d'appareil HA.
         // Les cartes modifiées à la main (ou hors section gérée) sont préservées.
@@ -270,6 +311,6 @@
     sync: synchronize,
     getStatus: () => ({ ..._last }),
     dashboard: DASHBOARD,
-    version: "1.1.0"
+    version: "1.1.1"
   });
 })();
