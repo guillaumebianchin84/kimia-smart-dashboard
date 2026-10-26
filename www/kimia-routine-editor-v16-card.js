@@ -108,6 +108,7 @@
    const input=n(opt.multiline?"textarea":"input");
    if(!opt.multiline)input.type=opt.type||"text";
    input.value=value==null?"":String(value);
+   if(opt.maxLength!==undefined)input.maxLength=Number(opt.maxLength);
    if(opt.min!==undefined)input.min=String(opt.min);
    if(opt.max!==undefined)input.max=String(opt.max);
    if(opt.step!==undefined)input.step=String(opt.step);
