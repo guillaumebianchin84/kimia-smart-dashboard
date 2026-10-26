@@ -62,6 +62,25 @@ async function main(){
  for(const v of config.views)assert(v.sections[0].cards.some(c=>
   c.type==="markdown"&&c.content.includes("personnalisée")),"Préservation des personnalisations");
  await assert.rejects(window.KimiaSmartCore.sync({...hass,user:{is_admin:false}}),/administrateur/);
- console.log("Tests KIMIA v1 : OK - ajout, répartition, non-écrasement, idempotence et accès admin");
+ // Le moteur doit retirer les cartes automatiques après déplacement ou désaffectation.
+ // Il ne doit jamais supprimer une carte personnalisée.
+ const roomView=config.views.find(v=>v.path==="pieces");
+ const salonSection=roomView.sections.find(s=>s.cards.some(c=>c.type==="area"&&c.area==="salon"));
+ const personal=salonSection.cards.find(c=>c.entity==="light.lampe");
+ personal.name="Lampe personnalisée par l'habitant";
+ devices.find(d=>d.id==="d1").area_id=null;
+ const removed=await window.KimiaSmartCore.sync(hass);
+ assert(removed.removed>0,"Les cartes générées obsolètes doivent être retirées");
+ assert(salonSection!==null);
+ const afterRoom=config.views.find(v=>v.path==="pieces").sections
+  .find(s=>s.cards.some(c=>c.type==="area"&&c.area==="salon"));
+ assert(afterRoom.cards.some(c=>c.entity==="light.lampe"&&c.name==="Lampe personnalisée par l'habitant"),
+  "La carte personnalisée doit rester en place");
+ const lights=config.views.find(v=>v.path==="lumieres");
+ assert(!lights.sections.flatMap(s=>s.cards).some(c=>c.entity==="light.lampe"),
+  "Une tuile générée sans pièce doit disparaître");
+ assert.equal((await window.KimiaSmartCore.sync(hass)).added,0,"Pas de doublons après désaffectation");
+ assert.equal((await window.KimiaSmartCore.sync(hass)).removed,0,"Pas de suppressions répétées");
+ console.log("Tests KIMIA v1 : OK - ajout, répartition, non-écrasement, idempotence et accès admin, retrait sécurisé et respect des personnalisations");
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});
