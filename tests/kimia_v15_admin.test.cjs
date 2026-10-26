@@ -28,6 +28,7 @@ const hass={user:{is_admin:true},states:{},callWS:async q=>{
   case "config/area_registry/list":
   case "config/device_registry/list":
   case "config/entity_registry/list":return [];
+  case "config/auth/list":return [{id:"user_parent",name:"Parent",is_active:true}];
   case "lovelace/config":
    return clone(q.url_path==="kimia-next"?c:a);
   case "lovelace/config/save":
@@ -41,7 +42,7 @@ const hass={user:{is_admin:true},states:{},callWS:async q=>{
 const cards=path=>a.views.find(v=>v.path===path).sections.flatMap(s=>s.cards||[]);
 (async()=>{
  const first=await window.KimiaSmartCore.sync(hass);
- assert.equal(first.adminAdded,4,"deux boutons + paramètres de services + scripts");
+ assert.equal(first.adminAdded,5,"paramètres V1.4 plus gestion des utilisateurs");
  assert.equal(adminWrites,1,"une seule sauvegarde admin");
  assert.equal(cards("apparence").filter(c=>c.type==="tile"&&
   c.entity==="input_boolean.kimia_onglet_carte").length,1);
@@ -49,6 +50,9 @@ const cards=path=>a.views.find(v=>v.path===path).sections.flatMap(s=>s.cards||[]
   c.entity==="input_boolean.kimia_onglet_listes").length,1);
  assert.equal(cards("apparence").filter(c=>c.type==="custom:kimia-services-v14-card").length,1);
  assert.equal(cards("scenarios").filter(c=>c.type==="custom:kimia-script-builder-v14-card").length,1);
+ assert.equal(a.views.filter(v=>v.path==="utilisateurs").length,1);
+ assert.equal(a.views.find(v=>v.path==="utilisateurs").sections.flatMap(s=>s.cards||[])
+  .filter(c=>c.type==="custom:kimia-user-visibility-v15-card").length,1);
  assert(cards("apparence").some(c=>c.content===originalCard.content));
  assert(cards("scenarios").some(c=>c.type==="custom:kimia-scenarios-v1-card"));
  const previous=clientWrites;
