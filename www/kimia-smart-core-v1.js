@@ -340,6 +340,62 @@
     return modified;
   };
 
+  // V1.7 : les droits portent exclusivement sur les zones HA (area_id).
+  // Le plan, ses noms de pièces, ses étages et ses coordonnées sont propres
+  // au client et ne sont jamais réécrits par le moteur de synchronisation.
+  const MAQUETTE_ACL_CARD="custom:kimia-maquette-acl-v17-card";
+  const updateMaquetteRights=(next,hiddenByArea,areas,devices,entities)=>{
+    let added=0,modified=0;
+    const known=new Set(areas.map(a=>a.area_id));
+    const hidden={};
+    const registry={};
+    const devMap=new Map(devices.map(d=>[d.id,d]));
+    for(const [area,users] of [...hiddenByArea].sort(([a],[b])=>natural(a,b))){
+      if(!known.has(area)||!users.length)continue;
+      hidden[area]=[...new Set(users)].sort();
+      registry[area]={entities:[],devices:[]};
+    }
+    for(const d of devices)if(registry[d.area_id])
+      registry[d.area_id].devices.push(d.id);
+    for(const e of entities){
+      if(!e.entity_id)continue;
+      const area=getArea(e,devMap);
+      if(registry[area])registry[area].entities.push(e.entity_id);
+    }
+    for(const v of Object.values(registry)){
+      v.entities.sort();v.devices.sort();
+    }
+    // Les cartes Maquette restent dans leur section d'origine et leur
+    // objet YAML COMPLET est conservé sous card. L'éditeur natif Maquette
+    // retrouve récursivement cet objet et sauvegarde ses modifications.
+    const visit=cards=>{
+      if(!Array.isArray(cards))return;
+      for(let i=0;i<cards.length;i++){
+        const c=cards[i];
+        if(!c||typeof c!=="object")continue;
+        if(c.type==="custom:maquette-card"){
+          cards[i]={type:MAQUETTE_ACL_CARD,card:c,
+            hidden_users_by_area:safeClone(hidden),
+            entities_by_area:safeClone(registry)};
+          added++;
+        }else if(c.type===MAQUETTE_ACL_CARD &&
+                 c.card?.type==="custom:maquette-card"){
+          if(JSON.stringify(c.hidden_users_by_area||{})!==JSON.stringify(hidden)){
+            c.hidden_users_by_area=safeClone(hidden);modified++;
+          }
+          if(JSON.stringify(c.entities_by_area||{})!==JSON.stringify(registry)){
+            c.entities_by_area=safeClone(registry);modified++;
+          }
+        }else if(Array.isArray(c.cards))visit(c.cards);
+      }
+    };
+    for(const view of next.views||[]){
+      for(const section of view.sections||[])visit(section.cards);
+      visit(view.cards);
+    }
+    return {added,modified};
+  };
+
   async function upgradeAdminDashboard(hass,dashboards) {
     if(!Array.isArray(dashboards) ||
        !dashboards.some(d=>d.url_path===ADMIN_DASHBOARD && d.mode==="storage"))return 0;
@@ -814,6 +870,8 @@
         // L'ancienne navigation, la maquette et les cartes personnalisées restent intactes.
         const hiddenByArea=await loadHiddenByArea(hass,dashboards);
         modified+=applyRoomVisibility(next,hiddenByArea);
+        const maquetteRights=updateMaquetteRights(next,hiddenByArea,orderedAreas,devices,entities);
+        added+=maquetteRights.added;modified+=maquetteRights.modified;
         const v14=applyV14(next,hass);
         added+=v14.added;modified+=v14.modified;
         const settings=applySettingsPortal(next);
