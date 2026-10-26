@@ -9,7 +9,7 @@ const document={createElement:tag=>({
 })};
 const window={customCards:[]};
 for(const path of ["www/kimia-services-v14-card.js","www/kimia-user-visibility-v15-card.js"])
- vm.runInNewContext(fs.readFileSync(path,"utf8"),{window,customElements,document});
+ vm.runInNewContext(fs.readFileSync(path,"utf8"),{window,customElements,document,HTMLElement:class HTMLElement {}});
 const todo=registry.get("kimia-services-v14-card");
 const users=registry.get("kimia-user-visibility-v15-card");
 assert(todo&&users);
