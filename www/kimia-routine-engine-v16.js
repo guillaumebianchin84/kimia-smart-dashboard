@@ -140,7 +140,8 @@
   required(d.actions?.length>0,"Ajoutez au moins une action");
   required(["single","restart","queued","parallel"].includes(d.mode),"Mode d'exécution inconnu");
   const sequence=d.actions.map(s=>actionToHA(s));
-  const base={alias,description:String(d.description||"").slice(0,240),mode:d.mode};
+  required(String(d.description||"").length<=240,"Description trop longue (240 caractères maximum)");
+  const base={alias,description:String(d.description||""),mode:d.mode};
   if(d.kind==="script")return {...base,icon:"mdi:play-box-multiple-outline",
    sequence:[...(d.conditions||[]).map(s=>conditionToHA(s)),...sequence]};
   required(d.kind==="automation","Type de routine invalide");
