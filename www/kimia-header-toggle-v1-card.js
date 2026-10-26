@@ -45,12 +45,8 @@
     getCardSize(){return 3;}
     _render(){
       if(!this._hass)return;
-      if(this._hass.user?.is_admin){
-        this._description.textContent="Le bandeau Home Assistant reste toujours visible pour les administrateurs.";
-        this._button.classList.add("hidden");
-        this._status.textContent="Cette option concerne uniquement les utilisateurs.";
-        return;
-      }
+      // Les administrateurs aussi doivent pouvoir revenir au bandeau KIMIA :
+      // le masquage est une préférence locale, pas une restriction de droits.
       this._button.classList.remove("hidden");
       const visible=readVisible(this._hass.user?.name);
       this._description.textContent=visible?
@@ -61,7 +57,7 @@
       this._status.textContent="Ce choix est personnel à ce téléphone et à ce compte.";
     }
     _toggle(){
-      if(!this._hass||this._hass.user?.is_admin)return;
+      if(!this._hass)return;
       const userName=this._hass.user?.name;
       const next=!readVisible(userName);
       try{
@@ -73,9 +69,10 @@
       }
       this._button.disabled=true;
       this._status.textContent="Application du réglage…";
-      // Chargement complet nécessaire pour réévaluer la préférence dans Kiosk Mode.
-      // URL relative : conserve le serveur Home Assistant en cours dans l'application.
-      window.location.assign("/kimia-next/parametres");
+      // Kiosk Mode réévalue le stockage local au prochain chargement.
+      // RECHARGER la page actuelle, sans aucun changement de chemin, serveur ou
+      // origine : ne jamais naviguer vers "/" ni rediriger vers Internet.
+      window.location.reload();
     }
   }
   customElements.define(TAG,KimiaHeaderToggleCard);
