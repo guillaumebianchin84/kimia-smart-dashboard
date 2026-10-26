@@ -38,6 +38,7 @@ jobs:
           node tests/kimia_v15_admin.test.cjs
           node tests/kimia_v15_profiles.test.cjs
           node tests/kimia_v15_settings.test.cjs
+          node tests/kimia_v15_review.test.cjs
           node tests/kimia_inventory_v1.test.cjs
           node tests/kimia_header_toggle_v1.test.cjs
       - name: Verification YAML
@@ -97,12 +98,14 @@ jobs:
             packages/kimia_admin_navigation.yaml
             docs/KIMIA_V14_INSTALLATION.md
           retention-days: 30
-      - name: Pack installation KIMIA V1.5 (2 JavaScript)
+      - name: Pack installation KIMIA V1.5 (3 JavaScript + navigation)
         uses: actions/upload-artifact@v4
         with:
-          name: KIMIA-V15-Installation-2-JS
+          name: KIMIA-V15-Revue-Corrections
           path: |
             www/kimia-smart-core-v1.js
             www/kimia-user-visibility-v15-card.js
             docs/KIMIA_V15_PARAMETRES_PORTAIL_20261026.md
+            www/kimia-services-v14-card.js
+            packages/kimia_admin_navigation.yaml
           retention-days: 30
