@@ -5,6 +5,7 @@ on:
       - feat/kimia-produit-v1-20261025
       - feat/kimia-inventaire-v1-20261026
       - feat/kimia-bandeau-client-20261026
+      - feat/kimia-bandeau-marque-20261026
   workflow_dispatch:
 jobs:
   check:
