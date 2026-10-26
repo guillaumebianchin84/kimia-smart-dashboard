@@ -32,9 +32,11 @@ jobs:
           node --check www/kimia-header-toggle-v1-card.js
           node --check www/kimia-services-v14-card.js
           node --check www/kimia-script-builder-v14-card.js
+          node --check www/kimia-user-visibility-v15-card.js
           node tests/kimia_v1.test.cjs
           node tests/kimia_v14.test.cjs
           node tests/kimia_v15_admin.test.cjs
+          node tests/kimia_v15_profiles.test.cjs
           node tests/kimia_inventory_v1.test.cjs
           node tests/kimia_header_toggle_v1.test.cjs
       - name: Verification YAML
