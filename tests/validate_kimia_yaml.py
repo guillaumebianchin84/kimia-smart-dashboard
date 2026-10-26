@@ -17,9 +17,9 @@ expected = {
 assert len(views) == 12 and len(source_views) == 10
 assert len(admin_views) == 6
 assert all(k in views for k in expected)
-assert "localStorage.getItem" in main["kiosk_mode"]["kiosk"]
-assert "return " in main["kiosk_mode"]["kiosk"]
-assert main["kiosk_mode"] != source["kiosk_mode"], "V1.6.1 migrates legacy non-admin kiosk"
+assert "kiosk" not in main["kiosk_mode"], "Admin must never inherit global Kiosk"
+assert "localStorage.getItem" in main["kiosk_mode"]["non_admin_settings"]["kiosk"]
+assert "return " in main["kiosk_mode"]["non_admin_settings"]["kiosk"]
 
 def cards(view):
     return [c for s in view.get("sections", []) for c in s.get("cards", [])]
