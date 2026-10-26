@@ -14,6 +14,7 @@ on:
       - fix/kimia-v162-admin-header-20261026
       - fix/kimia-v163-themes-cartes-natives-20261026
       - feat/kimia-v17-maquette-areas-acl-20261026
+      - feat/kimia-studio-v2-admin-interface-20261026
   workflow_dispatch:
 jobs:
   check:
@@ -42,6 +43,7 @@ jobs:
           node --check www/kimia-user-visibility-v15-card.js
           node --check www/kimia-routine-engine-v16.js
           node --check www/kimia-routine-editor-v16-card.js
+          node --check www/kimia-studio-v2-admin-card.js
           node tests/kimia_v1.test.cjs
           node tests/kimia_v14.test.cjs
           node tests/kimia_v15_admin.test.cjs
@@ -53,6 +55,7 @@ jobs:
           node tests/kimia_header_toggle_v1.test.cjs
           node tests/kimia_v161_local_preferences.test.cjs
           node tests/kimia_v17_maquette_areas.test.cjs
+          node tests/kimia_studio_v2.test.cjs
       - name: Verification YAML
         run: |
           pip install PyYAML
@@ -173,4 +176,13 @@ jobs:
             www/kimia-smart-core-v1.js
             www/kimia-maquette-acl-v17-card.js
             docs/KIMIA_V17_MAQUETTE_PIECES_UTILISATEURS.md
+          retention-days: 30
+
+      - name: Pack KIMIA Studio V2 — interface admin isolée
+        uses: actions/upload-artifact@v4
+        with:
+          name: KIMIA-Studio-V2-Admin-Prototype
+          path: |
+            www/kimia-studio-v2-admin-card.js
+            docs/KIMIA_STUDIO_V2_ADMIN_INSTALLATION.md
           retention-days: 30
