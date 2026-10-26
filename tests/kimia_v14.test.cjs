@@ -26,7 +26,7 @@ const hass={user:{is_admin:true},states:{"todo.shopping_list":{state:"0"}},callW
 const view=path=>cfg.views.find(v=>v.path===path);
 const cards=path=>(view(path)?.sections||[]).flatMap(s=>s.cards||[]);
 async function run(){
- assert.match(window.KimiaSmartCore.version,/^1\.(4|5|6)\.0-dev$/);
+ assert.match(window.KimiaSmartCore.version,/^1\.(4|5)\.0-dev$|^1\.6\.[01]-dev$/);
  await window.KimiaSmartCore.sync(hass);
  assert.equal(cfg.views.length,17,"V1.4 + cinq sous-vues de réglages");
  const map=cards("carte").find(c=>c.type==="map");
