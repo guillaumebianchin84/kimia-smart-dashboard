@@ -7,6 +7,7 @@ on:
       - feat/kimia-bandeau-client-20261026
       - feat/kimia-bandeau-marque-20261026
       - feat/kimia-refonte-client-20261026
+      - feat/kimia-v14-carte-listes-scenarios-20261026
   workflow_dispatch:
 jobs:
   check:
@@ -28,7 +29,10 @@ jobs:
           node --check www/kimia-scenarios-v1-card.js
           node --check www/kimia-inventory-v1-card.js
           node --check www/kimia-header-toggle-v1-card.js
+          node --check www/kimia-services-v14-card.js
+          node --check www/kimia-script-builder-v14-card.js
           node tests/kimia_v1.test.cjs
+          node tests/kimia_v14.test.cjs
           node tests/kimia_inventory_v1.test.cjs
           node tests/kimia_header_toggle_v1.test.cjs
       - name: Verification YAML
@@ -74,4 +78,17 @@ jobs:
             www/kimia-smart-core-v1.js
             dashboard-kimia-next-ui-import.yaml
             docs/KIMIA_REFONTE_CLIENT_SOURCE_20261026.yaml
+          retention-days: 30
+      - name: Pack de développement KIMIA V1.4 (non déployé)
+        uses: actions/upload-artifact@v4
+        with:
+          name: KIMIA-V14-Development
+          path: |
+            www/kimia-smart-core-v1.js
+            www/kimia-services-v14-card.js
+            www/kimia-script-builder-v14-card.js
+            kimia-admin-next-ui-import.yaml
+            dashboard-kimia-next-ui-import.yaml
+            packages/kimia_admin_navigation.yaml
+            docs/KIMIA_V14_INSTALLATION.md
           retention-days: 30
