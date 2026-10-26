@@ -1,4 +1,4 @@
-/* KIMIA Smart by PROMAINT — moteur de tableaux de bord v1.5 (socle admin).
+/* KIMIA Smart by PROMAINT — moteur de tableaux de bord v1.6 (socle admin).
  * Une pièce / un appareil = cartes natives indépendantes (Area / Tile).
  * Écrit dans kimia-next et ajoute uniquement les réglages manquants à kimia-admin-next.
  * Retrait uniquement des cartes créées par KIMIA et restées non personnalisées.
@@ -370,15 +370,30 @@
         added++;
       }
     }
-    if(scenarios?.sections &&
-       !hasCard(scenarios,c=>c.type==="custom:kimia-script-builder-v14-card")){
-      const oldIdx=scenarios.sections.findIndex(s=>s.cards?.some(c=>
-        c.type==="custom:kimia-scenarios-v1-card"));
-      const target=oldIdx<0?scenarios.sections.length:oldIdx;
-      scenarios.sections.splice(target,0,{type:"grid",column_span:2,cards:[
-        {type:"custom:kimia-script-builder-v14-card",
-         grid_options:{columns:"full",rows:"auto"}}]});
-      added++;
+    // V1.6 : faire évoluer uniquement la carte standard de création de scripts.
+    // Les scénarios Home Assistant sont conservés et la carte d'association aussi.
+    // Une carte V1.4 personnalisée reste intacte ; le nouvel atelier est ajouté à part.
+    if(scenarios?.sections){
+      const editor="custom:kimia-routine-editor-v16-card";
+      const legacy="custom:kimia-script-builder-v14-card";
+      for(const section of scenarios.sections){
+        for(const card of section.cards||[]){
+          if(card.type!==legacy)continue;
+          const onlyStandard=Object.keys(card).sort().join("|")==="grid_options|type" &&
+            card.grid_options?.columns==="full" && card.grid_options?.rows==="auto";
+          if(onlyStandard && !hasCard(scenarios,c=>c.type===editor)){
+            card.type=editor;added++;
+          }
+        }
+      }
+      if(!hasCard(scenarios,c=>c.type===editor)){
+        const oldIdx=scenarios.sections.findIndex(s=>s.cards?.some(c=>
+          c.type==="custom:kimia-scenarios-v1-card"));
+        const target=oldIdx<0?scenarios.sections.length:oldIdx;
+        scenarios.sections.splice(target,0,{type:"grid",column_span:2,cards:[
+          {type:editor,grid_options:{columns:"full",rows:"auto"}}]});
+        added++;
+      }
     }
     // Ajouter une page dédiée au choix des pièces par compte HA.
     // Aucune vue existante n'est réécrite ni déplacée.
@@ -777,6 +792,6 @@
     sync: synchronize,
     getStatus: () => ({ ..._last }),
     dashboard: DASHBOARD,
-    version: "1.5.0-dev"
+    version: "1.6.0-dev"
   });
 })();
