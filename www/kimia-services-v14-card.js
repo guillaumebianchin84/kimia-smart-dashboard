@@ -143,8 +143,10 @@
    name.addEventListener("input",()=>{this._newName=name.value;});
    const add=make("button","+ Créer une liste");
    add.disabled=this._busy;add.addEventListener("click",()=>void this._createTodo());
-   todoGroup.append(name,add,make("p",
-    "Les listes sont créées avec l'intégration locale To-do de Home Assistant. Leur renommage ou suppression se fait depuis les intégrations HA, afin de ne pas supprimer des tâches accidentellement."));
+   const refresh=make("button","Actualiser les listes","secondary");
+   refresh.disabled=this._busy;refresh.addEventListener("click",()=>void this._load());
+   todoGroup.append(name,add,refresh,make("p",
+    "Après une création, cliquez sur Actualiser les listes quand Home Assistant l'a ajoutée. Le renommage ou la suppression se fait depuis les intégrations HA, pour préserver les tâches."));
    const save=make("button",this._busy?"Enregistrement…":"Enregistrer la carte et les listes");
    save.disabled=this._busy;save.addEventListener("click",()=>void this._save());
    card.append(mapGroup,todoGroup,save);
