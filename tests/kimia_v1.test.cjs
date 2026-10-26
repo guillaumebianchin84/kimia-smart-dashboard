@@ -121,9 +121,9 @@ async function main(){
  custom.name="Lampe personnalisée";
  devices.find(d=>d.id==="d1").area_id=null;
  await window.KimiaSmartCore.sync(hass);
- assert(roomSection("lumieres","salon")?.cards.some(c=>
+ assert(cards(view("lumieres")).some(c=>
   c.entity==="light.lampe"&&c.name==="Lampe personnalisée"),
-  "Une tuile personnalisée doit être préservée");
+  "Une tuile personnalisée doit être préservée même si la section change");
 
  // Supprimer Cuisine, puis Salon : aucune pièce orpheline.
  rooms.splice(rooms.findIndex(x=>x.area_id==="cuisine"),1);
