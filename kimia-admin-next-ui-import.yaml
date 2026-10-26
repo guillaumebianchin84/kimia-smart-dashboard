@@ -184,6 +184,12 @@ views:
             heading: Mes rubriques
             icon: mdi:eye-settings-outline
           - type: tile
+            entity: input_boolean.kimia_onglet_pieces
+            name: Pièces
+            icon: mdi:floor-plan
+            tap_action:
+              action: toggle
+          - type: tile
             entity: input_boolean.kimia_onglet_lumieres
             name: Lumières
             icon: mdi:lightbulb-group-outline
