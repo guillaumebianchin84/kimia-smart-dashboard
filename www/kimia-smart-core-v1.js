@@ -312,7 +312,9 @@
     for(const path of ["pieces",...CATEGORIES.map(x=>x[0])]){
       const view=next.views.find(v=>v.path===path);
       for(const section of view?.sections||[]){
-        const area=managedRoom(section)?.area;
+        // La pièce peut avoir été personnalisée : le filtre concerne la section,
+        // pas la configuration interne de la carte Area ni de ses tuiles.
+        const area=section.cards?.find(c=>c.type==="area"&&typeof c.area==="string")?.area;
         if(!area)continue;
         const ids=hiddenByArea.get(area)||[];
         const old=section.visibility;
