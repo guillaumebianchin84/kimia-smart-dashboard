@@ -10,6 +10,9 @@ admin_views = {v["path"]: v for v in admin["views"]}
 assert len(views) == 10, f"10 pages attendues, {len(views)}"
 assert len(admin_views) == 6, f"6 pages admin attendues, {len(admin_views)}"
 assert "accueil" in views and "pieces" in views
+# Le bandeau HA est masqué pour les clients par défaut et activable localement.
+assert "localStorage.getItem" in main["kiosk_mode"]["non_admin_settings"]["kiosk"]
+
 assert "demarrer" in admin_views and "appareils" in admin_views and "inventaire" in admin_views
 
 def cards(view):
@@ -27,6 +30,8 @@ assert any(c.get("type") == "heading" and c.get("heading") == "Pièces de la mai
            for c in cards(views["pieces"]))
 assert all(any(c.get("type") == "custom:navbar-card" for c in cards(v))
            for v in views.values())
+assert any(c.get("type") == "custom:kimia-header-toggle-v1-card"
+           for c in cards(views["parametres"])), "Réglage bandeau absent"
 assert not any(c.get("type") == "custom:button-card" for v in views.values()
                for c in cards(v))
 assert any(c.get("type") == "custom:kimia-inventory-v1-card"
