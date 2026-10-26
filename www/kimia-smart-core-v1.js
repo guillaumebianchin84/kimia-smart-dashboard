@@ -64,6 +64,57 @@
   });
   const countCards = cfg => (cfg.views || []).reduce((n, v) =>
     n + allCards(v).length, 0);
+  // Identité visuelle client historique : bandeau natif button-card sur chaque vue.
+  // Important : ce bandeau KIMIA est indépendant du bandeau HA masqué par Kiosk Mode.
+  const brandBanner = view => ({
+    type: "grid",
+    column_span: Math.min(Math.max(Number(view.max_columns) || 3, 1), 3),
+    cards: [{
+      type: "custom:button-card",
+      show_icon: false,
+      show_name: false,
+      show_state: false,
+      show_label: false,
+      grid_options: { columns: "full", rows: "auto" },
+      tap_action: { action: "none" },
+      custom_fields: {
+        logo: "[[[ return '<div style=\"font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;\">KIMIA <span style=\"color:#3FD6CB\">Smart</span><div style=\"font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px\">by PROMAINT</div></div>'; ]]]",
+        slogan: "[[[ return '<div style=\"font-size:20px;font-weight:800;letter-spacing:.2px;\">Ma maison</div>'; ]]]",
+        localisation: "[[[ return '<div style=\"font-size:12px;font-weight:600;opacity:.8;\">LIBREVILLE · GABON</div>'; ]]]"
+      },
+      styles: {
+        card: [
+          { background: "linear-gradient(105deg, rgba(12,137,147,.25), var(--card-background-color) 68%)" },
+          { border: "1px solid rgba(56,205,203,.28)" },
+          { "border-radius": "18px" },
+          { padding: "9px 18px" },
+          { "box-shadow": "0 5px 22px rgba(0,25,35,.12)" }
+        ],
+        grid: [
+          { "grid-template-areas": "[[[ return window.innerWidth < 680 ? '\"logo localisation\" \"slogan slogan\"' : '\"logo slogan localisation\"'; ]]]" },
+          { "grid-template-columns": "[[[ return window.innerWidth < 680 ? '1fr auto' : '225px 1fr 150px'; ]]]" },
+          { "grid-template-rows": "auto" },
+          { "align-items": "center" }
+        ],
+        custom_fields: {
+          logo: [{ "text-align": "left" }, { "justify-self": "start" }],
+          slogan: [{ "text-align": "center" }, { color: "var(--primary-text-color)" }],
+          localisation: [{ "text-align": "right" }, { "justify-self": "end" }, { color: "var(--secondary-text-color)" }]
+        }
+      }
+    }]
+  });
+  const isKimiaBrand = card => card?.type === "custom:button-card" &&
+    typeof card.custom_fields?.logo === "string" &&
+    card.custom_fields.logo.includes("by PROMAINT") &&
+    card.custom_fields.logo.includes("KIMIA");
+  const isDefaultHomeIntro = section => section?.type === "grid" &&
+    section.cards?.length === 2 &&
+    section.cards[0]?.type === "heading" &&
+    section.cards[0]?.heading === "KIMIA Smart · Ma maison" &&
+    section.cards[1]?.type === "markdown" &&
+    section.cards[1]?.content === "**by PROMAINT** · LIBREVILLE, GABON";
+
   // Ne retirer que les tuiles à la forme strictement identique à celles
   // produites par KIMIA. Une tuile personnalisée ne doit pas être effacée.
   const isGeneratedTile = card =>
@@ -145,6 +196,20 @@
 
         const next = safeClone(config), vmap = new Map(next.views.map(v => [v.path, v]));
         let added = 0, removed = 0;
+        // Restaurer le bandeau KIMIA sur TOUTES les pages client.
+        // N'écrase jamais une carte du client : ne supprime que l'intro V1 native,
+        // rigoureusement reconnue, et uniquement dans l'accueil.
+        for (const view of next.views) {
+          if (!Array.isArray(view.sections)) continue;
+          if (allCards(view).some(isKimiaBrand)) continue;
+          if (view.path === "accueil" && isDefaultHomeIntro(view.sections[0])) {
+            removed += view.sections[0].cards.length;
+            view.sections.shift();
+          }
+          view.sections.unshift(brandBanner(view));
+          added++;
+        }
+
         // Supprimer les cartes de PIÈCES dont l'area_id n'existe plus.
         // Ne jamais toucher aux cartes utilisateur personnalisées.
         const validAreaIds = new Set(orderedAreas.map(a => a.area_id));
@@ -311,6 +376,6 @@
     sync: synchronize,
     getStatus: () => ({ ..._last }),
     dashboard: DASHBOARD,
-    version: "1.1.1"
+    version: "1.2.0"
   });
 })();
