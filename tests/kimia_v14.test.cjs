@@ -32,6 +32,7 @@ async function run(){
  const map=cards("carte").find(c=>c.type==="map");
  assert.deepEqual(Array.from(map.entities),["zone.home"]);
  assert.equal(map.show_all,false,"pas de suivi de position implicite");
+ assert.equal(map.grid_options.rows,6,"carte native avec hauteur fixe en vue Sections");
  const todo=cards("listes").find(c=>c.type==="todo-list");
  assert.equal(todo.entity,"todo.shopping_list");
  for(const v of cfg.views){
