@@ -157,10 +157,12 @@
   required(allowed && Object.keys(t).every(key=>allowed.includes(key)),
     "Déclencheur existant trop avancé : ouvrez-le dans Home Assistant.");
   if(type==="time"&&typeof t.at==="string")return {type,at:t.at};
-  if(type==="sun"&&["sunrise","sunset"].includes(t.event))
-   return {type,event:t.event,offset:typeof t.offset==="string" && /^[+-]\d\d:\d\d:\d\d$/.test(t.offset)?
-     (t.offset[0]==="-"?-1:1)*(Number(t.offset.slice(1,3))*60+Number(t.offset.slice(4,6))):
-     t.offset===undefined?0:Number(t.offset?.minutes||0)};
+  if(type==="sun"&&["sunrise","sunset"].includes(t.event)){
+   required(t.offset===undefined || (typeof t.offset==="string"&&/^[+-]\d\d:\d\d:00$/.test(t.offset)),
+    "Décalage solaire avancé : ouvrez la routine dans Home Assistant.");
+   return {type,event:t.event,offset:t.offset===undefined?0:
+    (t.offset[0]==="-"?-1:1)*(Number(t.offset.slice(1,3))*60+Number(t.offset.slice(4,6)))};
+  }
   if(type==="state"&&typeof t.entity_id==="string")
    return {type,entity:t.entity_id,to:t.to??"",from:t.from??"",seconds:Number(t.for?.seconds||0)};
   if(type==="numeric_state"&&typeof t.entity_id==="string")
