@@ -9,7 +9,7 @@ views = {v["path"]: v for v in main["views"]}
 source_views = {v["path"]: v for v in source["views"]}
 admin_views = {v["path"]: v for v in admin["views"]}
 expected = {
-    "accueil": "Ma maison", "lumieres": "Lumières", "volets": "Volets",
+    "accueil": "Accueil", "lumieres": "Lumières", "volets": "Volets",
     "climatisation": "Climatisation", "musique": "Musique",
     "securite": "Sécurité", "prises": "Prises", "actualites": "Actualités",
     "parametres": "Paramètres", "pieces": "Pièces",
