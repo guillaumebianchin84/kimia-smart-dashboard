@@ -323,6 +323,7 @@
         return;
       }
       this._lock(true);
+      let deleted=false;
       try {
         // Nouvelle vérification juste avant la suppression : éviter les états périmés.
         const [devices,entities]=await Promise.all([
@@ -335,6 +336,7 @@
             " appareil(s) et "+count.entities+" entité(s). Déplacez-les avant suppression.");
         }
         await this._hass.callWS({type:"config/area_registry/delete",area_id:area.area_id});
+        deleted=true;
         this._selectedArea=null;
         this._closeDelete();
         this._message("Pièce supprimée : "+area.name);
@@ -344,6 +346,15 @@
         this._lock(false);
       }
       await this._load();
+      // Une suppression de pièce doit synchroniser immédiatement le dashboard.
+      if(deleted && window.KimiaSmartCore) {
+        try {
+          await window.KimiaSmartCore.sync(this._hass);
+        } catch(error) {
+          this._message("Pièce supprimée, mais nettoyage des cartes impossible : "+
+            (error?.message||error),true);
+        }
+      }
     }
     async _unassign(deviceId,areaId) {
       if(this._busy)return;
