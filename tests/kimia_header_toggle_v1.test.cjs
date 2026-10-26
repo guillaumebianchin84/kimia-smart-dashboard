@@ -7,10 +7,10 @@ const storage={
   getItem:k=>users[k]||null,
   setItem:(k,v)=>{users[k]=v;}
 };
-let navigated=null;
+let navigated=null, reloaded=0;
 const window={
   localStorage:storage,
-  location:{assign:url=>{navigated=url;}},
+  location:{assign:url=>{navigated=url;},reload:()=>{reloaded++;}},
   customCards:[]
 };
 const registered=new Map();
@@ -30,7 +30,8 @@ inst._button={disabled:false};
 inst._status={textContent:""};
 inst._toggle();
 assert.equal(users.kimia_bandeau_ha_client,"visible");
-assert.equal(navigated,"/kimia-next/parametres");
+assert.equal(navigated,null);
+assert.equal(reloaded,1);
 inst._button.disabled=false;
 navigated=null;
 inst._toggle();
@@ -43,5 +44,7 @@ assert.equal(users.kimia_bandeau_ha_client,"masque","Préférence individuelle c
 inst._hass={user:{is_admin:true,name:"admin"}};
 navigated=null;
 inst._toggle();
-assert.equal(navigated,null,"Admin : pas de bascule");
+assert.equal(navigated,null,"Pas de redirection même pour admin");
+assert.equal(reloaded,4,"Admin : bascule locale autorisée");
+assert.equal(users.kimia_bandeau_ha_admin,"visible");
 console.log("KIMIA bandeau: bascule, restauration, isolement utilisateurs et admin OK");
