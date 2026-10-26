@@ -4,6 +4,12 @@ input_boolean:
   kimia_navigation_initialisee:
     name: KIMIA Navigation initialisée
     icon: mdi:check-circle-outline
+  kimia_onglet_pieces:
+    name: Afficher Pièces
+    icon: mdi:floor-plan
+  kimia_onglet_pieces_initialise:
+    name: KIMIA Pièces navigation initialisée
+    icon: mdi:check-circle-outline
   kimia_onglet_lumieres:
     name: Afficher Lumières
     icon: mdi:lightbulb-group-outline
@@ -63,4 +69,21 @@ automation:
             - input_boolean.kimia_onglet_listes
             - input_boolean.kimia_onglet_parametres
             - input_boolean.kimia_navigation_initialisee
+    mode: single
+
+  - id: kimia_initialisation_pieces_nav_v15
+    alias: "KIMIA - Initialiser le bouton Pièces une seule fois"
+    triggers:
+      - trigger: homeassistant
+        event: start
+    conditions:
+      - condition: state
+        entity_id: input_boolean.kimia_onglet_pieces_initialise
+        state: "off"
+    actions:
+      - action: input_boolean.turn_on
+        target:
+          entity_id:
+            - input_boolean.kimia_onglet_pieces
+            - input_boolean.kimia_onglet_pieces_initialise
     mode: single
