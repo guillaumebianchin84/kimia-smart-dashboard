@@ -486,7 +486,7 @@
       settingsHelp("Retrouvez ici le contrôle du bandeau Home Assistant, avec sa préférence actuelle propre à cet appareil.")
     );
     if(spec.path==="reglages-apparence")add(
-      settingsHeading("Mes thèmes"),
+      settingsHeading("Personnalisation"),
       settingsHelp("Retrouvez ici les thèmes KIMIA existants, sans changer leurs couleurs ni leur fonctionnement.")
     );
     if(nav)view.sections.push(settingsGrid([safeClone(nav)]));
