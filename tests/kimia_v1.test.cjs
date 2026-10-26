@@ -36,7 +36,11 @@ const makeView=([path,title])=>({
  path,title,type:"sections",max_columns:path==="parametres"||path==="actualites"?2:3,
  sections:[
   {type:"grid",cards:[clone(legacyBanner)]},
-  {type:"grid",cards:[{type:"markdown",content:"Carte client personnalisée importante : ne jamais modifier"}]}
+  {type:"grid",cards:[{type:"markdown",content:"Carte client personnalisée importante : ne jamais modifier"}]},
+  {type:"grid",cards:[{type:"custom:navbar-card",
+   routes:[{url:"/kimia-next/accueil",icon:"mdi:home",label:"Accueil"},
+           {url:"/kimia-next/actualites",icon:"mdi:newspaper",label:"Actualités"}],
+   desktop:{mode:"floating",position:"left"}}]}
  ]
 });
 const original={title:"KIMIA Smart",views:paths.map(makeView)};
