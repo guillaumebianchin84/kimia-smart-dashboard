@@ -77,7 +77,7 @@ for slug,v in views.items():
         assert len(matches)==1, (slug,extra_path)
         assert "kimia_onglet_"+extra_path in matches[0]["hidden"]
 assert any(c.get("type")=="custom:kimia-services-v14-card" for c in cards(admin_views["apparence"]))
-assert any(c.get("type")=="custom:kimia-script-builder-v14-card" for c in cards(admin_views["scenarios"]))
+assert any(c.get("type")=="custom:kimia-routine-editor-v16-card" for c in cards(admin_views["scenarios"]))
 nav_helpers=yaml.safe_load(Path("packages/kimia_admin_navigation.yaml").read_text(encoding="utf-8"))
 assert "kimia_onglet_pieces" in nav_helpers["input_boolean"]
 assert any(c.get("entity")=="input_boolean.kimia_onglet_pieces" for c in cards(admin_views["apparence"]))
