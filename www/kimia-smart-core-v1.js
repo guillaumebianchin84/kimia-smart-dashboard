@@ -63,6 +63,21 @@
   });
   const countCards = cfg => (cfg.views || []).reduce((n, v) =>
     n + allCards(v).length, 0);
+  // Ne retirer que les tuiles à la forme strictement identique à celles
+  // produites par KIMIA. Une tuile personnalisée ne doit pas être effacée.
+  const isGeneratedTile = card =>
+    card?.type === "tile" && typeof card.entity === "string" &&
+    JSON.stringify(card) === JSON.stringify(safeClone(tile({entity_id:card.entity})));
+  const isGeneratedRoomSection = section => {
+    if (section?.type !== "grid" || !Array.isArray(section.cards) ||
+        section.cards.length < 2) return false;
+    const first = section.cards[0], second = section.cards[1];
+    const expectedHeader = heading(first?.heading || "", "mdi:home-heart-outline");
+    return first?.type === "heading" &&
+      JSON.stringify(first) === JSON.stringify(expectedHeader) &&
+      second?.type === "area" && typeof second.area === "string" &&
+      JSON.stringify(second) === JSON.stringify(roomCard({area_id:second.area}));
+  };
 
   let active = null;
   let _last = { state: "idle", added: 0, message: "KIMIA est prêt." };
@@ -123,7 +138,40 @@
           list.sort((a, b) => natural(entityName(a, hass), entityName(b, hass)));
 
         const next = safeClone(config), vmap = new Map(next.views.map(v => [v.path, v]));
-        let added = 0, updated = 0;
+        let added = 0, removed = 0;
+        // Réconcilier les cartes standards quand un appareil est retiré,
+        // désactivé ou déplacé. Aucun code de suppression d'appareil HA.
+        // Les cartes modifiées à la main (ou hors section gérée) sont préservées.
+        const desired = new Map();
+        desired.set("pieces", new Map(orderedAreas.map(area => [
+          area.area_id,
+          new Set((byArea.get(area.area_id)||[]).map(e=>e.entity_id))
+        ])));
+        for (const [path, domains] of CATEGORIES) {
+          desired.set(path, new Map(orderedAreas.map(area => [
+            area.area_id,
+            new Set((byArea.get(area.area_id)||[])
+              .filter(e => domains.some(d => e.entity_id.startsWith(d+".")) &&
+                (path !== "securite" || e.entity_id.startsWith("alarm_control_panel.") ||
+                  ["door","window","moisture","smoke","motion","occupancy"].includes(
+                    hass.states?.[e.entity_id]?.attributes?.device_class)))
+              .map(e => e.entity_id))
+          ])));
+        }
+        for (const [path, expectedByArea] of desired) {
+          const view = vmap.get(path);
+          for (const section of view.sections || []) {
+            if (!isGeneratedRoomSection(section)) continue;
+            const areaId = section.cards[1].area;
+            if (!expectedByArea.has(areaId)) continue; // Ancienne pièce : vérification manuelle.
+            const expected = expectedByArea.get(areaId);
+            section.cards = section.cards.filter(card => {
+              if (!isGeneratedTile(card) || expected.has(card.entity)) return true;
+              removed++;
+              return false;
+            });
+          }
+        }
         const homeCards = allCards(vmap.get("accueil"));
         const roomCards = allCards(vmap.get("pieces"));
         const homeTargets = sectionWithHeader(vmap.get("accueil"), "Mes pièces");
@@ -181,7 +229,7 @@
             }
           }
         }
-        if (added === 0 && updated === 0) {
+        if (added === 0 && removed === 0) {
           const result = { state: "ok", added: 0,
             message: "Votre maison est déjà à jour. Rien à modifier." };
           notify(result);
@@ -192,7 +240,7 @@
         if (JSON.stringify(latest) !== JSON.stringify(config)) {
           throw new Error("Le dashboard a été modifié pendant la synchronisation. Réessayez.");
         }
-        if (countCards(next) - countCards(config) !== added) {
+        if (countCards(next) - countCards(config) !== added - removed) {
           throw new Error("Contrôle de cohérence non satisfait : aucune écriture.");
         }
         await hass.callWS({ type: "lovelace/config/save", url_path: DASHBOARD, config: next });
@@ -203,8 +251,9 @@
             countCards(after) < countCards(next)) {
           throw new Error("L'enregistrement doit être vérifié dans KIMIA.");
         }
-        const result = { state: "ok", added,
-          message: added + " carte(s) indépendante(s) ajoutée(s). Votre maison est à jour." };
+        const result = { state: "ok", added, removed,
+          message: added + " carte(s) ajoutée(s), "+removed+
+            " ancienne(s) carte(s) non personnalisée(s) retirée(s). Votre maison est à jour." };
         notify(result);
         return result;
       } catch (err) {
@@ -221,6 +270,6 @@
     sync: synchronize,
     getStatus: () => ({ ..._last }),
     dashboard: DASHBOARD,
-    version: "1.0.0"
+    version: "1.1.0"
   });
 })();
