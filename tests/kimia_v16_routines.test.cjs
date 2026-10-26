@@ -84,7 +84,7 @@ assert.equal(E.serialize(auto,"kimia_auto_demo").actions[0].action,"light.turn_o
 assert.throws(()=>E.serialize({...auto,actions:[]},"id"),/au moins une action/);
 assert.throws(()=>E.serialize({...auto,triggers:[]},"id"),/au moins un déclencheur/);
 assert.throws(()=>E.actionToHA({type:"repeat",count:100,actions:[E.action("delay")]}),/Répétitions/);
-assert.throws(()=>E.actionToHA({type:"call",entity:"lock.front",operation:"unlock"}),/pas prise en charge/);
+assert.throws(()=>E.actionToHA({type:"call",entity:"lock.front",operation:"unlock"}),/non prise en charge/);
 assert.throws(()=>E.deserialize({...aa,actions:[{action:"shell_command.run"}]},"automation"),/non représentable/);
 assert.throws(()=>E.deserialize({...aa,trace:{stored_traces:10}},"automation"),/avancés/);
 assert.throws(()=>E.conditionToHA({type:"numeric_state",entity:"sensor.x",above:30,below:10}),/borne basse/);
