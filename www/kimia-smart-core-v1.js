@@ -1,4 +1,4 @@
-/* KIMIA Smart by PROMAINT — moteur de tableaux de bord v1.1.1 (prototype isolé).
+/* KIMIA Smart by PROMAINT — moteur de tableaux de bord v1.3 (refonte client).
  * Une pièce / un appareil = cartes natives indépendantes (Area / Tile).
  * Ecriture limitée au dashboard kimia-next. Aucun accès au dashboard actif.
  * Retrait uniquement des cartes créées par KIMIA et restées non personnalisées.
@@ -46,7 +46,7 @@
     display_type: "compact",
     features: [{ type: "area-controls" }],
     features_position: "bottom",
-    grid_options: { columns: 6, rows: "auto" },
+    grid_options: { columns: 12, rows: "auto" },
     tap_action: { action: "navigate", navigation_path: "/kimia-next/pieces" }
   });
   const allCards = view =>
@@ -58,9 +58,11 @@
   const sectionForRoom = (view, areaId) => (view.sections || [])
     .find(s => s.type === "grid" && Array.isArray(s.cards) &&
       s.cards.some(c => c.type === "area" && c.area === areaId));
-  const createRoomSection = area => ({
+  // Carte de pièce sur toute la section, commandes natives en dessous (2 tuiles/ligne).
+  const createRoomSection = (area, view) => ({
     type: "grid",
-    cards: [heading(area.name, "mdi:home-heart-outline"), roomCard(area)]
+    column_span: Math.min(Number(view.max_columns) || 3, 3),
+    cards: [roomCard(area)]
   });
   const countCards = cfg => (cfg.views || []).reduce((n, v) =>
     n + allCards(v).length, 0);
@@ -122,18 +124,37 @@
     JSON.stringify(card) === JSON.stringify(safeClone(tile({entity_id:card.entity})));
   // Une carte Pièce n'est gérée par KIMIA que si toutes ses options sont intactes.
   // Les variantes personnalisées doivent rester sous contrôle de l'habitant.
-  const isGeneratedRoomCard = card =>
-    card?.type === "area" && typeof card.area === "string" &&
-    JSON.stringify(card) === JSON.stringify(roomCard({ area_id: card.area }));
-  const isGeneratedRoomSection = section => {
-    if (section?.type !== "grid" || !Array.isArray(section.cards) ||
-        section.cards.length < 2) return false;
-    const first = section.cards[0], second = section.cards[1];
-    const expectedHeader = heading(first?.heading || "", "mdi:home-heart-outline");
-    return first?.type === "heading" &&
-      JSON.stringify(first) === JSON.stringify(expectedHeader) &&
-      second?.type === "area" && typeof second.area === "string" &&
-      JSON.stringify(second) === JSON.stringify(roomCard({area_id:second.area}));
+  const isGeneratedRoomCard = card => {
+    if(card?.type !== "area" || typeof card.area !== "string") return false;
+    const now=roomCard({area_id:card.area});
+    const old={...now,grid_options:{columns:6,rows:"auto"}};
+    return JSON.stringify(card)===JSON.stringify(now) ||
+      JSON.stringify(card)===JSON.stringify(old);
+  };
+  const isGeneratedRoomHeading = (card, areaName) =>
+    card?.type==="heading" && card.heading_style==="subtitle" &&
+    card.icon==="mdi:home-heart-outline" &&
+    card.grid_options?.columns==="full" &&
+    card.grid_options?.rows===1 &&
+    (!areaName || card.heading===areaName);
+  const managedRoom = section => {
+    if (section?.type!=="grid" || !Array.isArray(section.cards)) return null;
+    return section.cards.find(isGeneratedRoomCard) || null;
+  };
+  const expectedDomain = (path, e, hass) => {
+    if(path==="pieces")return true;
+    const category=CATEGORIES.find(c=>c[0]===path);
+    if(!category || !category[1].some(d=>e.entity_id.startsWith(d+"."))) return false;
+    if(path!=="securite" || e.entity_id.startsWith("alarm_control_panel."))return true;
+    return ["door","window","moisture","smoke","motion","occupancy"].includes(
+      hass.states?.[e.entity_id]?.attributes?.device_class);
+  };
+  const bannerSlogan = label => {
+    const escaped=String(label || "Ma maison").replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/'/g,"&#39;");
+    return "[[[ return '<div style=\\\"font-size:20px;font-weight:800;letter-spacing:.2px;\\\">"+
+      escaped+"</div>'; ]]]";
   };
 
   let active = null;
@@ -172,11 +193,8 @@
           throw new Error("Registres ou configuration KIMIA indisponibles.");
         }
         const views = new Map(config.views.map(v => [v.path, v]));
-        const home = views.get("accueil"), rooms = views.get("pieces");
-        if (!home || !rooms ||
-            !sectionWithHeader(home, "Mes pièces") ||
-            !sectionWithHeader(rooms, "Pièces de la maison")) {
-          throw new Error("Le modèle KIMIA v1 est incomplet : n'écris aucun changement.");
+        if (!views.has("accueil") || !views.has("pieces")) {
+          throw new Error("Les vues Accueil et Pièces sont absentes du modèle KIMIA.");
         }
         for (const [path] of CATEGORIES) if (!views.has(path))
           throw new Error("Vue manquante : " + path);
@@ -195,147 +213,128 @@
           list.sort((a, b) => natural(entityName(a, hass), entityName(b, hass)));
 
         const next = safeClone(config), vmap = new Map(next.views.map(v => [v.path, v]));
-        let added = 0, removed = 0;
-        // Restaurer le bandeau KIMIA sur TOUTES les pages client.
-        // N'écrase jamais une carte du client : ne supprime que l'intro V1 native,
-        // rigoureusement reconnue, et uniquement dans l'accueil.
+        let added = 0, removed = 0, modified = 0;
+        // Le bandeau de marque doit refléter le TITRE de l'onglet, pas "Ma maison"
+        // partout. L'Accueil conserve "Ma maison".
         for (const view of next.views) {
           if (!Array.isArray(view.sections)) continue;
-          if (allCards(view).some(isKimiaBrand)) continue;
-          if (view.path === "accueil" && isDefaultHomeIntro(view.sections[0])) {
-            removed += view.sections[0].cards.length;
-            view.sections.shift();
+          const banner=allCards(view).find(isKimiaBrand);
+          const title=view.path==="accueil"?"Ma maison":view.title || "Ma maison";
+          if (!banner) {
+            view.sections.unshift(brandBanner(view));
+            const generated=allCards(view).find(isKimiaBrand);
+            generated.custom_fields.slogan=bannerSlogan(title);
+            added++;
+          } else {
+            const current=String(banner.custom_fields.slogan || "");
+            const currentName=current.replace(/\s+/g," ");
+            // Préserver un slogan personnalisé; migrer seulement le slogan standard
+            // "Ma maison" ou les titres que le moteur a précédemment créés.
+            if(currentName.includes("Ma maison") ||
+                currentName.includes(bannerSlogan(title).replace(/\s+/g," "))) {
+              const expected=bannerSlogan(title);
+              if(current!==expected) { banner.custom_fields.slogan=expected; modified++; }
+            }
           }
-          view.sections.unshift(brandBanner(view));
-          added++;
         }
 
-        // Supprimer les cartes de PIÈCES dont l'area_id n'existe plus.
-        // Ne jamais toucher aux cartes utilisateur personnalisées.
-        const validAreaIds = new Set(orderedAreas.map(a => a.area_id));
-        const welcome = sectionWithHeader(vmap.get("accueil"), "Mes pièces");
-        const homeCount = welcome.cards.length;
-        welcome.cards = welcome.cards.filter(card =>
-          !isGeneratedRoomCard(card) || validAreaIds.has(card.area));
-        removed += homeCount - welcome.cards.length;
-        // Dans Pièces et dans les rubriques, retirer uniquement les sections
-        // entièrement créées par le générateur. Une section personnalisée est
-        // conservée ; sa carte Area standard obsolète est retirée pour éviter
-        // "Pièce non trouvée" tout en préservant les autres contenus.
-        for (const path of ["pieces", ...CATEGORIES.map(c => c[0])]) {
-          const view = vmap.get(path);
-          const retained = [];
-          for (const section of view.sections || []) {
-            if (!isGeneratedRoomSection(section) ||
-                validAreaIds.has(section.cards[1].area)) {
-              retained.push(section);
+        // Sur un ancien dashboard, enlever seulement les cartes Pièce introduites
+        // automatiquement sur Accueil. Aucun nouvel appareil ne doit y revenir.
+        const home=vmap.get("accueil");
+        const oldHome=sectionWithHeader(home,"Mes pièces");
+        if(oldHome) {
+          const previous=oldHome.cards.length;
+          oldHome.cards=oldHome.cards.filter(c=>!isGeneratedRoomCard(c));
+          removed+=previous-oldHome.cards.length;
+          // Une ancienne section vide ne doit pas laisser un titre "Mes pièces".
+          if(oldHome.cards.length===1 &&
+              oldHome.cards[0]?.type==="heading" &&
+              oldHome.cards[0].heading==="Mes pièces") {
+            home.sections=home.sections.filter(s=>s!==oldHome);
+            removed++;
+          }
+        }
+
+        // Répartition par pièce dans les vrais onglets, jamais dans Accueil.
+        // Chaque salle occupe toute la largeur; les tuiles 6/12 se placent dessous.
+        const targets=["pieces",...CATEGORIES.map(x=>x[0])];
+        const areaIds=new Set(orderedAreas.map(a=>a.area_id));
+        const names=new Map(orderedAreas.map(a=>[a.area_id,a.name]));
+        for(const path of targets) {
+          const view=vmap.get(path);
+          const desired=new Map(orderedAreas.map(area=>[
+            area.area_id,(byArea.get(area.area_id)||[])
+              .filter(e=>expectedDomain(path,e,hass))
+          ]));
+          const kept=[];
+          for(const section of view.sections || []) {
+            const areaCard=managedRoom(section);
+            if(!areaCard) { kept.push(section); continue; }
+            const areaId=areaCard.area;
+            const alive=areaIds.has(areaId);
+            const entitiesWanted=new Set((desired.get(areaId)||[]).map(e=>e.entity_id));
+            if(!alive) {
+              // Pièce supprimée : retirer ses éléments standard uniquement.
+              const before=section.cards.length;
+              section.cards=section.cards.filter(c=>
+                !isGeneratedRoomCard(c) && !isGeneratedTile(c) &&
+                !isGeneratedRoomHeading(c));
+              removed+=before-section.cards.length;
+              if(section.cards.length)kept.push(section);
               continue;
             }
-            const generatedOnly = section.cards.slice(2).every(isGeneratedTile);
-            if (generatedOnly) {
-              removed += section.cards.length;
+            // Les rubriques Lumières, Musique, etc., n'affichent pas de salle vide.
+            if(path!=="pieces" && entitiesWanted.size===0) {
+              const before=section.cards.length;
+              section.cards=section.cards.filter(c=>
+                !isGeneratedRoomCard(c) && !isGeneratedTile(c) &&
+                !isGeneratedRoomHeading(c,names.get(areaId)));
+              removed+=before-section.cards.length;
+              if(section.cards.length)kept.push(section);
               continue;
             }
-            section.cards = section.cards.filter((card, index) => {
-              if (index !== 1) return true;
-              removed++;
-              return false;
-            });
-            retained.push(section);
-          }
-          view.sections = retained;
-        }
-        // Réconcilier les cartes standards quand un appareil est retiré,
-        // désactivé ou déplacé. Aucun code de suppression d'appareil HA.
-        // Les cartes modifiées à la main (ou hors section gérée) sont préservées.
-        const desired = new Map();
-        desired.set("pieces", new Map(orderedAreas.map(area => [
-          area.area_id,
-          new Set((byArea.get(area.area_id)||[]).map(e=>e.entity_id))
-        ])));
-        for (const [path, domains] of CATEGORIES) {
-          desired.set(path, new Map(orderedAreas.map(area => [
-            area.area_id,
-            new Set((byArea.get(area.area_id)||[])
-              .filter(e => domains.some(d => e.entity_id.startsWith(d+".")) &&
-                (path !== "securite" || e.entity_id.startsWith("alarm_control_panel.") ||
-                  ["door","window","moisture","smoke","motion","occupancy"].includes(
-                    hass.states?.[e.entity_id]?.attributes?.device_class)))
-              .map(e => e.entity_id))
-          ])));
-        }
-        for (const [path, expectedByArea] of desired) {
-          const view = vmap.get(path);
-          for (const section of view.sections || []) {
-            if (!isGeneratedRoomSection(section)) continue;
-            const areaId = section.cards[1].area;
-            if (!expectedByArea.has(areaId)) continue; // Ancienne pièce : vérification manuelle.
-            const expected = expectedByArea.get(areaId);
-            section.cards = section.cards.filter(card => {
-              if (!isGeneratedTile(card) || expected.has(card.entity)) return true;
-              removed++;
-              return false;
-            });
-          }
-        }
-        const homeCards = allCards(vmap.get("accueil"));
-        const roomCards = allCards(vmap.get("pieces"));
-        const homeTargets = sectionWithHeader(vmap.get("accueil"), "Mes pièces");
-        const roomSummary = sectionWithHeader(vmap.get("pieces"), "Pièces de la maison");
-        // Toutes les pièces, en cartes Area NATIVES et individuelles sur l'accueil.
-        for (const area of orderedAreas) {
-          if (!homeCards.some(c => c.type === "area" && c.area === area.area_id)) {
-            homeTargets.cards.push(roomCard(area));
-            homeCards.push(homeTargets.cards[homeTargets.cards.length - 1]);
-            added++;
-          }
-          if (!roomCards.some(c => c.type === "area" && c.area === area.area_id)) {
-            const section = createRoomSection(area);
-            vmap.get("pieces").sections.push(section);
-            roomCards.push(...section.cards);
-            added += 2;
-          }
-        }
-        // Dans Pièces : cartes Tile réelles, une par entité, au-dessous de chaque Area.
-        const roomView = vmap.get("pieces");
-        const foundInRooms = new Set(allCards(roomView).filter(c => c.type === "tile").map(c => c.entity));
-        for (const area of orderedAreas) {
-          const target = sectionForRoom(roomView, area.area_id);
-          if (!target) continue;
-          for (const e of byArea.get(area.area_id) || []) {
-            if (foundInRooms.has(e.entity_id)) continue;
-            target.cards.push(tile(e));
-            foundInRooms.add(e.entity_id);
-            added++;
-          }
-        }
-        // Dans chaque rubrique : vraies cartes Tile, classées automatiquement par pièce.
-        for (const [path, domains] of CATEGORIES) {
-          const v = vmap.get(path), existing = new Set(allCards(v)
-            .filter(c => c.type === "tile").map(c => c.entity));
-          for (const area of orderedAreas) {
-            const matching = (byArea.get(area.area_id) || [])
-              .filter(e => domains.some(d => e.entity_id.startsWith(d + ".")) &&
-                // Les capteurs binaires de sécurité ne doivent pas envahir l'écran.
-                (path !== "securite" || e.entity_id.startsWith("alarm_control_panel.") ||
-                 ["door","window","moisture","smoke","motion","occupancy"].includes(
-                   hass.states?.[e.entity_id]?.attributes?.device_class)));
-            if (!matching.length) continue;
-            let target = sectionForRoom(v, area.area_id);
-            if (!target) {
-              target = createRoomSection(area);
-              v.sections.push(target);
-              added += 2;
+            // Réécriture uniquement des cartes Area standard KIMIA.
+            if(areaCard.grid_options?.columns!==12) {
+              areaCard.grid_options={columns:12,rows:"auto"};
+              modified++;
             }
-            for (const e of matching) {
-              if (existing.has(e.entity_id)) continue;
-              target.cards.push(tile(e));
+            const span=Math.min(Number(view.max_columns)||3,3);
+            if(section.column_span!==span) {section.column_span=span;modified++;}
+            // Le nom figure déjà DANS la carte de pièce : pas de titre doublé.
+            const oldCount=section.cards.length;
+            section.cards=section.cards.filter(c=>
+              !isGeneratedRoomHeading(c,names.get(areaId)));
+            removed+=oldCount-section.cards.length;
+            // Les tuiles déplacées ou désactivées sont retirées uniquement
+            // si elles portent toujours exactement la configuration auto.
+            const tileCount=section.cards.length;
+            section.cards=section.cards.filter(c=>
+              !isGeneratedTile(c) || entitiesWanted.has(c.entity));
+            removed+=tileCount-section.cards.length;
+            kept.push(section);
+          }
+          view.sections=kept;
+          // Ajouts après nettoyage : pas de doublon, même après déplacement.
+          const existing=new Set(allCards(view)
+            .filter(c=>c.type==="tile").map(c=>c.entity));
+          for(const area of orderedAreas) {
+            const selected=desired.get(area.area_id)||[];
+            if(path!=="pieces" && !selected.length)continue;
+            let section=sectionForRoom(view,area.area_id);
+            if(!section) {
+              section=createRoomSection(area,view);
+              view.sections.push(section);
+              added+=section.cards.length;
+            }
+            for(const e of selected) {
+              if(existing.has(e.entity_id))continue;
+              section.cards.push(tile(e));
               existing.add(e.entity_id);
               added++;
             }
           }
         }
-        if (added === 0 && removed === 0) {
+        if (added === 0 && removed === 0 && modified === 0) {
           const result = { state: "ok", added: 0, removed: 0,
             message: "Votre maison est déjà à jour. Rien à modifier." };
           notify(result);
@@ -357,9 +356,9 @@
             countCards(after) < countCards(next)) {
           throw new Error("L'enregistrement doit être vérifié dans KIMIA.");
         }
-        const result = { state: "ok", added, removed,
+        const result = { state: "ok", added, removed, modified,
           message: added + " carte(s) ajoutée(s), "+removed+
-            " ancienne(s) carte(s) non personnalisée(s) retirée(s). Votre maison est à jour." };
+            " supprimée(s), "+modified+" mise(s) en forme. Votre maison est à jour." };
         notify(result);
         return result;
       } catch (err) {
@@ -376,6 +375,6 @@
     sync: synchronize,
     getStatus: () => ({ ..._last }),
     dashboard: DASHBOARD,
-    version: "1.2.0"
+    version: "1.3.0"
   });
 })();
