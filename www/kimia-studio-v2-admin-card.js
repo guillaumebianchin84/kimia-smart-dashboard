@@ -73,11 +73,18 @@ class Studio extends HTMLElement{
  }
  setConfig(c){this._config=c||{};}
  set hass(h){
-  if(this._hass?.user?.id!==h?.user?.id){this._loaded=false;this._reg={areas:[],entities:[],devices:[]};}
+  const oldUser=this._hass?.user?.id;
+  const oldDigest=oldUser&&this._page==="library"?
+   JSON.stringify(routineCatalog(this._hass?.states).map(x=>[x.id,x.name,x.state,x.own])):"";
+  if(oldUser!==h?.user?.id){this._loaded=false;this._reg={areas:[],entities:[],devices:[]};}
   this._hass=h;
   if(h?.user?.is_admin&&!this._loaded){this._loaded=true;void this._load();}
   if(this._advanced)this._advanced.hass=h;
-  if(this._page==="library")this._draw();
+  // Le frontend HA met à jour hass très souvent : ne pas interrompre une
+  // recherche en cours en recréant tous les boutons/champs à chaque capteur.
+  const nextDigest=this._page==="library"?
+   JSON.stringify(routineCatalog(h?.states).map(x=>[x.id,x.name,x.state,x.own])):"";
+  if(this._page==="library"&&(oldUser!==h?.user?.id||oldDigest!==nextDigest))this._draw();
  }
  getCardSize(){return 12;}
  getGridOptions(){return {columns:12,rows:10};}
@@ -367,7 +374,7 @@ class Studio extends HTMLElement{
   this._busy=true;
   try{await this._hass.callService("script","turn_on",{entity_id:id});this._msg("Commande envoyée à Home Assistant. Consulte les traces pour vérifier l’exécution.");}
   catch(err){this._msg("Impossible de lancer : "+(err?.message||err),true);}
-  finally{this._busy=false;}
+  finally{this._busy=false;this._draw();}
  }
  async _toggle(id){
   const r=this._all().find(x=>x.id===id);if(!r||r.kind!=="automation")return;
@@ -375,7 +382,7 @@ class Studio extends HTMLElement{
   this._busy=true;
   try{await this._hass.callService("automation",r.state==="on"?"turn_off":"turn_on",{entity_id:id});this._msg("Changement demandé à Home Assistant.");}
   catch(err){this._msg("Commande impossible : "+(err?.message||err),true);}
-  finally{this._busy=false;}
+  finally{this._busy=false;this._draw();}
  }
  async _save(){
   if(!this._admin()||this._busy||!this._draft)return;
