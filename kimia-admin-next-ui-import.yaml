@@ -226,11 +226,30 @@ views:
             tap_action:
               action: toggle
           - type: tile
+            entity: input_boolean.kimia_onglet_carte
+            name: Carte
+            icon: mdi:map-marker-radius-outline
+            tap_action:
+              action: toggle
+          - type: tile
+            entity: input_boolean.kimia_onglet_listes
+            name: Listes
+            icon: mdi:format-list-checks
+            tap_action:
+              action: toggle
+          - type: tile
             entity: input_boolean.kimia_onglet_parametres
             name: Réglages
             icon: mdi:cog-outline
             tap_action:
               action: toggle
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:kimia-services-v14-card
+            grid_options:
+              columns: full
+              rows: auto
       - type: grid
         cards:
           - type: heading
@@ -261,6 +280,13 @@ views:
             content: >-
               Associez les boutons Au lit, Départ, Retour, Réveil et les ambiances à vos routines, sans manipuler de codes.
 
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:kimia-script-builder-v14-card
+            grid_options:
+              columns: full
+              rows: auto
       - type: grid
         column_span: 2
         cards:
