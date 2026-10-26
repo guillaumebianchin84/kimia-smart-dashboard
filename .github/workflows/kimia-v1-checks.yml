@@ -10,6 +10,7 @@ on:
       - feat/kimia-v14-carte-listes-scenarios-20261026
       - feat/kimia-v15-profils-utilisateurs-20261026
       - feat/kimia-v16-editeur-routines-20261026
+      - fix/kimia-v16-affichage-local-20261026
   workflow_dispatch:
 jobs:
   check:
@@ -31,6 +32,7 @@ jobs:
           node --check www/kimia-scenarios-v1-card.js
           node --check www/kimia-inventory-v1-card.js
           node --check www/kimia-header-toggle-v1-card.js
+          node --check www/kimia-local-theme-v16-card.js
           node --check www/kimia-services-v14-card.js
           node --check www/kimia-script-builder-v14-card.js
           node --check www/kimia-user-visibility-v15-card.js
@@ -45,6 +47,7 @@ jobs:
           node tests/kimia_v16_routines.test.cjs
           node tests/kimia_inventory_v1.test.cjs
           node tests/kimia_header_toggle_v1.test.cjs
+          node tests/kimia_v161_local_preferences.test.cjs
       - name: Verification YAML
         run: |
           pip install PyYAML
@@ -123,4 +126,16 @@ jobs:
             www/kimia-routine-engine-v16.js
             www/kimia-routine-editor-v16-card.js
             docs/KIMIA_V16_INSTALLATION.md
+          retention-days: 30
+
+      - name: Pack correctif KIMIA V1.6.1 — Apparence locale
+        uses: actions/upload-artifact@v4
+        with:
+          name: KIMIA-V161-Correctif-Affichage-Local
+          path: |
+            www/kimia-smart-core-v1.js
+            www/kimia-header-toggle-v1-card.js
+            www/kimia-local-theme-v16-card.js
+            packages/kimia_client_theme.yaml
+            docs/KIMIA_V161_CORRECTIF_AFFICHAGE_LOCAL.md
           retention-days: 30
