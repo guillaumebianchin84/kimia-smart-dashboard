@@ -45,6 +45,25 @@ original.views.find(v=>v.path==="accueil").sections[1].cards.push(
  {type:"custom:clock-weather-card",entity:"weather.libreville"},
  ...["Au lit","Départ","Retour","Réveil"].map(label=>({type:"shortcut",label}))
 );
+// Migration des sections réellement présentes dans le YAML utilisateur :
+ // titre "Chambre" en double, carte Area pleine largeur, deux enceintes dessous.
+const existingArea = {
+ type:"area",area:"salon",display_type:"compact",
+ features:[{type:"area-controls"}],features_position:"bottom",
+ grid_options:{columns:12,rows:"auto"},
+ tap_action:{action:"navigate",navigation_path:"/kimia-next/pieces"}
+};
+for (const path of ["pieces","musique"]) {
+ original.views.find(v=>v.path===path).sections.push({
+  type:"grid",
+  cards:[
+   {type:"heading",heading:"Salon",icon:"mdi:home-heart-outline",
+    heading_style:"subtitle",grid_options:{columns:"full",rows:1}},
+   clone(existingArea),
+   {type:"tile",entity:"media_player.enceinte",grid_options:{columns:6,rows:1}}
+  ]
+ });
+}
 let config=clone(original),saveCount=0,lastPath=null;
 const hass={
  user:{is_admin:true},
