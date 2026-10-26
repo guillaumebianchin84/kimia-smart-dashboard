@@ -1,9 +1,8 @@
 title: KIMIA Smart · Nouvelle génération
 kiosk_mode:
-  non_admin_settings:
-    kiosk: >-
-      [[[ window.localStorage.getItem("kimia_bandeau_ha_" + user_name) !==
-      "visible" ]]]
+  kiosk: >-
+    [[[ return window.localStorage.getItem("kimia_bandeau_ha_" + user_name)
+    !== "visible"; ]]]
 views:
   - title: Accueil
     path: accueil
@@ -1629,123 +1628,10 @@ views:
           - type: heading
             heading: Mes thèmes
             icon: mdi:palette-outline
-          - type: button
-            name: Gris Premium
-            icon: mdi:palette
-            color: teal
+          - type: custom:kimia-local-theme-v16-card
             grid_options:
-              columns: 6
-              rows: 2
-            tap_action:
-              action: perform-action
-              perform_action: input_select.select_option
-              target:
-                entity_id: input_select.kimia_theme_global
-              data:
-                option: KIMIA Gris Premium
-          - type: button
-            name: Clair
-            icon: mdi:weather-sunny
-            color: cyan
-            grid_options:
-              columns: 6
-              rows: 2
-            tap_action:
-              action: perform-action
-              perform_action: input_select.select_option
-              target:
-                entity_id: input_select.kimia_theme_global
-              data:
-                option: KIMIA Clair
-          - type: button
-            name: Sombre
-            icon: mdi:weather-night
-            color: indigo
-            grid_options:
-              columns: 6
-              rows: 2
-            tap_action:
-              action: perform-action
-              perform_action: input_select.select_option
-              target:
-                entity_id: input_select.kimia_theme_global
-              data:
-                option: KIMIA Sombre
-          - type: button
-            name: Signature
-            icon: mdi:home-heart
-            color: blue
-            grid_options:
-              columns: 6
-              rows: 2
-            tap_action:
-              action: perform-action
-              perform_action: input_select.select_option
-              target:
-                entity_id: input_select.kimia_theme_global
-              data:
-                option: KIMIA Signature
-          - type: button
-            name: Vert Sauge
-            icon: mdi:leaf
-            color: green
-            grid_options:
-              columns: 6
-              rows: 2
-            tap_action:
-              action: perform-action
-              perform_action: input_select.select_option
-              target:
-                entity_id: input_select.kimia_theme_global
-              data:
-                option: KIMIA Vert Sauge
-          - type: button
-            name: Violet Nuit
-            icon: mdi:weather-night
-            color: deep-purple
-            grid_options:
-              columns: 6
-              rows: 2
-            tap_action:
-              action: perform-action
-              perform_action: input_select.select_option
-              target:
-                entity_id: input_select.kimia_theme_global
-              data:
-                option: KIMIA Violet Nuit
-          - type: button
-            name: Sable Doré
-            icon: mdi:weather-sunny
-            color: amber
-            grid_options:
-              columns: 6
-              rows: 2
-            tap_action:
-              action: perform-action
-              perform_action: input_select.select_option
-              target:
-                entity_id: input_select.kimia_theme_global
-              data:
-                option: KIMIA Sable Doré
-          - type: button
-            name: Terracotta
-            icon: mdi:fireplace
-            color: deep-orange
-            grid_options:
-              columns: 6
-              rows: 2
-            tap_action:
-              action: perform-action
-              perform_action: input_select.select_option
-              target:
-                entity_id: input_select.kimia_theme_global
-              data:
-                option: KIMIA Terracotta
-          - type: entities
-            title: Mon ambiance actuelle
-            entities:
-              - entity: input_select.kimia_theme_global
-                name: Choix du thème
+              columns: full
+              rows: auto
       - type: grid
         cards:
           - type: custom:navbar-card
