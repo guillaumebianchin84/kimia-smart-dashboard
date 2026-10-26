@@ -1,0 +1,3322 @@
+title: KIMIA Smart · Nouvelle génération
+kiosk_mode:
+  non_admin_settings:
+    kiosk: >-
+      [[[ return window.localStorage.getItem("kimia_bandeau_ha_" + user_name)
+      !== "visible"; ]]]
+views:
+  - title: Accueil
+    path: accueil
+    icon: mdi:home-variant
+    type: sections
+    max_columns: 3
+    sections:
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_label: false
+            grid_options:
+              columns: full
+              rows: auto
+            tap_action:
+              action: none
+            custom_fields:
+              logo: >-
+                [[[ return '<div
+                style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA
+                <span style="color:#3FD6CB">Smart</span><div
+                style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by
+                PROMAINT</div></div>'; ]]]
+              slogan: >-
+                [[[ return '<div
+                style=\"font-size:20px;font-weight:800;letter-spacing:.2px;\">Accueil</div>';
+                ]]]
+              localisation: >-
+                [[[ return '<div
+                style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE ·
+                GABON</div>'; ]]]
+            styles:
+              card:
+                - background: >-
+                    linear-gradient(105deg, rgba(12,137,147,.25),
+                    var(--card-background-color) 68%)
+                - border: 1px solid rgba(56,205,203,.28)
+                - border-radius: 18px
+                - padding: 9px 18px
+                - box-shadow: 0 5px 22px rgba(0,25,35,.12)
+              grid:
+                - grid-template-areas: >-
+                    [[[ return window.innerWidth < 680 ? '"logo localisation"
+                    "slogan slogan"' : '"logo slogan localisation"'; ]]]
+                - grid-template-columns: >-
+                    [[[ return window.innerWidth < 680 ? '1fr auto' : '225px 1fr
+                    150px'; ]]]
+                - grid-template-rows: auto
+                - align-items: center
+              custom_fields:
+                logo:
+                  - text-align: left
+                  - justify-self: start
+                slogan:
+                  - text-align: center
+                  - color: var(--primary-text-color)
+                localisation:
+                  - text-align: right
+                  - justify-self: end
+                  - color: var(--secondary-text-color)
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:maquette-card
+            grid_options:
+              columns: full
+              rows: auto
+            id: kimia_plan_accueil_v08
+            title: ''
+            language: fr
+            full_page: false
+            margin: 10
+            summary: false
+            legend: false
+            room_labels:
+              name: true
+              temperature: false
+              humidity: false
+            temperature_tint: false
+            ambience:
+              day_night:
+                sun: sun.sun
+                intensity: 0.95
+                marker: false
+              weather:
+                entity: weather.forecast_lbv
+                intensity: 0.7
+                direction: wind
+            floors:
+              - id: rdc
+                name: Rez-de-chaussée
+                short: RDC
+                rooms:
+                  - name: Salon / Séjour
+                    poly:
+                      - - 40
+                        - 80
+                      - - 905
+                        - 80
+                      - - 905
+                        - 560
+                      - - 40
+                        - 560
+                    area: salon
+                  - name: Cuisine
+                    poly:
+                      - - 905
+                        - 80
+                      - - 1455
+                        - 80
+                      - - 1455
+                        - 500
+                      - - 905
+                        - 500
+                    area: cuisine
+                  - name: Chambre 1
+                    poly:
+                      - - 40
+                        - 560
+                      - - 490
+                        - 560
+                      - - 490
+                        - 1040
+                      - - 40
+                        - 1040
+                    area: chambre_1
+                  - name: Chambre 2
+                    poly:
+                      - - 490
+                        - 560
+                      - - 905
+                        - 560
+                      - - 905
+                        - 1040
+                      - - 490
+                        - 1040
+                    area: chambre_2
+                  - name: Terrasse
+                    poly:
+                      - - 905
+                        - 500
+                      - - 1455
+                        - 500
+                      - - 1455
+                        - 1040
+                      - - 905
+                        - 1040
+                    outside: true
+                    temperature: weather.forecast_lbv
+                    temperature_attribute: temperature
+                    humidity: weather.forecast_lbv
+                    humidity_attribute: humidity
+                    area: test
+                walls:
+                  - - 40
+                    - 80
+                    - 1455
+                    - 80
+                  - - 1455
+                    - 80
+                    - 1455
+                    - 1040
+                  - - 1455
+                    - 1040
+                    - 40
+                    - 1040
+                  - - 40
+                    - 1040
+                    - 40
+                    - 80
+                  - - 905
+                    - 80
+                    - 905
+                    - 1040
+                  - - 40
+                    - 560
+                    - 905
+                    - 560
+                  - - 490
+                    - 560
+                    - 490
+                    - 1040
+                  - - 905
+                    - 500
+                    - 1455
+                    - 500
+                openings:
+                  - type: door
+                    name: Porte d'entrée
+                    seg:
+                      - 40
+                      - 340
+                      - 40
+                      - 440
+                    leaves: 1
+                    swing: right
+                    outside:
+                      - -1
+                      - 0
+                    tap: none
+                  - type: door
+                    name: Passage cuisine
+                    seg:
+                      - 905
+                      - 260
+                      - 905
+                      - 350
+                    leaves: 1
+                    swing: left
+                    tap: none
+                  - type: door
+                    name: Porte chambre 1
+                    seg:
+                      - 365
+                      - 560
+                      - 455
+                      - 560
+                    leaves: 1
+                    swing: right
+                    tap: none
+                  - type: door
+                    name: Porte chambre 2
+                    seg:
+                      - 610
+                      - 560
+                      - 700
+                      - 560
+                    leaves: 1
+                    swing: left
+                    tap: none
+                  - type: door
+                    name: Baie vitrée terrasse
+                    seg:
+                      - 1090
+                      - 500
+                      - 1350
+                      - 500
+                    leaves: 2
+                    swing: sliding
+                    glazed: full
+                    sill: 0
+                    height: 220
+                    outside:
+                      - 0
+                      - 1
+                    tap: none
+                  - type: window
+                    name: Grande fenêtre séjour
+                    seg:
+                      - 175
+                      - 80
+                      - 430
+                      - 80
+                    leaves: 2
+                    swing: sliding
+                    outside:
+                      - 0
+                      - -1
+                    sill: 90
+                    height: 220
+                    tap: none
+                  - type: window
+                    name: Fenêtre latérale séjour
+                    seg:
+                      - 40
+                      - 150
+                      - 40
+                      - 265
+                    outside:
+                      - -1
+                      - 0
+                    tap: none
+                  - type: window
+                    name: Fenêtre cuisine
+                    seg:
+                      - 1090
+                      - 80
+                      - 1320
+                      - 80
+                    leaves: 2
+                    swing: sliding
+                    outside:
+                      - 0
+                      - -1
+                    tap: none
+                  - type: window
+                    name: Fenêtre chambre 1
+                    seg:
+                      - 135
+                      - 1040
+                      - 355
+                      - 1040
+                    leaves: 2
+                    swing: sliding
+                    outside:
+                      - 0
+                      - 1
+                    tap: none
+                  - type: window
+                    name: Fenêtre chambre 2
+                    seg:
+                      - 595
+                      - 1040
+                      - 805
+                      - 1040
+                    leaves: 2
+                    swing: sliding
+                    outside:
+                      - 0
+                      - 1
+                    tap: none
+                badges:
+                  - name: Plafonnier séjour
+                    pos:
+                      - 550
+                      - 185
+                    icon: mdi:ceiling-light
+                    color: '#FFD166'
+                    tap: none
+                  - name: Lampe salon
+                    pos:
+                      - 250
+                      - 435
+                    icon: mdi:floor-lamp
+                    color: '#FFC857'
+                    tap: none
+                  - name: Éclairage cuisine
+                    pos:
+                      - 1190
+                      - 340
+                    icon: mdi:ceiling-light
+                    color: '#FFD166'
+                    tap: none
+                  - name: Lampe chambre 1
+                    pos:
+                      - 375
+                      - 625
+                    icon: mdi:lamp
+                    color: '#FFD166'
+                    tap: none
+                  - name: Lampe chambre 2
+                    pos:
+                      - 790
+                      - 625
+                    icon: mdi:lamp
+                    color: '#FFD166'
+                    tap: none
+                  - name: Éclairage terrasse
+                    pos:
+                      - 1300
+                      - 850
+                    icon: mdi:outdoor-lamp
+                    color: '#FFC857'
+                    tap: none
+                furniture: []
+                background:
+                  image: /api/image/serve/ebec086d86139c746e6c96840972461c/original
+                  pos:
+                    - 0
+                    - 0
+                  width: 1499
+                  height: 1049
+                  opacity: 1
+                  room_opacity: 0.18
+                  show: always
+      - type: grid
+        column_span: 1
+        cards:
+          - type: custom:clock-weather-card
+            entity: weather.forecast_lbv
+            title: Libreville
+            locale: fr
+            weather_icon_type: fill
+            grid_options:
+              columns: full
+              rows: auto
+            sections:
+              header:
+                animated_icons: true
+                weather_icon_size: 4.5rem
+                rows:
+                  - font_size: 2rem
+                    segments:
+                      - type: weather
+                        attribute: temperature
+                  - font_size: 0.95rem
+                    segments:
+                      - type: weather
+              forecast_strip:
+                hide: true
+              forecast_list:
+                forecast_type: daily
+                count: 3
+                row_height: 24px
+                bar_thickness: 65%
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 20px !important;
+                  background: linear-gradient(145deg, rgba(26,109,143,.30), var(--card-background-color) 74%) !important;
+                  border: 1px solid rgba(91,187,230,.38);
+                  box-shadow: 0 6px 20px rgba(3,37,57,.15);
+                  overflow: hidden;
+                }
+          - type: heading
+            heading: Mes scénarios
+            icon: mdi:gesture-tap-button
+          - type: shortcut
+            grid_options:
+              columns: 12
+              rows: 1
+            label: Au lit
+            description: Préparer la maison pour la nuit
+            icon: mdi:weather-night
+            color: purple
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.kimia_au_lit
+          - type: shortcut
+            grid_options:
+              columns: 12
+              rows: 1
+            label: Départ
+            description: Activer le scénario de départ
+            icon: mdi:door-open
+            color: green
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.kimia_depart
+          - type: shortcut
+            grid_options:
+              columns: 12
+              rows: 1
+            label: Retour
+            description: Préparer le retour à la maison
+            icon: mdi:home-import-outline
+            color: blue
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.kimia_retour
+          - type: shortcut
+            grid_options:
+              columns: 12
+              rows: 1
+            label: Réveil
+            description: Lancer le scénario du matin
+            icon: mdi:weather-sunny
+            color: amber
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.kimia_reveil
+          - type: custom:navbar-card
+            routes:
+              - url: /kimia-next/accueil
+                icon: mdi:home
+                label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/lumieres
+                icon: mdi:lightbulb-on
+                label: Lumières
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_lumieres"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/volets
+                icon: mdi:window-shutter
+                label: Volets
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_climatisation"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/musique
+                icon: mdi:music
+                label: Musique
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_musique"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_securite"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_prises"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/carte
+                icon: mdi:map-marker-radius-outline
+                label: Carte
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_carte"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/listes
+                icon: mdi:format-list-checks
+                label: Listes
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_listes"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_actualites"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_parametres"]?.state ===
+                  "off"; ]]]
+            desktop:
+              mode: floating
+              position: left
+              show_labels: never
+  - title: Lumières
+    path: lumieres
+    icon: mdi:lightbulb-group-outline
+    type: sections
+    max_columns: 3
+    sections:
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_label: false
+            grid_options:
+              columns: full
+              rows: auto
+            tap_action:
+              action: none
+            custom_fields:
+              logo: >-
+                [[[ return '<div
+                style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA
+                <span style="color:#3FD6CB">Smart</span><div
+                style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by
+                PROMAINT</div></div>'; ]]]
+              slogan: >-
+                [[[ return '<div
+                style=\"font-size:20px;font-weight:800;letter-spacing:.2px;\">Lumières</div>';
+                ]]]
+              localisation: >-
+                [[[ return '<div
+                style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE ·
+                GABON</div>'; ]]]
+            styles:
+              card:
+                - background: >-
+                    linear-gradient(105deg, rgba(12,137,147,.25),
+                    var(--card-background-color) 68%)
+                - border: 1px solid rgba(56,205,203,.28)
+                - border-radius: 18px
+                - padding: 9px 18px
+                - box-shadow: 0 5px 22px rgba(0,25,35,.12)
+              grid:
+                - grid-template-areas: >-
+                    [[[ return window.innerWidth < 680 ? '"logo localisation"
+                    "slogan slogan"' : '"logo slogan localisation"'; ]]]
+                - grid-template-columns: >-
+                    [[[ return window.innerWidth < 680 ? '1fr auto' : '225px 1fr
+                    150px'; ]]]
+                - grid-template-rows: auto
+                - align-items: center
+              custom_fields:
+                logo:
+                  - text-align: left
+                  - justify-self: start
+                slogan:
+                  - text-align: center
+                  - color: var(--primary-text-color)
+                localisation:
+                  - text-align: right
+                  - justify-self: end
+                  - color: var(--secondary-text-color)
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /kimia-next/accueil
+                icon: mdi:home
+                label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/lumieres
+                icon: mdi:lightbulb-on
+                label: Lumières
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_lumieres"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/volets
+                icon: mdi:window-shutter
+                label: Volets
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_climatisation"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/musique
+                icon: mdi:music
+                label: Musique
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_musique"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_securite"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_prises"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/carte
+                icon: mdi:map-marker-radius-outline
+                label: Carte
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_carte"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/listes
+                icon: mdi:format-list-checks
+                label: Listes
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_listes"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_actualites"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_parametres"]?.state ===
+                  "off"; ]]]
+            desktop:
+              mode: floating
+              position: left
+              show_labels: never
+  - title: Volets
+    path: volets
+    icon: mdi:window-shutter
+    type: sections
+    max_columns: 3
+    sections:
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_label: false
+            grid_options:
+              columns: full
+              rows: auto
+            tap_action:
+              action: none
+            custom_fields:
+              logo: >-
+                [[[ return '<div
+                style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA
+                <span style="color:#3FD6CB">Smart</span><div
+                style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by
+                PROMAINT</div></div>'; ]]]
+              slogan: >-
+                [[[ return '<div
+                style=\"font-size:20px;font-weight:800;letter-spacing:.2px;\">Volets</div>';
+                ]]]
+              localisation: >-
+                [[[ return '<div
+                style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE ·
+                GABON</div>'; ]]]
+            styles:
+              card:
+                - background: >-
+                    linear-gradient(105deg, rgba(12,137,147,.25),
+                    var(--card-background-color) 68%)
+                - border: 1px solid rgba(56,205,203,.28)
+                - border-radius: 18px
+                - padding: 9px 18px
+                - box-shadow: 0 5px 22px rgba(0,25,35,.12)
+              grid:
+                - grid-template-areas: >-
+                    [[[ return window.innerWidth < 680 ? '"logo localisation"
+                    "slogan slogan"' : '"logo slogan localisation"'; ]]]
+                - grid-template-columns: >-
+                    [[[ return window.innerWidth < 680 ? '1fr auto' : '225px 1fr
+                    150px'; ]]]
+                - grid-template-rows: auto
+                - align-items: center
+              custom_fields:
+                logo:
+                  - text-align: left
+                  - justify-self: start
+                slogan:
+                  - text-align: center
+                  - color: var(--primary-text-color)
+                localisation:
+                  - text-align: right
+                  - justify-self: end
+                  - color: var(--secondary-text-color)
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /kimia-next/accueil
+                icon: mdi:home
+                label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/lumieres
+                icon: mdi:lightbulb-on
+                label: Lumières
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_lumieres"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/volets
+                icon: mdi:window-shutter
+                label: Volets
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_climatisation"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/musique
+                icon: mdi:music
+                label: Musique
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_musique"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_securite"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_prises"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/carte
+                icon: mdi:map-marker-radius-outline
+                label: Carte
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_carte"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/listes
+                icon: mdi:format-list-checks
+                label: Listes
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_listes"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_actualites"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_parametres"]?.state ===
+                  "off"; ]]]
+            desktop:
+              mode: floating
+              position: left
+              show_labels: never
+  - title: Climatisation
+    path: climatisation
+    icon: mdi:thermostat
+    type: sections
+    max_columns: 3
+    sections:
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_label: false
+            grid_options:
+              columns: full
+              rows: auto
+            tap_action:
+              action: none
+            custom_fields:
+              logo: >-
+                [[[ return '<div
+                style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA
+                <span style="color:#3FD6CB">Smart</span><div
+                style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by
+                PROMAINT</div></div>'; ]]]
+              slogan: >-
+                [[[ return '<div
+                style=\"font-size:20px;font-weight:800;letter-spacing:.2px;\">Climatisation</div>';
+                ]]]
+              localisation: >-
+                [[[ return '<div
+                style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE ·
+                GABON</div>'; ]]]
+            styles:
+              card:
+                - background: >-
+                    linear-gradient(105deg, rgba(12,137,147,.25),
+                    var(--card-background-color) 68%)
+                - border: 1px solid rgba(56,205,203,.28)
+                - border-radius: 18px
+                - padding: 9px 18px
+                - box-shadow: 0 5px 22px rgba(0,25,35,.12)
+              grid:
+                - grid-template-areas: >-
+                    [[[ return window.innerWidth < 680 ? '"logo localisation"
+                    "slogan slogan"' : '"logo slogan localisation"'; ]]]
+                - grid-template-columns: >-
+                    [[[ return window.innerWidth < 680 ? '1fr auto' : '225px 1fr
+                    150px'; ]]]
+                - grid-template-rows: auto
+                - align-items: center
+              custom_fields:
+                logo:
+                  - text-align: left
+                  - justify-self: start
+                slogan:
+                  - text-align: center
+                  - color: var(--primary-text-color)
+                localisation:
+                  - text-align: right
+                  - justify-self: end
+                  - color: var(--secondary-text-color)
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /kimia-next/accueil
+                icon: mdi:home
+                label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/lumieres
+                icon: mdi:lightbulb-on
+                label: Lumières
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_lumieres"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/volets
+                icon: mdi:window-shutter
+                label: Volets
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_climatisation"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/musique
+                icon: mdi:music
+                label: Musique
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_musique"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_securite"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_prises"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/carte
+                icon: mdi:map-marker-radius-outline
+                label: Carte
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_carte"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/listes
+                icon: mdi:format-list-checks
+                label: Listes
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_listes"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_actualites"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_parametres"]?.state ===
+                  "off"; ]]]
+            desktop:
+              mode: floating
+              position: left
+              show_labels: never
+  - title: Musique
+    path: musique
+    icon: mdi:music
+    type: sections
+    max_columns: 3
+    sections:
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_label: false
+            grid_options:
+              columns: full
+              rows: auto
+            tap_action:
+              action: none
+            custom_fields:
+              logo: >-
+                [[[ return '<div
+                style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA
+                <span style="color:#3FD6CB">Smart</span><div
+                style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by
+                PROMAINT</div></div>'; ]]]
+              slogan: >-
+                [[[ return '<div
+                style=\"font-size:20px;font-weight:800;letter-spacing:.2px;\">Musique</div>';
+                ]]]
+              localisation: >-
+                [[[ return '<div
+                style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE ·
+                GABON</div>'; ]]]
+            styles:
+              card:
+                - background: >-
+                    linear-gradient(105deg, rgba(12,137,147,.25),
+                    var(--card-background-color) 68%)
+                - border: 1px solid rgba(56,205,203,.28)
+                - border-radius: 18px
+                - padding: 9px 18px
+                - box-shadow: 0 5px 22px rgba(0,25,35,.12)
+              grid:
+                - grid-template-areas: >-
+                    [[[ return window.innerWidth < 680 ? '"logo localisation"
+                    "slogan slogan"' : '"logo slogan localisation"'; ]]]
+                - grid-template-columns: >-
+                    [[[ return window.innerWidth < 680 ? '1fr auto' : '225px 1fr
+                    150px'; ]]]
+                - grid-template-rows: auto
+                - align-items: center
+              custom_fields:
+                logo:
+                  - text-align: left
+                  - justify-self: start
+                slogan:
+                  - text-align: center
+                  - color: var(--primary-text-color)
+                localisation:
+                  - text-align: right
+                  - justify-self: end
+                  - color: var(--secondary-text-color)
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /kimia-next/accueil
+                icon: mdi:home
+                label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/lumieres
+                icon: mdi:lightbulb-on
+                label: Lumières
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_lumieres"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/volets
+                icon: mdi:window-shutter
+                label: Volets
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_climatisation"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/musique
+                icon: mdi:music
+                label: Musique
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_musique"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_securite"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_prises"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/carte
+                icon: mdi:map-marker-radius-outline
+                label: Carte
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_carte"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/listes
+                icon: mdi:format-list-checks
+                label: Listes
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_listes"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_actualites"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_parametres"]?.state ===
+                  "off"; ]]]
+            desktop:
+              mode: floating
+              position: left
+              show_labels: never
+  - title: Sécurité
+    path: securite
+    icon: mdi:shield-home-outline
+    type: sections
+    max_columns: 3
+    sections:
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_label: false
+            grid_options:
+              columns: full
+              rows: auto
+            tap_action:
+              action: none
+            custom_fields:
+              logo: >-
+                [[[ return '<div
+                style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA
+                <span style="color:#3FD6CB">Smart</span><div
+                style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by
+                PROMAINT</div></div>'; ]]]
+              slogan: >-
+                [[[ return '<div
+                style=\"font-size:20px;font-weight:800;letter-spacing:.2px;\">Sécurité</div>';
+                ]]]
+              localisation: >-
+                [[[ return '<div
+                style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE ·
+                GABON</div>'; ]]]
+            styles:
+              card:
+                - background: >-
+                    linear-gradient(105deg, rgba(12,137,147,.25),
+                    var(--card-background-color) 68%)
+                - border: 1px solid rgba(56,205,203,.28)
+                - border-radius: 18px
+                - padding: 9px 18px
+                - box-shadow: 0 5px 22px rgba(0,25,35,.12)
+              grid:
+                - grid-template-areas: >-
+                    [[[ return window.innerWidth < 680 ? '"logo localisation"
+                    "slogan slogan"' : '"logo slogan localisation"'; ]]]
+                - grid-template-columns: >-
+                    [[[ return window.innerWidth < 680 ? '1fr auto' : '225px 1fr
+                    150px'; ]]]
+                - grid-template-rows: auto
+                - align-items: center
+              custom_fields:
+                logo:
+                  - text-align: left
+                  - justify-self: start
+                slogan:
+                  - text-align: center
+                  - color: var(--primary-text-color)
+                localisation:
+                  - text-align: right
+                  - justify-self: end
+                  - color: var(--secondary-text-color)
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /kimia-next/accueil
+                icon: mdi:home
+                label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/lumieres
+                icon: mdi:lightbulb-on
+                label: Lumières
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_lumieres"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/volets
+                icon: mdi:window-shutter
+                label: Volets
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_climatisation"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/musique
+                icon: mdi:music
+                label: Musique
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_musique"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_securite"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_prises"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/carte
+                icon: mdi:map-marker-radius-outline
+                label: Carte
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_carte"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/listes
+                icon: mdi:format-list-checks
+                label: Listes
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_listes"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_actualites"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_parametres"]?.state ===
+                  "off"; ]]]
+            desktop:
+              mode: floating
+              position: left
+              show_labels: never
+  - title: Prises
+    path: prises
+    icon: mdi:power-socket-eu
+    type: sections
+    max_columns: 3
+    sections:
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_label: false
+            grid_options:
+              columns: full
+              rows: auto
+            tap_action:
+              action: none
+            custom_fields:
+              logo: >-
+                [[[ return '<div
+                style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA
+                <span style="color:#3FD6CB">Smart</span><div
+                style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by
+                PROMAINT</div></div>'; ]]]
+              slogan: >-
+                [[[ return '<div
+                style=\"font-size:20px;font-weight:800;letter-spacing:.2px;\">Prises</div>';
+                ]]]
+              localisation: >-
+                [[[ return '<div
+                style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE ·
+                GABON</div>'; ]]]
+            styles:
+              card:
+                - background: >-
+                    linear-gradient(105deg, rgba(12,137,147,.25),
+                    var(--card-background-color) 68%)
+                - border: 1px solid rgba(56,205,203,.28)
+                - border-radius: 18px
+                - padding: 9px 18px
+                - box-shadow: 0 5px 22px rgba(0,25,35,.12)
+              grid:
+                - grid-template-areas: >-
+                    [[[ return window.innerWidth < 680 ? '"logo localisation"
+                    "slogan slogan"' : '"logo slogan localisation"'; ]]]
+                - grid-template-columns: >-
+                    [[[ return window.innerWidth < 680 ? '1fr auto' : '225px 1fr
+                    150px'; ]]]
+                - grid-template-rows: auto
+                - align-items: center
+              custom_fields:
+                logo:
+                  - text-align: left
+                  - justify-self: start
+                slogan:
+                  - text-align: center
+                  - color: var(--primary-text-color)
+                localisation:
+                  - text-align: right
+                  - justify-self: end
+                  - color: var(--secondary-text-color)
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /kimia-next/accueil
+                icon: mdi:home
+                label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/lumieres
+                icon: mdi:lightbulb-on
+                label: Lumières
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_lumieres"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/volets
+                icon: mdi:window-shutter
+                label: Volets
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_climatisation"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/musique
+                icon: mdi:music
+                label: Musique
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_musique"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_securite"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_prises"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/carte
+                icon: mdi:map-marker-radius-outline
+                label: Carte
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_carte"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/listes
+                icon: mdi:format-list-checks
+                label: Listes
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_listes"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_actualites"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_parametres"]?.state ===
+                  "off"; ]]]
+            desktop:
+              mode: floating
+              position: left
+              show_labels: never
+  - title: Actualités
+    path: actualites
+    icon: mdi:newspaper-variant-outline
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_label: false
+            grid_options:
+              columns: full
+              rows: auto
+            tap_action:
+              action: none
+            custom_fields:
+              logo: >-
+                [[[ return '<div
+                style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA
+                <span style="color:#3FD6CB">Smart</span><div
+                style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by
+                PROMAINT</div></div>'; ]]]
+              slogan: >-
+                [[[ return '<div
+                style=\"font-size:20px;font-weight:800;letter-spacing:.2px;\">Actualités</div>';
+                ]]]
+              localisation: >-
+                [[[ return '<div
+                style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE ·
+                GABON</div>'; ]]]
+            styles:
+              card:
+                - background: >-
+                    linear-gradient(105deg, rgba(12,137,147,.25),
+                    var(--card-background-color) 68%)
+                - border: 1px solid rgba(56,205,203,.28)
+                - border-radius: 18px
+                - padding: 9px 18px
+                - box-shadow: 0 5px 22px rgba(0,25,35,.12)
+              grid:
+                - grid-template-areas: >-
+                    [[[ return window.innerWidth < 680 ? '"logo localisation"
+                    "slogan slogan"' : '"logo slogan localisation"'; ]]]
+                - grid-template-columns: >-
+                    [[[ return window.innerWidth < 680 ? '1fr auto' : '225px 1fr
+                    150px'; ]]]
+                - grid-template-rows: auto
+                - align-items: center
+              custom_fields:
+                logo:
+                  - text-align: left
+                  - justify-self: start
+                slogan:
+                  - text-align: center
+                  - color: var(--primary-text-color)
+                localisation:
+                  - text-align: right
+                  - justify-self: end
+                  - color: var(--secondary-text-color)
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:rss-news-card
+            title: Gabon Actu
+            sources:
+              - entity: sensor.rss_gabon_actu
+                name: Gabon Actu
+                color: '#28C8AD'
+            max_articles: 5
+            show_description: true
+            show_source: true
+            show_date: true
+            image_width: 120
+            image_height: 72
+          - type: custom:rss-news-card
+            title: GabonReview
+            sources:
+              - entity: sensor.rss_gabonreview
+                name: GabonReview
+                color: '#50A7D8'
+            max_articles: 5
+            show_description: true
+            show_source: true
+            show_date: true
+            image_width: 120
+            image_height: 72
+          - type: custom:rss-news-card
+            title: RFI Afrique
+            sources:
+              - entity: sensor.rss_rfi_afrique
+                name: RFI Afrique
+                color: '#E7AD49'
+            max_articles: 5
+            show_description: true
+            show_source: true
+            show_date: true
+            image_width: 120
+            image_height: 72
+          - type: custom:rss-news-card
+            title: France 24
+            sources:
+              - entity: sensor.rss_france_24
+                name: France 24
+                color: '#528FD6'
+            max_articles: 5
+            show_description: true
+            show_source: true
+            show_date: true
+            image_width: 120
+            image_height: 72
+          - type: custom:navbar-card
+            routes:
+              - url: /kimia-next/accueil
+                icon: mdi:home
+                label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/lumieres
+                icon: mdi:lightbulb-on
+                label: Lumières
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_lumieres"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/volets
+                icon: mdi:window-shutter
+                label: Volets
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_climatisation"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/musique
+                icon: mdi:music
+                label: Musique
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_musique"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_securite"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_prises"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/carte
+                icon: mdi:map-marker-radius-outline
+                label: Carte
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_carte"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/listes
+                icon: mdi:format-list-checks
+                label: Listes
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_listes"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_actualites"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_parametres"]?.state ===
+                  "off"; ]]]
+            desktop:
+              mode: floating
+              position: left
+              show_labels: never
+  - title: Paramètres
+    path: parametres
+    icon: mdi:cog-outline
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_label: false
+            grid_options:
+              columns: full
+              rows: auto
+            tap_action:
+              action: none
+            custom_fields:
+              logo: >-
+                [[[ return '<div
+                style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA
+                <span style="color:#3FD6CB">Smart</span><div
+                style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by
+                PROMAINT</div></div>'; ]]]
+              slogan: >-
+                [[[ return '<div
+                style=\"font-size:20px;font-weight:800;letter-spacing:.2px;\">Paramètres</div>';
+                ]]]
+              localisation: >-
+                [[[ return '<div
+                style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE ·
+                GABON</div>'; ]]]
+            styles:
+              card:
+                - background: >-
+                    linear-gradient(105deg, rgba(12,137,147,.25),
+                    var(--card-background-color) 68%)
+                - border: 1px solid rgba(56,205,203,.28)
+                - border-radius: 18px
+                - padding: 9px 18px
+                - box-shadow: 0 5px 22px rgba(0,25,35,.12)
+              grid:
+                - grid-template-areas: >-
+                    [[[ return window.innerWidth < 680 ? '"logo localisation"
+                    "slogan slogan"' : '"logo slogan localisation"'; ]]]
+                - grid-template-columns: >-
+                    [[[ return window.innerWidth < 680 ? '1fr auto' : '225px 1fr
+                    150px'; ]]]
+                - grid-template-rows: auto
+                - align-items: center
+              custom_fields:
+                logo:
+                  - text-align: left
+                  - justify-self: start
+                slogan:
+                  - text-align: center
+                  - color: var(--primary-text-color)
+                localisation:
+                  - text-align: right
+                  - justify-self: end
+                  - color: var(--secondary-text-color)
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Mon espace KIMIA
+            icon: mdi:view-dashboard-outline
+            heading_style: title
+            grid_options:
+              columns: full
+              rows: 1
+          - type: shortcut
+            label: Utilisateurs
+            description: Profils et pièces visibles
+            icon: mdi:account-group
+            color: teal
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/reglages-utilisateurs
+          - type: shortcut
+            label: Affichage
+            description: Interface et bandeau HA
+            icon: mdi:monitor-eye
+            color: blue
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/reglages-affichage
+          - type: shortcut
+            label: Zones et carte
+            description: Lieux et carte géographique
+            icon: mdi:map-marker-radius-outline
+            color: cyan
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/reglages-localisation
+          - type: shortcut
+            label: Mes listes
+            description: Tâches du foyer
+            icon: mdi:format-list-checks
+            color: green
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/reglages-listes
+          - type: shortcut
+            label: Apparence
+            description: Mes thèmes KIMIA
+            icon: mdi:palette-outline
+            color: deep-purple
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/reglages-apparence
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /kimia-next/accueil
+                icon: mdi:home
+                label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/lumieres
+                icon: mdi:lightbulb-on
+                label: Lumières
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_lumieres"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/volets
+                icon: mdi:window-shutter
+                label: Volets
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_climatisation"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/musique
+                icon: mdi:music
+                label: Musique
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_musique"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_securite"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_prises"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/carte
+                icon: mdi:map-marker-radius-outline
+                label: Carte
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_carte"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/listes
+                icon: mdi:format-list-checks
+                label: Listes
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_listes"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_actualites"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_parametres"]?.state ===
+                  "off"; ]]]
+            desktop:
+              mode: floating
+              position: left
+              show_labels: never
+  - title: Pièces
+    path: pieces
+    icon: mdi:floor-plan
+    type: sections
+    max_columns: 3
+    sections:
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_label: false
+            grid_options:
+              columns: full
+              rows: auto
+            tap_action:
+              action: none
+            custom_fields:
+              logo: >-
+                [[[ return '<div
+                style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA
+                <span style="color:#3FD6CB">Smart</span><div
+                style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by
+                PROMAINT</div></div>'; ]]]
+              slogan: >-
+                [[[ return '<div
+                style=\"font-size:20px;font-weight:800;letter-spacing:.2px;\">Pièces</div>';
+                ]]]
+              localisation: >-
+                [[[ return '<div
+                style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE ·
+                GABON</div>'; ]]]
+            styles:
+              card:
+                - background: >-
+                    linear-gradient(105deg, rgba(12,137,147,.25),
+                    var(--card-background-color) 68%)
+                - border: 1px solid rgba(56,205,203,.28)
+                - border-radius: 18px
+                - padding: 9px 18px
+                - box-shadow: 0 5px 22px rgba(0,25,35,.12)
+              grid:
+                - grid-template-areas: >-
+                    [[[ return window.innerWidth < 680 ? '"logo localisation"
+                    "slogan slogan"' : '"logo slogan localisation"'; ]]]
+                - grid-template-columns: >-
+                    [[[ return window.innerWidth < 680 ? '1fr auto' : '225px 1fr
+                    150px'; ]]]
+                - grid-template-rows: auto
+                - align-items: center
+              custom_fields:
+                logo:
+                  - text-align: left
+                  - justify-self: start
+                slogan:
+                  - text-align: center
+                  - color: var(--primary-text-color)
+                localisation:
+                  - text-align: right
+                  - justify-self: end
+                  - color: var(--secondary-text-color)
+      - type: grid
+        cards:
+          - type: area
+            area: cuisine
+            display_type: compact
+            features:
+              - type: area-controls
+            features_position: bottom
+            grid_options:
+              columns: 12
+              rows: auto
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/pieces
+        column_span: 3
+      - type: grid
+        cards:
+          - type: area
+            area: salon
+            display_type: compact
+            features:
+              - type: area-controls
+            features_position: bottom
+            grid_options:
+              columns: 12
+              rows: auto
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/pieces
+        column_span: 3
+      - type: grid
+        cards:
+          - type: area
+            area: test
+            display_type: compact
+            features:
+              - type: area-controls
+            features_position: bottom
+            grid_options:
+              columns: 12
+              rows: auto
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/pieces
+        column_span: 3
+      - type: grid
+        cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /kimia-next/accueil
+                icon: mdi:home
+                label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/lumieres
+                icon: mdi:lightbulb-on
+                label: Lumières
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_lumieres"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/volets
+                icon: mdi:window-shutter
+                label: Volets
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_climatisation"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/musique
+                icon: mdi:music
+                label: Musique
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_musique"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_securite"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_prises"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/carte
+                icon: mdi:map-marker-radius-outline
+                label: Carte
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_carte"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/listes
+                icon: mdi:format-list-checks
+                label: Listes
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_listes"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_actualites"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_parametres"]?.state ===
+                  "off"; ]]]
+            desktop:
+              mode: floating
+              position: left
+              show_labels: never
+      - type: grid
+        column_span: 3
+        cards:
+          - type: area
+            area: chambre_1
+            display_type: compact
+            features:
+              - type: area-controls
+            features_position: bottom
+            grid_options:
+              columns: 12
+              rows: auto
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/pieces
+      - type: grid
+        column_span: 3
+        cards:
+          - type: area
+            area: chambre_2
+            display_type: compact
+            features:
+              - type: area-controls
+            features_position: bottom
+            grid_options:
+              columns: 12
+              rows: auto
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/pieces
+  - title: Carte
+    path: carte
+    icon: mdi:map-marker-radius-outline
+    type: sections
+    max_columns: 3
+    sections:
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_label: false
+            grid_options:
+              columns: full
+              rows: auto
+            tap_action:
+              action: none
+            custom_fields:
+              logo: >-
+                [[[ return '<div
+                style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA
+                <span style="color:#3FD6CB">Smart</span><div
+                style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by
+                PROMAINT</div></div>'; ]]]
+              slogan: >-
+                [[[ return '<div
+                style=\"font-size:20px;font-weight:800;letter-spacing:.2px;\">Carte</div>';
+                ]]]
+              localisation: >-
+                [[[ return '<div
+                style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE ·
+                GABON</div>'; ]]]
+            styles:
+              card:
+                - background: >-
+                    linear-gradient(105deg, rgba(12,137,147,.25),
+                    var(--card-background-color) 68%)
+                - border: 1px solid rgba(56,205,203,.28)
+                - border-radius: 18px
+                - padding: 9px 18px
+                - box-shadow: 0 5px 22px rgba(0,25,35,.12)
+              grid:
+                - grid-template-areas: >-
+                    [[[ return window.innerWidth < 680 ? '"logo localisation"
+                    "slogan slogan"' : '"logo slogan localisation"'; ]]]
+                - grid-template-columns: >-
+                    [[[ return window.innerWidth < 680 ? '1fr auto' : '225px 1fr
+                    150px'; ]]]
+                - grid-template-rows: auto
+                - align-items: center
+              custom_fields:
+                logo:
+                  - text-align: left
+                  - justify-self: start
+                slogan:
+                  - text-align: center
+                  - color: var(--primary-text-color)
+                localisation:
+                  - text-align: right
+                  - justify-self: end
+                  - color: var(--secondary-text-color)
+      - type: grid
+        column_span: 3
+        cards:
+          - type: map
+            entities:
+              - device_tracker.sm_s731b
+            show_all: false
+            auto_fit: true
+            default_zoom: 12
+            hours_to_show: 0
+            aspect_ratio: '16:9'
+            grid_options:
+              columns: 36
+              rows: 8
+            theme_mode: auto
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /kimia-next/accueil
+                icon: mdi:home
+                label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/lumieres
+                icon: mdi:lightbulb-on
+                label: Lumières
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_lumieres"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/volets
+                icon: mdi:window-shutter
+                label: Volets
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_climatisation"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/musique
+                icon: mdi:music
+                label: Musique
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_musique"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_securite"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_prises"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/carte
+                icon: mdi:map-marker-radius-outline
+                label: Carte
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_carte"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/listes
+                icon: mdi:format-list-checks
+                label: Listes
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_listes"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_actualites"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_parametres"]?.state ===
+                  "off"; ]]]
+            desktop:
+              mode: floating
+              position: left
+              show_labels: never
+  - title: Listes
+    path: listes
+    icon: mdi:format-list-checks
+    type: sections
+    max_columns: 3
+    sections:
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_label: false
+            grid_options:
+              columns: full
+              rows: auto
+            tap_action:
+              action: none
+            custom_fields:
+              logo: >-
+                [[[ return '<div
+                style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA
+                <span style="color:#3FD6CB">Smart</span><div
+                style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by
+                PROMAINT</div></div>'; ]]]
+              slogan: >-
+                [[[ return '<div
+                style=\"font-size:20px;font-weight:800;letter-spacing:.2px;\">Listes</div>';
+                ]]]
+              localisation: >-
+                [[[ return '<div
+                style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE ·
+                GABON</div>'; ]]]
+            styles:
+              card:
+                - background: >-
+                    linear-gradient(105deg, rgba(12,137,147,.25),
+                    var(--card-background-color) 68%)
+                - border: 1px solid rgba(56,205,203,.28)
+                - border-radius: 18px
+                - padding: 9px 18px
+                - box-shadow: 0 5px 22px rgba(0,25,35,.12)
+              grid:
+                - grid-template-areas: >-
+                    [[[ return window.innerWidth < 680 ? '"logo localisation"
+                    "slogan slogan"' : '"logo slogan localisation"'; ]]]
+                - grid-template-columns: >-
+                    [[[ return window.innerWidth < 680 ? '1fr auto' : '225px 1fr
+                    150px'; ]]]
+                - grid-template-rows: auto
+                - align-items: center
+              custom_fields:
+                logo:
+                  - text-align: left
+                  - justify-self: start
+                slogan:
+                  - text-align: center
+                  - color: var(--primary-text-color)
+                localisation:
+                  - text-align: right
+                  - justify-self: end
+                  - color: var(--secondary-text-color)
+      - type: grid
+        column_span: 3
+        cards:
+          - type: todo-list
+            entity: todo.shopping_list
+            title: KIMIA · Shopping list
+            grid_options:
+              columns: 12
+              rows: auto
+          - type: todo-list
+            entity: todo.rappels
+            title: KIMIA · rappels
+            grid_options:
+              columns: 12
+              rows: auto
+          - type: todo-list
+            entity: todo.taches
+            title: KIMIA · taches
+            grid_options:
+              columns: 12
+              rows: auto
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /kimia-next/accueil
+                icon: mdi:home
+                label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/lumieres
+                icon: mdi:lightbulb-on
+                label: Lumières
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_lumieres"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/volets
+                icon: mdi:window-shutter
+                label: Volets
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_climatisation"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/musique
+                icon: mdi:music
+                label: Musique
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_musique"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_securite"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_prises"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/carte
+                icon: mdi:map-marker-radius-outline
+                label: Carte
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_carte"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/listes
+                icon: mdi:format-list-checks
+                label: Listes
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_listes"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_actualites"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_parametres"]?.state ===
+                  "off"; ]]]
+            desktop:
+              mode: floating
+              position: left
+              show_labels: never
+  - title: Utilisateurs
+    path: reglages-utilisateurs
+    icon: mdi:account-group
+    type: sections
+    max_columns: 2
+    subview: true
+    back_path: /kimia-next/parametres
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_label: false
+            grid_options:
+              columns: full
+              rows: auto
+            tap_action:
+              action: none
+            custom_fields:
+              logo: >-
+                [[[ return '<div
+                style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA
+                <span style="color:#3FD6CB">Smart</span><div
+                style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by
+                PROMAINT</div></div>'; ]]]
+              slogan: >-
+                [[[ return '<div
+                style=\"font-size:20px;font-weight:800;letter-spacing:.2px;\">Utilisateurs</div>';
+                ]]]
+              localisation: >-
+                [[[ return '<div
+                style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE ·
+                GABON</div>'; ]]]
+            styles:
+              card:
+                - background: >-
+                    linear-gradient(105deg, rgba(12,137,147,.25),
+                    var(--card-background-color) 68%)
+                - border: 1px solid rgba(56,205,203,.28)
+                - border-radius: 18px
+                - padding: 9px 18px
+                - box-shadow: 0 5px 22px rgba(0,25,35,.12)
+              grid:
+                - grid-template-areas: >-
+                    [[[ return window.innerWidth < 680 ? '"logo localisation"
+                    "slogan slogan"' : '"logo slogan localisation"'; ]]]
+                - grid-template-columns: >-
+                    [[[ return window.innerWidth < 680 ? '1fr auto' : '225px 1fr
+                    150px'; ]]]
+                - grid-template-rows: auto
+                - align-items: center
+              custom_fields:
+                logo:
+                  - text-align: left
+                  - justify-self: start
+                slogan:
+                  - text-align: center
+                  - color: var(--primary-text-color)
+                localisation:
+                  - text-align: right
+                  - justify-self: end
+                  - color: var(--secondary-text-color)
+      - type: grid
+        column_span: 2
+        cards:
+          - type: shortcut
+            label: Retour aux paramètres
+            description: Revenir au menu principal
+            icon: mdi:arrow-left
+            color: teal
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/parametres
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Mes accès
+            icon: mdi:cog-outline
+          - type: markdown
+            content: >-
+              Les pièces visibles sont définies par l'administrateur KIMIA. Il
+              s'agit d'un masquage visuel, pas d'une interdiction d'accès aux
+              appareils.
+            grid_options:
+              columns: full
+              rows: auto
+          - type: shortcut
+            label: Gérer les utilisateurs
+            description: Administration KIMIA
+            icon: mdi:account-cog-outline
+            color: teal
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-admin-next/utilisateurs
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /kimia-next/accueil
+                icon: mdi:home
+                label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/lumieres
+                icon: mdi:lightbulb-on
+                label: Lumières
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_lumieres"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/volets
+                icon: mdi:window-shutter
+                label: Volets
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_climatisation"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/musique
+                icon: mdi:music
+                label: Musique
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_musique"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_securite"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_prises"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/carte
+                icon: mdi:map-marker-radius-outline
+                label: Carte
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_carte"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/listes
+                icon: mdi:format-list-checks
+                label: Listes
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_listes"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_actualites"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_parametres"]?.state ===
+                  "off"; ]]]
+            desktop:
+              mode: floating
+              position: left
+              show_labels: never
+  - title: Affichage
+    path: reglages-affichage
+    icon: mdi:monitor-eye
+    type: sections
+    max_columns: 2
+    subview: true
+    back_path: /kimia-next/parametres
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_label: false
+            grid_options:
+              columns: full
+              rows: auto
+            tap_action:
+              action: none
+            custom_fields:
+              logo: >-
+                [[[ return '<div
+                style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA
+                <span style="color:#3FD6CB">Smart</span><div
+                style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by
+                PROMAINT</div></div>'; ]]]
+              slogan: >-
+                [[[ return '<div
+                style=\"font-size:20px;font-weight:800;letter-spacing:.2px;\">Affichage</div>';
+                ]]]
+              localisation: >-
+                [[[ return '<div
+                style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE ·
+                GABON</div>'; ]]]
+            styles:
+              card:
+                - background: >-
+                    linear-gradient(105deg, rgba(12,137,147,.25),
+                    var(--card-background-color) 68%)
+                - border: 1px solid rgba(56,205,203,.28)
+                - border-radius: 18px
+                - padding: 9px 18px
+                - box-shadow: 0 5px 22px rgba(0,25,35,.12)
+              grid:
+                - grid-template-areas: >-
+                    [[[ return window.innerWidth < 680 ? '"logo localisation"
+                    "slogan slogan"' : '"logo slogan localisation"'; ]]]
+                - grid-template-columns: >-
+                    [[[ return window.innerWidth < 680 ? '1fr auto' : '225px 1fr
+                    150px'; ]]]
+                - grid-template-rows: auto
+                - align-items: center
+              custom_fields:
+                logo:
+                  - text-align: left
+                  - justify-self: start
+                slogan:
+                  - text-align: center
+                  - color: var(--primary-text-color)
+                localisation:
+                  - text-align: right
+                  - justify-self: end
+                  - color: var(--secondary-text-color)
+      - type: grid
+        column_span: 2
+        cards:
+          - type: shortcut
+            label: Retour aux paramètres
+            description: Revenir au menu principal
+            icon: mdi:arrow-left
+            color: teal
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/parametres
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Mon affichage
+            icon: mdi:cog-outline
+          - type: markdown
+            content: >-
+              Retrouvez ici le contrôle du bandeau Home Assistant, avec sa
+              préférence actuelle propre à cet appareil.
+            grid_options:
+              columns: full
+              rows: auto
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Affichage de l'application
+            icon: mdi:monitor-eye
+          - type: custom:kimia-header-toggle-v1-card
+            grid_options:
+              columns: full
+              rows: auto
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /kimia-next/accueil
+                icon: mdi:home
+                label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/lumieres
+                icon: mdi:lightbulb-on
+                label: Lumières
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_lumieres"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/volets
+                icon: mdi:window-shutter
+                label: Volets
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_climatisation"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/musique
+                icon: mdi:music
+                label: Musique
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_musique"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_securite"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_prises"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/carte
+                icon: mdi:map-marker-radius-outline
+                label: Carte
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_carte"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/listes
+                icon: mdi:format-list-checks
+                label: Listes
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_listes"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_actualites"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_parametres"]?.state ===
+                  "off"; ]]]
+            desktop:
+              mode: floating
+              position: left
+              show_labels: never
+  - title: Zones et carte
+    path: reglages-localisation
+    icon: mdi:map-marker-radius-outline
+    type: sections
+    max_columns: 2
+    subview: true
+    back_path: /kimia-next/parametres
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_label: false
+            grid_options:
+              columns: full
+              rows: auto
+            tap_action:
+              action: none
+            custom_fields:
+              logo: >-
+                [[[ return '<div
+                style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA
+                <span style="color:#3FD6CB">Smart</span><div
+                style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by
+                PROMAINT</div></div>'; ]]]
+              slogan: >-
+                [[[ return '<div
+                style=\"font-size:20px;font-weight:800;letter-spacing:.2px;\">Zones
+                et carte</div>'; ]]]
+              localisation: >-
+                [[[ return '<div
+                style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE ·
+                GABON</div>'; ]]]
+            styles:
+              card:
+                - background: >-
+                    linear-gradient(105deg, rgba(12,137,147,.25),
+                    var(--card-background-color) 68%)
+                - border: 1px solid rgba(56,205,203,.28)
+                - border-radius: 18px
+                - padding: 9px 18px
+                - box-shadow: 0 5px 22px rgba(0,25,35,.12)
+              grid:
+                - grid-template-areas: >-
+                    [[[ return window.innerWidth < 680 ? '"logo localisation"
+                    "slogan slogan"' : '"logo slogan localisation"'; ]]]
+                - grid-template-columns: >-
+                    [[[ return window.innerWidth < 680 ? '1fr auto' : '225px 1fr
+                    150px'; ]]]
+                - grid-template-rows: auto
+                - align-items: center
+              custom_fields:
+                logo:
+                  - text-align: left
+                  - justify-self: start
+                slogan:
+                  - text-align: center
+                  - color: var(--primary-text-color)
+                localisation:
+                  - text-align: right
+                  - justify-self: end
+                  - color: var(--secondary-text-color)
+      - type: grid
+        column_span: 2
+        cards:
+          - type: shortcut
+            label: Retour aux paramètres
+            description: Revenir au menu principal
+            icon: mdi:arrow-left
+            color: teal
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/parametres
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Carte géographique
+            icon: mdi:cog-outline
+          - type: shortcut
+            label: Ouvrir ma carte
+            description: Zones et positions sélectionnées
+            icon: mdi:map-marker-radius-outline
+            color: cyan
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/carte
+          - type: shortcut
+            label: Configurer la carte
+            description: Choisir les positions affichées
+            icon: mdi:map-cog-outline
+            color: teal
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-admin-next/apparence
+          - type: shortcut
+            label: Créer ou modifier une zone
+            description: Gestion native Home Assistant · admin
+            icon: mdi:map-marker-plus
+            color: cyan
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /config/zone
+          - type: markdown
+            content: >-
+              Les zones Home Assistant restent la référence. La création
+              intégrée à KIMIA avec choix sur la carte fera l'objet d'un module
+              dédié.
+            grid_options:
+              columns: full
+              rows: auto
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /kimia-next/accueil
+                icon: mdi:home
+                label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/lumieres
+                icon: mdi:lightbulb-on
+                label: Lumières
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_lumieres"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/volets
+                icon: mdi:window-shutter
+                label: Volets
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_climatisation"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/musique
+                icon: mdi:music
+                label: Musique
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_musique"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_securite"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_prises"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/carte
+                icon: mdi:map-marker-radius-outline
+                label: Carte
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_carte"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/listes
+                icon: mdi:format-list-checks
+                label: Listes
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_listes"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_actualites"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_parametres"]?.state ===
+                  "off"; ]]]
+            desktop:
+              mode: floating
+              position: left
+              show_labels: never
+  - title: Mes listes
+    path: reglages-listes
+    icon: mdi:format-list-checks
+    type: sections
+    max_columns: 2
+    subview: true
+    back_path: /kimia-next/parametres
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_label: false
+            grid_options:
+              columns: full
+              rows: auto
+            tap_action:
+              action: none
+            custom_fields:
+              logo: >-
+                [[[ return '<div
+                style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA
+                <span style="color:#3FD6CB">Smart</span><div
+                style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by
+                PROMAINT</div></div>'; ]]]
+              slogan: >-
+                [[[ return '<div
+                style=\"font-size:20px;font-weight:800;letter-spacing:.2px;\">Mes
+                listes</div>'; ]]]
+              localisation: >-
+                [[[ return '<div
+                style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE ·
+                GABON</div>'; ]]]
+            styles:
+              card:
+                - background: >-
+                    linear-gradient(105deg, rgba(12,137,147,.25),
+                    var(--card-background-color) 68%)
+                - border: 1px solid rgba(56,205,203,.28)
+                - border-radius: 18px
+                - padding: 9px 18px
+                - box-shadow: 0 5px 22px rgba(0,25,35,.12)
+              grid:
+                - grid-template-areas: >-
+                    [[[ return window.innerWidth < 680 ? '"logo localisation"
+                    "slogan slogan"' : '"logo slogan localisation"'; ]]]
+                - grid-template-columns: >-
+                    [[[ return window.innerWidth < 680 ? '1fr auto' : '225px 1fr
+                    150px'; ]]]
+                - grid-template-rows: auto
+                - align-items: center
+              custom_fields:
+                logo:
+                  - text-align: left
+                  - justify-self: start
+                slogan:
+                  - text-align: center
+                  - color: var(--primary-text-color)
+                localisation:
+                  - text-align: right
+                  - justify-self: end
+                  - color: var(--secondary-text-color)
+      - type: grid
+        column_span: 2
+        cards:
+          - type: shortcut
+            label: Retour aux paramètres
+            description: Revenir au menu principal
+            icon: mdi:arrow-left
+            color: teal
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/parametres
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Mes listes
+            icon: mdi:cog-outline
+          - type: shortcut
+            label: Ouvrir mes listes
+            description: Liste To-do du foyer
+            icon: mdi:format-list-checks
+            color: green
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/listes
+          - type: markdown
+            content: >-
+              Le choix de plusieurs listes (trois maximum, empilées) sera
+              intégré ici. Les listes existantes ne sont pas modifiées.
+            grid_options:
+              columns: full
+              rows: auto
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /kimia-next/accueil
+                icon: mdi:home
+                label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/lumieres
+                icon: mdi:lightbulb-on
+                label: Lumières
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_lumieres"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/volets
+                icon: mdi:window-shutter
+                label: Volets
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_climatisation"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/musique
+                icon: mdi:music
+                label: Musique
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_musique"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_securite"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_prises"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/carte
+                icon: mdi:map-marker-radius-outline
+                label: Carte
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_carte"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/listes
+                icon: mdi:format-list-checks
+                label: Listes
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_listes"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_actualites"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_parametres"]?.state ===
+                  "off"; ]]]
+            desktop:
+              mode: floating
+              position: left
+              show_labels: never
+  - title: Apparence
+    path: reglages-apparence
+    icon: mdi:palette-outline
+    type: sections
+    max_columns: 2
+    subview: true
+    back_path: /kimia-next/parametres
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            show_label: false
+            grid_options:
+              columns: full
+              rows: auto
+            tap_action:
+              action: none
+            custom_fields:
+              logo: >-
+                [[[ return '<div
+                style="font-size:23px;font-weight:900;letter-spacing:-.8px;white-space:nowrap;">KIMIA
+                <span style="color:#3FD6CB">Smart</span><div
+                style="font-size:10px;letter-spacing:2px;font-weight:600;color:var(--secondary-text-color);margin-top:-2px">by
+                PROMAINT</div></div>'; ]]]
+              slogan: >-
+                [[[ return '<div
+                style=\"font-size:20px;font-weight:800;letter-spacing:.2px;\">Apparence</div>';
+                ]]]
+              localisation: >-
+                [[[ return '<div
+                style="font-size:12px;font-weight:600;opacity:.8;">LIBREVILLE ·
+                GABON</div>'; ]]]
+            styles:
+              card:
+                - background: >-
+                    linear-gradient(105deg, rgba(12,137,147,.25),
+                    var(--card-background-color) 68%)
+                - border: 1px solid rgba(56,205,203,.28)
+                - border-radius: 18px
+                - padding: 9px 18px
+                - box-shadow: 0 5px 22px rgba(0,25,35,.12)
+              grid:
+                - grid-template-areas: >-
+                    [[[ return window.innerWidth < 680 ? '"logo localisation"
+                    "slogan slogan"' : '"logo slogan localisation"'; ]]]
+                - grid-template-columns: >-
+                    [[[ return window.innerWidth < 680 ? '1fr auto' : '225px 1fr
+                    150px'; ]]]
+                - grid-template-rows: auto
+                - align-items: center
+              custom_fields:
+                logo:
+                  - text-align: left
+                  - justify-self: start
+                slogan:
+                  - text-align: center
+                  - color: var(--primary-text-color)
+                localisation:
+                  - text-align: right
+                  - justify-self: end
+                  - color: var(--secondary-text-color)
+      - type: grid
+        column_span: 2
+        cards:
+          - type: shortcut
+            label: Retour aux paramètres
+            description: Revenir au menu principal
+            icon: mdi:arrow-left
+            color: teal
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-next/parametres
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Personnalisation
+            icon: mdi:cog-outline
+          - type: markdown
+            content: >-
+              Retrouvez ici les thèmes KIMIA existants, sans changer leurs
+              couleurs ni leur fonctionnement.
+            grid_options:
+              columns: full
+              rows: auto
+      - type: grid
+        cards:
+          - type: heading
+            heading: Mes thèmes
+            icon: mdi:palette-outline
+          - type: custom:kimia-local-theme-v16-card
+            grid_options:
+              columns: full
+              rows: auto
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:navbar-card
+            routes:
+              - url: /kimia-next/accueil
+                icon: mdi:home
+                label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/lumieres
+                icon: mdi:lightbulb-on
+                label: Lumières
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_lumieres"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/volets
+                icon: mdi:window-shutter
+                label: Volets
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_volets"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/climatisation
+                icon: mdi:air-conditioner
+                label: Clim
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_climatisation"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/musique
+                icon: mdi:music
+                label: Musique
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_musique"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/securite
+                icon: mdi:shield-home-outline
+                label: Sécurité
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_securite"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/prises
+                icon: mdi:power-socket-eu
+                label: Prises
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_prises"]?.state
+                  === "off"; ]]]
+              - url: /kimia-next/carte
+                icon: mdi:map-marker-radius-outline
+                label: Carte
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_carte"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/listes
+                icon: mdi:format-list-checks
+                label: Listes
+                hidden: >-
+                  [[[ return states["input_boolean.kimia_onglet_listes"]?.state
+                  !== "on"; ]]]
+              - url: /kimia-next/actualites
+                icon: mdi:newspaper-variant-outline
+                label: Actualités
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_actualites"]?.state ===
+                  "off"; ]]]
+              - url: /kimia-next/parametres
+                icon: mdi:cog-outline
+                label: Réglages
+                hidden: >
+                  [[[ return
+                  states["input_boolean.kimia_onglet_parametres"]?.state ===
+                  "off"; ]]]
+            desktop:
+              mode: floating
+              position: left
+              show_labels: never
