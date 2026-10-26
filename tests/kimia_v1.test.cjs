@@ -100,7 +100,7 @@ async function main(){
   const banners=cards(view(path)).filter(c=>c.type==="custom:button-card");
   assert.equal(banners.length,1,"Une seule bannière dans "+path);
   assert(banners[0].custom_fields.slogan.includes(
-   path==="accueil"?"Ma maison":title),"Titre du bandeau pour "+path);
+   title),"Titre du bandeau pour "+path);
   assert(cards(view(path)).some(c=>c.type==="markdown"&&
    c.content.includes("personnalisée")),"Cartes client conservées dans "+path);
  }
