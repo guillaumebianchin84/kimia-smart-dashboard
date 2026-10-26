@@ -25,6 +25,12 @@ input_boolean:
   kimia_onglet_actualites:
     name: Afficher Actualités
     icon: mdi:newspaper-variant-outline
+  kimia_onglet_carte:
+    name: Afficher Carte
+    icon: mdi:map-marker-radius-outline
+  kimia_onglet_listes:
+    name: Afficher Listes
+    icon: mdi:format-list-checks
   kimia_onglet_parametres:
     name: Afficher Paramètres
     icon: mdi:cog-outline
@@ -53,6 +59,8 @@ automation:
             - input_boolean.kimia_onglet_securite
             - input_boolean.kimia_onglet_prises
             - input_boolean.kimia_onglet_actualites
+            - input_boolean.kimia_onglet_carte
+            - input_boolean.kimia_onglet_listes
             - input_boolean.kimia_onglet_parametres
             - input_boolean.kimia_navigation_initialisee
     mode: single
