@@ -270,7 +270,7 @@
   // Profils stockés dans la configuration persistante du dashboard admin,
   // jamais dans le navigateur. Une préférence absente signifie "tout afficher".
   const PROFILE_CARD = "custom:kimia-user-visibility-v15-card";
-  const profileCard = view => allCards(view).find(c=>c.type===PROFILE_CARD);
+  const profileCard = view => view ? allCards(view).find(c=>c.type===PROFILE_CARD) : undefined;
   const isKimiaVisibility = value =>
     Array.isArray(value) && value.length===1 &&
     value[0]?.condition==="not" &&
