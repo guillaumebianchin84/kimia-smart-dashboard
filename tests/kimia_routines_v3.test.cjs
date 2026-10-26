@@ -49,9 +49,15 @@ assert(V.guardSimple(simple));
 simple.actions.push({type:"delay",seconds:90});
 assert(V.guardSimple(simple));
 simple.actions.push({type:"call",entity:"light.salon",operation:"turn_off",value:""});
-assert.equal(V.guardSimple(simple),false,"Ne pas condenser deux commandes de la même lampe dans une édition simplifiée");
+assert.equal(V.guardSimple(simple),true,"Deux commandes successives sur la même lampe restent éditables, sans relecture destructive");
 simple.actions=[{type:"if",conditions:[H.condition("state")],then:[],else:[]}];
 assert.equal(V.guardSimple(simple),false,"Routines complexes => Home Assistant");
+const hold=H.create("automation");hold.alias="Conservation état";hold.actions=[H.action("delay")];
+hold.triggers=[{type:"state",entity:"binary_sensor.mouvement",to:"on",from:"off",seconds:45}];
+assert.equal(V.guardSimple(hold),false,"État précédent et durée masqués => ouverture native");
+const tech=H.create("script");tech.alias="Paramètres internes";
+tech.actions=[{type:"call",entity:"input_boolean.kimia_onglet_musique",operation:"turn_on",value:""}];
+assert.equal(V.guardSimple(tech),false,"Ne pas afficher l'édition des helpers techniques en mode novice");
 
 const db=new Map(),apiCalls=[],serviceCalls=[];
 const ha={
