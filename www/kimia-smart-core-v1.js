@@ -606,16 +606,31 @@
   // laisser l'administrateur avec un bandeau impossible à masquer.
   const localKioskUI = next=>{
     const km=next.kiosk_mode;
-    const old=km?.non_admin_settings?.kiosk;
-    if(typeof old!=="string"||
-       !old.includes('kimia_bandeau_ha_')||
-       !old.includes("localStorage.getItem"))return 0;
-    if(km.kiosk!==undefined && km.kiosk!==old)return 0;
-    // Kiosk Mode demande un retour booléen explicite dans le modèle JS.
-    km.kiosk="[[[ return window.localStorage.getItem(\"kimia_bandeau_ha_\" + user_name) !== \"visible\"; ]]]";
-    delete km.non_admin_settings.kiosk;
-    if(!Object.keys(km.non_admin_settings).length)delete km.non_admin_settings;
-    return 1;
+    if(!km||typeof km!=="object")return 0;
+    // KIMIA V1.6.1 créait par erreur kiosk au niveau racine :
+    // les admins perdaient leur bandeau HA. Migrer cette valeur uniquement
+    // lorsqu'elle porte la signature exacte de notre ancien réglage.
+    const managed=value=>typeof value==="string" &&
+      value.includes("kimia_bandeau_ha_") &&
+      value.includes("localStorage.getItem");
+    const local='[[[ return window.localStorage.getItem("kimia_bandeau_ha_" + user_name) !== "visible"; ]]]';
+    let changed=0;
+    if(managed(km.kiosk)){
+      delete km.kiosk;
+      // La config Kiosk pour admin ne doit JAMAIS hériter de ce réglage.
+      // Conserver les autres personnalisations déjà en place.
+      if(!km.non_admin_settings)km.non_admin_settings={};
+      if(km.non_admin_settings.kiosk===undefined ||
+         managed(km.non_admin_settings.kiosk)){
+        km.non_admin_settings.kiosk=local;
+      }
+      changed++;
+    }else if(managed(km?.non_admin_settings?.kiosk) &&
+             km.non_admin_settings.kiosk!==local){
+      km.non_admin_settings.kiosk=local;
+      changed++;
+    }
+    return changed;
   };
 
   let active = null;
@@ -854,6 +869,6 @@
     sync: synchronize,
     getStatus: () => ({ ..._last }),
     dashboard: DASHBOARD,
-    version: "1.6.1-dev"
+    version: "1.6.2-dev"
   });
 })();
