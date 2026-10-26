@@ -62,6 +62,11 @@
         ".room.selected{outline:2px solid var(--primary-color)}",
         ".title{font-weight:700;margin-bottom:4px}",
         ".count{font-size:12px;color:var(--secondary-text-color)}",
+        ".attached{margin-top:10px;display:grid;gap:8px}",
+        ".attached-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px;border:1px solid var(--divider-color);border-radius:12px}",
+        ".attached-name{font-weight:650;font-size:13px}",
+        ".attached-row .secondary{flex-shrink:0;font-size:12px}",
+        "@media(max-width:440px){.attached-row{align-items:flex-start;flex-direction:column}.attached-row .secondary{width:100%}}",
         "#message{font-size:12px;margin-top:10px;min-height:16px}",
         "#message.error{color:var(--error-color,#d33)}",
         "[hidden]{display:none!important}",
@@ -81,7 +86,10 @@
         '<h3>Modifier une pièce</h3><form id="rename" class="fields">',
         '<label>Nouveau nom<input id="edit-name" maxlength="64" required></label>',
         '<button id="rename-button" type="submit">Enregistrer</button></form>',
-        '<h3 style="margin-top:15px">Associer un appareil</h3>',
+        '<h3 style="margin-top:15px">Appareils de cette pièce</h3>',
+        '<p class="info">Retirer un appareil de la pièce ne le désinstalle pas. Vous pourrez ensuite le placer dans une autre pièce.</p>',
+        '<div id="linked-devices" class="attached"></div>',
+        '<h3 style="margin-top:20px">Ajouter ou déplacer un appareil</h3>',
         '<form id="assign" class="fields">',
         '<label>Appareil installé<select id="device"></select></label>',
         '<button id="assign-button" type="submit">Associer à cette pièce</button></form>',
@@ -122,6 +130,9 @@
       this._busy=busy;
       for(const id of ["refresh","create-button","rename-button","assign-button","open-delete","delete-confirm","delete-cancel"]) {
         this._el(id).disabled=busy;
+      }
+      for (const button of this.shadowRoot.querySelectorAll(".attached-remove")) {
+        button.disabled = busy;
       }
       if(!busy && this._selectedArea) {
         const count=this._occupancy(this._selectedArea);
@@ -191,6 +202,30 @@
       this._el("open-delete").disabled=this._busy||occupied.devices>0||occupied.entities>0;
       this._el("open-delete").textContent=occupied.devices+occupied.entities>0
         ?"Suppression impossible · pièce non vide":"Supprimer cette pièce";
+      const linked=this._el("linked-devices");
+      linked.replaceChildren();
+      const assigned=[...this._devices]
+        .filter(device=>device.area_id===current.area_id)
+        .sort((a,b)=>String(a.name_by_user||a.name||a.model||a.id)
+          .localeCompare(String(b.name_by_user||b.name||b.model||b.id),"fr"));
+      if(!assigned.length) {
+        const empty=document.createElement("p");
+        empty.className="info";
+        empty.textContent="Aucun appareil associé directement à cette pièce.";
+        linked.append(empty);
+      }
+      for(const device of assigned) {
+        const line=document.createElement("div");line.className="attached-row";
+        const name=document.createElement("span");name.className="attached-name";
+        name.textContent=device.name_by_user||device.name||device.model||"Appareil sans nom";
+        const remove=document.createElement("button");
+        remove.type="button";
+        remove.className="secondary attached-remove";
+        remove.textContent="Retirer de la pièce";
+        remove.disabled=this._busy;
+        remove.addEventListener("click",()=>void this._unassign(device.id,current.area_id));
+        line.append(name,remove);linked.appendChild(line);
+      }
       const select=this._el("device");
       const selected=select.value;
       select.replaceChildren();
@@ -309,6 +344,49 @@
         this._lock(false);
       }
       await this._load();
+    }
+    async _unassign(deviceId,areaId) {
+      if(this._busy)return;
+      const area=this._areas.find(a=>a.area_id===areaId);
+      const device=this._devices.find(d=>d.id===deviceId);
+      if(!area||!device||device.area_id!==areaId) {
+        this._message("L'appareil n'est plus associé à cette pièce. Actualisez la liste.",true);
+        return;
+      }
+      const name=device.name_by_user||device.name||device.model||"Cet appareil";
+      if(!window.confirm(
+        "Retirer « "+name+" » de « "+area.name+" » ?\n"+
+        "L'appareil restera installé et pourra être affecté à une autre pièce."
+      ))return;
+      this._lock(true);
+      let success=false;
+      try {
+        // Revérifier le registre avant l'écriture : ne jamais déplacer un appareil entretemps modifié.
+        const fresh=await this._hass.callWS({type:"config/device_registry/list"});
+        const current=fresh.find(d=>d.id===deviceId);
+        if(!current||current.area_id!==areaId) {
+          throw new Error("L'affectation a changé. Actualisez la liste.");
+        }
+        await this._hass.callWS({
+          type:"config/device_registry/update",device_id:deviceId,area_id:null
+        });
+        success=true;
+      } catch(error) {
+        this._error(error);
+      } finally {
+        this._lock(false);
+      }
+      if(!success)return;
+      await this._load();
+      this._message("« "+name+" » a été retiré de « "+area.name+" ». L'appareil est toujours installé.");
+      if(window.KimiaSmartCore){
+        try {
+          await window.KimiaSmartCore.sync(this._hass);
+        } catch(error){
+          this._message("Affectation retirée. Mise à jour de l'affichage : "+
+            (error?.message||error),true);
+        }
+      }
     }
     async _assign(event) {
       event.preventDefault();
