@@ -1,4 +1,5 @@
-# KIMIA Smart — préférences esthétiques communes à la maison.
+# KIMIA Smart — préférences historiques et compatibilité V1.6.1.
+# Les thèmes sont maintenant sélectionnés LOCALement dans KIMIA.
 # Ce package n'installe aucun matériel ni scénario domotique.
 # Home Assistant doit déjà charger les packages (homeassistant.packages).
 input_select:
@@ -28,30 +29,8 @@ input_select:
       - KIMIA Terracotta
     # PAS de initial: le dernier choix est restauré après redémarrage.
 
-automation:
-  - id: kimia_appliquer_theme_global
-    alias: "KIMIA - Appliquer le thème client"
-    description: >-
-      Applique à Home Assistant le thème commun choisi par le client.
-      Cela modifie le thème HA par défaut, pas les préférences personnelles
-      enregistrées dans les profils utilisateurs.
-    triggers:
-      - trigger: state
-        entity_id: input_select.kimia_theme_global
-      - trigger: homeassistant
-        event: start
-    conditions:
-      - condition: template
-        value_template: >-
-          {{ states('input_select.kimia_theme_global') in [
-              'KIMIA Gris Premium', 'KIMIA Clair',
-              'KIMIA Sombre', 'KIMIA Signature',
-              'KIMIA Vert Sauge', 'KIMIA Violet Nuit',
-              'KIMIA Sable Doré', 'KIMIA Terracotta'
-          ] }}
-    actions:
-      - action: frontend.set_theme
-        data:
-          name: "{{ states('input_select.kimia_theme_global') }}"
-          name_dark: "{{ states('input_select.kimia_theme_global') }}"
-    mode: restart
+# Depuis KIMIA V1.6.1, le choix des thèmes est EXCLUSIVEMENT local
+# au navigateur. L'ancien input_select reste déclaré pour compatibilité
+# avec les configurations précédentes, MAIS AUCUNE automatisation ne doit
+# plus appeler frontend.set_theme suite à son changement.
+# Cette suppression prend effet au prochain redémarrage HA.
