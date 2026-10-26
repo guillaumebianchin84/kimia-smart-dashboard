@@ -40,10 +40,16 @@ Date : 26 octobre 2026. **Phase de développement**, base : V1.4 validée sur in
 
 ## Suite, par livraisons courtes
 **V1.5a :** socle de synchronisation de l'administration (ci-dessus), tests GitHub + essais isolés, aucune installation automatique.
-**V1.5b :** stockage centralisé des profils et éditeur admin de visibilité des pièces ; test 2 comptes distincts.
+**V1.5b :** première implémentation sur GitHub : profils centralisés dans la configuration persistante du dashboard admin (carte `custom:kimia-user-visibility-v15-card`), lecture officielle des utilisateurs via `config/auth/list`, cases à cocher des pièces, masquage par sections natives `visibility: not user`, synchronisation automatique. **À valider sur la VM 210**, en particulier le comportement réel des conditions HA.
 **V1.5c :** filtre des zones et équipements dans toutes les catégories, y compris maquette/Accueil ; invariants de personnalisation.
 **V1.5d :** Paramètres-portail, écrans Carte / Listes (3 listes maximum), paramétrage par compte, tests multi-appareils.
 **Ultérieurement :** véritable contrôle d'accès, listes réellement privées, tâches assignées, scénarios éditables, zones créées via carte.
 
 ## Déploiement
 Aucune écriture dans la VM 210 par les commits GitHub. N'installer la V1.5 qu'après la réussite CI et les tests de conformité de la mise à jour. Ne pas supprimer ni écraser la V1.4 validée. Les trois cartes administrateur du lot V1.5a étaient déjà installées manuellement sur certaines démos ; dans ce cas la synchronisation doit ne rien changer.
+
+## Décision produit supplémentaire confirmée
+- **Maquette interactive** : explicitement reportée ; aucun filtrage du plan pour ce premier lot.
+- **Restrictions réelles par pièce** : éventualité future, distincte du masquage visuel. Ne pas implémenter maintenant.
+- Le premier prototype admin crée une nouvelle vue Utilisateurs avec cases à cocher, et place la configuration dans le YAML interne du dashboard admin (mode storage). Cela ne signifie pas que ces préférences sont privées ni qu'un utilisateur ne peut pas les retrouver via d'autres accès Home Assistant. Elles sont associées aux IDs HA, et non au téléphone.
+- Pour tester : ajouter la ressource `/local/kimia-user-visibility-v15-card.js?v=150` après avoir copié le fichier JS et son moteur V1.5. Préparer une sauvegarde, vérifier le rôle admin et tester deux comptes. Ne pas installer ce prototype avant validation GitHub et sans une étape explicite avec l'utilisateur.
