@@ -375,6 +375,45 @@
    }catch(e){this._error="Enregistrement refusé : "+(e?.message||e);this._notice="";}
    finally{this._busy=false;this._render();}
   }
+  _currentEntity(){
+   if(!this._editing)return "";
+   const match=this._catalog.find(x=>x.kind===this._editing.kind&&x.id===this._editing.id);
+   return match?.entityId||this._editing.entityId||"";
+  }
+  async _run(){
+   if(!this._admin()||this._busy||!this._editing)return;
+   const id=this._currentEntity();
+   if(!id || !this._hass.states[id]){
+    this._message("La routine ne figure pas encore dans les entités HA : cliquez sur ↻ Liste.",true);
+    return;
+   }
+   const kind=this._editing.kind;
+   const warning=kind==="script"?
+    "Exécuter maintenant le scénario « "+this._draft.alias+" » ? Les appareils réagiront immédiatement.":
+    "Tester maintenant l'automatisation « "+this._draft.alias+" » ? Le déclencheur temporel ou capteur sera contourné ; ses conditions resteront vérifiées. Les appareils peuvent réagir immédiatement.";
+   if(!window.confirm(warning))return;
+   this._busy=true;this._render();
+   try{
+    if(kind==="script")await this._hass.callService("script","turn_on",{entity_id:id});
+    else await this._hass.callService("automation","trigger",{entity_id:id,skip_condition:false});
+    this._error="";this._notice="Demande d'exécution envoyée à Home Assistant. Consultez les traces pour connaître le résultat.";
+   }catch(e){this._error="Test impossible : "+(e?.message||e);this._notice="";}
+   finally{this._busy=false;this._render();}
+  }
+  async _toggle(){
+   if(!this._admin()||this._busy||this._editing?.kind!=="automation")return;
+   const id=this._currentEntity(),current=this._hass.states[id]?.state;
+   if(!id || !["on","off"].includes(current)){
+    this._message("Automatisation introuvable : rafraîchissez la liste.",true);return;
+   }
+   this._busy=true;this._render();
+   try{
+    const turn=current==="on"?"turn_off":"turn_on";
+    await this._hass.callService("automation",turn,{entity_id:id});
+    this._error="";this._notice="Commande d'activation envoyée à HA. L'état sera actualisé dès réception du nouvel état.";
+   }catch(e){this._error="Impossible de modifier l'état : "+(e?.message||e);this._notice="";}
+   finally{this._busy=false;this._render();}
+  }
   async _remove(){
    if(this._busy||!this._admin()||!this._editing)return;
    if(!window.confirm("Supprimer définitivement la routine « "+this._draft.alias+" » ? Cette opération est irréversible."))return;
@@ -454,6 +493,13 @@
    controls.append(this._button("Nouveau",()=>this._new(this._draft.kind)));
    controls.append(this._button("Dupliquer",()=>this._duplicate(),"secondary",!this._draft.actions.length));
    if(this._editing){
+    controls.append(this._button(this._editing.kind==="script"?"▶ Exécuter":"▶ Tester les actions",
+      ()=>void this._run()));
+    if(this._editing.kind==="automation"){
+     const current=this._hass.states[this._currentEntity()]?.state;
+     controls.append(this._button(current==="on"?"Désactiver":"Activer",
+       ()=>void this._toggle(),"secondary",!["on","off"].includes(current)));
+    }
     controls.append(this._button("Supprimer",()=>void this._remove()));
     const link=n("a","Ouvrir dans Home Assistant");
     const dest=this._editing.kind==="script"?"script":"automation";
