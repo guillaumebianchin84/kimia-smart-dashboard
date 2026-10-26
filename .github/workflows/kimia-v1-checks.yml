@@ -27,3 +27,14 @@ jobs:
         run: |
           pip install PyYAML
           python tests/validate_kimia_yaml.py
+      - name: Préparer les cinq fichiers JavaScript KIMIA
+        uses: actions/upload-artifact@v4
+        with:
+          name: KIMIA-Smart-5-JavaScript-v1
+          path: |
+            www/kimia-smart-core-v1.js
+            www/kimia-setup-v1-card.js
+            www/kimia-room-manager-v1-card.js
+            www/kimia-zigbee-manager-v1-card.js
+            www/kimia-scenarios-v1-card.js
+          retention-days: 30
