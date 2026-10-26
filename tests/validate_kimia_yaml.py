@@ -8,9 +8,9 @@ assert isinstance(main, dict) and isinstance(admin, dict)
 views = {v["path"]: v for v in main["views"]}
 admin_views = {v["path"]: v for v in admin["views"]}
 assert len(views) == 10, f"10 pages attendues, {len(views)}"
-assert len(admin_views) == 5, f"5 pages admin attendues, {len(admin_views)}"
+assert len(admin_views) == 6, f"6 pages admin attendues, {len(admin_views)}"
 assert "accueil" in views and "pieces" in views
-assert "demarrer" in admin_views and "appareils" in admin_views
+assert "demarrer" in admin_views and "appareils" in admin_views and "inventaire" in admin_views
 
 def cards(view):
     return [c for section in view.get("sections", []) for c in section.get("cards", [])]
@@ -29,6 +29,8 @@ assert all(any(c.get("type") == "custom:navbar-card" for c in cards(v))
            for v in views.values())
 assert not any(c.get("type") == "custom:button-card" for v in views.values()
                for c in cards(v))
+assert any(c.get("type") == "custom:kimia-inventory-v1-card"
+           for c in cards(admin_views["inventaire"]))
 assert any(c.get("type") == "custom:kimia-room-manager-v1-card"
            for c in cards(admin_views["pieces"]))
 assert any(c.get("type") == "custom:kimia-zigbee-manager-v1-card"
@@ -44,4 +46,4 @@ assert len(package["script"]) == 7
 assert len(package["input_text"]) == 7
 assert "script.xxx" not in package_text
 assert "Dans KIMIA Configuration" in package_text
-print("YAML KIMIA v1 : OK - 10 vues client, 5 vues admin, cartes independantes, isolation")
+print("YAML KIMIA v1 : OK - 10 vues client, 6 vues admin, cartes independantes, isolation")
