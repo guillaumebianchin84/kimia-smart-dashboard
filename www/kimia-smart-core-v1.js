@@ -377,7 +377,7 @@
           cards[i]={type:MAQUETTE_ACL_CARD,card:c,
             hidden_users_by_area:safeClone(hidden),
             entities_by_area:safeClone(registry)};
-          added++;
+          modified++;
         }else if(c.type===MAQUETTE_ACL_CARD &&
                  c.card?.type==="custom:maquette-card"){
           if(JSON.stringify(c.hidden_users_by_area||{})!==JSON.stringify(hidden)){
