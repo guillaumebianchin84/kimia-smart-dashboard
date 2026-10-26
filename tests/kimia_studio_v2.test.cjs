@@ -39,6 +39,13 @@ assert.equal(S.defaultOp("light","arrival",E.OPERATIONS),"turn_on");
 assert.equal(S.defaultOp("climate","energy",E.OPERATIONS),"set_temperature");
 
 const db=new Map(),calls=[];
+db.set("config/script/config/ks_dodo",{
+ alias:"Bonne nuit",mode:"single",icon:"mdi:play-box-multiple-outline",description:"",
+ sequence:[
+  {action:"light.turn_off",target:{entity_id:"light.salon"}},
+  {delay:{seconds:15}},
+  {action:"cover.close_cover",target:{entity_id:"cover.salon"}}
+ ]});
 const hass={user:{is_admin:true,id:"admin"},states,callApi:async(method,path,payload)=>{
  calls.push({method,path,payload});
  if(method==="GET"){
@@ -65,8 +72,8 @@ async function check(){
  await card._save();
  assert(!card._error,card._notice);
  assert.equal(card._page,"library");
- assert.equal(db.size,1);
- assert.equal([...db.values()][0].alias,"Bonne nuit");
+ assert.equal(db.size,2);
+ assert([...db.values()].some(x=>x.alias==="Bonne nuit"));
  assert(!calls.some(x=>x.domain),"Création ne doit pas appeler un service");
  const autom=E.create("automation");
  autom.alias="Soleil salon";autom.triggers=[E.trigger("sun")];
@@ -74,15 +81,34 @@ async function check(){
  card._draft=autom;card._page="wizard";card._step=4;
  await card._save();
  assert(!card._error,card._notice);
- assert.equal(db.size,2,"Créer script et automatisation sans toucher aux autres");
+ assert.equal(db.size,3,"Créer script et automatisation sans toucher aux autres");
  const auto=[...db.values()].find(x=>x.triggers);
  assert.equal(auto.triggers[0].trigger,"sun");
  assert.equal(auto.actions[0].action,"light.turn_on");
  card._edit("automation.arrivee");
  assert.equal(links.at(-1),"/config/automation/edit/outside",
   "Routines externes redirigées à HA sans réécriture");
- card._edit("automation.kimia_auto");
- assert.equal(card._page,"advanced","Éditeur avancé KIMIA accessible");
+ await card._edit("script.ks_dodo");
+ assert.equal(card._page,"wizard","Routine KIMIA simple ouverte dans nouveau formulaire guidé");
+ assert.equal(card._editing.id,"ks_dodo");
+ assert.deepEqual(plain(card._draft.actions.map(x=>x.type)),
+  ["call","delay","call"],"Ordre original des actions et pauses conservé");
+ card._syncActions();
+ assert.deepEqual(plain(card._draft.actions.map(x=>x.type)),
+  ["call","delay","call"],"Sélection par cases ne doit jamais déplacer les attentes");
+ card._draft.actions[0].operation="turn_on";
+ await card._save();
+ assert(!card._error,card._notice);
+ assert.equal(db.get("config/script/config/ks_dodo").sequence[0].action,"light.turn_on");
+ assert.equal(db.get("config/script/config/ks_dodo").sequence[1].delay.seconds,15);
+ await card._edit("script.ks_dodo");
+ db.get("config/script/config/ks_dodo").description="Édition extérieure";
+ const before=db.get("config/script/config/ks_dodo");
+ await card._save();
+ assert(card._error,"Refus d'écraser modification extérieure");
+ assert.equal(db.get("config/script/config/ks_dodo"),before);
+ await card._edit("automation.kimia_auto");
+ assert.equal(card._page,"advanced","Routine inconnue : atelier avancé au lieu de conversion destructive");
  const notAdmin=Object.create(Card.prototype);
  Object.assign(notAdmin,{_hass:{...hass,user:{id:"child",is_admin:false}},_busy:false,
   _draft:autom,_draw(){},_msg(){throw Error("Unauthorized should not save");}});
