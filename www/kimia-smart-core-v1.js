@@ -219,7 +219,7 @@
         for (const view of next.views) {
           if (!Array.isArray(view.sections)) continue;
           const banner=allCards(view).find(isKimiaBrand);
-          const title=view.path==="accueil"?"Ma maison":view.title || "Ma maison";
+          const title=view.title || "Accueil";
           if (!banner) {
             view.sections.unshift(brandBanner(view));
             const generated=allCards(view).find(isKimiaBrand);
