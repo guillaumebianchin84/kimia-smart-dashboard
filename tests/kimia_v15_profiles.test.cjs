@@ -9,6 +9,15 @@ const paths=["accueil","pieces","lumieres","volets","climatisation",
 let client={views:paths.map(path=>({title:path,path,type:"sections",max_columns:3,
  sections:[{type:"grid",cards:[{type:"custom:navbar-card",
  routes:[{url:"/kimia-next/accueil",label:"Accueil"}]}]}]}))};
+// Plan fourni par un client : deux étages, géométries indépendantes,
+// exactement les mêmes zones HA servant aux permissions KIMIA.
+const layout={type:"custom:maquette-card",id:"plan-libre",title:"Exemple",
+ floors:[{id:"rdc",rooms:[
+  {name:"Salon libre",area:"salon",poly:[[0,0],[100,0],[100,100],[0,100]]},
+  {name:"Chambre parents",area:"parents",poly:[[100,0],[200,0],[200,100],[100,100]]}]},
+  {id:"etage",rooms:[{name:"Autre chambre du client",area:"parents",
+   poly:[[10,10],[90,10],[90,90],[10,90]]}]}]};
+client.views.find(v=>v.path==="accueil").sections.push({type:"grid",cards:[clone(layout)]});
 let admin={views:[{title:"Utilisateurs",path:"utilisateurs",type:"sections",
  sections:[{type:"grid",cards:[{type:"custom:kimia-user-visibility-v15-card",
  hidden_areas_by_user:{enfant:["parents"]}}]}]}]};
@@ -48,6 +57,15 @@ const sections=(path,area)=>client.views.find(v=>v.path===path).sections
  .filter(s=>(s.cards||[]).some(c=>c.type==="area"&&c.area===area));
 (async()=>{
  await window.KimiaSmartCore.sync(hass);
+ const holder=client.views.find(v=>v.path==="accueil").sections
+  .flatMap(s=>s.cards).find(c=>c.type==="custom:kimia-maquette-acl-v17-card");
+ assert(holder,"La carte Maquette est enveloppée une seule fois, sans recréer le plan");
+ assert.equal(JSON.stringify(holder.card),JSON.stringify(layout),
+  "Géométrie/noms/images/étages conservés à l'octet fonctionnel près");
+ assert.deepEqual(Array.from(holder.hidden_users_by_area.parents),["enfant"]);
+ assert.equal(holder.hidden_users_by_area.salon,undefined);
+ assert(holder.entities_by_area.parents.entities.includes("light.parents"));
+ assert(holder.entities_by_area.parents.devices.includes("d1"));
  for(const path of ["pieces","lumieres","musique"]){
   const room=sections(path,"parents")[0];
   assert(room,path+" doit contenir la chambre des parents");
@@ -61,11 +79,16 @@ const sections=(path,area)=>client.views.find(v=>v.path===path).sections
  const before=clientWrites;
  await window.KimiaSmartCore.sync(hass);
  assert.equal(clientWrites,before,"2e synchro sans écriture");
+ assert.equal(JSON.stringify(holder.card),JSON.stringify(layout),"Plan intact après 2e synchro");
 
  // Après réactivation, seule la visibilité issue de KIMIA disparaît.
  const cfg=admin.views.find(v=>v.path==="utilisateurs").sections[0].cards[0];
  delete cfg.hidden_areas_by_user.enfant;
  await window.KimiaSmartCore.sync(hass);
+ const nextHolder=client.views.find(v=>v.path==="accueil").sections
+  .flatMap(s=>s.cards).find(c=>c.type==="custom:kimia-maquette-acl-v17-card");
+ assert.deepEqual(Object.keys(nextHolder.hidden_users_by_area),[],
+  "Après restitution du droit, plus de verrouillage dans la carte");
  for(const path of ["pieces","lumieres","musique"])
   assert.equal(sections(path,"parents")[0].visibility,undefined);
 
