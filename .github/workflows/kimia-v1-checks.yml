@@ -15,6 +15,7 @@ on:
       - fix/kimia-v163-themes-cartes-natives-20261026
       - feat/kimia-v17-maquette-areas-acl-20261026
       - feat/kimia-studio-v2-admin-interface-20261026
+      - feat/kimia-routines-v3-simplified-20261026
   workflow_dispatch:
 jobs:
   check:
@@ -44,6 +45,7 @@ jobs:
           node --check www/kimia-routine-engine-v16.js
           node --check www/kimia-routine-editor-v16-card.js
           node --check www/kimia-studio-v2-admin-card.js
+          node --check www/kimia-routines-v3-card.js
           node tests/kimia_v1.test.cjs
           node tests/kimia_v14.test.cjs
           node tests/kimia_v15_admin.test.cjs
@@ -56,6 +58,7 @@ jobs:
           node tests/kimia_v161_local_preferences.test.cjs
           node tests/kimia_v17_maquette_areas.test.cjs
           node tests/kimia_studio_v2.test.cjs
+          node tests/kimia_routines_v3.test.cjs
       - name: Verification YAML
         run: |
           pip install PyYAML
@@ -185,4 +188,13 @@ jobs:
           path: |
             www/kimia-studio-v2-admin-card.js
             docs/KIMIA_STUDIO_V2_ADMIN_INSTALLATION.md
+          retention-days: 30
+
+      - name: Pack KIMIA Routines V3 — éditeur unique Quand Si Alors
+        uses: actions/upload-artifact@v4
+        with:
+          name: KIMIA-Routines-V3-Test
+          path: |
+            www/kimia-routines-v3-card.js
+            docs/KIMIA_ROUTINES_V3_INSTALLATION.md
           retention-days: 30
