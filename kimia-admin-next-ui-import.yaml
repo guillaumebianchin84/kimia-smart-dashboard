@@ -45,6 +45,14 @@ views:
             tap_action:
               action: navigate
               navigation_path: /kimia-admin-next/appareils
+          - type: shortcut
+            label: Voir tous mes équipements
+            description: Inventaire, commandes et capteurs
+            icon: mdi:format-list-bulleted-square
+            color: teal
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-admin-next/inventaire
       - type: grid
         cards:
           - type: heading
@@ -128,6 +136,31 @@ views:
             tap_action:
               action: navigate
               navigation_path: /kimia-next/pieces
+  - title: Inventaire
+    path: inventaire
+    icon: mdi:format-list-bulleted-square
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Tous mes équipements
+            heading_style: title
+            icon: mdi:format-list-bulleted-square
+          - type: markdown
+            content: >-
+              Retrouvez tous vos appareils, y compris ceux qui ne sont pas
+              Zigbee. Découvrez leurs fonctions et pourquoi certaines
+              commandes ne sont pas encore visibles dans KIMIA.
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:kimia-inventory-v1-card
+            grid_options:
+              columns: full
+              rows: auto
   - title: Apparence
     path: apparence
     icon: mdi:palette
