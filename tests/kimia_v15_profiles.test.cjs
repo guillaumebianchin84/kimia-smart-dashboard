@@ -69,6 +69,15 @@ const sections=(path,area)=>client.views.find(v=>v.path===path).sections
  for(const path of ["pieces","lumieres","musique"])
   assert.equal(sections(path,"parents")[0].visibility,undefined);
 
+ // Carte Area personnalisée : la section reste filtrée sans changer la carte.
+ const customRoom=sections("musique","parents")[0];
+ const customArea=customRoom.cards.find(c=>c.type==="area");
+ customArea.name="Chambre parents — personnalisé";
+ cfg.hidden_areas_by_user.enfant=["parents"];
+ await window.KimiaSmartCore.sync(hass);
+ assert.equal(sections("musique","parents")[0].visibility[0].condition,"not");
+ assert.equal(sections("musique","parents")[0].cards.find(c=>c.type==="area").name,
+  "Chambre parents — personnalisé");
  // Conditions créées manuellement : ne jamais écraser leur réglage.
  const manual=sections("pieces","parents")[0];
  manual.visibility=[{condition:"state",entity:"input_boolean.demo",state:"on"}];
