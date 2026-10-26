@@ -32,8 +32,13 @@ assert all(any(c.get("type") == "custom:navbar-card" for c in cards(v))
            for v in views.values())
 assert any(c.get("type") == "custom:kimia-header-toggle-v1-card"
            for c in cards(views["parametres"])), "Réglage bandeau absent"
-assert not any(c.get("type") == "custom:button-card" for v in views.values()
-               for c in cards(v))
+# Une bannière de marque KIMIA sur chacune des dix pages, sans autres button-card.
+assert all(len([c for c in cards(v) if c.get("type") == "custom:button-card"
+                and "by PROMAINT" in c.get("custom_fields", {}).get("logo", "")]) == 1
+           for v in views.values()), "Bandeau KIMIA manquant ou doublé"
+assert all(all(c.get("custom_fields", {}).get("slogan", "").find("Ma maison") >= 0
+               for c in cards(v) if c.get("type") == "custom:button-card")
+           for v in views.values()), "Pas de button-card superflue"
 assert any(c.get("type") == "custom:kimia-inventory-v1-card"
            for c in cards(admin_views["inventaire"]))
 assert any(c.get("type") == "custom:kimia-room-manager-v1-card"
