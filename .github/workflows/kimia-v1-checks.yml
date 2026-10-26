@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - feat/kimia-produit-v1-20261025
+      - feat/kimia-inventaire-v1-20261026
   workflow_dispatch:
 jobs:
   check:
@@ -22,7 +23,9 @@ jobs:
           node --check www/kimia-room-manager-v1-card.js
           node --check www/kimia-zigbee-manager-v1-card.js
           node --check www/kimia-scenarios-v1-card.js
+          node --check www/kimia-inventory-v1-card.js
           node tests/kimia_v1.test.cjs
+          node tests/kimia_inventory_v1.test.cjs
       - name: Verification YAML
         run: |
           pip install PyYAML
@@ -37,4 +40,14 @@ jobs:
             www/kimia-room-manager-v1-card.js
             www/kimia-zigbee-manager-v1-card.js
             www/kimia-scenarios-v1-card.js
+          retention-days: 30
+      - name: Préparer la mise à jour Inventaire et Gestion des pièces
+        uses: actions/upload-artifact@v4
+        with:
+          name: KIMIA-Inventaire-et-Pieces-V1
+          path: |
+            www/kimia-smart-core-v1.js
+            www/kimia-room-manager-v1-card.js
+            www/kimia-inventory-v1-card.js
+            kimia-admin-next-ui-import.yaml
           retention-days: 30
