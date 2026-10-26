@@ -10,6 +10,13 @@ Branche de développement créée à partir de `feat/kimia-refonte-client-202610
 - `custom:kimia-services-v14-card` : choix des positions explicitement autorisées et de la liste To-do, sauvegardé dans **KIMIA Next uniquement**. Les autres options des cartes natives sont conservées.
 - `custom:kimia-script-builder-v14-card` : créateur visuel de scripts (lumières, prises, volets, lecteurs multimédia, température de clim et attentes). Création REST officielle HA via `hass.callApi`, authentification de l'administrateur. Aucun script existant n'est modifié ni supprimé ; les noms sont préfixés `ks_` pour ne pas entrer en conflit avec les scripts internes `kimia_`. Les scripts deviennent sélectionnables dans **Mes scénarios** après chargement dans HA.
 
+## Correctif Carte (26 octobre 2026)
+- La carte native générée dans la vue Sections doit avoir `grid_options: {columns: 12, rows: 6}`, avec `auto_fit: true` et `default_zoom: 12`. Une hauteur `rows: auto` pouvait faire apparaître une simple ligne.
+- Le modèle d'installation V1.4 contient ces paramètres.
+- La synchronisation V1.4 corrige **uniquement** les cartes `map` qui correspondent à l'ancien modèle KIMIA exact (zone.home seule, hauteur auto, aucun réglage manuel ajouté).
+- Une carte géographique déjà modifiée par l'installateur, notamment sa hauteur ou ses entités, est préservée. Un deuxième passage ne doit effectuer aucune modification.
+- Pour la VM 210 : une correction manuelle de la carte existante est suffisante, sans réimporter le dashboard ; un nouveau moteur JS n'est nécessaire que pour profiter de la migration automatique future. Un commit GitHub ne déploie rien sur Home Assistant.
+
 ## Limites de cette première passe
 - Pas encore d'éditeur/suppression visuel des scripts existants. Leur édition reste accessible depuis Home Assistant.
 - Pas de déclencheurs/conditions : il s'agit de scripts exécutés depuis les boutons, non d'automatisations.
