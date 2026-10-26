@@ -1,6 +1,6 @@
-/* KIMIA Smart by PROMAINT — moteur de tableaux de bord v1.4 (extension client).
+/* KIMIA Smart by PROMAINT — moteur de tableaux de bord v1.5 (socle admin).
  * Une pièce / un appareil = cartes natives indépendantes (Area / Tile).
- * Ecriture limitée au dashboard kimia-next. Aucun accès au dashboard actif.
+ * Écrit dans kimia-next et ajoute uniquement les réglages manquants à kimia-admin-next.
  * Retrait uniquement des cartes créées par KIMIA et restées non personnalisées.
  * Les données restent dans les registres officiels Home Assistant.
  */
@@ -256,6 +256,68 @@
         }
     return {added,modified};
   };
+  // V1.5 : mise à jour additive du tableau de bord administrateur.
+  // N'efface ni ne recompose aucune carte existante (notamment personnalisée).
+  const ADMIN_DASHBOARD = "kimia-admin-next";
+  const v15AdminCards = {
+    carte: {type:"tile",entity:"input_boolean.kimia_onglet_carte",
+      name:"Carte",icon:"mdi:map-marker-radius-outline",tap_action:{action:"toggle"}},
+    listes: {type:"tile",entity:"input_boolean.kimia_onglet_listes",
+      name:"Listes",icon:"mdi:format-list-checks",tap_action:{action:"toggle"}}
+  };
+  const hasCard = (view,predicate) => allCards(view).some(predicate);
+  async function upgradeAdminDashboard(hass,dashboards) {
+    if(!Array.isArray(dashboards) ||
+       !dashboards.some(d=>d.url_path===ADMIN_DASHBOARD && d.mode==="storage"))return 0;
+    const config=await hass.callWS({type:"lovelace/config",url_path:ADMIN_DASHBOARD});
+    if(!Array.isArray(config?.views)||config.strategy)return 0;
+    const next=safeClone(config);
+    const appearance=next.views.find(v=>v.path==="apparence");
+    const scenarios=next.views.find(v=>v.path==="scenarios");
+    let added=0;
+    if(appearance?.sections) {
+      const rubriques=appearance.sections.find(s=>Array.isArray(s.cards)&&
+        s.cards.some(c=>c.type==="heading"&&c.heading==="Mes rubriques"));
+      if(rubriques){
+        for(const key of ["carte","listes"]){
+          const card=v15AdminCards[key];
+          if(!hasCard(appearance,c=>c.type==="tile"&&c.entity===card.entity)){
+            rubriques.cards.push(safeClone(card));added++;
+          }
+        }
+      }
+      if(!hasCard(appearance,c=>c.type==="custom:kimia-services-v14-card")){
+        const themesIdx=appearance.sections.findIndex(s=>s.cards?.some(c=>
+          c.type==="heading"&&c.heading==="Les thèmes KIMIA"));
+        const target=themesIdx<0?appearance.sections.length:themesIdx;
+        appearance.sections.splice(target,0,{type:"grid",column_span:2,cards:[
+          {type:"custom:kimia-services-v14-card",
+           grid_options:{columns:"full",rows:"auto"}}]});
+        added++;
+      }
+    }
+    if(scenarios?.sections &&
+       !hasCard(scenarios,c=>c.type==="custom:kimia-script-builder-v14-card")){
+      const oldIdx=scenarios.sections.findIndex(s=>s.cards?.some(c=>
+        c.type==="custom:kimia-scenarios-v1-card"));
+      const target=oldIdx<0?scenarios.sections.length:oldIdx;
+      scenarios.sections.splice(target,0,{type:"grid",column_span:2,cards:[
+        {type:"custom:kimia-script-builder-v14-card",
+         grid_options:{columns:"full",rows:"auto"}}]});
+      added++;
+    }
+    if(!added)return 0;
+    const latest=await hass.callWS({type:"lovelace/config",url_path:ADMIN_DASHBOARD});
+    if(JSON.stringify(latest)!==JSON.stringify(config))
+      throw Error("L'administration KIMIA a changé pendant la synchronisation. Réessayez.");
+    await hass.callWS({type:"lovelace/config/save",url_path:ADMIN_DASHBOARD,config:next});
+    const saved=await hass.callWS({type:"lovelace/config",url_path:ADMIN_DASHBOARD});
+    if(!saved?.views || (appearance&&
+       !saved.views.some(v=>v.path==="apparence"))){
+      throw Error("Vérification de la sauvegarde de KIMIA Configuration impossible.");
+    }
+    return added;
+  }
   let active = null;
   let _last = { state: "idle", added: 0, message: "KIMIA est prêt." };
   const notify = x => {
@@ -436,8 +498,11 @@
         const v14=applyV14(next,hass);
         added+=v14.added;modified+=v14.modified;
         if (added === 0 && removed === 0 && modified === 0) {
-          const result = { state: "ok", added: 0, removed: 0,
-            message: "Votre maison est déjà à jour. Rien à modifier." };
+          const adminAdded=await upgradeAdminDashboard(hass,dashboards);
+          const result = { state: "ok", added: 0, removed: 0, adminAdded,
+            message: adminAdded
+              ? "KIMIA Configuration : "+adminAdded+" élément(s) ajouté(s). Votre maison est à jour."
+              : "Votre maison est déjà à jour. Rien à modifier." };
           notify(result);
           return result;
         }
@@ -457,9 +522,12 @@
             countCards(after) < countCards(next)) {
           throw new Error("L'enregistrement doit être vérifié dans KIMIA.");
         }
-        const result = { state: "ok", added, removed, modified,
+        const adminAdded=await upgradeAdminDashboard(hass,dashboards);
+        const result = { state: "ok", added, removed, modified, adminAdded,
           message: added + " carte(s) ajoutée(s), "+removed+
-            " supprimée(s), "+modified+" mise(s) en forme. Votre maison est à jour." };
+            " supprimée(s), "+modified+" mise(s) en forme. "+
+            (adminAdded?adminAdded+" réglage(s) admin ajouté(s). ":"")+
+            "Votre maison est à jour." };
         notify(result);
         return result;
       } catch (err) {
@@ -476,6 +544,6 @@
     sync: synchronize,
     getStatus: () => ({ ..._last }),
     dashboard: DASHBOARD,
-    version: "1.4.0-dev"
+    version: "1.5.0-dev"
   });
 })();
