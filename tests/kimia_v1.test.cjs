@@ -59,8 +59,11 @@ async function main(){
  assert.equal(config.views.find(v=>v.path==="lumieres").sections.flatMap(s=>s.cards)
   .filter(c=>c.type==="tile"&&c.entity==="light.lampe").length,1);
  assert(!JSON.stringify(config).includes("light.disabled"),"Une entité désactivée ne doit pas apparaître");
- for(const v of config.views)assert(v.sections[0].cards.some(c=>
+ for(const v of config.views)assert(v.sections.flatMap(section=>section.cards).some(c=>
   c.type==="markdown"&&c.content.includes("personnalisée")),"Préservation des personnalisations");
+ assert(config.views.every(v=>v.sections.flatMap(section=>section.cards).filter(c=>
+  c.type==="custom:button-card"&&c.custom_fields?.logo?.includes("by PROMAINT")).length===1),
+  "Une bannière de marque KIMIA par page, sans doublons");
  await assert.rejects(window.KimiaSmartCore.sync({...hass,user:{is_admin:false}}),/administrateur/);
  // Le moteur doit retirer les cartes automatiques après déplacement ou désaffectation.
  // Il ne doit jamais supprimer une carte personnalisée.
