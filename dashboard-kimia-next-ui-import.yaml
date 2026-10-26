@@ -1,4 +1,10 @@
 title: KIMIA Smart · Nouvelle génération
+# Le client navigue exclusivement par la barre KIMIA en bas.
+# L'admin conserve le bandeau HA pour modifier l'interface.
+# Nécessite l'intégration frontend HACS « Kiosk Mode ».
+kiosk_mode:
+  non_admin_settings:
+    kiosk: true
 views:
   - title: Accueil
     path: accueil
