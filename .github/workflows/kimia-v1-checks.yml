@@ -97,3 +97,12 @@ jobs:
             packages/kimia_admin_navigation.yaml
             docs/KIMIA_V14_INSTALLATION.md
           retention-days: 30
+      - name: Pack installation KIMIA V1.5 (2 JavaScript)
+        uses: actions/upload-artifact@v4
+        with:
+          name: KIMIA-V15-Installation-2-JS
+          path: |
+            www/kimia-smart-core-v1.js
+            www/kimia-user-visibility-v15-card.js
+            docs/KIMIA_V15_PARAMETRES_PORTAIL_20261026.md
+          retention-days: 30
