@@ -66,6 +66,11 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
  assert(cards("reglages-apparence").some(c=>c.type==="entities"&&
   c.title==="Mon ambiance actuelle"));
  assert(!cards("parametres").some(c=>c.name==="Terracotta"));
+ assert(cards("reglages-localisation").some(c=>c.type==="shortcut"&&
+   c.tap_action?.navigation_path==="/config/zone"),"Lien natif de création des zones");
+ assert(cards("reglages-localisation").some(c=>c.type==="shortcut"&&
+   c.tap_action?.navigation_path==="/kimia-next/carte"),
+   "L'accès à la carte actuelle reste fonctionnel");
  const was=writes;
  await window.KimiaSmartCore.sync(hass);
  assert.equal(writes,was,"no duplicate views, cards or writes on second pass");
