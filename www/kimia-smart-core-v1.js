@@ -208,6 +208,18 @@
       {type:"grid",column_span:3,cards:[safeClone(templateNav)]});
     return view;
   };
+  // Migrer exclusivement la carte exacte générée lors des premiers tests V1.4.
+  // Une carte native modifiée par l'utilisateur n'est jamais réécrite.
+  const isLegacyCollapsedMap = card =>
+    card?.type === "map" &&
+    Array.isArray(card.entities) && card.entities.length === 1 &&
+    card.entities[0] === "zone.home" &&
+    card.show_all === false && card.hours_to_show === 0 &&
+    card.aspect_ratio === "16:9" &&
+    card.grid_options?.columns === 12 && card.grid_options?.rows === "auto" &&
+    Object.keys(card).sort().join("|") ===
+      "aspect_ratio|entities|grid_options|hours_to_show|show_all|type" &&
+    Object.keys(card.grid_options).sort().join("|") === "columns|rows";
   const applyV14 = (next,hass) => {
     let added=0,modified=0;
     const current=new Set(next.views.map(v=>v.path));
@@ -222,6 +234,16 @@
       const view=newV14View(tab,nav,hass);
       next.views.push(view);
       added+=countCards({views:[view]});
+    }
+    // Anciennes cartes Map V1.4 (hauteur auto) : seul le modèle exact
+    // est corrigé. Les cartes géographiques personnalisées restent intactes.
+    const mapView=next.views.find(v=>v.path==="carte");
+    if(mapView)for(const card of allCards(mapView)) {
+      if(!isLegacyCollapsedMap(card))continue;
+      card.grid_options.rows=6;
+      card.auto_fit=true;
+      card.default_zoom=12;
+      modified++;
     }
     // Migration non destructive du placeholder quand une liste apparaît.
     const listView=next.views.find(v=>v.path==="listes");
