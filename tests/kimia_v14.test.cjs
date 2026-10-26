@@ -38,7 +38,7 @@ async function run(){
  for(const v of cfg.views){
   const nav=(v.sections||[]).flatMap(s=>s.cards||[]).find(c=>c.type==="custom:navbar-card");
   assert(nav,v.path+" navbar manquante");
-  for(const slug of ["carte","listes"]){
+  for(const slug of ["pieces","carte","listes"]){
    const routes=nav.routes.filter(r=>r.url==="/kimia-next/"+slug);
    assert.equal(routes.length,1,v.path+" "+slug);
    assert(routes[0].hidden.includes("input_boolean.kimia_onglet_"+slug));
