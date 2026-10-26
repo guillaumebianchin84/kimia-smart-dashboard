@@ -12,6 +12,7 @@ on:
       - feat/kimia-v16-editeur-routines-20261026
       - fix/kimia-v16-affichage-local-20261026
       - fix/kimia-v162-admin-header-20261026
+      - fix/kimia-v163-themes-cartes-natives-20261026
   workflow_dispatch:
 jobs:
   check:
@@ -150,4 +151,13 @@ jobs:
             www/kimia-header-toggle-v1-card.js
             www/kimia-local-theme-v16-card.js
             docs/KIMIA_V162_INSTALLATION_CORRECTIF.md
+          retention-days: 30
+
+      - name: Pack ciblé KIMIA V1.6.3 — Cartes natives de thèmes
+        uses: actions/upload-artifact@v4
+        with:
+          name: KIMIA-V163-Themes-Cartes-Natives
+          path: |
+            www/kimia-local-theme-v16-card.js
+            docs/KIMIA_V163_THEMES_NATIFS.md
           retention-days: 30
