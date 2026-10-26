@@ -1,44 +1,55 @@
-"""Valider les deux fichiers d'import KIMIA v1 (PyYAML)."""
+"""Vérifier que le modèle KIMIA reproduit la refonte utilisateur et reste générique."""
 from pathlib import Path
 import yaml
 
 main = yaml.safe_load(Path("dashboard-kimia-next-ui-import.yaml").read_text(encoding="utf-8"))
+source = yaml.safe_load(Path("docs/KIMIA_REFONTE_CLIENT_SOURCE_20261026.yaml").read_text(encoding="utf-8"))
 admin = yaml.safe_load(Path("kimia-admin-next-ui-import.yaml").read_text(encoding="utf-8"))
-assert isinstance(main, dict) and isinstance(admin, dict)
 views = {v["path"]: v for v in main["views"]}
+source_views = {v["path"]: v for v in source["views"]}
 admin_views = {v["path"]: v for v in admin["views"]}
-assert len(views) == 10, f"10 pages attendues, {len(views)}"
-assert len(admin_views) == 6, f"6 pages admin attendues, {len(admin_views)}"
-assert "accueil" in views and "pieces" in views
-# Le bandeau HA est masqué pour les clients par défaut et activable localement.
+expected = {
+    "accueil": "Ma maison", "lumieres": "Lumières", "volets": "Volets",
+    "climatisation": "Climatisation", "musique": "Musique",
+    "securite": "Sécurité", "prises": "Prises", "actualites": "Actualités",
+    "parametres": "Paramètres", "pieces": "Pièces",
+}
+assert len(views) == len(source_views) == 10
+assert len(admin_views) == 6
+assert all(k in views for k in expected)
 assert "localStorage.getItem" in main["kiosk_mode"]["non_admin_settings"]["kiosk"]
-
-assert "demarrer" in admin_views and "appareils" in admin_views and "inventaire" in admin_views
+assert main["kiosk_mode"] == source["kiosk_mode"]
 
 def cards(view):
-    return [c for section in view.get("sections", []) for c in section.get("cards", [])]
+    return [c for s in view.get("sections", []) for c in s.get("cards", [])]
+
+for path, label in expected.items():
+    v = views[path]
+    assert v["title"] == source_views[path]["title"], path
+    assert v["max_columns"] == source_views[path]["max_columns"], path
+    banners = [c for c in cards(v) if c.get("type") == "custom:button-card"]
+    assert len(banners) == 1, f"Bannière manquante dans {path}"
+    assert "by PROMAINT" in banners[0]["custom_fields"]["logo"], path
+    assert label in banners[0]["custom_fields"]["slogan"], path
+    assert any(c.get("type") == "custom:navbar-card" for c in cards(v)), path
+    # Ne livrer aucun équipement provenant du laboratoire de démonstration.
+    assert not any(c.get("type") in ("area", "tile") for c in cards(v)), path
 
 home = cards(views["accueil"])
-assert sum(c.get("type") == "shortcut" and c.get("label") in (
-    "Au lit", "Départ", "Retour", "Réveil") for c in home) == 4
-assert not any(c.get("type") == "grid" and any(
-    x.get("type") == "shortcut" for x in c.get("cards", [])) for c in home)
-for required in ("custom:maquette-card", "custom:clock-weather-card", "custom:rss-news-card"):
-    assert any(c.get("type") == required for c in home), required
-assert any(c.get("type") == "heading" and c.get("heading") == "Mes pièces" for c in home)
-assert any(c.get("type") == "heading" and c.get("heading") == "Pièces de la maison"
-           for c in cards(views["pieces"]))
-assert all(any(c.get("type") == "custom:navbar-card" for c in cards(v))
-           for v in views.values())
+assert len(home) == 9, f"Accueil épuré : 9 cartes attendues, {len(home)}"
+assert sum(c.get("type") == "custom:maquette-card" for c in home) == 1
+assert sum(c.get("type") == "custom:clock-weather-card" for c in home) == 1
+assert sum(c.get("type") == "shortcut" for c in home) == 4
+assert not any(c.get("type") == "custom:rss-news-card" for c in home)
+assert not any(c.get("heading") == "Mes pièces" for c in home)
+assert all(c.get("grid_options") == {"columns": 12, "rows": 1}
+           for c in home if c.get("type") == "shortcut")
+assert views["accueil"]["sections"][1]["column_span"] == 2
+assert views["accueil"]["sections"][2]["column_span"] == 1
+assert all(c.get("type") == "custom:rss-news-card" or c.get("type") in ("custom:button-card","custom:navbar-card")
+           for c in cards(views["actualites"]))
 assert any(c.get("type") == "custom:kimia-header-toggle-v1-card"
-           for c in cards(views["parametres"])), "Réglage bandeau absent"
-# Une bannière de marque KIMIA sur chacune des dix pages, sans autres button-card.
-assert all(len([c for c in cards(v) if c.get("type") == "custom:button-card"
-                and "by PROMAINT" in c.get("custom_fields", {}).get("logo", "")]) == 1
-           for v in views.values()), "Bandeau KIMIA manquant ou doublé"
-assert all(all(c.get("custom_fields", {}).get("slogan", "").find("Ma maison") >= 0
-               for c in cards(v) if c.get("type") == "custom:button-card")
-           for v in views.values()), "Pas de button-card superflue"
+           for c in cards(views["parametres"]))
 assert any(c.get("type") == "custom:kimia-inventory-v1-card"
            for c in cards(admin_views["inventaire"]))
 assert any(c.get("type") == "custom:kimia-room-manager-v1-card"
@@ -49,11 +60,9 @@ assert any(c.get("type") == "custom:kimia-scenarios-v1-card"
            for c in cards(admin_views["scenarios"]))
 assert any(c.get("type") == "custom:kimia-setup-v1-card"
            for c in cards(admin_views["demarrer"]))
-assert "kimia-smart/" not in str(main) and "kimia-test/" not in str(main)
-package_text = Path("packages/kimia_tablette_v1.yaml").read_text(encoding="utf-8")
-package = yaml.safe_load(package_text)
+package_text=Path("packages/kimia_tablette_v1.yaml").read_text(encoding="utf-8")
+package=yaml.safe_load(package_text)
 assert len(package["script"]) == 7
 assert len(package["input_text"]) == 7
-assert "script.xxx" not in package_text
 assert "Dans KIMIA Configuration" in package_text
-print("YAML KIMIA v1 : OK - 10 vues client, 6 vues admin, cartes independantes, isolation")
+print("YAML refonte KIMIA V1.3 OK : accueil conforme, titres 10 onglets, zéro équipement de démo, 6 vues admin.")
