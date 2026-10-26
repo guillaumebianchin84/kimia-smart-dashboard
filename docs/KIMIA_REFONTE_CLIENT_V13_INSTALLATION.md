@@ -1,5 +1,7 @@
 # KIMIA Smart — Refonte client V1.3 (26 octobre 2026)
 
+> **Reprise après conversation PC/téléphone :** voir [`REPRISE_KIMIA_20261026.md`](../REPRISE_KIMIA_20261026.md), état exact des tests, environnement KIMIA VM210, prochaine étape et points de vigilance. **La V1.3 n'est pas encore déclarée installée sur la VM.**
+
 ## Principe
 Le **YAML transmis par le responsable produit** constitue la référence visuelle. L'original, avec ses pièces et enceintes de test, est conservé ici :
 `docs/KIMIA_REFONTE_CLIENT_SOURCE_20261026.yaml`.
