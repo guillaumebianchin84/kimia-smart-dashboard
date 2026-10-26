@@ -407,6 +407,130 @@
     }
     return added;
   }
+
+  // V1.5 : portail Paramètres conçu comme extension non destructive.
+  // Les thèmes et le contrôle du bandeau HA sont déplacés sans modifier les cartes.
+  const SETTINGS_BASE="/kimia-next/";
+  const SETTINGS_PAGES=[
+    {path:"reglages-utilisateurs",title:"Utilisateurs",icon:"mdi:account-group",
+     label:"Utilisateurs",description:"Profils et pièces visibles",color:"teal"},
+    {path:"reglages-affichage",title:"Affichage",icon:"mdi:monitor-eye",
+     label:"Affichage",description:"Interface et bandeau HA",color:"blue"},
+    {path:"reglages-localisation",title:"Zones et carte",icon:"mdi:map-marker-radius-outline",
+     label:"Zones et carte",description:"Lieux et carte géographique",color:"cyan"},
+    {path:"reglages-listes",title:"Mes listes",icon:"mdi:format-list-checks",
+     label:"Mes listes",description:"Tâches du foyer",color:"green"},
+    {path:"reglages-apparence",title:"Apparence",icon:"mdi:palette-outline",
+     label:"Apparence",description:"Mes thèmes KIMIA",color:"deep-purple"}
+  ];
+  const settingsShortcut=(label,description,icon,path,color="teal")=>({
+    type:"shortcut",label,description,icon,color,
+    grid_options:{columns:6,rows:2},
+    tap_action:{action:"navigate",navigation_path:path}
+  });
+  const settingsHelp=(message)=>({type:"markdown",content:message,
+    grid_options:{columns:"full",rows:"auto"}});
+  const settingsGrid=cards=>({type:"grid",column_span:2,cards});
+  const settingsHeading=text=>({type:"heading",heading:text,icon:"mdi:cog-outline"});
+  const settingsMenu=()=>settingsGrid([
+    {type:"heading",heading:"Mon espace KIMIA",icon:"mdi:view-dashboard-outline",
+     heading_style:"title",grid_options:{columns:"full",rows:1}},
+    ...SETTINGS_PAGES.map(p=>settingsShortcut(
+      p.label,p.description,p.icon,SETTINGS_BASE+p.path,p.color))
+  ]);
+  const getSettingsNav=param=>allCards(param).find(kimiaNav);
+  const cloneSettingsBanner=(param,spec)=>{
+    const source=(param.sections||[]).find(s=>s.cards?.some(isKimiaBrand));
+    const banner=source?safeClone(source):brandBanner({
+      max_columns:2,title:spec.title
+    });
+    const card=banner.cards.find(isKimiaBrand);
+    if(card)card.custom_fields.slogan=bannerSlogan(spec.title);
+    banner.column_span=2;
+    return banner;
+  };
+  const makeSettingsSubview=(param,spec)=>{
+    const nav=getSettingsNav(param);
+    const cards=[
+      settingsShortcut("Retour aux paramètres",
+        "Revenir au menu principal","mdi:arrow-left",
+        SETTINGS_BASE+"parametres","teal")
+    ];
+    const view={title:spec.title,path:spec.path,icon:spec.icon,
+      type:"sections",max_columns:2,subview:true,
+      back_path:SETTINGS_BASE+"parametres",
+      sections:[cloneSettingsBanner(param,spec),settingsGrid(cards)]};
+    const add=(...items)=>view.sections.push(settingsGrid(items));
+    if(spec.path==="reglages-utilisateurs")add(
+      settingsHeading("Mes accès"),
+      settingsHelp("Les pièces visibles sont définies par l'administrateur KIMIA. Il s'agit d'un masquage visuel, pas d'une interdiction d'accès aux appareils."),
+      settingsShortcut("Gérer les utilisateurs","Administration KIMIA",
+        "mdi:account-cog-outline","/kimia-admin-next/utilisateurs","teal")
+    );
+    if(spec.path==="reglages-localisation")add(
+      settingsHeading("Carte géographique"),
+      settingsShortcut("Ouvrir ma carte","Zones et positions sélectionnées",
+        "mdi:map-marker-radius-outline","/kimia-next/carte","cyan"),
+      settingsShortcut("Configurer la carte","Réglages administrateur",
+        "mdi:map-cog-outline","/kimia-admin-next/apparence","teal"),
+      settingsHelp("La création et la modification des zones géographiques depuis KIMIA feront l'objet d'un module dédié. Les zones Home Assistant actuelles sont conservées.")
+    );
+    if(spec.path==="reglages-listes")add(
+      settingsHeading("Mes listes"),
+      settingsShortcut("Ouvrir mes listes","Liste To-do du foyer",
+        "mdi:format-list-checks","/kimia-next/listes","green"),
+      settingsHelp("Le choix de plusieurs listes (trois maximum, empilées) sera intégré ici. Les listes existantes ne sont pas modifiées.")
+    );
+    if(spec.path==="reglages-affichage")add(
+      settingsHeading("Mon affichage"),
+      settingsHelp("Retrouvez ici le contrôle du bandeau Home Assistant, avec sa préférence actuelle propre à cet appareil.")
+    );
+    if(spec.path==="reglages-apparence")add(
+      settingsHeading("Mes thèmes"),
+      settingsHelp("Retrouvez ici les thèmes KIMIA existants, sans changer leurs couleurs ni leur fonctionnement.")
+    );
+    if(nav)view.sections.push(settingsGrid([safeClone(nav)]));
+    return view;
+  };
+  const applySettingsPortal = next=>{
+    const param=next.views.find(v=>v.path==="parametres");
+    if(!Array.isArray(param?.sections))return {added:0,modified:0};
+    const before=countCards(next);
+    let modified=0;
+    for(const spec of SETTINGS_PAGES){
+      if(next.views.some(v=>v.path===spec.path))continue;
+      next.views.push(makeSettingsSubview(param,spec));
+    }
+    // Déplacer sans reconstituer : conserve toutes les options existantes
+    // (thèmes, couleurs, bouton Kiosk, tuiles et personnalisations).
+    const relocations=[
+      ["Affichage de l'application","reglages-affichage"],
+      ["Mes thèmes","reglages-apparence"]
+    ];
+    for(const [heading,target] of relocations){
+      const to=next.views.find(v=>v.path===target);
+      if(!to?.subview)continue;
+      if(allCards(to).some(c=>c.type==="heading"&&c.heading===heading))continue;
+      const idx=param.sections.findIndex(s=>s.cards?.some(c=>
+        c.type==="heading"&&c.heading===heading));
+      if(idx<0)continue;
+      const moved=param.sections.splice(idx,1)[0];
+      // Garder les sections copiées intactes, à l'exception de leur emplacement.
+      const navIndex=to.sections.findIndex(s=>s.cards?.some(kimiaNav));
+      to.sections.splice(navIndex<0?to.sections.length:navIndex,0,moved);
+      modified++;
+    }
+    // Placer le portail juste après le bandeau de marque et laisser toutes
+    // les autres sections non reconnues à leur place.
+    if(!param.sections.some(s=>s.cards?.some(c=>
+      c.type==="heading"&&c.heading==="Mon espace KIMIA"))){
+      const bannerIndex=param.sections.findIndex(s=>s.cards?.some(isKimiaBrand));
+      param.sections.splice(bannerIndex<0?0:bannerIndex+1,0,settingsMenu());
+      modified++;
+    }
+    return {added:countCards(next)-before,modified};
+  };
+
   let active = null;
   let _last = { state: "idle", added: 0, message: "KIMIA est prêt." };
   const notify = x => {
@@ -590,6 +714,8 @@
         modified+=applyRoomVisibility(next,hiddenByArea);
         const v14=applyV14(next,hass);
         added+=v14.added;modified+=v14.modified;
+        const settings=applySettingsPortal(next);
+        added+=settings.added;modified+=settings.modified;
         if (added === 0 && removed === 0 && modified === 0) {
           const adminAdded=await upgradeAdminDashboard(hass,dashboards);
           const result = { state: "ok", added: 0, removed: 0, adminAdded,
