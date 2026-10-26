@@ -1,4 +1,4 @@
-/* KIMIA Smart by PROMAINT — moteur de tableaux de bord v1.3 (refonte client).
+/* KIMIA Smart by PROMAINT — moteur de tableaux de bord v1.4 (extension client).
  * Une pièce / un appareil = cartes natives indépendantes (Area / Tile).
  * Ecriture limitée au dashboard kimia-next. Aucun accès au dashboard actif.
  * Retrait uniquement des cartes créées par KIMIA et restées non personnalisées.
@@ -157,6 +157,82 @@
       escaped+"</div>'; ]]]";
   };
 
+
+  // V1.4 : une source pour les nouvelles routes, commune à toutes les vues.
+  // Ne jamais remplacer les cartes ni les préférences d'un utilisateur.
+  const V14_TABS = [
+    { path: "carte", title: "Carte", label: "Carte",
+      icon: "mdi:map-marker-radius-outline", toggle: "input_boolean.kimia_onglet_carte" },
+    { path: "listes", title: "Listes", label: "Listes",
+      icon: "mdi:format-list-checks", toggle: "input_boolean.kimia_onglet_listes" }
+  ];
+  const V14_NO_TODO = "KIMIA V1.4 : aucune liste To-do détectée. Activez une intégration de listes dans Home Assistant puis cliquez sur Actualiser ma maison.";
+  const v14Route = tab => ({
+    url: "/kimia-next/" + tab.path, icon: tab.icon, label: tab.label,
+    // Absent = masqué : un helper manquant ne doit pas rendre une vue publique.
+    hidden: '[[[ return states["' + tab.toggle + '"]?.state !== "on"; ]]]'
+  });
+  const kimiaNav = c => c?.type === "custom:navbar-card" &&
+    Array.isArray(c.routes) &&
+    c.routes.some(r => r.url === "/kimia-next/accueil");
+  const upgradeNav = card => {
+    if(!kimiaNav(card))return 0;
+    let changed=0;
+    for (const tab of V14_TABS) {
+      if(card.routes.some(r => r.url === "/kimia-next/" + tab.path))continue;
+      const idx=card.routes.findIndex(r => r.url === "/kimia-next/actualites");
+      card.routes.splice(idx<0?card.routes.length:idx,0,v14Route(tab));
+      changed++;
+    }
+    return changed;
+  };
+  const initialV14Card = (path, hass) => {
+    if(path === "carte") return {
+      type: "map", entities: ["zone.home"], show_all: false,
+      hours_to_show: 0, aspect_ratio: "16:9",
+      grid_options: { columns: 12, rows: "auto" }
+    };
+    const todo=Object.keys(hass.states||{}).filter(k=>k.startsWith("todo.")).sort()[0];
+    return todo ? {type:"todo-list",entity:todo,title:"Mes listes",
+      grid_options:{columns:12,rows:"auto"}} :
+      {type:"markdown",content:V14_NO_TODO,grid_options:{columns:12,rows:"auto"}};
+  };
+  const newV14View = (tab, templateNav, hass) => {
+    const view={title:tab.title,path:tab.path,icon:tab.icon,
+      type:"sections",max_columns:3,sections:[]};
+    const brand=brandBanner(view);
+    brand.cards[0].custom_fields.slogan=bannerSlogan(tab.title);
+    view.sections.push(brand,
+      {type:"grid",column_span:3,cards:[initialV14Card(tab.path,hass)]},
+      {type:"grid",column_span:3,cards:[safeClone(templateNav)]});
+    return view;
+  };
+  const applyV14 = (next,hass) => {
+    let added=0,modified=0;
+    const current=new Set(next.views.map(v=>v.path));
+    const nav=next.views.flatMap(allCards).find(kimiaNav);
+    if(!nav)throw Error("Navbar KIMIA introuvable : création V1.4 interrompue.");
+    // Mettre les routes dans TOUTES les navbars existantes, sans changer
+    // leurs autres entrées, leur ordre personnalisé ou leur disposition.
+    for(const view of next.views)for(const card of allCards(view))
+      if(kimiaNav(card))modified+=upgradeNav(card);
+    for(const tab of V14_TABS){
+      if(current.has(tab.path))continue;
+      const view=newV14View(tab,nav,hass);
+      next.views.push(view);
+      added+=countCards({views:[view]});
+    }
+    // Migration non destructive du placeholder quand une liste apparaît.
+    const listView=next.views.find(v=>v.path==="listes");
+    const todo=Object.keys(hass.states||{}).filter(k=>k.startsWith("todo.")).sort()[0];
+    if(listView && todo)for(const section of listView.sections||[])
+      for(let i=0;i<(section.cards||[]).length;i++)
+        if(section.cards[i]?.type==="markdown" &&
+           section.cards[i]?.content===V14_NO_TODO) {
+          section.cards[i]=initialV14Card("listes",hass);modified++;
+        }
+    return {added,modified};
+  };
   let active = null;
   let _last = { state: "idle", added: 0, message: "KIMIA est prêt." };
   const notify = x => {
@@ -334,6 +410,8 @@
             }
           }
         }
+        const v14=applyV14(next,hass);
+        added+=v14.added;modified+=v14.modified;
         if (added === 0 && removed === 0 && modified === 0) {
           const result = { state: "ok", added: 0, removed: 0,
             message: "Votre maison est déjà à jour. Rien à modifier." };
@@ -375,6 +453,6 @@
     sync: synchronize,
     getStatus: () => ({ ..._last }),
     dashboard: DASHBOARD,
-    version: "1.3.0"
+    version: "1.4.0-dev"
   });
 })();
