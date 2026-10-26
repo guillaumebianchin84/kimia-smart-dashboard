@@ -9,7 +9,7 @@ Le fichier `dashboard-kimia-next-ui-import.yaml` constitue le **modèle initial 
 Le moteur `www/kimia-smart-core-v1.js` V1.3 applique ces règles lors de `KimiaSmartCore.sync()` :
 
 - **Accueil** : uniquement bandeau de marque, plan Maquette, météo et les quatre scénarios. Aucun appareil ni pièce ajouté automatiquement.
-- **Bandeau KIMIA** sur chaque onglet : texte central *Ma maison* pour Accueil, et le titre exact de l'onglet pour les autres vues.
+- **Bandeau KIMIA** sur chaque onglet : texte central avec **le titre exact de chaque onglet**, y compris « Accueil ».
 - **Pièces et catégories** : une section par pièce (largeur complète de la vue), carte native Area de largeur 12/12 ; cartes Tile des appareils sous Area, deux par rangée (6/12).
 - **Aucun titre en double** au-dessus d'une carte Area ; un titre historique standard est retiré lors de la mise à niveau.
 - **Filtrage par catégories**, pièces vides omises des onglets d'équipements ; Pièces regroupe les pièces même vides.
