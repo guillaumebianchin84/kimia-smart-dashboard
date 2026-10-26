@@ -9,6 +9,7 @@ on:
       - feat/kimia-refonte-client-20261026
       - feat/kimia-v14-carte-listes-scenarios-20261026
       - feat/kimia-v15-profils-utilisateurs-20261026
+      - feat/kimia-v16-editeur-routines-20261026
   workflow_dispatch:
 jobs:
   check:
@@ -33,12 +34,15 @@ jobs:
           node --check www/kimia-services-v14-card.js
           node --check www/kimia-script-builder-v14-card.js
           node --check www/kimia-user-visibility-v15-card.js
+          node --check www/kimia-routine-engine-v16.js
+          node --check www/kimia-routine-editor-v16-card.js
           node tests/kimia_v1.test.cjs
           node tests/kimia_v14.test.cjs
           node tests/kimia_v15_admin.test.cjs
           node tests/kimia_v15_profiles.test.cjs
           node tests/kimia_v15_settings.test.cjs
           node tests/kimia_v15_review.test.cjs
+          node tests/kimia_v16_routines.test.cjs
           node tests/kimia_inventory_v1.test.cjs
           node tests/kimia_header_toggle_v1.test.cjs
       - name: Verification YAML
@@ -108,4 +112,15 @@ jobs:
             docs/KIMIA_V15_PARAMETRES_PORTAIL_20261026.md
             www/kimia-services-v14-card.js
             packages/kimia_admin_navigation.yaml
+          retention-days: 30
+
+      - name: Pack KIMIA V1.6 — Routines scripts & automations
+        uses: actions/upload-artifact@v4
+        with:
+          name: KIMIA-V16-Routines-Installation
+          path: |
+            www/kimia-smart-core-v1.js
+            www/kimia-routine-engine-v16.js
+            www/kimia-routine-editor-v16-card.js
+            docs/KIMIA_V16_INSTALLATION.md
           retention-days: 30
