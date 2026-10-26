@@ -17,8 +17,9 @@ expected = {
 assert len(views) == 12 and len(source_views) == 10
 assert len(admin_views) == 6
 assert all(k in views for k in expected)
-assert "localStorage.getItem" in main["kiosk_mode"]["non_admin_settings"]["kiosk"]
-assert main["kiosk_mode"] == source["kiosk_mode"]
+assert "localStorage.getItem" in main["kiosk_mode"]["kiosk"]
+assert "return " in main["kiosk_mode"]["kiosk"]
+assert main["kiosk_mode"] != source["kiosk_mode"], "V1.6.1 migrates legacy non-admin kiosk"
 
 def cards(view):
     return [c for s in view.get("sections", []) for c in s.get("cards", [])]
@@ -50,6 +51,13 @@ assert all(c.get("type") == "custom:rss-news-card" or c.get("type") in ("custom:
            for c in cards(views["actualites"]))
 assert any(c.get("type") == "custom:kimia-header-toggle-v1-card"
            for c in cards(views["parametres"]))
+assert any(c.get("type") == "custom:kimia-local-theme-v16-card"
+           for c in cards(views["parametres"]))
+assert not any(c.get("tap_action", {}).get("perform_action") == "input_select.select_option"
+               for c in cards(views["parametres"]))
+client_package = yaml.safe_load(Path("packages/kimia_client_theme.yaml").read_text(encoding="utf-8"))
+assert "kimia_theme_global" in client_package["input_select"]
+assert "automation" not in client_package, "No global theme automations"
 assert any(c.get("type") == "custom:kimia-inventory-v1-card"
            for c in cards(admin_views["inventaire"]))
 assert any(c.get("type") == "custom:kimia-room-manager-v1-card"
