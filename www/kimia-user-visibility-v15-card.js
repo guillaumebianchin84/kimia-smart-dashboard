@@ -34,6 +34,15 @@ button{border:0;border-radius:11px;padding:12px 17px;background:var(--primary-co
 button:disabled{opacity:.48;cursor:default}
 small{color:var(--secondary-text-color);line-height:1.5;display:block;margin-top:12px}
 .feedback{padding:11px;border-radius:10px;background:var(--secondary-background-color);margin-top:12px;overflow-wrap:anywhere}
+.summary{margin-top:18px;padding:14px;border:1px solid var(--divider-color);border-radius:14px;background:var(--secondary-background-color)}
+.summary h3{margin:0 0 8px;font-size:16px}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin:9px 0 12px}
+.chip{padding:6px 9px;border-radius:9px;font-size:12px;background:var(--card-background-color);border:1px solid var(--divider-color)}
+.summary .muted{color:var(--secondary-text-color)}
+.create{border:1px solid var(--divider-color);border-radius:12px;padding:15px;margin:14px 0}
+.create input{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--divider-color);background:var(--card-background-color);color:var(--primary-text-color);border-radius:9px;font:inherit}
+.create label{font-size:13px}
+
 `;
   class UserVisibility extends HTMLElement {
     constructor(){
@@ -41,7 +50,7 @@ small{color:var(--secondary-text-color);line-height:1.5;display:block;margin-top
       this.attachShadow({mode:"open"});
       this._hass=null;this._started=false;this._busy=false;
       this._users=[];this._areas=[];this._profiles={};this._userId="";
-      this._hidden=new Set();this._error="";this._notice="";
+      this._hidden=new Set();this._error="";this._notice="";this._creating=false;
       this._render();
     }
     setConfig(config){this._cfg=config||{};}
@@ -79,6 +88,26 @@ small{color:var(--secondary-text-color);line-height:1.5;display:block;margin-top
       this._userId=id;
       this._hidden=new Set(this._profiles[id]||[]);
       this._notice="";this._error="";
+    }
+    // Le récapitulatif lit la dernière sauvegarde, jamais les cases en cours d'édition.
+    _renderSummary(card){
+      const saved=new Set(this._profiles[this._userId]||[]);
+      const visible=this._areas.filter(a=>!saved.has(a.area_id));
+      const hidden=this._areas.filter(a=>saved.has(a.area_id));
+      const name=this._users.find(u=>u.id===this._userId)?.name||"cet utilisateur";
+      const box=make("section",undefined,"summary");
+      box.append(make("h3","Configuration enregistrée — "+name));
+      box.append(make("p","Pièces visibles : "+visible.length+" / "+this._areas.length));
+      const list=make("div",undefined,"chips");
+      for(const area of visible)list.append(make("span",area.name||area.area_id,"chip"));
+      if(!visible.length)list.append(make("span","Aucune pièce visible","muted"));
+      box.append(list,make("p","Pièces masquées : "+hidden.length));
+      const off=make("div",undefined,"chips");
+      for(const area of hidden)off.append(make("span",area.name||area.area_id,"chip"));
+      if(!hidden.length)off.append(make("span","Aucune pièce masquée","muted"));
+      box.append(off);
+      box.append(make("small","Ces valeurs sont enregistrées dans KIMIA. Les cases au-dessus peuvent contenir des modifications non sauvegardées."));
+      card.append(box);
     }
     _render(){
       const root=this.shadowRoot;
@@ -129,6 +158,7 @@ small{color:var(--secondary-text-color);line-height:1.5;display:block;margin-top
       save.disabled=this._busy;save.addEventListener("click",()=>this._save());
       actions.append(save);
       card.append(actions);
+      this._renderSummary(card);
       card.append(make("small","Les comptes non configurés voient toutes les pièces. L'administrateur peut rétablir leur affichage à tout moment. Ce réglage n'est pas une restriction de sécurité."));
       if(this._error)card.append(make("div","Erreur : "+this._error,"feedback"));
       if(this._notice)card.append(make("div",this._notice,"feedback"));
