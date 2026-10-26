@@ -178,6 +178,15 @@
   const upgradeNav = card => {
     if(!kimiaNav(card))return 0;
     let changed=0;
+    // Onglet Pièces jusque-là visible dans le header HA, absent de la navbar KIMIA.
+    if(!card.routes.some(r=>r.url==="/kimia-next/pieces")){
+      const home=card.routes.findIndex(r=>r.url==="/kimia-next/accueil");
+      card.routes.splice(home<0?0:home+1,0,{
+        url:"/kimia-next/pieces",icon:"mdi:floor-plan",label:"Pièces",
+        hidden:'[[[ return states["input_boolean.kimia_onglet_pieces"]?.state !== "on"; ]]]'
+      });
+      changed++;
+    }
     for (const tab of V14_TABS) {
       if(card.routes.some(r => r.url === "/kimia-next/" + tab.path))continue;
       const idx=card.routes.findIndex(r => r.url === "/kimia-next/actualites");
@@ -260,6 +269,8 @@
   // N'efface ni ne recompose aucune carte existante (notamment personnalisée).
   const ADMIN_DASHBOARD = "kimia-admin-next";
   const v15AdminCards = {
+    pieces: {type:"tile",entity:"input_boolean.kimia_onglet_pieces",
+      name:"Pièces",icon:"mdi:floor-plan",tap_action:{action:"toggle"}},
     carte: {type:"tile",entity:"input_boolean.kimia_onglet_carte",
       name:"Carte",icon:"mdi:map-marker-radius-outline",tap_action:{action:"toggle"}},
     listes: {type:"tile",entity:"input_boolean.kimia_onglet_listes",
@@ -342,7 +353,7 @@
       const rubriques=appearance.sections.find(s=>Array.isArray(s.cards)&&
         s.cards.some(c=>c.type==="heading"&&c.heading==="Mes rubriques"));
       if(rubriques){
-        for(const key of ["carte","listes"]){
+        for(const key of ["pieces","carte","listes"]){
           const card=v15AdminCards[key];
           if(!hasCard(appearance,c=>c.type==="tile"&&c.entity===card.entity)){
             rubriques.cards.push(safeClone(card));added++;
