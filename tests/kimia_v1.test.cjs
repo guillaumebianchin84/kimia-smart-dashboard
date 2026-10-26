@@ -97,7 +97,9 @@ async function main(){
  assert.equal(cards(view("accueil")).filter(c=>c.type==="tile").length,0,
   "Accueil interdit aux tuiles automatiques");
  const home=cards(view("accueil"));
- assert(home.some(c=>c.type==="custom:maquette-card"));
+ assert(home.some(c=>c.type==="custom:kimia-maquette-acl-v17-card" &&
+  c.card?.type==="custom:maquette-card" && c.card.id==="maquette-reference"),
+  "Plan Maquette strictement préservé comme carte enfant du filtre par zones HA");
  assert(home.some(c=>c.type==="custom:clock-weather-card"));
  assert.equal(home.filter(c=>c.type==="shortcut").length,4);
  for(const [path,title] of paths){
