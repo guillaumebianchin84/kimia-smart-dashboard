@@ -154,6 +154,28 @@ async function test(){
  await imported._open();
  assert.equal(imported._draft.alias,"Rituel soirée");
  assert.equal(imported._draft.actions[0].operation,"turn_on");
- console.log("KIMIA V1.6 OK : 2 types, logique, blocs imbriqués, aller-retour sans perte, conflit CRUD.");
+
+ // Les commandes réelles ne se lancent jamais lors d'une sauvegarde.
+ const serviceCalls=[];
+ hass.callService=async(domain,service,data)=>{serviceCalls.push({domain,service,data});};
+ hass.states["script."+scriptId]={state:"off"};
+ card._editing.entityId="script."+scriptId;
+ card._catalog=[{kind:"script",id:scriptId,entityId:"script."+scriptId,name:"Rituel soirée"}];
+ await card._run();
+ assert.equal(serviceCalls[0].domain,"script");
+ assert.equal(serviceCalls[0].service,"turn_on");
+ assert.equal(serviceCalls.length,1);
+ card._editing={kind:"automation",id:"kimia_test",entityId:"automation.test",name:"Test"};
+ card._draft=plain(auto);
+ card._catalog=[{kind:"automation",id:"kimia_test",entityId:"automation.test",name:"Test"}];
+ hass.states["automation.test"]={state:"on"};
+ await card._run();
+ assert.equal(serviceCalls[1].domain,"automation");
+ assert.equal(serviceCalls[1].service,"trigger");
+ assert.equal(serviceCalls[1].data.skip_condition,false,"simulation keeps conditions");
+ await card._toggle();
+ assert.equal(serviceCalls[2].service,"turn_off");
+ assert.equal(serviceCalls.length,3,"no unexpected execution");
+ console.log("KIMIA V1.6 OK : 2 types, logique, blocs imbriqués, aller-retour sans perte, conflit CRUD et commandes explicites.");
 }
 test().catch(e=>{console.error(e);process.exitCode=1;});
