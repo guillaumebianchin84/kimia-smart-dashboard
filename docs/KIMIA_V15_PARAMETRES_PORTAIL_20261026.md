@@ -30,3 +30,25 @@ Le moteur KimiaSmartCore.sync modifie uniquement les dashboards storage KIMIA. D
 6. Si anomalie, restaurer le moteur/YAML précédents ; ne pas réimporter un modèle complet sur le dashboard vivant.
 
 Tests spécifiques : tests/kimia_v15_settings.test.cjs
+
+## Revue UX du 26 octobre — quatre corrections intégrées
+
+1. **Carte :** le menu admin Carte et listes utilise désormais des cases à cocher explicites pour zones, personnes et trackers, limitées à 15 positions, avec suivi personnel désactivé par défaut.
+2. **Listes :** création réelle de listes `Local to-do` depuis l'administration KIMIA via le flux officiel HA. Affichage des listes sélectionnées dans `kimia-next/listes`, **3 cartes `todo-list` maximum**, l'une sous l'autre (option B). Les anciennes listes et les tâches sont conservées. Une carte Todo personnalisée non reconnue bloque un retrait automatique pour éviter toute perte de présentation. Renommer/supprimer une intégration reste accessible depuis HA, non automatisé dans ce lot.
+3. **Utilisateurs :** ajout d'un récapitulatif des pièces visibles/masquées **enregistrées** pour le compte sélectionné, distinct des cases modifiées non enregistrées. Formulaire `Créer un utilisateur` : nom, identifiant, mot de passe, groupe standard HA `system-users`. Création via `config/auth/create` puis `config/auth_provider/homeassistant/create`, réservée admin. Si les identifiants échouent après création du compte, KIMIA explique de terminer dans la gestion HA, sans supprimer automatiquement le compte. La préférence de visibilité peut être attribuée ensuite.
+4. **Pièces :** ajout de `input_boolean.kimia_onglet_pieces` dans la configuration de navigation, initialisation **une seule fois**, tuile Pièces en Apparence et route Pièces dans toutes les navbars, immédiatement après Accueil. Les liens directs existants restent disponibles même quand l'icône est masquée.
+
+## Déploiement correctif (version cache 151)
+- Ne pas réimporter les grands YAML client/admin : synchronisation additive.
+- Remplacer trois JS dans `/config/www/` : `kimia-smart-core-v1.js`, `kimia-services-v14-card.js`, `kimia-user-visibility-v15-card.js`.
+- Mettre à jour `/config/packages/kimia_admin_navigation.yaml` avec la version du dépôt. **Vérifier la configuration et redémarrer la VM HA KIMIA 210** pour déclarer les nouveaux helpers (`input_boolean.kimia_onglet_pieces`, `...pieces_initialise`) ; l'automatisation active Pièces une seule fois.
+- Modifier les **ressources existantes** pour leurs URL `/local/kimia-smart-core-v1.js?v=151`, `/local/kimia-services-v14-card.js?v=151`, `/local/kimia-user-visibility-v15-card.js?v=151` (type Module JavaScript). Ne pas dupliquer les entrées.
+- Recharge complète navigateur. Dans KIMIA Configuration → Démarrer, cliquer `Actualiser ma maison` une fois. Vérifier Pièces dans la navbar et dans Apparence, puis le sélecteur Carte/Listes et le module Utilisateurs.
+- Contrôles de non-régression : Accueil, Maquette, thèmes, bouton bandeau HA, navbar mobile/tablette, appareil affecté à pièce, scénarios ; répéter la synchronisation et vérifier l'absence de doublons.
+- Pack GitHub Actions nommé `KIMIA-V15-Revue-Corrections` (3 JS + YAML navigation + guide). GitHub n'installe rien automatiquement dans la VM.
+
+## Limites et prudence
+- Un compte nouvellement créé obtient le groupe standard, **pas** des permissions HA strictes par pièce. Le masquage KIMIA reste visuel uniquement.
+- Pour la création de listes, l'intégration `Local to-do` doit être disponible et l'authentification administrateur appropriée. Une liste créée peut apparaître après un court délai : le bouton `Actualiser les listes` permet de rafraîchir les choix.
+- La création des zones géographiques sur la carte directement dans KIMIA, l'édition de listes et le filtrage de la Maquette par compte restent reportés.
+- Tests CI en simulation : ils ne prouvent pas encore l'ergonomie ou toutes les permissions de la VM 210 réelle.
