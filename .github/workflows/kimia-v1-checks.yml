@@ -11,6 +11,7 @@ on:
       - feat/kimia-v15-profils-utilisateurs-20261026
       - feat/kimia-v16-editeur-routines-20261026
       - fix/kimia-v16-affichage-local-20261026
+      - fix/kimia-v162-admin-header-20261026
   workflow_dispatch:
 jobs:
   check:
@@ -138,4 +139,15 @@ jobs:
             www/kimia-local-theme-v16-card.js
             packages/kimia_client_theme.yaml
             docs/KIMIA_V161_CORRECTIF_AFFICHAGE_LOCAL.md
+          retention-days: 30
+
+      - name: Pack correctif KIMIA V1.6.2 — Bandeau admin et thèmes illustrés
+        uses: actions/upload-artifact@v4
+        with:
+          name: KIMIA-V162-Correctif-UI-Sans-Regression
+          path: |
+            www/kimia-smart-core-v1.js
+            www/kimia-header-toggle-v1-card.js
+            www/kimia-local-theme-v16-card.js
+            docs/KIMIA_V162_INSTALLATION_CORRECTIF.md
           retention-days: 30
