@@ -151,7 +151,7 @@ class Card extends HTMLElement{
  _alert(){return this._notice?'<div role="status" class="km-message'+(this._error?" error":"")+'">'+esc(this._notice)+'</div>':"";}
  _native(kind,id){
   const dest=nativeUrl(kind,id);
-  return '<a class="km-btn flat small" href="'+esc(dest)+'" title="Utiliser toutes les fonctionnalités Home Assistant">'+icon("mdi:open-in-new")+' Éditeur HA</a>';
+  return '<a class="km-btn flat small" href="'+esc(dest)+'" title="Utiliser toutes les fonctionnalités Home Assistant">'+icon("mdi:open-in-new")+' '+(id?"Éditeur HA":kind==="script"?"Scripts HA":"Automatisations HA")+'</a>';
  }
  _render(){
   const notReady=!this._hass,denied=!this._admin(),missing=!engine();
@@ -283,14 +283,13 @@ class Card extends HTMLElement{
   if(item?.type==="delay")return '<div class="km-tool"><div class="km-tool-head">Attendre avant l’action suivante</div>'+
    '<label class="km-field">Durée (secondes)<input class="km-input" type="number" min="1" max="86400" id="pick-delay" value="'+esc(item.seconds)+'"/></label>'+this._pickerFooter("action")+'</div>';
   const domain=this._pickerCat||(item?.type==="call"?item.entity?.split(".")[0]:"");
-  const categoriesShown=categories.filter(c=>["light","cover","switch","climate","fan","media_player"].includes(c[0])||
-   this._experimental&&["scene","script","input_boolean"].includes(c[0]));
+  const categoriesShown=categories.filter(c=>["light","cover","switch","climate","fan","media_player","scene"].includes(c[0]));
   const tiles='<div class="km-tiles">'+categoriesShown.map(([dom,title,ico])=>
    '<button class="km-tile'+(domain===dom?" selected":"")+'" type="button" data-do="category" data-domain="'+dom+'">'+icon(ico)+esc(title)+'</button>').join("")+
    this._btn(icon("mdi:timer-outline")+" Attendre","delay-category","km-tile")+'</div>';
   let settings="";
   if(domain){
-   const all=this._allEntities(domain);
+   const all=this._allEntities(domain,false);
    const id=this._pickEntity||(item?.type==="call"?item.entity:"");
    const regAreas=new Set(all.map(x=>x.area));
    const roomSelect='<label class="km-field">Pièce<select class="km-input" id="pick-area">'+
@@ -395,8 +394,7 @@ class Card extends HTMLElement{
    '<p class="km-muted">Pour les modèles Jinja, blueprints, variables, actions parallèles, branches complexes et services spéciaux, ouvre la routine directement dans Home Assistant. Les routines non prises en charge restent intactes.</p>'+
    '<label class="km-field">Si la routine est relancée avant la fin<select class="km-input" id="mode">'+
     Object.entries(modeName).map(([id,text])=>opt(id,text,d.mode)).join("")+'</select></label>'+
-   '<p class="km-muted" style="margin-top:12px">Afficher les commandes d’helpers et les scénarios HA dans le sélecteur d’actions :</p>'+
-   this._btn(this._triggerOptions?"Masquer ces commandes":"Afficher ces commandes","show-technical","flat small")+
+   '<p class="km-muted" style="margin-top:12px">Templates, boucles, branches parallèles, helpers et services particuliers restent accessibles dans l’éditeur HA natif.</p>'+
    '<div style="margin-top:12px">'+this._native(d.kind,this._editing?.id)+'</div></div>';
  }
  _clearPicker(){this._drawer=null;this._entry=null;this._pickerCat="";this._pickArea="*";this._pickEntity="";this._pickOp="";this._pickValue=undefined;this._pickSearch="";this._idx=null;}
@@ -453,7 +451,7 @@ class Card extends HTMLElement{
  _focusEntities(){
   const q=this._pickSearch.toLowerCase(),area=this._pickArea,type=this._drawer;
   let list=[];
-  if(type==="action")list=this._allEntities(this._pickerCat||this._entry?.entity?.split(".")[0]);
+  if(type==="action")list=this._allEntities(this._pickerCat||this._entry?.entity?.split(".")[0],false);
   else{
    const domainList=(this._pickerCat||this._entry?.type)==="numeric_state"?
     ["sensor","number","input_number"]:
@@ -504,7 +502,6 @@ class Card extends HTMLElement{
   }
   else if(act==="apply")this._apply();
   else if(act==="expert"){this._experimental=!this._experimental;this._render();}
-  else if(act==="show-technical"){this._triggerOptions=!this._triggerOptions;this._experimental=true;this._render();}
   else if(act==="save")void this._save();
   else if(act==="run")void this._run(b.dataset.id);
   else if(act==="toggle")void this._toggle(b.dataset.id);
