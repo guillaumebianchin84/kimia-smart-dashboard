@@ -71,13 +71,16 @@ function guardSimple(d){
  const basicActions=["call","delay"];
  const basicTriggers=["time","sun","state","numeric_state"];
  const basicConditions=["time","sun","state","numeric_state"];
- const seen=new Set();
+ const basicDomains=["light","cover","switch","climate","fan","media_player","scene","script"];
  for(const x of d.actions||[]){
   if(!basicActions.includes(x.type))return false;
-  if(x.type==="call"){if(seen.has(x.entity))return false;seen.add(x.entity);}
+  // Les aides internes/entités techniques sont volontairement laissées à HA.
+  if(x.type==="call"&&!basicDomains.includes(x.entity?.split(".")[0]))return false;
  }
- return (d.triggers||[]).every(x=>basicTriggers.includes(x.type))&&
-  (d.conditions||[]).every(x=>basicConditions.includes(x.type));
+ return (d.triggers||[]).every(x=>basicTriggers.includes(x.type)&&
+  (x.type!=="state"||(!x.from&&!x.seconds)))&&
+  (d.conditions||[]).every(x=>basicConditions.includes(x.type)&&
+  (x.type!=="time"||!(x.weekdays||[]).length));
 }
 const CSS=[
  ":host{display:block;color:var(--primary-text-color)}*{box-sizing:border-box}button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.48;cursor:not-allowed}button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--primary-color,#06a6a1);outline-offset:3px}",
@@ -174,7 +177,7 @@ class Card extends HTMLElement{
    this._alert()+
    '<div class="km-top"><div class="km-section-label" style="margin:0">'+icon("mdi:home-automation")+
    ' Mes scénarios et automatisations <span class="km-chip">'+rec.length+'</span></div>'+
-   this._native("automation",null)+'</div>'+
+   '<div class="km-row wrap">'+this._native("script",null)+this._native("automation",null)+'</div></div>'+
    '<div class="km-filters">'+[["all","Tout voir"],["script","Scénarios"],["automation","Automatisations"]].map(([k,t])=>
     '<button type="button" class="km-filter'+(this._filter===k?" active":"")+'" data-do="filter" data-value="'+k+'">'+t+'</button>').join("")+'</div>'+
    '<div class="km-row wrap" style="margin-bottom:13px"><input class="km-input km-search" id="kimia-search" placeholder="Rechercher une routine…" aria-label="Rechercher une routine" value="'+esc(this._query)+'"/>'+
@@ -353,7 +356,7 @@ class Card extends HTMLElement{
     const permitted=selection==="numeric_state"?
      ["sensor","number","input_number"]:
      ["light","binary_sensor","sensor","switch","cover","climate","person","device_tracker","input_boolean","sun"];
-    const es=this._allEntities(null,true).filter(x=>permitted.includes(x.domain));
+    const es=this._allEntities(null,this._experimental).filter(x=>permitted.includes(x.domain));
     const areaSet=new Set(es.map(x=>x.area));
     const filtered=es.filter(x=>(this._pickArea==="*"||x.area===this._pickArea)&&
      (x.label.toLowerCase().includes(this._pickSearch.toLowerCase())||x.id.includes(this._pickSearch.toLowerCase())));
@@ -455,7 +458,7 @@ class Card extends HTMLElement{
    const domainList=(this._pickerCat||this._entry?.type)==="numeric_state"?
     ["sensor","number","input_number"]:
     ["light","binary_sensor","sensor","switch","cover","climate","person","device_tracker","input_boolean","sun"];
-   list=this._allEntities(null,true).filter(x=>domainList.includes(x.domain));
+   list=this._allEntities(null,this._experimental).filter(x=>domainList.includes(x.domain));
   }
   return list.filter(x=>(area==="*"||x.area===area)&&
    (x.label.toLowerCase().includes(q)||x.id.includes(q)));
