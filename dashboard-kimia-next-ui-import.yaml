@@ -1983,11 +1983,13 @@ views:
             entities:
               - zone.home
             show_all: false
+            auto_fit: true
+            default_zoom: 12
             hours_to_show: 0
             aspect_ratio: "16:9"
             grid_options:
               columns: 12
-              rows: auto
+              rows: 6
       - type: grid
         column_span: 3
         cards:
