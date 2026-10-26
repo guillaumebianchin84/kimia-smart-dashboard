@@ -13,6 +13,7 @@ on:
       - fix/kimia-v16-affichage-local-20261026
       - fix/kimia-v162-admin-header-20261026
       - fix/kimia-v163-themes-cartes-natives-20261026
+      - feat/kimia-v17-maquette-areas-acl-20261026
   workflow_dispatch:
 jobs:
   check:
@@ -35,6 +36,7 @@ jobs:
           node --check www/kimia-inventory-v1-card.js
           node --check www/kimia-header-toggle-v1-card.js
           node --check www/kimia-local-theme-v16-card.js
+          node --check www/kimia-maquette-acl-v17-card.js
           node --check www/kimia-services-v14-card.js
           node --check www/kimia-script-builder-v14-card.js
           node --check www/kimia-user-visibility-v15-card.js
@@ -50,6 +52,7 @@ jobs:
           node tests/kimia_inventory_v1.test.cjs
           node tests/kimia_header_toggle_v1.test.cjs
           node tests/kimia_v161_local_preferences.test.cjs
+          node tests/kimia_v17_maquette_areas.test.cjs
       - name: Verification YAML
         run: |
           pip install PyYAML
@@ -160,4 +163,14 @@ jobs:
           path: |
             www/kimia-local-theme-v16-card.js
             docs/KIMIA_V163_THEMES_NATIFS.md
+          retention-days: 30
+
+      - name: Pack KIMIA V1.7 — Maquette et pièces par utilisateur
+        uses: actions/upload-artifact@v4
+        with:
+          name: KIMIA-V17-Maquette-Pieces-Utilisateurs
+          path: |
+            www/kimia-smart-core-v1.js
+            www/kimia-maquette-acl-v17-card.js
+            docs/KIMIA_V17_MAQUETTE_PIECES_UTILISATEURS.md
           retention-days: 30
