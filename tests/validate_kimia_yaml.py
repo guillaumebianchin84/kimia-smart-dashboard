@@ -72,13 +72,15 @@ assert cards(views["carte"])[1]["entities"] == ["zone.home"]
 assert cards(views["carte"])[1]["show_all"] is False
 for slug,v in views.items():
     nav=next(c for c in cards(v) if c.get("type")=="custom:navbar-card")
-    for extra_path in ("carte","listes"):
+    for extra_path in ("pieces","carte","listes"):
         matches=[r for r in nav["routes"] if r["url"]=="/kimia-next/"+extra_path]
         assert len(matches)==1, (slug,extra_path)
         assert "kimia_onglet_"+extra_path in matches[0]["hidden"]
 assert any(c.get("type")=="custom:kimia-services-v14-card" for c in cards(admin_views["apparence"]))
 assert any(c.get("type")=="custom:kimia-script-builder-v14-card" for c in cards(admin_views["scenarios"]))
 nav_helpers=yaml.safe_load(Path("packages/kimia_admin_navigation.yaml").read_text(encoding="utf-8"))
+assert "kimia_onglet_pieces" in nav_helpers["input_boolean"]
+assert any(c.get("entity")=="input_boolean.kimia_onglet_pieces" for c in cards(admin_views["apparence"]))
 assert "kimia_onglet_carte" in nav_helpers["input_boolean"]
 assert "kimia_onglet_listes" in nav_helpers["input_boolean"]
 
