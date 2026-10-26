@@ -611,7 +611,8 @@
        !old.includes('kimia_bandeau_ha_')||
        !old.includes("localStorage.getItem"))return 0;
     if(km.kiosk!==undefined && km.kiosk!==old)return 0;
-    km.kiosk=old;
+    // Kiosk Mode demande un retour booléen explicite dans le modèle JS.
+    km.kiosk="[[[ return window.localStorage.getItem(\"kimia_bandeau_ha_\" + user_name) !== \"visible\"; ]]]";
     delete km.non_admin_settings.kiosk;
     if(!Object.keys(km.non_admin_settings).length)delete km.non_admin_settings;
     return 1;
