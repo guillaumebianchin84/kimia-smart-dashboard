@@ -7,15 +7,17 @@
  "use strict";
  const TAG="kimia-local-theme-v16-card";
  if(customElements.get(TAG))return;
+ // Préserver les 8 cartes, couleurs et icônes de l'interface native V1.4.
+ // Les teintes des accents sont visuelles et restent indépendantes du thème HA.
  const OPTIONS=[
-  ["KIMIA Gris Premium","Gris Premium","mdi:palette"],
-  ["KIMIA Clair","Clair","mdi:weather-sunny"],
-  ["KIMIA Sombre","Sombre","mdi:weather-night"],
-  ["KIMIA Signature","Signature","mdi:home-heart"],
-  ["KIMIA Vert Sauge","Vert Sauge","mdi:leaf"],
-  ["KIMIA Violet Nuit","Violet Nuit","mdi:moon-waning-crescent"],
-  ["KIMIA Sable Doré","Sable Doré","mdi:weather-sunny"],
-  ["KIMIA Terracotta","Terracotta","mdi:fireplace"]
+  ["KIMIA Gris Premium","Gris Premium","mdi:palette","#15b8ad"],
+  ["KIMIA Clair","Clair","mdi:weather-sunny","#00acc1"],
+  ["KIMIA Sombre","Sombre","mdi:weather-night","#5c6bc0"],
+  ["KIMIA Signature","Signature","mdi:home-heart","#42a5f5"],
+  ["KIMIA Vert Sauge","Vert Sauge","mdi:leaf","#43a047"],
+  ["KIMIA Violet Nuit","Violet Nuit","mdi:weather-night","#8e57d6"],
+  ["KIMIA Sable Doré","Sable Doré","mdi:weather-sunny","#d49c20"],
+  ["KIMIA Terracotta","Terracotta","mdi:fireplace","#ed6c32"]
  ];
  const PREFIX="kimia_theme_appareil_v16_";
  const key=hass=>PREFIX+String(hass?.user?.id||hass?.user?.name||"");
@@ -113,28 +115,45 @@
    const root=this.shadowRoot;
    const style=document.createElement("style");
    style.textContent=[
-    "ha-card{display:block;border-radius:16px;padding:15px;background:var(--card-background-color)}",
-    "h3{margin:0 0 7px;font-size:17px}",
+    "ha-card{display:block;border-radius:16px;padding:17px;background:var(--card-background-color);color:var(--primary-text-color)}",
+    "h3{margin:0 0 7px;font-size:18px;font-weight:700}",
     "p{font-size:12px;line-height:1.5;color:var(--secondary-text-color)}",
-    ".choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:9px;margin-top:12px}",
-    "button{min-height:54px;border:1px solid var(--divider-color);border-radius:12px;background:var(--secondary-background-color);color:var(--primary-text-color);font-weight:650;cursor:pointer;padding:9px}",
-    "button.selected{border:2px solid var(--primary-color);background:var(--card-background-color)}",
-    "button:disabled{opacity:.5}",
-    ".status{font-weight:650;min-height:18px}"
+    ".choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:15px}",
+    ".theme{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;min-width:0;min-height:105px;padding:16px 12px;box-sizing:border-box;border:1px solid var(--divider-color);border-radius:15px;background:var(--secondary-background-color);color:var(--primary-text-color);font:inherit;font-weight:650;font-size:14px;line-height:1.25;text-align:center;cursor:pointer;transition:border-color .12s ease,box-shadow .12s ease}",
+    ".theme ha-icon{--mdc-icon-size:28px;width:28px;height:28px;color:var(--theme-accent)}",
+    ".icon{display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:14px;background:color-mix(in srgb,var(--theme-accent) 17%,transparent)}",
+    ".name{overflow-wrap:anywhere}",
+    ".theme.selected{border:2px solid var(--theme-accent);padding:15px 11px;box-shadow:inset 0 0 0 1px var(--theme-accent)}",
+    ".theme.selected .icon{background:color-mix(in srgb,var(--theme-accent) 24%,transparent)}",
+    ".theme:focus-visible{outline:3px solid var(--theme-accent);outline-offset:2px}",
+    ".theme:hover:not(:disabled){border-color:var(--theme-accent)}",
+    ".theme:disabled{opacity:.45;cursor:not-allowed}",
+    ".status{font-weight:600;margin-top:14px;min-height:18px}",
+    "@media(max-width:370px){.choices{gap:8px}.theme{min-height:92px;padding:11px 6px;font-size:13px}.theme.selected{padding:10px 5px}}"
    ].join("\n");
    const card=document.createElement("ha-card");
    const title=document.createElement("h3");title.textContent="Mon thème sur cet appareil";
    const p=document.createElement("p");
-   p.textContent="Ce thème ne change que cet appareil et ce compte. Les autres navigateurs, utilisateurs et téléphones gardent leur propre affichage.";
+   p.textContent="Choisissez votre ambiance KIMIA. Les autres appareils et comptes conservent leur affichage.";
    card.append(title,p);
    const choices=document.createElement("div");choices.className="choices";
    const current=this._hass?store.get(this._hass):"";
    const allowed=this._hass?.themes?.themes||{};
-   for(const [value,label] of [["","Thème HA par défaut"],...OPTIONS]){
-    const btn=document.createElement("button");btn.textContent=label;btn.type="button";
-    btn.className=current===value?"selected":"";
+   const fallback=["","Thème HA par défaut","mdi:palette-outline","#607d8b"];
+   for(const [value,label,icon,color] of [fallback,...OPTIONS]){
+    const btn=document.createElement("button");
+    btn.type="button";btn.className="theme"+(current===value?" selected":"");
+    btn.style.setProperty("--theme-accent",color);
     btn.setAttribute("aria-pressed",String(current===value));
+    btn.setAttribute("aria-label",label+(current===value?" (sélectionné)":""));
     btn.disabled=!this._hass || !!(value&&!allowed[value]);
+    const visual=document.createElement("span");visual.className="icon";
+    const glyph=document.createElement("ha-icon");
+    glyph.setAttribute("icon",icon);
+    visual.append(glyph);
+    const text=document.createElement("span");
+    text.className="name";text.textContent=label;
+    btn.append(visual,text);
     btn.addEventListener("click",()=>{
      try{select(this._hass,value);this._message="Thème appliqué uniquement sur cet appareil.";}
      catch(e){this._message="Erreur : "+(e?.message||e);}
