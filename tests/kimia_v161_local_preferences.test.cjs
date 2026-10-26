@@ -59,6 +59,28 @@ T.select(u1,"");
 assert.equal(css.getPropertyValue("--primary-color"),"","reset removes overrides");
 assert.equal(T.get(u1),"");
 
+// Régression design : 8 cartes, icônes HA et couleurs propres à chaque thème.
+const ThemeCard=regist.get("kimia-local-theme-v16-card");
+assert(ThemeCard,"Carte KIMIA locale toujours enregistrée");
+const themed=Object.create(ThemeCard.prototype);
+let tree=[];
+themed._hass=u1;
+themed.shadowRoot={replaceChildren(...children){tree=children;}};
+themed._render();
+const haCard=tree.find(x=>x.tagName==="HA-CARD");
+assert(haCard,"Rendu dans une carte HA");
+const tileGrid=haCard.children.find(x=>x.className==="choices");
+assert.equal(tileGrid.children.length,9,"8 thèmes KIMIA + défaut");
+for(let i=0;i<9;i++){
+ const tile=tileGrid.children[i];
+ assert(tile.children.some(x=>x.className==="icon"),"Tuile avec icône "+i);
+ assert.equal(tile.children[0].children[0].tagName,"HA-ICON","Icône native HA "+i);
+ assert(tile.style.values["--theme-accent"]?.v,"Accent de couleur pour la tuile "+i);
+}
+assert.equal(T.OPTIONS.length,8,"Les 8 thèmes historiques restent disponibles");
+assert.equal(T.OPTIONS.find(x=>x[0]==="KIMIA Terracotta")[2],"mdi:fireplace");
+assert.equal(T.OPTIONS.find(x=>x[0]==="KIMIA Signature")[2],"mdi:home-heart");
+
 assert.throws(()=>T.select(u1,"Some other theme"),/inconnu/);
 const first=String(fs.readFileSync("www/kimia-smart-core-v1.js","utf8"));
 assert(first.includes("localKioskUI(next)"));
