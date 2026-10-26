@@ -266,6 +266,67 @@
       name:"Listes",icon:"mdi:format-list-checks",tap_action:{action:"toggle"}}
   };
   const hasCard = (view,predicate) => allCards(view).some(predicate);
+
+  // Profils stockés dans la configuration persistante du dashboard admin,
+  // jamais dans le navigateur. Une préférence absente signifie "tout afficher".
+  const PROFILE_CARD = "custom:kimia-user-visibility-v15-card";
+  const profileCard = view => allCards(view).find(c=>c.type===PROFILE_CARD);
+  const isKimiaVisibility = value =>
+    Array.isArray(value) && value.length===1 &&
+    value[0]?.condition==="not" &&
+    Array.isArray(value[0].conditions) && value[0].conditions.length===1 &&
+    value[0].conditions[0]?.condition==="user" &&
+    Array.isArray(value[0].conditions[0].users) &&
+    Object.keys(value[0]).sort().join("|")==="condition|conditions" &&
+    Object.keys(value[0].conditions[0]).sort().join("|")==="condition|users";
+  const hideForUsers = ids => [{
+    condition:"not",conditions:[{condition:"user",users:ids.sort()}]
+  }];
+  async function loadHiddenByArea(hass,dashboards) {
+    if(!dashboards.some(d=>d.url_path===ADMIN_DASHBOARD && d.mode==="storage"))
+      return new Map();
+    const admin=await hass.callWS({type:"lovelace/config",url_path:ADMIN_DASHBOARD});
+    const v=admin?.views?.find(v=>v.path==="utilisateurs");
+    const profiles=profileCard(v)?.hidden_areas_by_user;
+    const byArea=new Map();
+    if(!profiles || typeof profiles!=="object" || Array.isArray(profiles))
+      return byArea;
+    // Ne jamais fabriquer une condition pour un compte disparu/système.
+    const users=await hass.callWS({type:"config/auth/list"});
+    const valid=new Set((Array.isArray(users)?users:[])
+      .filter(u=>u?.id&&!u.system_generated&&u.is_active!==false).map(u=>u.id));
+    for(const [user,hidden] of Object.entries(profiles)){
+      if(!valid.has(user)||!Array.isArray(hidden))continue;
+      for(const area of hidden){
+        if(typeof area!=="string"||!area)continue;
+        if(!byArea.has(area))byArea.set(area,[]);
+        if(!byArea.get(area).includes(user))byArea.get(area).push(user);
+      }
+    }
+    return byArea;
+  }
+  // Appliquer uniquement aux sections contenant des cartes Area générées KIMIA.
+  // Toute visibilité personnalisée d'un autre format reste intouchée.
+  const applyRoomVisibility = (next,hiddenByArea) => {
+    let modified=0;
+    for(const path of ["pieces",...CATEGORIES.map(x=>x[0])]){
+      const view=next.views.find(v=>v.path===path);
+      for(const section of view?.sections||[]){
+        const area=managedRoom(section)?.area;
+        if(!area)continue;
+        const ids=hiddenByArea.get(area)||[];
+        const old=section.visibility;
+        if(old!==undefined && !isKimiaVisibility(old))continue;
+        const desired=ids.length?hideForUsers([...ids]):undefined;
+        if(JSON.stringify(old)===JSON.stringify(desired))continue;
+        if(desired)section.visibility=desired;
+        else delete section.visibility;
+        modified++;
+      }
+    }
+    return modified;
+  };
+
   async function upgradeAdminDashboard(hass,dashboards) {
     if(!Array.isArray(dashboards) ||
        !dashboards.some(d=>d.url_path===ADMIN_DASHBOARD && d.mode==="storage"))return 0;
@@ -304,6 +365,32 @@
       scenarios.sections.splice(target,0,{type:"grid",column_span:2,cards:[
         {type:"custom:kimia-script-builder-v14-card",
          grid_options:{columns:"full",rows:"auto"}}]});
+      added++;
+    }
+    // Ajouter une page dédiée au choix des pièces par compte HA.
+    // Aucune vue existante n'est réécrite ni déplacée.
+    let usersView=next.views.find(v=>v.path==="utilisateurs");
+    if(!usersView){
+      usersView={title:"Utilisateurs",path:"utilisateurs",icon:"mdi:account-group",
+        type:"sections",max_columns:2,sections:[
+        {type:"grid",column_span:2,cards:[
+          {type:"heading",heading:"Visibilité des pièces",heading_style:"title",
+           icon:"mdi:account-eye"},
+          {type:"markdown",content:"Choisissez les pièces affichées pour chaque compte Home Assistant. Masquage visuel uniquement : ce n'est pas une restriction d'accès."}
+        ]},
+        {type:"grid",column_span:2,cards:[
+          {type:PROFILE_CARD,hidden_areas_by_user:{},
+           grid_options:{columns:"full",rows:"auto"}}
+        ]}
+      ]};
+      next.views.push(usersView);
+      added++;
+    }else if(usersView.sections && !hasCard(usersView,c=>c.type===PROFILE_CARD)){
+      // Ne toucher à aucune carte en place : ajouter seulement notre gestionnaire.
+      usersView.sections.push({type:"grid",column_span:2,cards:[
+        {type:PROFILE_CARD,hidden_areas_by_user:{},
+         grid_options:{columns:"full",rows:"auto"}}
+      ]});
       added++;
     }
     if(!added)return 0;
@@ -495,6 +582,10 @@
             }
           }
         }
+        // Préférences par utilisateur : les nouveaux comptes voient tout par défaut.
+        // L'ancienne navigation, la maquette et les cartes personnalisées restent intactes.
+        const hiddenByArea=await loadHiddenByArea(hass,dashboards);
+        modified+=applyRoomVisibility(next,hiddenByArea);
         const v14=applyV14(next,hass);
         added+=v14.added;modified+=v14.modified;
         if (added === 0 && removed === 0 && modified === 0) {
