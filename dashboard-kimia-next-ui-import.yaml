@@ -1,10 +1,11 @@
 title: KIMIA Smart · Nouvelle génération
-# Le client navigue exclusivement par la barre KIMIA en bas.
-# L'admin conserve le bandeau HA pour modifier l'interface.
-# Nécessite l'intégration frontend HACS « Kiosk Mode ».
+# Le client navigue par KIMIA. Dans Paramètres, il peut retrouver
+# le bandeau HA sur SON appareil, sans toucher aux autres utilisateurs.
+# Nécessite l'intégration HACS « Kiosk Mode » et le JS KIMIA header toggle.
 kiosk_mode:
   non_admin_settings:
-    kiosk: true
+    kiosk: >-
+      [[[ window.localStorage.getItem("kimia_bandeau_ha_" + user_name) !== "visible" ]]]
 views:
   - title: Accueil
     path: accueil
@@ -931,6 +932,16 @@ views:
             content: >-
               Choisissez l'ambiance qui vous ressemble.
               La maison garde tous ses réglages et toutes ses fonctions.
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Affichage de l'application
+            icon: mdi:monitor-eye
+          - type: custom:kimia-header-toggle-v1-card
+            grid_options:
+              columns: full
+              rows: auto
       - type: grid
         cards:
           - type: heading
