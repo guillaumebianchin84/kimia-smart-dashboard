@@ -56,7 +56,10 @@
   if(s.type==="time")return {trigger:"time",at:time(s.at,"Déclencheur horaire")};
   if(s.type==="sun"){
    required(["sunrise","sunset"].includes(s.event),"Événement solaire inconnu");
-   return {trigger:"sun",event:s.event,offset:{minutes:num(s.offset,-720,720,"Décalage solaire")}};
+   const minutes=num(s.offset,-720,720,"Décalage solaire");
+   const absolute=Math.abs(minutes);
+   const offset=(minutes<0?"-":"+")+String(Math.floor(absolute/60)).padStart(2,"0")+":"+String(absolute%60).padStart(2,"0")+":00";
+   return {trigger:"sun",event:s.event,offset};
   }
   if(s.type==="state"){
    const out={trigger:"state",entity_id:entity(s.entity,"Déclencheur")};
@@ -138,7 +141,8 @@
   required(["single","restart","queued","parallel"].includes(d.mode),"Mode d'exécution inconnu");
   const sequence=d.actions.map(s=>actionToHA(s));
   const base={alias,description:String(d.description||"").slice(0,240),mode:d.mode};
-  if(d.kind==="script")return {...base,icon:"mdi:play-box-multiple-outline",sequence};
+  if(d.kind==="script")return {...base,icon:"mdi:play-box-multiple-outline",
+   sequence:[...(d.conditions||[]).map(s=>conditionToHA(s)),...sequence]};
   required(d.kind==="automation","Type de routine invalide");
   required(d.triggers?.length>0,"Une automatisation doit avoir au moins un déclencheur");
   return {...base,id,triggers:d.triggers.map(triggerToHA),
@@ -149,7 +153,9 @@
   const type=t.trigger||t.platform;
   if(type==="time"&&typeof t.at==="string")return {type,at:t.at};
   if(type==="sun"&&["sunrise","sunset"].includes(t.event))
-   return {type,event:t.event,offset:Number(t.offset?.minutes||0)};
+   return {type,event:t.event,offset:typeof t.offset==="string" && /^[+-]\d\d:\d\d:\d\d$/.test(t.offset)?
+     (t.offset[0]==="-"?-1:1)*(Number(t.offset.slice(1,3))*60+Number(t.offset.slice(4,6))):
+     t.offset===undefined?0:Number(t.offset?.minutes||0)};
   if(type==="state"&&typeof t.entity_id==="string")
    return {type,entity:t.entity_id,to:t.to??"",from:t.from??"",seconds:Number(t.for?.seconds||0)};
   if(type==="numeric_state"&&typeof t.entity_id==="string")
@@ -218,7 +224,12 @@
   d.alias=String(raw.alias||"");d.description=String(raw.description||"");d.mode=raw.mode||"single";
   const as=kind==="script"?raw.sequence:(raw.actions??raw.action);
   required(Array.isArray(as),"Aucune séquence d'actions reconnue");
-  d.actions=as.map(a=>fromAction(a));
+  if(kind==="script"){
+   let split=0;
+   while(split<as.length&&typeof as[split]?.condition==="string")split++;
+   d.conditions=as.slice(0,split).map(a=>fromCondition(a));
+   d.actions=as.slice(split).map(a=>fromAction(a));
+  }else d.actions=as.map(a=>fromAction(a));
   if(kind==="automation"){
    d.triggers=arr(raw.triggers??raw.trigger).map(fromTrigger);
    d.conditions=arr(raw.conditions??raw.condition).map(c=>fromCondition(c));
