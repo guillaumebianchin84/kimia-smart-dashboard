@@ -109,6 +109,80 @@ small{color:var(--secondary-text-color);line-height:1.5;display:block;margin-top
       box.append(make("small","Ces valeurs sont enregistrées dans KIMIA. Les cases au-dessus peuvent contenir des modifications non sauvegardées."));
       card.append(box);
     }
+    _renderCreation(card){
+      const form=make("form",undefined,"create");
+      form.append(make("h3","Nouveau compte Home Assistant"));
+      form.append(make("p","Compte standard (non administrateur). Vous pourrez choisir ses pièces après sa création."));
+      const fields=[
+        ["Nom affiché","name","text","Ex. Enfant"],
+        ["Identifiant","username","text","Ex. enfant"],
+        ["Mot de passe","password","password","Au moins 8 caractères"]
+      ];
+      const inputs={};
+      for(const [label,id,type,hint] of fields){
+        const l=make("label",label),field=make("input");
+        field.name=id;field.type=type;field.placeholder=hint;field.required=true;
+        if(id==="password"){field.minLength=8;field.autocomplete="new-password";}
+        else{field.autocomplete="off";}
+        inputs[id]=field;
+        form.append(l,field);
+      }
+      const confirm=make("button","Créer le compte standard");
+      confirm.type="submit";confirm.disabled=this._busy;
+      form.append(confirm);
+      form.addEventListener("submit",e=>{
+        e.preventDefault();
+        void this._createUser({
+          name:inputs.name.value.trim(),
+          username:inputs.username.value.trim().toLowerCase(),
+          password:inputs.password.value
+        });
+      });
+      card.append(form);
+    }
+    async _createUser({name,username,password}){
+      if(this._busy||!this._hass?.user?.is_admin)return;
+      if(!name||!username||password.length<8){
+        this._error="Nom, identifiant et mot de passe (8 caractères minimum) requis.";
+        this._render();return;
+      }
+      if(!/^[a-z0-9][a-z0-9_.-]{1,63}$/.test(username)){
+        this._error="Identifiant : lettres minuscules, chiffres, points, tirets et tirets bas uniquement.";
+        this._render();return;
+      }
+      if(this._users.some(u=>(u.username||"").toLowerCase()===username)){
+        this._error="Cet identifiant est déjà utilisé.";this._render();return;
+      }
+      this._busy=true;this._error="";this._notice="";
+      // La page ne conserve jamais le mot de passe. HA crée deux objets liés :
+      // 1. le compte standard, 2. son identifiant de connexion.
+      let createdUser;
+      try{
+        const result=await this._hass.callWS({
+          type:"config/auth/create",name,group_ids:["system-users"]
+        });
+        createdUser=result?.user;
+        if(!createdUser?.id)throw Error("Home Assistant n'a pas retourné de compte créé.");
+        await this._hass.callWS({
+          type:"config/auth_provider/homeassistant/create",
+          user_id:createdUser.id,username,password
+        });
+        this._userId=createdUser.id;this._creating=false;
+        this._notice="Compte créé. Choisissez les pièces visibles, puis enregistrez.";
+      }catch(e){
+        this._error=(createdUser?.id
+          ?"Compte créé dans HA, mais identifiants incomplets. Terminez la configuration dans Paramètres → Personnes → Utilisateurs. "
+          :"Création impossible. ")+(e?.message||String(e));
+      }finally{
+        password="";
+        const error=this._error,notice=this._notice;
+        this._busy=false;
+        await this._load();
+        this._error=error||this._error;
+        this._notice=notice;
+        this._render();
+      }
+    }
     _render(){
       const root=this.shadowRoot;
       const style=make("style",stylesheet);
@@ -138,6 +212,13 @@ small{color:var(--secondary-text-color);line-height:1.5;display:block;margin-top
       sel.disabled=this._busy;
       sel.addEventListener("change",()=>{this._setSelection(sel.value);this._render();});
       card.append(userLabel,sel);
+      const createBtn=make("button",this._creating?"Fermer la création":"+ Créer un utilisateur");
+      createBtn.disabled=this._busy;
+      createBtn.addEventListener("click",()=>{
+        this._creating=!this._creating;this._render();
+      });
+      card.append(createBtn);
+      if(this._creating)this._renderCreation(card);
       card.append(make("p","Cochez les pièces à afficher. Décochez celles à masquer pour ce compte."));
       const grid=make("div",undefined,"rooms");
       for(const area of this._areas){
