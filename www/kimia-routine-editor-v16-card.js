@@ -292,10 +292,6 @@
     box.append(n("p","Si le capteur ne change pas d'état dans ce délai, la routine s'arrête.","muted"));
    }else if(step.type==="condition"){
     const sub=n("div",undefined,"nested");box.append(sub);
-    this._section(sub,[step.condition],"condition","Condition à vérifier",depth+1);
-    // La section ci-dessus a sa propre liste : synchroniser l'objet au changement.
-    // La version dédiée ci-dessous remplace ce conteneur pour ne jamais perdre les modifications.
-    sub.replaceChildren();
     const select=this._choice("Type de condition",step.condition.type,COND_TYPES,v=>{
      step.condition=H().condition(v);this._render();
     });
