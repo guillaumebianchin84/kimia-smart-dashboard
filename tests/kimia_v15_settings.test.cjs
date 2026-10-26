@@ -61,10 +61,12 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
  assert(!cards("parametres").some(c=>c.type==="custom:kimia-header-toggle-v1-card"));
  const header=cards("reglages-affichage").find(c=>c.type==="custom:kimia-header-toggle-v1-card");
  assert.deepEqual(header,oldHeaderSection.cards[1]);
- const theme=cards("reglages-apparence").find(c=>c.type==="button"&&c.name==="Terracotta");
- assert.deepEqual(theme,oldThemes.cards[2]);
- assert(cards("reglages-apparence").some(c=>c.type==="entities"&&
-  c.title==="Mon ambiance actuelle"));
+ assert.equal(cards("reglages-apparence").filter(c=>c.type==="custom:kimia-local-theme-v16-card").length,1,
+  "local KIMIA theme selector installed once");
+ assert(!cards("reglages-apparence").some(c=>c.tap_action?.perform_action==="input_select.select_option"),
+  "legacy global theme buttons removed");
+ assert(!cards("reglages-apparence").some(c=>c.type==="entities"&&
+  c.title==="Mon ambiance actuelle"),"global theme helper no longer exposed");
  assert(!cards("parametres").some(c=>c.name==="Terracotta"));
  assert(cards("reglages-localisation").some(c=>c.type==="shortcut"&&
    c.tap_action?.navigation_path==="/config/zone"),"Lien natif de création des zones");
@@ -75,10 +77,10 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
  await window.KimiaSmartCore.sync(hass);
  assert.equal(writes,was,"no duplicate views, cards or writes on second pass");
  // Une page personnalisée ne doit jamais être supprimée ou reconstruite.
- const edited=cards("reglages-apparence").find(c=>c.type==="button");
- edited.color="pink";
+ const edited=cards("reglages-apparence").find(c=>c.type==="heading"&&c.heading==="Mes thèmes");
+ edited.icon="mdi:palette-swatch";
  await window.KimiaSmartCore.sync(hass);
  assert.equal(writes,was);
- assert.equal(cards("reglages-apparence").find(c=>c.type==="button").color,"pink");
- console.log("KIMIA V1.5 Settings OK : portail, 5 sous-vues, navbar, thèmes, bandeau HA, modifications protégées.");
+ assert.equal(cards("reglages-apparence").find(c=>c.heading==="Mes thèmes").icon,"mdi:palette-swatch");
+ console.log("KIMIA Settings OK : 5 sous-vues, thèmes locaux sans action globale, bandeau et personnalisations préservés.");
 })().catch(e=>{console.error(e);process.exitCode=1;});
