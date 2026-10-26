@@ -47,10 +47,31 @@ async function run(){
  const written=writes;
  await window.KimiaSmartCore.sync(hass);
  assert.equal(writes,written,"idempotence obligatoire");
- map.entities=["zone.home","person.parent"];
- todo.entity="todo.autre_liste";
+
+ // Une carte V1.4 déjà créée avec rows:auto est corrigée à la prochaine synchro.
+ const legacyMap=cards("carte").find(c=>c.type==="map");
+ legacyMap.grid_options.rows="auto";
+ delete legacyMap.auto_fit;
+ delete legacyMap.default_zoom;
+ const previous=writes;
+ const fixed=await window.KimiaSmartCore.sync(hass);
+ assert.equal(fixed.modified,1,"migration de la carte standard uniquement");
+ assert.equal(writes,previous+1);
+ assert.equal(cards("carte").find(c=>c.type==="map").grid_options.rows,6);
+ assert.equal(cards("carte").find(c=>c.type==="map").auto_fit,true);
+ const afterMigration=writes;
  await window.KimiaSmartCore.sync(hass);
- assert.equal(writes,written,"ne jamais écraser un choix natif modifié manuellement");
+ assert.equal(writes,afterMigration,"migration répétée sans effet");
+
+ // Une carte modifiée manuellement reste sous contrôle de l'utilisateur.
+ const customMap=cards("carte").find(c=>c.type==="map");
+ customMap.grid_options.rows=4;
+ customMap.entities=["zone.home","person.parent"];
+ const ownTodo=cards("listes").find(c=>c.type==="todo-list");
+ ownTodo.entity="todo.autre_liste";
+ await window.KimiaSmartCore.sync(hass);
+ assert.equal(writes,afterMigration,"ne pas écraser une carte native personnalisée");
+ assert.equal(cards("carte").find(c=>c.type==="map").grid_options.rows,4);
  assert.deepEqual(Array.from(cards("carte").find(c=>c.type==="map").entities),["zone.home","person.parent"]);
  assert.equal(cards("listes").find(c=>c.type==="todo-list").entity,"todo.autre_liste");
  await assert.rejects(window.KimiaSmartCore.sync({...hass,user:{is_admin:false}}),/administrateurs/);
