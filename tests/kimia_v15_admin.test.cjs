@@ -42,8 +42,10 @@ const hass={user:{is_admin:true},states:{},callWS:async q=>{
 const cards=path=>a.views.find(v=>v.path===path).sections.flatMap(s=>s.cards||[]);
 (async()=>{
  const first=await window.KimiaSmartCore.sync(hass);
- assert.equal(first.adminAdded,5,"paramètres V1.4 plus gestion des utilisateurs");
+ assert.equal(first.adminAdded,6,"réglages V1.4, bouton Pièces et module utilisateurs");
  assert.equal(adminWrites,1,"une seule sauvegarde admin");
+ assert.equal(cards("apparence").filter(c=>c.type==="tile"&&
+  c.entity==="input_boolean.kimia_onglet_pieces").length,1);
  assert.equal(cards("apparence").filter(c=>c.type==="tile"&&
   c.entity==="input_boolean.kimia_onglet_carte").length,1);
  assert.equal(cards("apparence").filter(c=>c.type==="tile"&&
