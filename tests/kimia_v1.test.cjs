@@ -81,6 +81,43 @@ async function main(){
   "Une tuile générée sans pièce doit disparaître");
  assert.equal((await window.KimiaSmartCore.sync(hass)).added,0,"Pas de doublons après désaffectation");
  assert.equal((await window.KimiaSmartCore.sync(hass)).removed,0,"Pas de suppressions répétées");
- console.log("Tests KIMIA v1 : OK - ajout, répartition, non-écrasement, idempotence et accès admin, retrait sécurisé et respect des personnalisations");
+ // Suppression d'une pièce : aucune carte d'origine "Pièce non trouvée" ne doit rester.
+ // Le nettoyage respecte les éléments personnalisés d'une section.
+ rooms.splice(rooms.findIndex(a=>a.area_id==="cuisine"),1);
+ const pruneCuisine=await window.KimiaSmartCore.sync(hass);
+ assert(pruneCuisine.removed>=3,"La suppression d'une pièce doit nettoyer ses cartes");
+ const homeAfter=config.views.find(v=>v.path==="accueil");
+ assert(!homeAfter.sections.flatMap(s=>s.cards).some(c=>c.type==="area"&&c.area==="cuisine"),
+   "Carte Accueil orpheline après suppression de Cuisine");
+ for(const p of ["pieces","climatisation","volets"]) {
+   assert(!config.views.find(v=>v.path===p).sections
+     .flatMap(s=>s.cards).some(c=>c.type==="area"&&c.area==="cuisine"),
+     "La carte Cuisine obsolète doit disparaître de "+p);
+ }
+ // Rejouer sans rien changer ne modifie plus le dashboard.
+ const savesAfterCuisine=saveCount;
+ const idempotent=await window.KimiaSmartCore.sync(hass);
+ assert.equal(idempotent.removed,0,"Une suppression ne doit pas se répéter");
+ assert.equal(saveCount,savesAfterCuisine,"Aucune écriture lors d'une synchro sans changement");
+
+ rooms.splice(rooms.findIndex(a=>a.area_id==="salon"),1);
+ const pruneSalon=await window.KimiaSmartCore.sync(hass);
+ assert(pruneSalon.removed>=1);
+ const afterCustomizedRoom=config.views.find(v=>v.path==="pieces").sections
+   .find(s=>s.cards.some(c=>c.type==="tile"&&
+     c.entity==="light.lampe"&&c.name==="Lampe personnalisée par l'habitant"));
+ assert(afterCustomizedRoom,"La section personnalisée doit être conservée");
+ assert(!afterCustomizedRoom.cards.some(c=>c.type==="area"&&c.area==="salon"),
+   "La carte Pièce standard obsolète doit disparaître même si la section est conservée");
+ assert(!config.views.find(v=>v.path==="accueil").sections.flatMap(s=>s.cards)
+   .some(c=>c.type==="area"&&c.area==="salon"),
+   "L'Accueil ne doit pas afficher la pièce supprimée");
+ const allPaths=["accueil","pieces","lumieres","volets","climatisation","prises","musique","securite"];
+ for(const p of allPaths) {
+   assert(!config.views.find(v=>v.path===p).sections
+     .flatMap(s=>s.cards).some(c=>c.type==="area"&&["salon","cuisine"].includes(c.area)),
+     "Pièce fantôme dans "+p);
+ }
+ console.log("Tests KIMIA v1 : OK - ajout, répartition, non-écrasement, idempotence et accès admin, retrait sécurisé et respect des personnalisations et retrait des pièces supprimées");
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});
