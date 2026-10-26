@@ -63,7 +63,7 @@ const defaultOp=(dom,preset,ops)=>{
 class Studio extends HTMLElement{
  constructor(){
   super();this.attachShadow({mode:"open"});this._hass=null;this._page="library";this._tab="all";this._q="";this._filter="all";
-  this._step=0;this._preset="blank-script";this._draft=null;this._selected=new Set();
+  this._step=0;this._preset="blank-script";this._draft=null;this._editing=null;this._selected=new Set();
   this._reg={areas:[],entities:[],devices:[]};this._loaded=false;this._area="*";this._query="";
   this._busy=false;this._notice="";this._error=false;this._advanced=null;
   this.shadowRoot.addEventListener("click",ev=>this._click(ev));
@@ -152,17 +152,17 @@ class Studio extends HTMLElement{
     this._B(this._I("mdi:pencil-outline")+" Modifier","edit","small",'data-id="'+e(r.id)+'"')+'</div></div>';
   }).join("");
  }
- _new(){this._page="wizard";this._step=0;this._notice="";this._draft=null;this._draw();}
+ _new(){this._page="wizard";this._step=0;this._notice="";this._draft=null;this._editing=null;this._draw();}
  _presetStart(key){
   const p=PRESETS.find(x=>x[0]===key)||PRESETS[0];
-  this._preset=key;this._draft=H().create(p[1]);this._draft.alias=p[2].includes(" libre")?"":p[2];
+  this._preset=key;this._editing=null;this._draft=H().create(p[1]);this._draft.alias=p[2].includes(" libre")?"":p[2];
   if(p[1]==="automation")this._draft.triggers=[H().trigger(key==="evening"?"sun":key==="energy"?"numeric_state":"time")];
   this._selected=new Set();this._area="*";this._query="";this._step=1;this._notice="";this._draw();
  }
  _wizard(){
   const labels=["Objectif","Équipements","Actions","Conditions","Validation"];
   const main=this._step===0?this._choose():this._step===1?this._equipmentStep():this._step===2?this._actionsStep():this._step===3?this._conditionsStep():this._review();
-  return '<div class="main"><div class="wizard-top"><h2>Nouvelle routine</h2>'+this._B("Fermer","home","small")+'</div>'+
+  return '<div class="main"><div class="wizard-top"><h2>'+(this._editing?"Modifier la routine":"Nouvelle routine")+'</h2>'+this._B("Fermer","home","small")+'</div>'+
    '<div class="progress">'+labels.map((_,i)=>'<i class="'+(i<=this._step?"done":"")+'"></i>').join("")+'</div>'+
    '<div class="step-label">ÉTAPE '+(this._step+1)+' / 5 · '+labels[this._step].toUpperCase()+'</div>'+
    this._notification()+main+
@@ -199,14 +199,22 @@ class Studio extends HTMLElement{
    '<small>'+e(x.room)+' · '+e(DOMAINS[x.domain]||x.domain)+'</small></span></label>').join("");
  }
  _syncActions(){
-  const existing=new Map(this._draft.actions.filter(x=>x.type==="call").map(x=>[x.entity,x]));
-  const extras=this._draft.actions.filter(x=>x.type!=="call"),ops=H().OPERATIONS;
-  this._draft.actions=[...this._selected].map(id=>{
-   if(existing.has(id))return existing.get(id);
+  // Impératif pour l'édition : conserver l'ordre des commandes et pauses.
+  // Ne jamais déplacer une attente au bout de la séquence !
+  const ops=H().OPERATIONS,known=new Set(),next=[];
+  for(const action of this._draft.actions){
+   if(action.type!=="call"){next.push(action);continue;}
+   if(this._selected.has(action.entity)&&!known.has(action.entity)){
+    next.push(action);known.add(action.entity);
+   }
+  }
+  for(const id of this._selected){
+   if(known.has(id))continue;
    const x=H().action("call");x.entity=id;x.operation=defaultOp(id.split(".")[0],this._preset,ops);
    x.value=x.operation==="set_temperature"?"20":x.operation==="set_cover_position"?"50":x.operation==="volume_set"?"0.5":"";
-   return x;
-  }).concat(extras);
+   next.push(x);
+  }
+  this._draft.actions=next;
  }
  _entityOptions(current){
   return '<option value="">Choisir un appareil</option>'+
@@ -363,10 +371,38 @@ class Studio extends HTMLElement{
   }
   this._step=Math.min(this._step+1,4);this._notice="";this._draw();
  }
- _edit(id){
-  const r=this._all().find(x=>x.id===id);if(!r)return;
-  if(!r.own){window.location.assign("/config/"+r.kind+"/edit/"+encodeURIComponent(r.configId));return;}
-  this._page="advanced";this._notice="Retrouve « "+r.name+" » dans l’atelier avancé. L’éditeur HA reste disponible pour les fonctions spécifiques.";this._draw();
+ async _edit(id){
+  const record=this._all().find(x=>x.id===id);if(!record)return;
+  const native="/config/"+record.kind+"/edit/"+encodeURIComponent(record.configId);
+  // Les automations créées hors de KIMIA ont un modèle inconnu : laisser HA gérer.
+  if(!record.own){window.location.assign(native);return;}
+  const url="config/"+record.kind+"/config/"+encodeURIComponent(record.configId);
+  this._busy=true;
+  try{
+   const raw=await this._hass.callApi("GET",url);
+   const draft=H().deserialize(raw,record.kind);
+   const common=["call","delay","wait_state"];
+   const conditions=["state","numeric_state","time","sun"];
+   const actions=draft.actions||[],targets=actions.filter(x=>x.type==="call").map(x=>x.entity);
+   // Les actions répétées sur la même entité et les branches complexes
+   // requièrent l'atelier avancé : sinon la sélection par cases les écraserait.
+   if(actions.some(x=>!common.includes(x.type))||
+     draft.conditions.some(x=>!conditions.includes(x.type))||
+     draft.triggers.some(x=>!["state","numeric_state","time","sun"].includes(x.type))||
+     targets.length!==new Set(targets).size||
+     targets.some(entity=>!this._devices().some(d=>d.id===entity))){
+    this._page="advanced";
+    this._notice="Routine avancée : garde son éditeur complet pour éviter toute perte de commandes ou d'ordre.";
+    return;
+   }
+   this._editing={kind:record.kind,id:record.configId,baseline:clone(raw)};
+   this._draft=draft;this._selected=new Set(targets);this._preset="blank-script";
+   this._step=1;this._area="*";this._query="";this._page="wizard";
+   this._notice="Routine chargée sans modification. Tu peux la personnaliser avant d'enregistrer.";
+  }catch(err){
+   this._page="advanced";
+   this._notice="Édition guidée indisponible : "+(err?.message||err)+". Utilise l’atelier avancé ou l’éditeur HA.";
+  }finally{this._busy=false;this._draw();}
  }
  async _run(id){
   const r=this._all().find(x=>x.id===id);if(!r||r.kind!=="script")return;
@@ -387,18 +423,25 @@ class Studio extends HTMLElement{
  async _save(){
   if(!this._admin()||this._busy||!this._draft)return;
   const d=clone(this._draft);
-  const id=(d.kind==="script"?"ks_":"kimia_")+H().slug(d.alias)+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,6);
+  const editing=this._editing;
+  const id=editing?.id||(d.kind==="script"?"ks_":"kimia_")+H().slug(d.alias)+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,6);
   let payload;
   try{payload=H().serialize(d,id);}catch(err){return this._msg("Configuration incomplète : "+(err?.message||err),true);}
   const url="config/"+d.kind+"/config/"+encodeURIComponent(id);
   this._busy=true;this._notice="";this._draw();
   try{
-   let exists=null;
-   try{exists=await this._hass.callApi("GET",url);}catch(err){if(!missing(err))throw err;}
-   if(exists)throw Error("Identifiant existant : aucune modification effectuée.");
+   if(editing){
+    const latest=await this._hass.callApi("GET",url);
+    if(JSON.stringify(latest)!==JSON.stringify(editing.baseline))
+     throw Error("Cette routine a été modifiée ailleurs. Recharge-la avant d'enregistrer.");
+   }else{
+    let exists=null;
+    try{exists=await this._hass.callApi("GET",url);}catch(err){if(!missing(err))throw err;}
+    if(exists)throw Error("Identifiant existant : aucune modification effectuée.");
+   }
    await this._hass.callApi("POST",url,payload);
-   this._page="library";this._tab=d.kind;
-   this._notice="« "+d.alias+" » enregistrée dans Home Assistant sans aucune exécution. Elle apparaîtra dès que HA publiera son entité.";
+   this._page="library";this._tab=d.kind;this._editing=null;
+   this._notice="« "+d.alias+" » "+(editing?"mise à jour":"créée")+" dans Home Assistant sans exécution.";
    this._error=false;
   }catch(err){this._notice="Enregistrement impossible : "+(err?.message||err);this._error=true;}
   finally{this._busy=false;this._draw();}
