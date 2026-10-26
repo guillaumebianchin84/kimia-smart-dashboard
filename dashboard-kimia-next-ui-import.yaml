@@ -452,6 +452,11 @@ views:
               - url: /kimia-next/accueil
                 icon: mdi:home
                 label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state !== "on"; ]]]
               - url: /kimia-next/lumieres
                 icon: mdi:lightbulb-on
                 label: Lumières
@@ -587,6 +592,11 @@ views:
               - url: /kimia-next/accueil
                 icon: mdi:home
                 label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state !== "on"; ]]]
               - url: /kimia-next/lumieres
                 icon: mdi:lightbulb-on
                 label: Lumières
@@ -722,6 +732,11 @@ views:
               - url: /kimia-next/accueil
                 icon: mdi:home
                 label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state !== "on"; ]]]
               - url: /kimia-next/lumieres
                 icon: mdi:lightbulb-on
                 label: Lumières
@@ -857,6 +872,11 @@ views:
               - url: /kimia-next/accueil
                 icon: mdi:home
                 label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state !== "on"; ]]]
               - url: /kimia-next/lumieres
                 icon: mdi:lightbulb-on
                 label: Lumières
@@ -992,6 +1012,11 @@ views:
               - url: /kimia-next/accueil
                 icon: mdi:home
                 label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state !== "on"; ]]]
               - url: /kimia-next/lumieres
                 icon: mdi:lightbulb-on
                 label: Lumières
@@ -1127,6 +1152,11 @@ views:
               - url: /kimia-next/accueil
                 icon: mdi:home
                 label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state !== "on"; ]]]
               - url: /kimia-next/lumieres
                 icon: mdi:lightbulb-on
                 label: Lumières
@@ -1262,6 +1292,11 @@ views:
               - url: /kimia-next/accueil
                 icon: mdi:home
                 label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state !== "on"; ]]]
               - url: /kimia-next/lumieres
                 icon: mdi:lightbulb-on
                 label: Lumières
@@ -1446,6 +1481,11 @@ views:
               - url: /kimia-next/accueil
                 icon: mdi:home
                 label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state !== "on"; ]]]
               - url: /kimia-next/lumieres
                 icon: mdi:lightbulb-on
                 label: Lumières
@@ -1713,6 +1753,11 @@ views:
               - url: /kimia-next/accueil
                 icon: mdi:home
                 label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state !== "on"; ]]]
               - url: /kimia-next/lumieres
                 icon: mdi:lightbulb-on
                 label: Lumières
@@ -1848,6 +1893,11 @@ views:
               - url: /kimia-next/accueil
                 icon: mdi:home
                 label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state !== "on"; ]]]
               - url: /kimia-next/lumieres
                 icon: mdi:lightbulb-on
                 label: Lumières
@@ -1998,6 +2048,11 @@ views:
               - url: /kimia-next/accueil
                 icon: mdi:home
                 label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state !== "on"; ]]]
               - url: /kimia-next/lumieres
                 icon: mdi:lightbulb-on
                 label: Lumières
@@ -2144,6 +2199,11 @@ views:
               - url: /kimia-next/accueil
                 icon: mdi:home
                 label: Accueil
+              - url: /kimia-next/pieces
+                icon: mdi:floor-plan
+                label: Pièces
+                hidden: >
+                  [[[ return states["input_boolean.kimia_onglet_pieces"]?.state !== "on"; ]]]
               - url: /kimia-next/lumieres
                 icon: mdi:lightbulb-on
                 label: Lumières
