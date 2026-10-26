@@ -45,8 +45,14 @@
     getCardSize(){return 3;}
     _render(){
       if(!this._hass)return;
-      // Les administrateurs aussi doivent pouvoir revenir au bandeau KIMIA :
-      // le masquage est une préférence locale, pas une restriction de droits.
+      // L'administrateur garde en permanence le bandeau et les onglets HA.
+      // Le réglage Kiosk appartient uniquement aux comptes non-admin.
+      if(this._hass.user?.is_admin){
+        this._description.textContent="Compte administrateur : le bandeau et le menu Home Assistant restent visibles.";
+        this._button.classList.add("hidden");
+        this._status.textContent="Le mode KIMIA plein écran concerne uniquement les comptes utilisateurs.";
+        return;
+      }
       this._button.classList.remove("hidden");
       const visible=readVisible(this._hass.user?.name);
       this._description.textContent=visible?
@@ -57,7 +63,7 @@
       this._status.textContent="Ce choix est personnel à ce téléphone et à ce compte.";
     }
     _toggle(){
-      if(!this._hass)return;
+      if(!this._hass||this._hass.user?.is_admin)return;
       const userName=this._hass.user?.name;
       const next=!readVisible(userName);
       try{
