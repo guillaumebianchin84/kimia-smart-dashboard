@@ -53,3 +53,9 @@ Aucune écriture dans la VM 210 par les commits GitHub. N'installer la V1.5 qu'a
 - **Restrictions réelles par pièce** : éventualité future, distincte du masquage visuel. Ne pas implémenter maintenant.
 - Le premier prototype admin crée une nouvelle vue Utilisateurs avec cases à cocher, et place la configuration dans le YAML interne du dashboard admin (mode storage). Cela ne signifie pas que ces préférences sont privées ni qu'un utilisateur ne peut pas les retrouver via d'autres accès Home Assistant. Elles sont associées aux IDs HA, et non au téléphone.
 - Pour tester : ajouter la ressource `/local/kimia-user-visibility-v15-card.js?v=150` après avoir copié le fichier JS et son moteur V1.5. Préparer une sauvegarde, vérifier le rôle admin et tester deux comptes. Ne pas installer ce prototype avant validation GitHub et sans une étape explicite avec l'utilisateur.
+
+## Refonte Paramètres V1.5 — développement sur GitHub
+La partie portail de configuration client est codée dans KimiaSmartCore.sync. Pour sa description et les limites, voir docs/KIMIA_V15_PARAMETRES_PORTAIL_20261026.md.
+Elle crée cinq sous-vues avec bandeau KIMIA et navbar, raccourcis Retour, déplace sans altération les sections de thèmes et d'affichage du bandeau HA, et préserve les sections personnalisées.
+L'onglet Zones et carte donne accès à la carte actuelle, à son réglage admin et à l'éditeur de zones natif Home Assistant. Un éditeur de zones entièrement KIMIA et trois listes To-do simultanées restent à développer.
+Les tests de régression spécifiques sont dans tests/kimia_v15_settings.test.cjs. Aucune mise à jour n'est installée sur la VM210.
