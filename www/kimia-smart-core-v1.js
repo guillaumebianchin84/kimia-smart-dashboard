@@ -189,8 +189,9 @@
   const initialV14Card = (path, hass) => {
     if(path === "carte") return {
       type: "map", entities: ["zone.home"], show_all: false,
+      auto_fit: true, default_zoom: 12,
       hours_to_show: 0, aspect_ratio: "16:9",
-      grid_options: { columns: 12, rows: "auto" }
+      grid_options: { columns: 12, rows: 6 }
     };
     const todo=Object.keys(hass.states||{}).filter(k=>k.startsWith("todo.")).sort()[0];
     return todo ? {type:"todo-list",entity:todo,title:"Mes listes",
