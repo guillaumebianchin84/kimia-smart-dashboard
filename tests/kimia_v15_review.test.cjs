@@ -72,8 +72,8 @@ async function test(){
  service._newName="Courses 2026";
  await service._createTodo();
  assert.equal(calls.length,2);
- assert.deepEqual(calls[0].data,{handler:"local_todo"});
- assert.deepEqual(calls[1].data,{todo_list_name:"Courses 2026"});
+ assert.deepEqual(clone(calls[0].data),{handler:"local_todo"});
+ assert.deepEqual(clone(calls[1].data),{todo_list_name:"Courses 2026"});
  assert.equal(service._newName,"");
 
  // HA user creation: non-admin standard group; password never sent to UI config.
@@ -90,7 +90,7 @@ async function test(){
   }},_render(){},async _load(){}});
  await u._createUser({name:"Enfant",username:"enfant",password:"motdepasse-test"});
  assert.equal(wscalls.length,2);
- assert.deepEqual(wscalls[0].group_ids,["system-users"]);
+ assert.deepEqual(Array.from(wscalls[0].group_ids),["system-users"]);
  assert.equal(wscalls[1].user_id,"child-1");
  assert.equal(u._userId,"child-1");
  assert(!JSON.stringify(current).includes("motdepasse-test"));
