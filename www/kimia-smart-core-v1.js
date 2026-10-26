@@ -471,9 +471,12 @@
       settingsHeading("Carte géographique"),
       settingsShortcut("Ouvrir ma carte","Zones et positions sélectionnées",
         "mdi:map-marker-radius-outline","/kimia-next/carte","cyan"),
-      settingsShortcut("Configurer la carte","Réglages administrateur",
+      settingsShortcut("Configurer la carte","Choisir les positions affichées",
         "mdi:map-cog-outline","/kimia-admin-next/apparence","teal"),
-      settingsHelp("La création et la modification des zones géographiques depuis KIMIA feront l'objet d'un module dédié. Les zones Home Assistant actuelles sont conservées.")
+      settingsShortcut("Créer ou modifier une zone",
+        "Gestion native Home Assistant · admin",
+        "mdi:map-marker-plus","/config/zone","cyan"),
+      settingsHelp("Les zones Home Assistant restent la référence. La création intégrée à KIMIA avec choix sur la carte fera l'objet d'un module dédié.")
     );
     if(spec.path==="reglages-listes")add(
       settingsHeading("Mes listes"),
