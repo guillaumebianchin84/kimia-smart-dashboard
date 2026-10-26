@@ -9,6 +9,8 @@ if(customElements.get(TAG))return;
 const H=()=>window.KimiaRoutineEngineV16;
 const e=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const clone=v=>JSON.parse(JSON.stringify(v));
+const canon=v=>JSON.stringify(v,(_,x)=>x&&typeof x==='object'&&!Array.isArray(x)?
+ Object.fromEntries(Object.entries(x).sort(([a],[b])=>a.localeCompare(b))):x);
 const DOMAINS={light:"Lumières",switch:"Prises",input_boolean:"Options",cover:"Volets",climate:"Chauffage / clim",fan:"Ventilation",media_player:"Musique",scene:"Scènes",script:"Scénarios"};
 const ICONS={light:"mdi:lightbulb-outline",switch:"mdi:power-socket-eu",input_boolean:"mdi:toggle-switch-outline",cover:"mdi:window-shutter",climate:"mdi:thermostat",fan:"mdi:fan",media_player:"mdi:music",scene:"mdi:palette-outline",script:"mdi:play-box-multiple-outline",automation:"mdi:robot-outline"};
 const PRESETS=[
@@ -381,6 +383,12 @@ class Studio extends HTMLElement{
   try{
    const raw=await this._hass.callApi("GET",url);
    const draft=H().deserialize(raw,record.kind);
+   // Ne jamais ouvrir un éditeur guidé qui modifierait silencieusement
+   // des champs HA non maîtrisés (icône, options supplémentaires, etc.).
+   // Pour ces routines, utiliser l'éditeur natif ou l'atelier avancé.
+   if(canon(H().serialize(draft,record.configId))!==canon(raw)){
+    window.location.assign(native);return;
+   }
    const common=["call","delay","wait_state"];
    const conditions=["state","numeric_state","time","sun"];
    const actions=draft.actions||[],targets=actions.filter(x=>x.type==="call").map(x=>x.entity);
