@@ -16,6 +16,7 @@ Nouvelle carte Lovelace `custom:kimia-studio-v2-admin-card` **autonome**. Aucun 
 - Commandes prises en charge par le moteur V1.6 : lumière, prise, volet, clim, multimédia, scène, scripts ; délais, attentes ; triggers heure, soleil, état et seuil ; conditions état, seuil, heure, soleil.
 - Enregistrement de véritables scripts et automations HA via les API de configuration HA ; pas d'exécution pendant création.
 - L'éditeur avancé V1.6 existant est accessible depuis le Studio ; pour les fonctions non représentables, HA natif.
+- Édition guidée des routines KIMIA simples existantes **uniquement si** un aller-retour de configuration exact est possible ; ordre des actions et pauses conservé, protection contre les modifications concurrentes. Routines atypiques / options ignorées : éditeur natif, sans risque d'écrasement.
 
 ### Ce qui reste à développer AVANT produit client
 Ce premier lot **ne prétend pas couvrir toutes les fonctions avancées en interface V2**. Le moteur V1.6 avancé garde plusieurs limites : templates Jinja, blueprints, variables, choose multiples, cibles multi-zones, MQTT/webhooks et certains services spécifiques aux intégrations. Le cahier des charges exhaustif est dans `docs/KIMIA_STUDIO_V2_SPEC_FONCTIONNELLE_20261026.md`. À terme : catalogue par pièces/étiquettes, groupe ET/OU/NON en V2, blocs natifs sans perte, traces HA intégrées, previews/annulations et permissions serveur.
