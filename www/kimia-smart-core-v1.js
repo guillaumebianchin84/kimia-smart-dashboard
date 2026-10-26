@@ -230,7 +230,7 @@
           }
         }
         if (added === 0 && removed === 0) {
-          const result = { state: "ok", added: 0,
+          const result = { state: "ok", added: 0, removed: 0,
             message: "Votre maison est déjà à jour. Rien à modifier." };
           notify(result);
           return result;
