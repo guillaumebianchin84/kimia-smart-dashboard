@@ -23,6 +23,8 @@ const custom={type:"markdown",content:"Carte PERSONNALISÉE — à ne pas dépla
 let cfg={views:paths.map(path=>({path,title:path,max_columns:2,type:"sections",
  sections:[{type:"grid",column_span:2,cards:[clone(oldBrand)]},
  {type:"grid",cards:[{type:"custom:navbar-card",routes:clone(oldNav.routes),desktop:clone(oldNav.desktop)}]}]}))};
+// Le dashboard vivant possède l'ancien Kiosk Mode limité aux non-admin.
+cfg.kiosk_mode={non_admin_settings:{kiosk:'[[[ window.localStorage.getItem("kimia_bandeau_ha_" + user_name) !== "visible" ]]]'}};
 const params=cfg.views.find(v=>v.path==="parametres");
 params.sections.splice(1,0,clone(oldHeaderSection),clone(oldThemes),{type:"grid",cards:[clone(custom)]});
 let writes=0;
@@ -42,6 +44,10 @@ const get=path=>cfg.views.find(v=>v.path===path);
 const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
 (async()=>{
  await window.KimiaSmartCore.sync(hass);
+ assert.equal(typeof cfg.kiosk_mode.kiosk,"string","Kiosk Mode partagé selon choix local");
+ assert(cfg.kiosk_mode.kiosk.includes("return window.localStorage.getItem"),
+  "Kiosk Mode doit renvoyer un booléen explicite");
+ assert(!cfg.kiosk_mode.non_admin_settings,"Ancien bloc non-admin supprimé");
  const pages=["reglages-utilisateurs","reglages-affichage","reglages-localisation",
   "reglages-listes","reglages-apparence"];
  assert.equal(cfg.views.length,17);
