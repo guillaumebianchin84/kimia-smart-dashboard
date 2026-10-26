@@ -51,7 +51,7 @@ const cards=path=>a.views.find(v=>v.path===path).sections.flatMap(s=>s.cards||[]
  assert.equal(cards("apparence").filter(c=>c.type==="tile"&&
   c.entity==="input_boolean.kimia_onglet_listes").length,1);
  assert.equal(cards("apparence").filter(c=>c.type==="custom:kimia-services-v14-card").length,1);
- assert.equal(cards("scenarios").filter(c=>c.type==="custom:kimia-script-builder-v14-card").length,1);
+ assert.equal(cards("scenarios").filter(c=>c.type==="custom:kimia-routine-editor-v16-card").length,1);
  assert.equal(a.views.filter(v=>v.path==="utilisateurs").length,1);
  assert.equal(a.views.find(v=>v.path==="utilisateurs").sections.flatMap(s=>s.cards||[])
   .filter(c=>c.type==="custom:kimia-user-visibility-v15-card").length,1);
