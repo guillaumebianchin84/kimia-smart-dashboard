@@ -8,6 +8,7 @@ on:
       - feat/kimia-bandeau-marque-20261026
       - feat/kimia-refonte-client-20261026
       - feat/kimia-v14-carte-listes-scenarios-20261026
+      - feat/kimia-v15-profils-utilisateurs-20261026
   workflow_dispatch:
 jobs:
   check:
@@ -33,6 +34,7 @@ jobs:
           node --check www/kimia-script-builder-v14-card.js
           node tests/kimia_v1.test.cjs
           node tests/kimia_v14.test.cjs
+          node tests/kimia_v15_admin.test.cjs
           node tests/kimia_inventory_v1.test.cjs
           node tests/kimia_header_toggle_v1.test.cjs
       - name: Verification YAML
