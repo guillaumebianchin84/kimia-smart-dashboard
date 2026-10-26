@@ -4,6 +4,7 @@ on:
     branches:
       - feat/kimia-produit-v1-20261025
       - feat/kimia-inventaire-v1-20261026
+      - feat/kimia-bandeau-client-20261026
   workflow_dispatch:
 jobs:
   check:
@@ -24,8 +25,10 @@ jobs:
           node --check www/kimia-zigbee-manager-v1-card.js
           node --check www/kimia-scenarios-v1-card.js
           node --check www/kimia-inventory-v1-card.js
+          node --check www/kimia-header-toggle-v1-card.js
           node tests/kimia_v1.test.cjs
           node tests/kimia_inventory_v1.test.cjs
+          node tests/kimia_header_toggle_v1.test.cjs
       - name: Verification YAML
         run: |
           pip install PyYAML
@@ -50,4 +53,13 @@ jobs:
             www/kimia-room-manager-v1-card.js
             www/kimia-inventory-v1-card.js
             kimia-admin-next-ui-import.yaml
+          retention-days: 30
+
+      - name: Préparer la mise à jour du bandeau client KIMIA
+        uses: actions/upload-artifact@v4
+        with:
+          name: KIMIA-Controle-Bandeau-Client
+          path: |
+            www/kimia-header-toggle-v1-card.js
+            dashboard-kimia-next-ui-import.yaml
           retention-days: 30
