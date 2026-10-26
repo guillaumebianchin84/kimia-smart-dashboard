@@ -289,7 +289,7 @@ views:
       - type: grid
         column_span: 2
         cards:
-          - type: custom:kimia-script-builder-v14-card
+          - type: custom:kimia-routine-editor-v16-card
             grid_options:
               columns: full
               rows: auto
