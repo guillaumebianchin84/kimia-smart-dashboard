@@ -37,6 +37,7 @@ jobs:
           node tests/kimia_v14.test.cjs
           node tests/kimia_v15_admin.test.cjs
           node tests/kimia_v15_profiles.test.cjs
+          node tests/kimia_v15_settings.test.cjs
           node tests/kimia_inventory_v1.test.cjs
           node tests/kimia_header_toggle_v1.test.cjs
       - name: Verification YAML
