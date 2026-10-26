@@ -151,6 +151,11 @@
  const arr=v=>Array.isArray(v)?v:v?[v]:[];
  function fromTrigger(t){
   const type=t.trigger||t.platform;
+  const allowed={time:["trigger","platform","at"],sun:["trigger","platform","event","offset"],
+   state:["trigger","platform","entity_id","from","to","for"],
+   numeric_state:["trigger","platform","entity_id","above","below"]}[type];
+  required(allowed && Object.keys(t).every(key=>allowed.includes(key)),
+    "Déclencheur existant trop avancé : ouvrez-le dans Home Assistant.");
   if(type==="time"&&typeof t.at==="string")return {type,at:t.at};
   if(type==="sun"&&["sunrise","sunset"].includes(t.event))
    return {type,event:t.event,offset:typeof t.offset==="string" && /^[+-]\d\d:\d\d:\d\d$/.test(t.offset)?
@@ -164,6 +169,13 @@
  }
  function fromCondition(c,depth=0){
   required(depth<6,"Condition existante trop imbriquée");
+  const allowed={
+   and:["condition","conditions"],or:["condition","conditions"],not:["condition","conditions"],
+   state:["condition","entity_id","state"],numeric_state:["condition","entity_id","above","below"],
+   time:["condition","after","before","weekday"],sun:["condition","after","before"]
+  }[c.condition];
+  required(allowed && Object.keys(c).every(key=>allowed.includes(key)),
+    "Condition existante avec paramètres avancés : ouvrez-la dans Home Assistant.");
   if(["and","or","not"].includes(c.condition)&&Array.isArray(c.conditions))
    return {type:c.condition,conditions:c.conditions.map(v=>fromCondition(v,depth+1))};
   if(c.condition==="state"&&typeof c.entity_id==="string"&&typeof c.state==="string"&&!c.for)
@@ -179,6 +191,13 @@
  }
  function fromAction(s,depth=0){
   required(depth<6,"Actions existantes trop imbriquées");
+  const allowed=s.delay?["delay"]:s.wait_for_trigger?["wait_for_trigger","timeout","continue_on_timeout"]:
+   s.if?["if","then","else"]:s.repeat?["repeat"]:s.condition?["condition","entity_id","state","above","below","after","before","weekday","conditions"]:
+   ["action","service","target","data"];
+  required(Object.keys(s).every(k=>allowed.includes(k)),
+    "Bloc contenant des options avancées : ouvrez-le dans Home Assistant.");
+  if(s.target)required(Object.keys(s.target).every(k=>k==="entity_id"),
+    "Commande avec cible avancée : utilisez l'éditeur Home Assistant.");
   if(s.delay&&Object.keys(s).every(k=>["delay","alias","enabled"].includes(k))){
    required(s.enabled!==false,"Bloc désactivé : ouvrez l'éditeur HA.");
    return {type:"delay",seconds:Number(s.delay.seconds??0)};
