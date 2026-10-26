@@ -435,7 +435,7 @@
   }
 
   // V1.5 : portail Paramètres conçu comme extension non destructive.
-  // Les thèmes et le contrôle du bandeau HA sont déplacés sans modifier les cartes.
+  // Les thèmes et le contrôle du bandeau HA sont déplacés, puis migrés vers des réglages locaux.
   const SETTINGS_BASE="/kimia-next/";
   const SETTINGS_PAGES=[
     {path:"reglages-utilisateurs",title:"Utilisateurs",icon:"mdi:account-group",
@@ -516,7 +516,7 @@
     );
     if(spec.path==="reglages-apparence")add(
       settingsHeading("Personnalisation"),
-      settingsHelp("Retrouvez ici les thèmes KIMIA existants, sans changer leurs couleurs ni leur fonctionnement.")
+      settingsHelp("Choisissez ici un thème uniquement pour cet appareil. Aucun changement global sur Home Assistant.")
     );
     if(nav)view.sections.push(settingsGrid([safeClone(nav)]));
     return view;
@@ -558,6 +558,63 @@
       modified++;
     }
     return {added:countCards(next)-before,modified};
+  };
+
+  // V1.6.1 : revenir à des préférences strictement locales pour les thèmes
+  // et le bandeau HA. Ne modifier QUE les anciennes cartes standard KIMIA.
+  const LOCAL_THEME_CARD="custom:kimia-local-theme-v16-card";
+  const LEGACY_THEME_ENTITY="input_select.kimia_theme_global";
+  const KIMIA_THEMES=new Set([
+    "KIMIA Gris Premium","KIMIA Clair","KIMIA Sombre","KIMIA Signature",
+    "KIMIA Vert Sauge","KIMIA Violet Nuit","KIMIA Sable Doré","KIMIA Terracotta"
+  ]);
+  const themeOption = card=>card?.tap_action?.action==="perform-action" &&
+    card.tap_action.perform_action==="input_select.select_option" &&
+    card.tap_action.target?.entity_id===LEGACY_THEME_ENTITY &&
+    KIMIA_THEMES.has(card.tap_action.data?.option);
+  const legacyThemeSelect = card=>card?.type==="entities" &&
+    card.title==="Mon ambiance actuelle" &&
+    card.entities?.length===1 &&
+    (card.entities[0]?.entity||card.entities[0])===LEGACY_THEME_ENTITY;
+  const localThemeUI = next=>{
+    let added=0,removed=0,modified=0;
+    const targets=next.views.filter(v=>v.path==="reglages-apparence"||v.path==="parametres");
+    for(const view of targets){
+      if(!Array.isArray(view.sections))continue;
+      for(const section of view.sections){
+        const cards=section.cards;
+        if(!Array.isArray(cards))continue;
+        if(!cards.some(c=>c.type==="heading"&&c.heading==="Mes thèmes"))continue;
+        const has=cards.some(c=>c.type===LOCAL_THEME_CARD);
+        const olds=cards.filter(c=>themeOption(c)||legacyThemeSelect(c));
+        if(olds.length){
+          section.cards=cards.filter(c=>!themeOption(c)&&!legacyThemeSelect(c));
+          removed+=olds.length;
+        }
+        if(!has){
+          const head=section.cards.findIndex(c=>c.type==="heading"&&c.heading==="Mes thèmes");
+          section.cards.splice(head+1,0,{type:LOCAL_THEME_CARD,
+            grid_options:{columns:"full",rows:"auto"}});
+          added++;
+        }
+      }
+    }
+    return {added,removed,modified};
+  };
+  // Migration prudente : ne réécrit jamais un Kiosk Mode personnalisé.
+  // L'ancien réglage ne s'appliquait qu'aux non-admin et pouvait donc
+  // laisser l'administrateur avec un bandeau impossible à masquer.
+  const localKioskUI = next=>{
+    const km=next.kiosk_mode;
+    const old=km?.non_admin_settings?.kiosk;
+    if(typeof old!=="string"||
+       !old.includes('kimia_bandeau_ha_')||
+       !old.includes("localStorage.getItem"))return 0;
+    if(km.kiosk!==undefined && km.kiosk!==old)return 0;
+    km.kiosk=old;
+    delete km.non_admin_settings.kiosk;
+    if(!Object.keys(km.non_admin_settings).length)delete km.non_admin_settings;
+    return 1;
   };
 
   let active = null;
@@ -745,6 +802,10 @@
         added+=v14.added;modified+=v14.modified;
         const settings=applySettingsPortal(next);
         added+=settings.added;modified+=settings.modified;
+        const appearanceFix=localThemeUI(next);
+        added+=appearanceFix.added;removed+=appearanceFix.removed;
+        modified+=appearanceFix.modified;
+        modified+=localKioskUI(next);
         if (added === 0 && removed === 0 && modified === 0) {
           const adminAdded=await upgradeAdminDashboard(hass,dashboards);
           const result = { state: "ok", added: 0, removed: 0, adminAdded,
@@ -792,6 +853,6 @@
     sync: synchronize,
     getStatus: () => ({ ..._last }),
     dashboard: DASHBOARD,
-    version: "1.6.0-dev"
+    version: "1.6.1-dev"
   });
 })();
