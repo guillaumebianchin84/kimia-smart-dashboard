@@ -122,7 +122,7 @@ const maybeSetPlaceholder=(section,message)=>{
 };
 const energyView=()=>({
  title:"Énergie",path:"energie",icon:"mdi:flash",
- type:"sections",max_columns:3,subview:true,back_path:"/kimia-next/accueil",
+ type:"sections",max_columns:3,
  sections:[]
 });
 const knownId=(id,source)=>{
@@ -300,7 +300,31 @@ function equipmentFromStates(states={},entities=[]){
  }
  return {equipment,errors};
 }
-const SHORTCUT_LABEL="Suivi Énergie, Eau et Secours";
+const ENERGY_TOGGLE="input_boolean.kimia_onglet_energie";
+const isNav=c=>c?.type==="custom:navbar-card"&&Array.isArray(c.routes)&&c.routes.some(r=>r.url==="/kimia-next/accueil");
+const isBanner=c=>c?.type==="custom:button-card"&&typeof c.custom_fields?.logo==="string"&&c.custom_fields.logo.includes("by PROMAINT");
+const energyRoute=()=>({url:"/kimia-next/energie",icon:"mdi:flash",label:"Énergie",
+ hidden:'[[[ return states["'+ENERGY_TOGGLE+'"]?.state !== "on"; ]]]'});
+function installEnergyNavigation(dashboard){
+ const energy=dashboard.views.find(v=>v.path==="energie");
+ const source=dashboard.views.find(v=>v.path==="lumieres")||dashboard.views.find(v=>v.path==="accueil");
+ if(!energy||!source)throw Error("Vues KIMIA introuvables");
+ if(!cards(energy).some(isBanner)){
+  const section=source.sections?.find(sec=>(sec.cards||[]).some(isBanner));
+  if(!section)throw Error("Bandeau KIMIA introuvable");
+  const clone=copy(section),banner=clone.cards.find(isBanner);
+  banner.custom_fields.slogan=banner.custom_fields.slogan.replace(source.title||"Lumières","Énergie");
+  energy.sections.unshift(clone);
+ }
+ const nav=dashboard.views.flatMap(cards).find(isNav);
+ if(!nav)throw Error("Navbar KIMIA introuvable");
+ if(!cards(energy).some(isNav))energy.sections.push(grid([copy(nav)]));
+ for(const view of dashboard.views)for(const bar of cards(view).filter(isNav)){
+  if(bar.routes.some(r=>r.url==="/kimia-next/energie"))continue;
+  const idx=bar.routes.findIndex(r=>r.url==="/kimia-next/actualites");
+  bar.routes.splice(idx<0?bar.routes.length:idx,0,energyRoute());
+ }
+}
 const ADMIN_LINK_LABEL="Configurer Énergie, Eau et Secours";
 function appendShortcut(view,label,target,icon){
  if(!view?.sections)return 0;
@@ -331,6 +355,11 @@ function planAdmin({adminDashboard,states={},entities=[]}={}){
  const next=copy(adminDashboard);
  appendShortcut(next.views.find(v=>v.path==="demarrer"),ADMIN_LINK_LABEL,
   "/kimia-admin-next/energie-eau","mdi:cog-outline");
+ const appearance=next.views.find(v=>v.path==="apparence");
+ const rubriques=appearance?.sections?.find(sec=>(sec.cards||[]).some(c=>c.type==="heading"&&c.heading==="Mes rubriques"));
+ if(!rubriques)throw Error("Mes rubriques introuvable");
+ if(!cards(appearance).some(c=>c.type==="tile"&&c.entity===ENERGY_TOGGLE))
+  rubriques.cards.push({type:"tile",entity:ENERGY_TOGGLE,name:"Énergie",icon:"mdi:flash",tap_action:{action:"toggle"}});
  if(!next.views.some(v=>v.path==="energie-eau")){
   next.views.push({
    title:"Énergie, Eau et Secours",path:"energie-eau",type:"sections",max_columns:2,
@@ -375,8 +404,7 @@ function planAdmin({adminDashboard,states={},entities=[]}={}){
 function enhanceClientPlan({dashboard,states={},entities=[],devices=[],areas=[]}={}){
  const {equipment,errors}=equipmentFromStates(states,entities);
  const output=plan({dashboard,states,entities,devices,areas,equipment});
- appendShortcut(output.config.views.find(v=>v.path==="accueil"),
-  SHORTCUT_LABEL,"/kimia-next/energie","mdi:flash");
+ installEnergyNavigation(output.config);
  output.changed=JSON.stringify(output.config)!==JSON.stringify(dashboard);
  output.warnings=errors;
  return output;
