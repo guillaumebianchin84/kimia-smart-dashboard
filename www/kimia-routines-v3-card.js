@@ -441,7 +441,7 @@ class Card extends HTMLElement{
  }
  _pickerFooter(type){
   return '<div class="km-row wrap" style="justify-content:flex-end;margin-top:14px">'+
-   this._btn("Annuler","close","flat small")+
+   this._btn(this._groupChildEditor?"Retour au groupe":"Annuler",this._groupChildEditor?"group-child-back":"close","flat small")+
    this._btn(icon("mdi:check")+(this._idx==null?" Ajouter":" Appliquer"),"apply","main small",'data-type="'+type+'"')+'</div>';
  }
  _expert(){
@@ -472,20 +472,31 @@ class Card extends HTMLElement{
   }
   const key=this._pickerCat||this._entry?.type;
   if(!key)throw Error("Choisis une situation.");
-  const draft=cp(this._entry?.type===key?this._entry:
-   (type==="trigger"?engine().trigger(key):engine().condition(key)));
-  if(key==="time"){
+  if(type==="condition"&&["and","or","not"].includes(key)&&!this._groupChildEditor)
+   return cp(this._groupDraft);
+  const resolved=["presence","weather"].includes(key)?"state":key;
+  const draft=cp(this._entry?.type===resolved?this._entry:
+   (type==="trigger"?engine().trigger(resolved):engine().condition(resolved)));
+  if(resolved==="time"){
    if(type==="trigger")draft.at=val("logic-at");
-   else{draft.after=val("logic-after");draft.before=val("logic-before");}
-  }else if(key==="sun"){
+   else{
+    draft.after=val("logic-after");draft.before=val("logic-before");
+    draft.weekdays=[...root.querySelectorAll("#logic-weekdays input:checked")].map(x=>x.value);
+   }
+  }else if(resolved==="sun"){
    if(type==="trigger"){draft.event=val("logic-event");draft.offset=Number(val("logic-offset"));}
    else{draft.after=val("logic-after");draft.before=val("logic-before");}
   }else{
    draft.entity=this._pickEntity||draft.entity||"";
    if(!draft.entity)throw Error("Choisis un appareil ou capteur.");
-   if(key==="state"){
-    if(type==="trigger")draft.to=val("logic-state");
-    else draft.state=val("logic-state");
+   if(resolved==="state"){
+    if(type==="trigger"){
+     draft.to=val("logic-state");
+     const seconds=val("logic-seconds");
+     if(seconds===""||!Number.isInteger(Number(seconds))||Number(seconds)<0||Number(seconds)>86400)
+      throw Error("La durée doit être un nombre entier de 0 à 86400 secondes.");
+     draft.seconds=Number(seconds);
+    }else draft.state=val("logic-state");
    }else{
     draft.above=val("logic-above");draft.below=val("logic-below");
    }
@@ -499,6 +510,13 @@ class Card extends HTMLElement{
    if(type==="action")engine().actionToHA(data);
    else if(type==="trigger")engine().triggerToHA(data);
    else engine().conditionToHA(data);
+   if(this._groupChildEditor){
+    if(this._groupChildIndex==null)this._groupDraft.conditions.push(data);
+    else this._groupDraft.conditions[this._groupChildIndex]=data;
+    this._groupChildEditor=false;this._groupChildIndex=null;
+    this._entry=null;this._pickerCat=this._groupDraft.type;this._pickEntity="";this._pickArea="*";this._pickSearch="";
+    this._notice="";this._render();return;
+   }
    const arr=type==="trigger"?this._draft.triggers:type==="condition"?this._draft.conditions:this._draft.actions;
    if(this._idx==null)arr.push(data);else arr[this._idx]=data;
    this._clearPicker();this._notice="";this._render();
@@ -509,9 +527,7 @@ class Card extends HTMLElement{
   let list=[];
   if(type==="action")list=this._allEntities(this._pickerCat||this._entry?.entity?.split(".")[0],false);
   else{
-   const domainList=(this._pickerCat||this._entry?.type)==="numeric_state"?
-    ["sensor","number","input_number"]:
-    ["light","binary_sensor","sensor","switch","cover","climate","person","device_tracker","input_boolean","sun"];
+   const domainList=this._logicDomains(this._pickerCat||this._entry?.type,this._entry);
    list=this._allEntities(null,this._experimental).filter(x=>domainList.includes(x.domain));
   }
   return list.filter(x=>(area==="*"||x.area===area)&&
@@ -543,9 +559,28 @@ class Card extends HTMLElement{
    if(j>=0&&j<arr.length){[arr[i],arr[j]]=[arr[j],arr[i]];this._render();}
   }
   else if(act==="close"){this._clearPicker();this._notice="";this._render();}
+  else if(act==="group-child-add"){
+   this._groupChildEditor=true;this._groupChildIndex=null;this._entry=null;this._pickerCat="";
+   this._pickEntity="";this._pickArea="*";this._pickSearch="";this._render();
+  }
+  else if(act==="group-child-edit"){
+   this._groupChildIndex=Number(b.dataset.index);
+   this._entry=cp(this._groupDraft.conditions[this._groupChildIndex]);
+   this._groupChildEditor=true;this._pickerCat="";
+   this._pickEntity="";this._pickArea="*";this._pickSearch="";this._render();
+  }
+  else if(act==="group-child-remove"){
+   this._groupDraft.conditions.splice(Number(b.dataset.index),1);this._render();
+  }
+  else if(act==="group-child-back"){
+   this._groupChildEditor=false;this._groupChildIndex=null;this._entry=null;
+   this._pickerCat=this._groupDraft.type;this._pickEntity="";this._render();
+  }
   else if(act==="logic-type"||act==="category"){
    this._pickerCat=act==="logic-type"?b.dataset.value:b.dataset.domain;
    this._entry=null;this._pickEntity="";this._pickOp="";this._pickValue=undefined;
+   if(act==="logic-type"&&["and","or","not"].includes(this._pickerCat)&&!this._groupChildEditor)
+    this._groupDraft={type:this._pickerCat,conditions:[]};
    this._pickArea="*";this._pickSearch="";this._render();
   }
   else if(act==="delay-category"){
