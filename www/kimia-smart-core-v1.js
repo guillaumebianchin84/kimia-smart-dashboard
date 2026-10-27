@@ -908,6 +908,7 @@
             const newCount=countCards(enhanced.config)-beforeNative;
             next.views=enhanced.config.views;
             added+=Math.max(0,newCount);
+            removed+=Math.max(0,-newCount);
             modified++;
           }
         }
