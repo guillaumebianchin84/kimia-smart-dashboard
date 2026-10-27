@@ -356,7 +356,14 @@ function planAdmin({adminDashboard,states={},entities=[]}={}){
    !adminDashboard.views.some(v=>v.path==="demarrer"))
   throw Error("Configuration admin KIMIA invalide : vue Démarrer absente.");
  const next=copy(adminDashboard);
- appendShortcut(next.views.find(v=>v.path==="demarrer"),ADMIN_LINK_LABEL,
+ // Supprimer uniquement l'ancien raccourci généré dans Démarrer.
+ const homeAdmin=next.views.find(v=>v.path==="demarrer");
+ for(const section of homeAdmin.sections||[]){
+  section.cards=(section.cards||[]).filter(c=>!(c.type==="shortcut"&&
+   c.label===ADMIN_LINK_LABEL&&c.tap_action?.navigation_path==="/kimia-admin-next/energie-eau"));
+ }
+ // La configuration matérielle se trouve avec les appareils, pas sur l'accueil admin.
+ appendShortcut(next.views.find(v=>v.path==="appareils"),ADMIN_LINK_LABEL,
   "/kimia-admin-next/energie-eau","mdi:cog-outline");
  const appearance=next.views.find(v=>v.path==="apparence");
  const rubriques=appearance?.sections?.find(sec=>(sec.cards||[]).some(c=>c.type==="heading"&&c.heading==="Mes rubriques"));
@@ -366,7 +373,7 @@ function planAdmin({adminDashboard,states={},entities=[]}={}){
  if(!next.views.some(v=>v.path==="energie-eau")){
   next.views.push({
    title:"Énergie, Eau et Secours",path:"energie-eau",type:"sections",max_columns:2,
-   subview:true,back_path:"/kimia-admin-next/demarrer",
+   subview:true,back_path:"/kimia-admin-next/appareils",
    sections:[
     {type:"grid",column_span:2,cards:[
       {type:"heading",heading:"Installation Énergie, Eau et Secours",
@@ -393,6 +400,7 @@ function planAdmin({adminDashboard,states={},entities=[]}={}){
  // à jour UNIQUEMENT notre propre carte d'aide, pas la configuration admin.
  const adminView=next.views.find(v=>v.path==="energie-eau");
  if(adminView){
+  if(adminView.back_path==="/kimia-admin-next/demarrer")adminView.back_path="/kimia-admin-next/appareils";
   const available=CONFIG.every(([,id])=>!!states[id]);
   for(const section of adminView.sections||[]){
    const idx=(section.cards||[]).findIndex(card=>card.type==="markdown"&&
@@ -408,6 +416,13 @@ function enhanceClientPlan({dashboard,states={},entities=[],devices=[],areas=[]}
  const {equipment,errors}=equipmentFromStates(states,entities);
  const output=plan({dashboard,states,entities,devices,areas,equipment});
  installEnergyNavigation(output.config);
+ // Nettoyer exclusivement le raccourci historique généré par cette extension.
+ const accueil=output.config.views.find(v=>v.path==="accueil");
+ for(const section of accueil?.sections||[]){
+  section.cards=(section.cards||[]).filter(c=>!(c.type==="shortcut"&&
+   c.label==="Suivi Énergie, Eau et Secours"&&
+   c.tap_action?.navigation_path==="/kimia-next/energie"));
+ }
  output.changed=JSON.stringify(output.config)!==JSON.stringify(dashboard);
  output.warnings=errors;
  return output;
