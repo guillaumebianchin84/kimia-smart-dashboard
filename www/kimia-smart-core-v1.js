@@ -477,6 +477,18 @@
       ]});
       added++;
     }
+    // Extension native Énergie/Eau : ne crée qu'une sous-vue admin et un raccourci.
+    // Aucune carte ni icône historique n'est réécrite.
+    const nativeExtension=window.KimiaNativeExtensionV1;
+    if(nativeExtension?.planAdmin){
+      const nativeAdmin=nativeExtension.planAdmin({
+        adminDashboard:next,states:hass.states,entities:[]
+      });
+      if(nativeAdmin.changed){
+        next.views=nativeAdmin.config.views;
+        added+=1;
+      }
+    }
     if(!added)return 0;
     const latest=await hass.callWS({type:"lovelace/config",url_path:ADMIN_DASHBOARD});
     if(JSON.stringify(latest)!==JSON.stringify(config))
@@ -880,6 +892,22 @@
         added+=appearanceFix.added;removed+=appearanceFix.removed;
         modified+=appearanceFix.modified;
         modified+=localKioskUI(next);
+        // Extension optionnelle : raccordement au bouton natif « Actualiser ma maison ».
+        // Préserve les vues et cartes existantes ; ajoute seulement le suivi et les
+        // caméras dans Sécurité, jamais une rubrique caméra supplémentaire.
+        const nativeExtension=window.KimiaNativeExtensionV1;
+        if(nativeExtension?.enhanceClientPlan){
+          const beforeNative=countCards(next);
+          const enhanced=nativeExtension.enhanceClientPlan({
+            dashboard:next,states:hass.states,entities,devices,areas
+          });
+          if(enhanced.changed){
+            const newCount=countCards(enhanced.config)-beforeNative;
+            next.views=enhanced.config.views;
+            added+=Math.max(0,newCount);
+            modified++;
+          }
+        }
         if (added === 0 && removed === 0 && modified === 0) {
           const adminAdded=await upgradeAdminDashboard(hass,dashboards);
           const result = { state: "ok", added: 0, removed: 0, adminAdded,
