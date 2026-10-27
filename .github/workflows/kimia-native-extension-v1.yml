@@ -22,6 +22,7 @@ jobs:
           node --check www/kimia-native-extension-v1.js
           node tests/kimia_native_extension_v1.test.cjs
           node tests/kimia_native_extension_snapshot.test.cjs
+          node tests/kimia_native_integration_admin_v2.test.cjs
       - name: Vérifier les anciens tests KIMIA
         run: |
           node tests/kimia_v1.test.cjs
