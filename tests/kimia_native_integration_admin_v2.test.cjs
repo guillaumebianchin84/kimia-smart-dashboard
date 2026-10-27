@@ -92,12 +92,12 @@ const all=view=>(view?.sections||[]).flatMap(s=>s.cards||[]);
  assert(!writes.some(x=>!["kimia-next","kimia-admin-next"].includes(x)));
  const securityOld=client.views.find(v=>v.path==="securite");
  const securityNew=savedClient.views.find(v=>v.path==="securite");
- assert.deepEqual(securityNew.sections.slice(0,securityOld.sections.length),
-  securityOld.sections,"Section Sécurité historique, navbar, cartes et bandeau inchangés");
+ assert.deepEqual(securityNew.sections.slice(0,securityOld.sections.length).map(sec=>({...sec,cards:sec.cards.map(c=>c.type==="custom:navbar-card"?{...c,routes:c.routes.filter(r=>r.url!=="/kimia-next/energie")}:c)})),
+  securityOld.sections,"Cartes Sécurité préservées hors nouvelle route");
  assert(all(securityNew).some(c=>c.entity==="camera.test_salon"));
  assert(all(securityNew).some(c=>c.entity==="camera.test_terrasse"));
  const energy=savedClient.views.find(v=>v.path==="energie");
- assert(energy&&energy.subview);
+ assert(energy&&!energy.subview);
  const energyCards=all(energy);
  assert(energyCards.some(c=>c.type==="entities"&&c.entities.includes("sensor.test_w")&&
     c.entities.includes("sensor.test_kwh")),
@@ -105,7 +105,9 @@ const all=view=>(view?.sections||[]).flatMap(s=>s.cards||[]);
  assert(energyCards.some(c=>c.type==="entities"&&c.entities.some(x=>x.entity==="sensor.test_pression")&&
     c.entities.some(x=>x.entity==="switch.test_pompe")),
    "Pression et commande du même contrôleur = carte native unique");
- assert(energyCards.every(c=>!c.type.startsWith("custom:")));
+ assert(energyCards.filter(c=>!["custom:button-card","custom:navbar-card"].includes(c.type)).every(c=>!c.type.startsWith("custom:")));
+ assert(energyCards.some(c=>c.type==="custom:button-card"));
+ assert(energyCards.some(c=>c.type==="custom:navbar-card"));
  const adminNew=savedAdmin.views.find(v=>v.path==="energie-eau");
  assert(adminNew&&adminNew.subview);
  assert(all(adminNew).some(c=>c.type==="entities"&&c.entities.length===5),
@@ -120,12 +122,15 @@ const all=view=>(view?.sections||[]).flatMap(s=>s.cards||[]);
  // L'extension, elle, ne modifie ni bandeau, ni navbar ni cartes visuelles.
  const actualHome=all(savedClient.views.find(v=>v.path==="accueil"));
  for(const type of ["custom:button-card","custom:navbar-card","custom:clock-weather-card"]){
-  assert.deepEqual(actualHome.filter(card=>card.type===type),
+  const restore=c=>type==="custom:navbar-card"?{...c,routes:c.routes.filter(r=>r.url!=="/kimia-next/energie")}:c;
+  assert.deepEqual(actualHome.filter(card=>card.type===type).map(restore),
    all(accueilOld).filter(card=>card.type===type),
-   "Bandeau, navbar et cartes historiques inchangés : "+type);
+   "Bandeau et cartes historiques inchangés, sauf nouvelle route : "+type);
  }
  const home=all(savedClient.views.find(v=>v.path==="accueil"));
- assert(home.some(c=>c.type==="shortcut"&&c.tap_action.navigation_path==="/kimia-next/energie"));
+ assert(home.some(c=>c.type==="custom:navbar-card"&&c.routes.some(r=>r.url==="/kimia-next/energie")));
+ assert(savedAdmin.views.find(v=>v.path==="apparence").sections.flatMap(s=>s.cards||[]).some(c=>c.entity==="input_boolean.kimia_onglet_energie"));
+ assert(yamlPackage.input_boolean.kimia_onglet_energie);
  assert.equal(savedClient.views.filter(v=>v.path==="energie").length,1);
  assert.equal(savedAdmin.views.filter(v=>v.path==="energie-eau").length,1);
  const countBefore=writes.length;
