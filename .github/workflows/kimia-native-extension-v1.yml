@@ -1,0 +1,31 @@
+name: KIMIA — extension native Énergie Eau Sécurité (isolée)
+on:
+  push:
+    branches:
+      - feat/kimia-native-energie-eau-securite-20261027
+  workflow_dispatch:
+jobs:
+  native-only:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Vérifier le module sans effet au chargement
+        run: |
+          node --check www/kimia-native-extension-v1.js
+          node tests/kimia_native_extension_v1.test.cjs
+      - name: Vérifier les anciens tests KIMIA
+        run: |
+          node tests/kimia_v1.test.cjs
+          node tests/kimia_routines_v3.test.cjs
+          node tests/kimia_routines_v31_conditions.test.cjs
+      - name: Export du module natif sans remplacer l'existant
+        uses: actions/upload-artifact@v4
+        with:
+          name: KIMIA-Native-Energie-Eau-Cameras-V1-Projet
+          path: |
+            www/kimia-native-extension-v1.js
+            docs/KIMIA_EXTENSION_NATIVE_ENERGIE_EAU_SECURITE_V1.md
+          retention-days: 30
