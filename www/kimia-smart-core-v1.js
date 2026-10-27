@@ -802,6 +802,24 @@
           }
         }
 
+        // Gemini sur Accueil : un seul raccourci natif, juste après Réveil.
+        // Ouvre Assist avec le pipeline préféré (qui doit utiliser Gemini dans HA).
+        const scenarioSection=(home.sections||[]).find(section=>
+          (section.cards||[]).some(card=>card.type==="heading"&&card.heading==="Mes scénarios")&&
+          (section.cards||[]).some(card=>card.type==="shortcut"&&card.label==="Réveil"));
+        if(scenarioSection &&
+           !allCards(home).some(card=>card.type==="shortcut"&&card.label==="Parler à Gemini")){
+          const wakeIndex=scenarioSection.cards.findIndex(card=>
+            card.type==="shortcut"&&card.label==="Réveil");
+          scenarioSection.cards.splice(wakeIndex+1,0,{
+            type:"shortcut",grid_options:{columns:12,rows:1},
+            label:"Parler à Gemini",description:"Converser avec l'assistant",
+            icon:"mdi:creation",color:"purple",
+            tap_action:{action:"assist",pipeline_id:"preferred"}
+          });
+          added++;
+        }
+
         // Répartition par pièce dans les vrais onglets, jamais dans Accueil.
         // Chaque salle occupe toute la largeur; les tuiles 6/12 se placent dessous.
         const targets=["pieces",...CATEGORIES.map(x=>x[0])];
