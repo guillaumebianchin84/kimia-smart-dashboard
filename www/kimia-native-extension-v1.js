@@ -309,6 +309,9 @@ function installEnergyNavigation(dashboard){
  const energy=dashboard.views.find(v=>v.path==="energie");
  const source=dashboard.views.find(v=>v.path==="lumieres")||dashboard.views.find(v=>v.path==="accueil");
  if(!energy||!source)throw Error("Vues KIMIA introuvables");
+ // Migration ciblée de la sous-vue déjà installée sur VM210.
+ if(energy.subview===true)delete energy.subview;
+ if(energy.back_path==="/kimia-next/accueil")delete energy.back_path;
  if(!cards(energy).some(isBanner)){
   const section=source.sections?.find(sec=>(sec.cards||[]).some(isBanner));
   if(!section)throw Error("Bandeau KIMIA introuvable");
