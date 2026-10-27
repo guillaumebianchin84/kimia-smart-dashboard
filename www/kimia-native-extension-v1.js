@@ -134,18 +134,30 @@ const knownId=(id,source)=>{
 };
 const categorySection=(view,title,icon,labels,settings,source)=>{
  const section=assureSection(view,title,icon);
- const seen=new Set(cards(view).flatMap(cardEntities));
+ const used=new Set(cards(view).flatMap(cardEntities));
+ const reg=new Map(source.entities.map(e=>[e.entity_id,e]));
+ const dev=new Map(source.devices.map(d=>[d.id,d]));
+ const groups=new Map();
  for(const [key,label] of labels){
   const id=knownId(settings[key],source);
-  if(!id||seen.has(id))continue;
-  const state=source.states[id];
+  if(!id||used.has(id))continue;
   const dom=id.split(".")[0];
-  // Un seul équipement par carte native. Le switch conserve son toggle HA standard.
-  if(!["sensor","binary_sensor","switch","input_boolean"].includes(dom))
+  if(!["sensor","binary_sensor","switch"].includes(dom))
    throw Error("Type incompatible avec le module "+label+" : "+id);
-  section.cards.push({type:"tile",entity:id,name:label,
+  const deviceId=reg.get(id)?.device_id;
+  // Un identifiant physique => UNE carte même pour plusieurs entités du contrôleur.
+  const identity=deviceId||"entity:"+id;
+  if(!groups.has(identity))groups.set(identity,[]);
+  groups.get(identity).push({id,label});
+  used.add(id);
+ }
+ for(const [identity,items] of groups){
+  if(items.length===1)section.cards.push({type:"tile",entity:items[0].id,name:items[0].label,
    grid_options:{columns:6,rows:1}});
-  seen.add(id);
+  else section.cards.push({type:"entities",
+   title:dev.get(identity)?.name_by_user||dev.get(identity)?.name||items[0].label,
+   show_header_toggle:false,entities:items.map(x=>({entity:x.id,name:x.label})),
+   grid_options:{columns:6,rows:"auto"}});
  }
  maybeSetPlaceholder(section,"KIMIA : aucun appareil configuré dans cette catégorie. Ajouter les entités après installation.");
 };
@@ -244,7 +256,104 @@ function automationDrafts(o={}){
    [state(mains,"on")],[cmd(group,"turn_off")])
  ];
 }
-const api=Object.freeze({plan,apply,automationDrafts,primaryCameras,energyDevices});
+
+/* Connexion avec le bouton standard « Actualiser ma maison ».
+ * Les champs de configuration sont des helpers natifs input_text, lisibles
+ * directement depuis Home Assistant. Aucune nouvelle carte personnalisée.
+ */
+const CONFIG=Object.freeze([
+ ["pressureSensor","input_text.kimia_eau_pression_entite","sensor"],
+ ["pumpCommand","input_text.kimia_eau_surpresseur_entite","switch"],
+ ["mainsPresent","input_text.kimia_secours_reseau_entite","binary_sensor"],
+ ["generatorRequest","input_text.kimia_secours_demande_groupe_entite","switch"],
+ ["generatorRunning","input_text.kimia_secours_groupe_marche_entite","binary_sensor"]
+]);
+function equipmentFromStates(states={},entities=[]){
+ const known=new Set([...Object.keys(states),...entities.map(e=>e.entity_id)]);
+ const equipment={},errors=[];
+ for(const [key,helper,domain] of CONFIG){
+  const value=String(states[helper]?.state||"").trim().toLowerCase();
+  if(!value||["unknown","unavailable","none"].includes(value))continue;
+  if(!validId(value)||!value.startsWith(domain+".")||!known.has(value)){
+   errors.push("Vérifier "+helper+" : entité "+value+" absente ou de type incorrect.");
+   continue;
+  }
+  equipment[key]=value;
+ }
+ return {equipment,errors};
+}
+const SHORTCUT_LABEL="Suivi Énergie, Eau et Secours";
+const ADMIN_LINK_LABEL="Configurer Énergie, Eau et Secours";
+function appendShortcut(view,label,target,icon){
+ if(!view?.sections)return 0;
+ if(cards(view).some(card=>card.type==="shortcut"&&
+    card.tap_action?.navigation_path===target))return 0;
+ view.sections.push({type:"grid",column_span:Math.min(Number(view.max_columns)||3,3),
+   cards:[{type:"shortcut",label,
+     description:"Électricité, pression et groupe électrogène",
+     icon,color:"teal",grid_options:{columns:6,rows:2},
+     tap_action:{action:"navigate",navigation_path:target}}]});
+ return 1;
+}
+const adminEntitiesHelp=(states)=>{
+ const ready=CONFIG.filter(([,id])=>!!states[id]).map(([,id])=>id);
+ return ready.length===CONFIG.length?{
+  type:"entities",title:"Associer les équipements de l'installation",
+  show_header_toggle:false,entities:ready,grid_options:{columns:"full",rows:"auto"}
+ }:{
+  type:"markdown",
+  content:"Les cinq champs de configuration ne sont pas encore disponibles. Installer le fichier package \`kimia_energie_eau_secours_v1.yaml\` dans /config/packages/, puis recharger la configuration Home Assistant. Ensuite revenir ici pour renseigner les identifiants d'entités. Les champs ne commandent aucun appareil.",
+  grid_options:{columns:"full",rows:"auto"}
+ };
+};
+function planAdmin({adminDashboard,states={},entities=[]}={}){
+ if(!adminDashboard||!Array.isArray(adminDashboard.views)||
+   !adminDashboard.views.some(v=>v.path==="demarrer"))
+  throw Error("Configuration admin KIMIA invalide : vue Démarrer absente.");
+ const next=copy(adminDashboard);
+ appendShortcut(next.views.find(v=>v.path==="demarrer"),ADMIN_LINK_LABEL,
+  "/kimia-admin-next/energie-eau","mdi:cog-outline");
+ if(!next.views.some(v=>v.path==="energie-eau")){
+  next.views.push({
+   title:"Énergie, Eau et Secours",path:"energie-eau",type:"sections",max_columns:2,
+   subview:true,back_path:"/kimia-admin-next/demarrer",
+   sections:[
+    {type:"grid",column_span:2,cards:[
+      {type:"heading",heading:"Installation Énergie, Eau et Secours",
+       heading_style:"title",icon:"mdi:lightning-bolt-outline"},
+      {type:"markdown",content:
+       "Renseignez les identifiants des entités Home Assistant ci-dessous (exemple \`sensor.pression_eau\`). "
+       +"Le bouton **Actualiser ma maison** de l'accueil admin appliquera l'affichage des équipements. "
+       +"KIMIA ne démarre automatiquement ni pompe ni groupe. La commande groupe doit viser **une entrée de demande du contrôleur**, jamais un contacteur de puissance ni un ATS."},
+      adminEntitiesHelp(states)
+    ]},
+    {type:"grid",column_span:2,cards:[
+      {type:"heading",heading:"Installation et suivi",icon:"mdi:view-dashboard-outline"},
+      {type:"shortcut",label:"Ouvrir Énergie, Eau et Secours",
+       description:"Dashboard client natif",icon:"mdi:flash",color:"teal",
+       tap_action:{action:"navigate",navigation_path:"/kimia-next/energie"}},
+      {type:"shortcut",label:"Mes appareils Home Assistant",
+       description:"Consulter leurs véritables identifiants",icon:"mdi:devices",
+       color:"blue",tap_action:{action:"navigate",navigation_path:"/config/entities"}}
+    ]}
+   ]
+  });
+ }
+ const equipmentInfo=equipmentFromStates(states,entities);
+ return {config:next,changed:JSON.stringify(next)!==JSON.stringify(adminDashboard),
+  equipment:equipmentInfo.equipment,warnings:equipmentInfo.errors};
+}
+function enhanceClientPlan({dashboard,states={},entities=[],devices=[],areas=[]}={}){
+ const {equipment,errors}=equipmentFromStates(states,entities);
+ const output=plan({dashboard,states,entities,devices,areas,equipment});
+ appendShortcut(output.config.views.find(v=>v.path==="accueil"),
+  SHORTCUT_LABEL,"/kimia-next/energie","mdi:flash");
+ output.changed=JSON.stringify(output.config)!==JSON.stringify(dashboard);
+ output.warnings=errors;
+ return output;
+}
+
+const api=Object.freeze({plan,apply,planAdmin,enhanceClientPlan,equipmentFromStates,automationDrafts,primaryCameras,energyDevices});
 if(typeof window!=="undefined")window[TAG]=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })();
