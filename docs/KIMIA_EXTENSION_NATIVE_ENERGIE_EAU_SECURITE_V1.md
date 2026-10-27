@@ -1,67 +1,55 @@
-# KIMIA Smart — Extension native Énergie · Eau · Secours · Caméras V1
+# KIMIA Smart — Énergie, Eau, Secours et Caméras · Installation intégrée
 
-**Statut : prototype isolé de développement — pas installé sur VM210.**
-**Base : dernière branche Routines V3.1 et socle KIMIA en l'état.**
+**Cible exclusivement : KIMIA VM210 (prototype). Ne jamais modifier VM100.**
+**Partir du dashboard actuellement utilisé, ne jamais réimporter un ancien YAML.**
 
-## Décisions strictes
-- Ne **rien remplacer** dans KIMIA existant (cartes, bandeau, icônes, navbar, thèmes, profils, maquette, réglages, scénarios, pièces).
-- Aucune carte `custom:*` créée par cette extension.
-- Une **seule carte native par équipement physique** : pour un compteur possédant puissance (W) + énergie (kWh), la carte native `entities` regroupe les deux mesures ; s'il n'y a qu'une seule mesure, une carte `tile`.
-- Pour les caméras, **une carte native `picture-entity` par appareil**, en choisissant un seul flux principal lorsque la même caméra a plusieurs profils. Une caméra momentanément indisponible reste affichée.
-- Les capteurs de porte, mouvements, alarmes et cartes déjà présents dans l'onglet **Sécurité** restent **strictement inchangés**.
-- Aucun changement au cœur `kimia-smart-core-v1.js` ou au moteur de routines.
-- Aucun ajout d'icône à la navbar existante. La nouvelle vue `/kimia-next/energie` est une **sous-vue autonome**, accessible par son URL directe et retour natif vers Accueil ; navigation à réexaminer ultérieurement uniquement si explicitement autorisée.
-- Pas de création de nouvelle rubrique Caméras : elles s'ajoutent dans **Sécurité** (sections « Caméras · Salon », etc.).
+## Ce que l'utilisateur obtient après « Actualiser ma maison »
+- Une **sous-vue Énergie**, ouverte depuis le nouveau raccourci natif placé sur **Accueil**, sans ajouter de route à la navbar.
+- **Électricité** : un seul bloc natif par compteur physique, W et kWh regroupés dans une seule carte `entities` s'ils appartiennent au même device_id ; historique global de la puissance sur 24 heures `history-graph` et raccourci vers le dashboard Énergie Home Assistant pour bilans journaliers et mensuels (à configurer dans HA).
+- **Eau** : pression et demande de commande du surpresseur, si les entités réelles sont configurées par l'administrateur.
+- **Secours** : état du réseau public, demande de démarrage du contrôleur de groupe, état « groupe en marche », si les entités réelles sont configurées.
+- **Sécurité existante** : ajoute une `picture-entity` native par caméra physique HA (`camera.*`), conserve les capteurs de portes et alarmes **intacts**. Les caméras temporairement indisponibles restent visibles.
+- **Configuration admin** : nouveau raccourci **Configurer Énergie, Eau et Secours** dans Démarrer, vers une **sous-vue** native avec cinq champs configurables.
+- Les anciennes cartes, bandeaux, icônes, navbar, thèmes, maquette, profils, scénarios, et réglages ne sont pas remplacés. Aucun nouvel élément `custom:*` n'est créé par l'extension.
 
-## Contenu du module
-Nouveau fichier seulement : `www/kimia-native-extension-v1.js`. Il expose `window.KimiaNativeExtensionV1` avec :
-- `plan({dashboard,states,entities,devices,areas,equipment})` : calcul **sans écriture** d'une configuration complète mais structurellement identique, à l'exception des nouvelles sections caméra et de la nouvelle sous-vue Énergie. Contrôle d'idempotence et de collision.
-- `apply(hass,{confirm:true,equipment})` : installation **manuelle volontaire**, réservée admin, par API WebSocket native `lovelace/config`, conservation de la version antérieure, vérification anti-conflit avant `lovelace/config/save`. **Aucun lancement ni réécriture au chargement**.
-- `automationDrafts(mapping)` : génère quatre brouillons **natifs Home Assistant**, désactivés avec `initial_state:false`. **N'enregistre aucune automatisation et ne commande rien.**
+## Contenu du ZIP
+1. `www/kimia-smart-core-v1.js` : cœur KIMIA existant + point d'appel facultatif minimal de l'extension sur le bouton de synchronisation.
+2. `www/kimia-native-extension-v1.js` : générateur des cartes natives uniquement ; n'effectue **aucune** modification spontanément.
+3. `packages/kimia_energie_eau_secours_v1.yaml` : cinq `input_text` natifs, sans script, sans automation, sans action.
 
-### Consommation électrique
-- Détection à partir des véritables entités HA `sensor` dont `device_class` est `power` (W/kW) ou `energy` (Wh/kWh/MWh).
-- Une carte native par appareil reconnu (`tile` si une mesure, `entities` si plusieurs).
-- Les mesures provenant d'un même compteur utilisent le même `device_id` : pas de doublons puissance + énergie.
-- Pas de Linky français supposé, pas de FCFA calculés sans tarif réel, pas de faux compteurs.
-- Sous-vue indépendante `/kimia-next/energie`. Aucun changement à la navbar actuelle.
+## Installation (une fois, VM210)
+1. Sauvegarder KIMIA / VM210 et exporter l'état actuel des dashboards (Storage).
+2. Remplacer **seulement** `/config/www/kimia-smart-core-v1.js` et `/config/www/kimia-native-extension-v1.js` par les deux fichiers fournis. Ne toucher à aucun autre JS existant.
+3. Copier **sans écraser** `kimia_energie_eau_secours_v1.yaml` dans `/config/packages/`. La VM KIMIA utilise déjà les packages pour sa navigation ; si ce n'est pas le cas sur une autre VM, configurer packages via la méthode HA habituelle et vérifier avant redémarrage.
+4. Vérifier la configuration YAML de HA, puis **redémarrer une fois Home Assistant VM210** pour charger les cinq nouveaux helpers (uniquement en cas de première installation du package).
+5. Dans **Paramètres → Tableaux de bord → Ressources**, modifier les ressources **déjà existantes**, sans créer de doublon :
+   - `/local/kimia-smart-core-v1.js?v=200`
+   - `/local/kimia-native-extension-v1.js?v=200` (celle chargée précédemment en `?v=100`)
+   Choisir **Module JavaScript**. Ne pas modifier la ressource Routines V3.1 ni les autres ressources.
+6. Recharger complètement la page. Dans **KIMIA Configuration → Démarrer**, cliquer **Actualiser ma maison** **une fois**.
+7. Accueil KIMIA : nouveau raccourci natif « Suivi Énergie, Eau et Secours ». La barre/navbar actuelle reste identique. Dans Sécurité, les caméras détectées s'ajoutent sans toucher aux capteurs historiques.
+8. **KIMIA Configuration → Démarrer → Configurer Énergie, Eau et Secours** : renseigner dans les cinq helpers ci-dessous les identifiants HA complets des capteurs/commandes réels, puis cliquer à nouveau **Actualiser ma maison**. Sans matériel connecté, laisser les champs vides : aucun appareil fictif n'est créé.
 
-### Eau et surpresseur
-- Entités explicites facultatives : `pressureSensor` (mesure pression), `pumpCommand` (commande reconnue et câblée par le client/collègue).
-- Une tuile native pour la mesure et une tuile native pour la commande, si elles représentent deux équipements distincts. Aucune activation automatique sur la VM de développement.
-- Deux automatismes proposés, **inactifs** : demande de démarrage au-dessous du seuil après temporisation ; fin de demande au-dessus du seuil, avec hystérésis `haut > bas`.
-- Nécessite impérativement une autorisation matérielle pompe `pumpPermissive` signalée dans HA et une protection réelle contre marche à sec ; capteur indisponible = pas de nouveau démarrage via la condition du déclencheur.
+## Correspondance des cinq helpers (admin)
+| Champ visible | Helper Home Assistant | Type réel requis |
+|---|---|---|
+| Capteur pression d'eau | `input_text.kimia_eau_pression_entite` | `sensor.xxx` |
+| Commande surpresseur | `input_text.kimia_eau_surpresseur_entite` | `switch.xxx` : **contact de demande sur contrôleur protégé**, pas démarrage direct d'une pompe sans protection |
+| Présence réseau électrique | `input_text.kimia_secours_reseau_entite` | `binary_sensor.xxx` (on = secteur présent, off = coupure, selon configuration réelle) |
+| Demande démarrage du contrôleur | `input_text.kimia_secours_demande_groupe_entite` | `switch.xxx` : **commande du contrôleur**, jamais contacteur de puissance/ATS |
+| Retour groupe en marche | `input_text.kimia_secours_groupe_marche_entite` | `binary_sensor.xxx` |
 
-### Réseau public et groupe électrogène
-- Entités explicites : `mainsPresent` (retour présence réseau), `generatorRequest` (entrée « demande de démarrage » d'un **contrôleur dédié**, PAS un contacteur ou un inverseur ATS), `generatorRunning` (retour d'état facultatif).
-- Une tuile native par équipement/retour configuré.
-- Deux automatismes proposés, **inactifs** : demande de groupe après disparition confirmée du réseau et si le contrôleur remonte `generatorReady=on` ; retrait de la demande après retour réseau confirmé. Ces brouillons ne contrôlent **jamais** un inverseur de source et ne peuvent pas remplacer ses interverrouillages matériels, protections, temporisations ni contrôles de tension.
-- L'installateur configure le matériel, valide la logique d'entrée de commande du contrôleur et garde la responsabilité de la sécurité électrique.
+L'admin saisit les entités à partir de leur identifiant dans **Paramètres → Appareils et services → Entités**. Chaque champ natif reste utilisable sur mobile/tablette et garde sa valeur entre les synchronisations.
 
-## Prérequis d'une validation sur VM210
-1. Sauvegarder KIMIA et la VM210. Vérifier que le dashboard `kimia-next` est en **mode Interface/Storage**.
-2. Disposer des vraies entités HA avant de renseigner leurs identifiants. Sans elles, les sections Eau/Réseau affichent simplement une instruction native.
-3. Aucun capteur, relais ou caméra fictif n'est installé. Le nouveau module ne cherche jamais à appairer un équipement et ne modifie aucune configuration matérielle.
-4. Faire d'abord le contrôle avec `plan(...)` : les différences autorisées sont **exclusivement** ajout de sections « Caméras · pièce » dans `securite` et création de la vue `energie`.
-5. Pour installer manuellement, `apply` doit être appelé explicitement par un administrateur. Les instructions détaillées dépendent de la manière dont cette application sera livrée/installée sur la VM ; **ne pas copier le YAML complet du dashboard** et ne jamais demander « Actualiser ma maison » pour installer cette extension.
-6. La seconde exécution doit être idempotente : zéro duplication et zéro écriture si rien n'a changé. Aucun ancien élément ne doit disparaître.
-7. Activer les automatisations seulement **après** validation des sondes, seuils, contrôleur de secours et autorisations matérielles par l'installateur ; **jamais** dans le pack V1.
-
-## Points à finaliser après matériel / avant livraison commerciale
-- Définir les seuils réels de pression avec le client/collègue, et comment le pressostat/automate protège la pompe.
-- Confirmer l'entrée de commande du groupe et l'état « contrôleur prêt » ; vérifier le retour du réseau et l'ATS interverrouillé.
-- Installer une caméra ONVIF/RTSP compatible en intégration HA, vérifier le flux et la séparation effective des accès utilisateurs. Un simple masquage visuel KIMIA ne sécurise pas un flux caméra.
-- Ajouter si souhaité plus tard un **accès navigation** à Énergie en respectant intégralement les icônes/bandeau existants et l'ergonomie choisie par l'utilisateur.
-- Relier la conversion en coût FCFA à des vrais index kWh et au prix appliqué chez le client.
-- Tester sur matériel SONOFF et LEDVANCE Zigbee et caméras Wi-Fi dès leur réception.
-- Régler l'affichage des dispositifs indisponibles dans le sélecteur de routines lors d'une mise à jour future séparée.
+## Sécurité, limites V1 et validations
+- **AUCUNE automatisation n'est créée ni activée.** La V1 affiche les retours et propose des commandes manuelles uniquement si l'administrateur les a renseignées.
+- Les futurs automatismes de pression ou de coupure devront agir uniquement sur des entrées de commande dédiées, avec sécurités matérielles autonomes et validation par l'installateur : anti-marche à sec, inverseur ATS interverrouillé, temporisations, régulation autonome, absence de couplage réseau/groupe.
+- Un `switch` HA exposé dans le dashboard reste une commande réelle : **ne pas renseigner de relais directement sur une pompe, un contacteur réseau/groupe ou un ATS**.
+- Une caméra Wi-Fi doit d'abord être intégrée dans HA (ONVIF/RTSP ou intégration fabricant) ; aucun mot de passe/URL RTSP n'est saisi dans les cartes KIMIA. Avant un déploiement commercial, contrôler les permissions et la confidentialité : masquage visuel seul ne protège pas les flux.
+- Une seule carte par équipement est préservée pour les compteurs W+kWh et pour les dispositifs commandés/regroupés sous le même device_id. Le graphe historique commun est une carte de synthèse et ne duplique pas les cartes individuelles.
+- Le package n'ajoute aucun automate ; les boutons **Routines V3.1** existants ne sont pas modifiés. Plus tard, les nouveaux capteurs deviennent sélectionnables selon les fonctions supportées par Routines.
+- Au deuxième clic sur « Actualiser ma maison », aucune duplication et aucune nouvelle sauvegarde si rien n'a changé, vérifié sur une simulation de l'import client+admin.
+- Le coût FCFA ne se calcule pas sans tarif et compteur d'index fiables ; la configuration des coûts est à traiter ensuite via le dashboard Énergie HA.
 
 ## Rollback
-Aucun déploiement par le dépôt. Sur une installation d'essai, restaurer la copie du dashboard KIMIA précédente, ou retirer exclusivement la vue `energie` et les sections « Caméras · ... » créées par l'extension. Éviter tout remplacement global du dashboard depuis un YAML ancien, qui écraserait des personnalisations récentes.
-
-## Validations du dépôt
-`node --check www/kimia-native-extension-v1.js`
-`node tests/kimia_native_extension_v1.test.cjs`
-`node tests/kimia_v1.test.cjs`
-`node tests/kimia_routines_v3.test.cjs`
-`node tests/kimia_routines_v31_conditions.test.cjs`
+Restaurer les deux fichiers JS précédents et leur paramètre de cache `?v=`, supprimer si nécessaire la ressource de l'extension, puis restaurer la sauvegarde des dashboards si l'essai avait déjà créé les nouvelles vues. Ne pas réimporter un YAML ancien en guise de restauration automatique. Le package d'entrée de configuration peut rester en place : il ne pilote rien.
