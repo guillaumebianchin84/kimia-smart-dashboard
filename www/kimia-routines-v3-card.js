@@ -352,7 +352,7 @@ class Card extends HTMLElement{
    this._btn(icon("mdi:check")+" Valider le groupe","apply","main small",'data-type="condition"')+'</div></div>';
  }
  _logicPicker(type){
-  const item=this._entry,trigger=type==="trigger",selection=this._pickerCat||item?.type||"";
+  const item=this._entry,trigger=type==="trigger",selection=this._pickerCat||(item?.type==="state"&&item.entity?.startsWith("person.")?"presence":item?.type==="state"&&item.entity?.startsWith("weather.")?"weather":item?.type)||"";
   if(!trigger&&!this._groupChildEditor&&["and","or","not"].includes(selection))
    return this._groupPicker(selection);
   const options=trigger?[
@@ -412,7 +412,7 @@ class Card extends HTMLElement{
      '<div class="km-selection" id="pick-entities">'+
       (filtered.length?filtered.map(x=>'<button type="button" class="km-device'+(x.id===selected?" selected":"")+'" data-do="select-entity" data-id="'+esc(x.id)+'">'+esc(x.label)+'<small>'+esc(x.areaName)+'</small></button>').join(""):'<div class="km-empty">Aucun appareil pour cette catégorie.</div>')+'</div>';
     if(resolved==="state"){
-     const stateValue=trigger?draft.to:draft.state;
+     const stateValue=!item&&selection==="presence"?"home":!item&&selection==="weather"?"sunny":trigger?draft.to:draft.state;
      const domain=selected?.split(".")[0];
      const zones=Object.entries(this._hass?.states||{}).filter(([id])=>id.startsWith("zone."))
       .map(([id,s])=>s.attributes?.friendly_name||id.slice(5));
