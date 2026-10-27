@@ -1,0 +1,26 @@
+# KIMIA Smart — extension Énergie, Eau, Secours.
+# Configuration native par champs texte : ID complet d'entité Home Assistant.
+# Aucun contacteur, ATS, pompe ou générateur n'est commandé par ce package.
+# Ne jamais renseigner une sortie de puissance ou un relais ATS direct à la place
+# d'une interface autorisée par le contrôleur de l'installation.
+input_text:
+  kimia_eau_pression_entite:
+    name: "KIMIA · Capteur pression d'eau"
+    max: 100
+    icon: mdi:gauge
+  kimia_eau_surpresseur_entite:
+    name: "KIMIA · Commande surpresseur"
+    max: 100
+    icon: mdi:water-pump
+  kimia_secours_reseau_entite:
+    name: "KIMIA · Présence réseau électrique"
+    max: 100
+    icon: mdi:transmission-tower
+  kimia_secours_demande_groupe_entite:
+    name: "KIMIA · Demande démarrage du contrôleur"
+    max: 100
+    icon: mdi:engine
+  kimia_secours_groupe_marche_entite:
+    name: "KIMIA · Retour groupe en marche"
+    max: 100
+    icon: mdi:check-circle-outline
