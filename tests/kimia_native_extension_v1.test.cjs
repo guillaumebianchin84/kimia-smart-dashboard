@@ -86,7 +86,7 @@ assert.equal(native.filter(c=>c.type==="entities").length,1,
 assert.deepEqual(native.find(c=>c.type==="entities").entities,["sensor.energie_w","sensor.energie_kwh"]);
 for(const id of ["sensor.pressure","switch.pompe","binary_sensor.secteur","switch.demande_groupe","binary_sensor.groupe_tourne"])
  assert.equal(native.filter(c=>c.entity===id).length,1,"Une seule carte native pour "+id);
-assert(energy.subview&&energy.back_path==="/kimia-next/accueil");
+assert(!energy.subview,"Énergie doit être un onglet, pas une sous-vue");
 const again=p(next);
 assert.equal(again.changed,false,"Deuxième application strictement idempotente");
 assert.deepEqual(again.config,next);
