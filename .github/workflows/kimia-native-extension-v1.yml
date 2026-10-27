@@ -28,13 +28,19 @@ jobs:
           node tests/kimia_v1.test.cjs
           node tests/kimia_routines_v3.test.cjs
           node tests/kimia_routines_v31_conditions.test.cjs
-      - name: Export du module natif sans remplacer l'existant
+      - name: Préparer le dossier d'installation VM210
+        run: |
+          mkdir -p livraison/VM210/www livraison/VM210/packages
+          cp www/kimia-smart-core-v1.js livraison/VM210/www/
+          cp www/kimia-native-extension-v1.js livraison/VM210/www/
+          cp packages/kimia_energie_eau_secours_v1.yaml livraison/VM210/packages/
+          cp docs/KIMIA_EXTENSION_NATIVE_ENERGIE_EAU_SECURITE_V1.md livraison/VM210/LISEZ-MOI.md
+          cd livraison
+          zip -r KIMIA-VM210-Energie-Eau-Securite.zip VM210
+      - name: Livraison ZIP isolée pour VM210
         uses: actions/upload-artifact@v4
         with:
-          name: KIMIA-Energie-Eau-Securite-Cameras-V2-Installation
-          path: |
-            www/kimia-smart-core-v1.js
-            www/kimia-native-extension-v1.js
-            packages/kimia_energie_eau_secours_v1.yaml
-            docs/KIMIA_EXTENSION_NATIVE_ENERGIE_EAU_SECURITE_V1.md
+          name: KIMIA-VM210-Energie-Eau-Securite-Installation
+          path: livraison/KIMIA-VM210-Energie-Eau-Securite.zip
+          if-no-files-found: error
           retention-days: 30
