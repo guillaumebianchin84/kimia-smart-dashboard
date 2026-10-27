@@ -31,8 +31,10 @@ jobs:
       - name: Export du module natif sans remplacer l'existant
         uses: actions/upload-artifact@v4
         with:
-          name: KIMIA-Native-Energie-Eau-Cameras-V1-Projet
+          name: KIMIA-Energie-Eau-Securite-Cameras-V2-Installation
           path: |
+            www/kimia-smart-core-v1.js
             www/kimia-native-extension-v1.js
+            packages/kimia_energie_eau_secours_v1.yaml
             docs/KIMIA_EXTENSION_NATIVE_ENERGIE_EAU_SECURITE_V1.md
           retention-days: 30
