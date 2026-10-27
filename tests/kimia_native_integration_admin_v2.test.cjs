@@ -129,6 +129,15 @@ const all=view=>(view?.sections||[]).flatMap(s=>s.cards||[]);
  }
  const home=all(savedClient.views.find(v=>v.path==="accueil"));
  assert(home.some(c=>c.type==="custom:navbar-card"&&c.routes.some(r=>r.url==="/kimia-next/energie")));
+ assert(!home.some(c=>c.type==="shortcut"&&c.tap_action?.navigation_path==="/kimia-next/energie"),
+  "Accueil ne duplique pas l'onglet sous forme de raccourci");
+ assert(!all(savedAdmin.views.find(v=>v.path==="demarrer")).some(c=>
+  c.tap_action?.navigation_path==="/kimia-admin-next/energie-eau"),
+  "Aucun raccourci ajouté sur Démarrer");
+ assert(all(savedAdmin.views.find(v=>v.path==="appareils")).some(c=>
+  c.tap_action?.navigation_path==="/kimia-admin-next/energie-eau"),
+  "Association capteurs et commandes sous Appareils");
+
  assert(savedAdmin.views.find(v=>v.path==="apparence").sections.flatMap(s=>s.cards||[]).some(c=>c.entity==="input_boolean.kimia_onglet_energie"));
  assert(yamlPackage.input_boolean.kimia_onglet_energie);
  assert.equal(savedClient.views.filter(v=>v.path==="energie").length,1);
