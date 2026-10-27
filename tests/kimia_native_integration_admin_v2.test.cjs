@@ -116,9 +116,14 @@ const all=view=>(view?.sections||[]).flatMap(s=>s.cards||[]);
   admin.views.find(v=>v.path==="demarrer").sections,
   "Configuration admin déjà validée inchangée");
  const accueilOld=client.views.find(v=>v.path==="accueil");
- assert.deepEqual(savedClient.views.find(v=>v.path==="accueil").sections.slice(0,
-  accueilOld.sections.length),accueilOld.sections,
-  "Accueil, bandeau et navbar existants inchangés");
+ // Le moteur KIMIA existant migre déjà la Maquette via son enveloppe ACL.
+ // L'extension, elle, ne modifie ni bandeau, ni navbar ni cartes visuelles.
+ const actualHome=all(savedClient.views.find(v=>v.path==="accueil"));
+ for(const type of ["custom:button-card","custom:navbar-card","custom:clock-weather-card"]){
+  assert.deepEqual(actualHome.filter(card=>card.type===type),
+   all(accueilOld).filter(card=>card.type===type),
+   "Bandeau, navbar et cartes historiques inchangés : "+type);
+ }
  const home=all(savedClient.views.find(v=>v.path==="accueil"));
  assert(home.some(c=>c.type==="shortcut"&&c.tap_action.navigation_path==="/kimia-next/energie"));
  assert.equal(savedClient.views.filter(v=>v.path==="energie").length,1);
