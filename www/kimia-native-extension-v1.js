@@ -184,6 +184,24 @@ function plan({dashboard,states={},entities=[],devices=[],areas=[],equipment={}}
   addedEnergy++;
  }
  maybeSetPlaceholder(electric,"KIMIA : aucun compteur de puissance ou d'énergie détecté. Ajouter un capteur électrique compatible Home Assistant.");
+ // Historique mutualisé : UNE carte graphique native pour la consommation
+ // de plusieurs compteurs, sans dupliquer les cartes individuelles.
+ const powerIds=energyDevices(source).flatMap(g=>g.ids)
+  .filter(id=>source.states[id]?.attributes?.device_class==="power");
+ const history=assureSection(energy,"Historique de puissance","mdi:chart-line");
+ if(powerIds.length&&!history.cards.some(c=>c.type==="history-graph")){
+  history.cards.push({type:"history-graph",title:"Puissance · 24 heures",
+   entities:powerIds.slice(0,12),hours_to_show:24,
+   grid_options:{columns:"full",rows:5}});
+ }
+ if(!cards(energy).some(c=>c.type==="shortcut"&&
+   c.tap_action?.navigation_path==="/energy")){
+  energy.sections.push(grid([{type:"shortcut",
+   label:"Bilan énergie du foyer",
+   description:"Consommation quotidienne et mensuelle dans Home Assistant",
+   icon:"mdi:chart-areaspline",color:"teal",
+   tap_action:{action:"navigate",navigation_path:"/energy"}}]));
+ }
  categorySection(energy,"Eau & surpresseur","mdi:water",
   [["pressureSensor","Pression d'eau"],["pumpCommand","Surpresseur"]],equipment,source);
  categorySection(energy,"Réseau & groupe électrogène","mdi:transmission-tower",
