@@ -12,10 +12,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Analyse du dashboard YAML historique
+        run: pip install PyYAML
       - name: Vérifier le module sans effet au chargement
         run: |
           node --check www/kimia-native-extension-v1.js
           node tests/kimia_native_extension_v1.test.cjs
+          node tests/kimia_native_extension_snapshot.test.cjs
       - name: Vérifier les anciens tests KIMIA
         run: |
           node tests/kimia_v1.test.cjs
