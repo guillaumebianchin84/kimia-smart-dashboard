@@ -24,3 +24,9 @@ input_text:
     name: "KIMIA · Retour groupe en marche"
     max: 100
     icon: mdi:check-circle-outline
+
+# Visibilité de l'onglet Énergie depuis KIMIA Configuration > Apparence.
+input_boolean:
+  kimia_onglet_energie:
+    name: "Afficher Énergie"
+    icon: mdi:flash
