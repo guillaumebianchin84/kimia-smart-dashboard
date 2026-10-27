@@ -761,6 +761,9 @@
         // Le bandeau de marque doit refléter le TITRE de l'onglet, pas "Ma maison"
         // partout. L'Accueil conserve "Ma maison".
         for (const view of next.views) {
+          // La sous-vue Énergie est volontairement 100 % native.
+          // Ne pas lui injecter l'ancien bandeau custom lors d'une 2e synchro.
+          if(view.path==="energie" && view.subview===true)continue;
           if (!Array.isArray(view.sections)) continue;
           const banner=allCards(view).find(isKimiaBrand);
           const title=view.title || "Accueil";
