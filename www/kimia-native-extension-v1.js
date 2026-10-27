@@ -339,6 +339,17 @@ function planAdmin({adminDashboard,states={},entities=[]}={}){
    ]
   });
  }
+ // Une installation du package après la création de la vue doit mettre
+ // à jour UNIQUEMENT notre propre carte d'aide, pas la configuration admin.
+ const adminView=next.views.find(v=>v.path==="energie-eau");
+ if(adminView){
+  const available=CONFIG.every(([,id])=>!!states[id]);
+  for(const section of adminView.sections||[]){
+   const idx=(section.cards||[]).findIndex(card=>card.type==="markdown"&&
+    typeof card.content==="string"&&card.content.startsWith("Les cinq champs de configuration"));
+   if(idx>=0 && available)section.cards[idx]=adminEntitiesHelp(states);
+  }
+ }
  const equipmentInfo=equipmentFromStates(states,entities);
  return {config:next,changed:JSON.stringify(next)!==JSON.stringify(adminDashboard),
   equipment:equipmentInfo.equipment,warnings:equipmentInfo.errors};
