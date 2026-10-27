@@ -16,6 +16,7 @@ on:
       - feat/kimia-v17-maquette-areas-acl-20261026
       - feat/kimia-studio-v2-admin-interface-20261026
       - feat/kimia-routines-v3-simplified-20261026
+      - feat/kimia-routines-v31-conditions-20261027
   workflow_dispatch:
 jobs:
   check:
@@ -59,6 +60,7 @@ jobs:
           node tests/kimia_v17_maquette_areas.test.cjs
           node tests/kimia_studio_v2.test.cjs
           node tests/kimia_routines_v3.test.cjs
+          node tests/kimia_routines_v31_conditions.test.cjs
       - name: Verification YAML
         run: |
           pip install PyYAML
@@ -197,4 +199,13 @@ jobs:
           path: |
             www/kimia-routines-v3-card.js
             docs/KIMIA_ROUTINES_V3_INSTALLATION.md
+          retention-days: 30
+
+      - name: Pack isolé KIMIA Routines V3.1 — Conditions élargies
+        uses: actions/upload-artifact@v4
+        with:
+          name: KIMIA-Routines-V31-Conditions-Test
+          path: |
+            www/kimia-routines-v3-card.js
+            docs/KIMIA_ROUTINES_V31_CONDITIONS.md
           retention-days: 30
