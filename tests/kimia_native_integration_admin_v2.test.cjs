@@ -131,6 +131,7 @@ const all=view=>(view?.sections||[]).flatMap(s=>s.cards||[]);
  const countBefore=writes.length;
  const again=await window.KimiaSmartCore.sync(hass);
  assert.equal(again.state,"ok");
+ console.log("DEBUG second sync :",JSON.stringify({second:again,writes:writes.slice(countBefore)}));
  assert.equal(writes.length,countBefore,
   "AUCUNE nouvelle sauvegarde au deuxième Actualiser ma maison");
  console.log("KIMIA réel + admin OK : boutons existants, 2 dashboards synchronisés, native-only, idempotence, aucune navigation historique changée.");
