@@ -79,7 +79,7 @@ function guardSimple(d){
   if(x.type==="call"&&!basicDomains.includes(x.entity?.split(".")[0]))return false;
  }
  return (d.triggers||[]).every(x=>basicTriggers.includes(x.type)&&
-  (x.type!=="state"||(!x.from&&!x.seconds)))&&
+  (x.type!=="state"||!x.from))&&
   (d.conditions||[]).every(simpleCondition);
 }
 const CSS=[
