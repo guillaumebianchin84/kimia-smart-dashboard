@@ -71,6 +71,7 @@ function guardSimple(d){
  const basicActions=["call","delay"];
  const basicTriggers=["time","sun","state","numeric_state"];
  const basicConditions=["time","sun","state","numeric_state"];
+ const simpleCondition=x=>basicConditions.includes(x.type)||(["and","or","not"].includes(x.type)&&Array.isArray(x.conditions)&&x.conditions.length>0&&x.conditions.every(y=>basicConditions.includes(y.type)));
  const basicDomains=["light","cover","switch","climate","fan","media_player","scene","script"];
  for(const x of d.actions||[]){
   if(!basicActions.includes(x.type))return false;
@@ -79,8 +80,7 @@ function guardSimple(d){
  }
  return (d.triggers||[]).every(x=>basicTriggers.includes(x.type)&&
   (x.type!=="state"||(!x.from&&!x.seconds)))&&
-  (d.conditions||[]).every(x=>basicConditions.includes(x.type)&&
-  (x.type!=="time"||!(x.weekdays||[]).length));
+  (d.conditions||[]).every(simpleCondition);
 }
 const CSS=[
  ":host{display:block;color:var(--primary-text-color)}*{box-sizing:border-box}button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.48;cursor:not-allowed}button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--primary-color,#06a6a1);outline-offset:3px}",
@@ -103,6 +103,7 @@ class Card extends HTMLElement{
   this._page="home";this._filter="all";this._query="";this._draft=null;this._editing=null;
   this._drawer=null;this._entry=null;this._busy=false;this._notice="";this._error=false;
   this._experimental=false;this._triggerOptions=false;this._conditionsVisible=false;
+  this._groupDraft=null;this._groupChildEditor=false;this._groupChildIndex=null;
   this._lastDigest="";
   this.shadowRoot.addEventListener("click",ev=>this._click(ev));
   this.shadowRoot.addEventListener("input",ev=>this._input(ev));
@@ -236,7 +237,8 @@ class Card extends HTMLElement{
    '</div></section>';
  }
  _stepLabel(type,x){
-  if(type==="action"){
+   if(type==="condition"&&["and","or","not"].includes(x.type))return (x.type==="and"?"Toutes les conditions (ET)":x.type==="or"?"Au moins une (OU)":"Aucune (NON)")+" · "+(x.conditions?.length||0)+" critère(s)";
+   if(type==="action"){
    if(x.type==="delay")return "Attendre "+(x.seconds||0)+" secondes";
    if(x.type!=="call")return "Action avancée";
    const ent=this._allEntities(null,true).find(r=>r.id===x.entity);
@@ -245,7 +247,7 @@ class Card extends HTMLElement{
    return fn+" · "+(ent?.label||x.entity)+val;
   }
   if(x.type==="time")return type==="trigger"?"À "+(x.at||"l’heure choisie"):
-   "Dans la plage "+(x.after||"")+" – "+(x.before||"");
+   "Dans la plage "+(x.after||"")+" – "+(x.before||"")+((x.weekdays||[]).length?" · "+x.weekdays.join(", "):"");
   if(x.type==="sun")return type==="trigger"?(x.event==="sunrise"?"Au lever":"Au coucher")+" du soleil":
    "Selon le lever/coucher du soleil";
   const ent=this._allEntities(null,true).find(r=>r.id===x.entity);
@@ -270,6 +272,8 @@ class Card extends HTMLElement{
  }
  _open(type,index=null){
   this._drawer=type;this._idx=index;this._entry=this._makeEntry(type,index);
+   this._groupDraft=type==="condition"&&["and","or","not"].includes(this._entry?.type)?cp(this._entry):null;
+   this._groupChildEditor=false;this._groupChildIndex=null;
   if(!this._entry){this._entry=type==="action"?null:type==="condition"?null:null;}
   this._pickerCat="";this._pickArea="*";this._pickEntity="";this._pickSearch="";this._render();
  }
@@ -397,7 +401,7 @@ class Card extends HTMLElement{
    '<p class="km-muted" style="margin-top:12px">Templates, boucles, branches parallèles, helpers et services particuliers restent accessibles dans l’éditeur HA natif.</p>'+
    '<div style="margin-top:12px">'+this._native(d.kind,this._editing?.id)+'</div></div>';
  }
- _clearPicker(){this._drawer=null;this._entry=null;this._pickerCat="";this._pickArea="*";this._pickEntity="";this._pickOp="";this._pickValue=undefined;this._pickSearch="";this._idx=null;}
+ _clearPicker(){this._drawer=null;this._entry=null;this._pickerCat="";this._pickArea="*";this._pickEntity="";this._pickOp="";this._pickValue=undefined;this._pickSearch="";this._idx=null;this._groupDraft=null;this._groupChildEditor=false;this._groupChildIndex=null;}
  _pickerData(){
   const root=this.shadowRoot;
   const val=id=>root.getElementById(id)?.value??"";
