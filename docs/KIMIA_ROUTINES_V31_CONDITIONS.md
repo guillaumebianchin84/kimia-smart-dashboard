@@ -27,3 +27,16 @@ Limites : météo = état fourni par l'entité météo (ce n'est pas une prévis
 
 ## Annuler
 Restaurer l'ancien fichier V3 puis remettre la ressource à `?v=300` et rafraîchir le navigateur. Les scripts/automatisations créés volontairement sont des objets HA réels et ne seront pas supprimés lors du retour arrière.
+
+## Décisions produit en attente du matériel (27 octobre 2026)
+L'utilisateur valide l'interface actuelle et préfère **ne plus modifier ni réinstaller maintenant** pour un détail de sélecteur. Il attend la réception de la **clé/coordonateur Zigbee** et d'une **prise connectée** pour réaliser ses premiers essais réels de scripts et d'automatisations, puis ajouter d'autres éléments si nécessaire.
+
+**Choix matériels et marques déjà documentés dans `docs/KIMIA_ADMIN_PIECES_ZIGBEE_V02.md` : SONOFF et LEDVANCE, pour leurs produits Zigbee compatibles ZHA, avec SMLIGHT SLZB-06U comme coordinateur prévu.** Vérifier l'identification du produit reçu avant de déduire ses capacités. Ne pas annoncer que toutes les références, générations ou protocoles de ces deux marques sont automatiquement supportés par ZHA : les produits Wi-Fi/Matter/tiers requièrent une intégration HA adaptée.
+
+**Travail futur, à faire après essai matériel, et limité à l'éditeur Routines :**
+1. Dans les sélecteurs de scripts **et** d'automatisations, afficher les entités HA des appareils hors ligne et des entités temporairement inconnues, avec le statut « Indisponible » ou « État inconnu » visuellement atténué plutôt que les supprimer. Les appareils `off` doivent rester sélectionnables. Ne pas provoquer de commande réelle pendant la sélection.
+2. Améliorer progressivement la couverture des gammes SONOFF et LEDVANCE **selon les entités, états, fonctionnalités et actions réellement exposés par HA/ZHA**, plutôt qu'une liste codée de modèles ou une promesse de compatibilité universelle : éclairage on/off, luminosité, couleur, températures de couleur, prises et mesure d'énergie, capteurs (mouvement/contact/température/humidité), boutons, et autres commandes quand elles sont disponibles.
+3. Conserver l'apparence Routines V3 déjà appréciée, les notions QUAND / SI / ALORS et SI / ACTIONS, les conditions déjà ajoutées et la garantie de sauvegarde sans perte. Les scripts et automatismes existants restent intacts. Une capacité inconnue ou non représentable dans KIMIA doit être dirigée vers l'éditeur Home Assistant natif.
+4. Définir les tests à partir de la prise et du coordinateur reçus : jumelage ZHA, remontée entités, sélection dans l'éditeur, création d'un script manuel et d'une automatisation horaire/état, sauvegarde sans lancement, exécution volontaire et journaux HA. Ajouter d'autres appareils réels dans un second temps.
+
+**Gel du reste du projet :** ne modifier ni `kimia-smart-core-v1.js`, ni le moteur V1.6, ni le dashboard, ni la navbar, ni les thèmes, profils, cartes, listes ou Maquette. Pas de nouvelle version installée ou de modifications maintenant : attendre la campagne de tests matérielle.
