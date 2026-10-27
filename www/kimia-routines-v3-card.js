@@ -324,30 +324,72 @@ class Card extends HTMLElement{
   return '<div class="km-tool"><div class="km-tool-head">'+(item?"Modifier l’action":"Que veux-tu faire ?")+'</div>'+
    tiles+settings+this._pickerFooter("action")+'</div>';
  }
+ _logicDomains(preset,draft){
+  if(preset==="numeric_state")return ["sensor","number","input_number"];
+  if(preset==="presence")return ["person","device_tracker"];
+  if(preset==="weather")return ["weather"];
+  if(draft?.entity?.startsWith("weather."))return ["weather"];
+  if(["person","device_tracker"].includes(draft?.entity?.split(".")[0]))return ["person","device_tracker"];
+  return ["light","binary_sensor","sensor","switch","cover","climate","person","device_tracker","input_boolean","sun","weather"];
+ }
+ _groupPicker(selection){
+  if(!this._groupDraft||this._groupDraft.type!==selection)
+   this._groupDraft={type:selection,conditions:[]};
+  const group=this._groupDraft;
+  const name=selection==="and"?"Toutes vraies (ET)":selection==="or"?
+   "Au moins une vraie (OU)":"Aucune vraie (NON)";
+  const lines=group.conditions.map((x,i)=>'<div class="km-line"><span class="km-bullet">'+icon("mdi:check-circle-outline")+'</span>'+
+   '<span class="km-ltext">'+esc(this._stepLabel("condition",x))+'</span><div class="km-row">'+
+   this._btn(icon("mdi:pencil"),"group-child-edit","flat small",'data-index="'+i+'" aria-label="Modifier le critère"')+
+   this._btn(icon("mdi:close"),"group-child-remove","flat small",'data-index="'+i+'" aria-label="Retirer le critère"')+
+   '</div></div>').join("");
+  return '<div class="km-tool"><div class="km-tool-head">'+esc(name)+'</div>'+
+   '<p class="km-muted">Crée un groupe de critères. Il fonctionne dans les scripts comme dans les automatisations.</p>'+
+   (lines||'<div class="km-empty">Aucun critère ajouté.</div>')+
+   this._btn(icon("mdi:plus-circle")+" Ajouter un critère","group-child-add","flat")+
+   '<div class="km-row wrap" style="justify-content:flex-end;margin-top:14px">'+
+   this._btn("Annuler","close","flat small")+
+   this._btn(icon("mdi:check")+" Valider le groupe","apply","main small",'data-type="condition"')+'</div></div>';
+ }
  _logicPicker(type){
   const item=this._entry,trigger=type==="trigger",selection=this._pickerCat||item?.type||"";
+  if(!trigger&&!this._groupChildEditor&&["and","or","not"].includes(selection))
+   return this._groupPicker(selection);
   const options=trigger?[
    ["time","À une heure","mdi:clock-outline"],
    ["sun","Avec le soleil","mdi:weather-sunset"],
    ["state","Quand un appareil change","mdi:motion-sensor"],
+   ["presence","Arrivée / départ","mdi:home-account"],
    ["numeric_state","Quand un seuil est franchi","mdi:thermometer"]
   ]:[
    ["state","État d’un appareil","mdi:toggle-switch"],
    ["numeric_state","Température / valeur","mdi:thermometer"],
-   ["time","Plage horaire","mdi:clock-outline"],
-   ["sun","Jour ou nuit","mdi:weather-sunset"]
+   ["presence","Présence / localisation","mdi:account-map-marker-outline"],
+   ["weather","Météo","mdi:weather-partly-cloudy"],
+   ["time","Horaires et jours","mdi:clock-outline"],
+   ["sun","Jour ou nuit","mdi:weather-sunset"],
+   ...(!this._groupChildEditor?[
+    ["and","Toutes vraies (ET)","mdi:check-all"],
+    ["or","Au moins une (OU)","mdi:source-branch"],
+    ["not","Aucune vraie (NON)","mdi:close-circle-outline"]
+   ]:[])
   ];
+  const resolved=["presence","weather"].includes(selection)?"state":selection;
+  const draft=item&&item.type===resolved?item:
+   selection?(trigger?engine().trigger(resolved):engine().condition(resolved)):null;
   let details="";
-  const draft=item&&item.type===selection?item:
-   selection?(trigger?engine().trigger(selection):engine().condition(selection)):null;
   if(selection&&draft){
-   const attrs=['data-field="event"'];
-   if(selection==="time"){
-    details=trigger?
-     '<label class="km-field">Heure<input class="km-input" id="logic-at" type="time" value="'+esc(draft.at||"07:00")+'"/></label>':
-     '<div class="km-formgrid"><label class="km-field">À partir de<input class="km-input" id="logic-after" type="time" value="'+esc(draft.after||"19:00")+'"/></label>'+
-     '<label class="km-field">Jusqu’à<input class="km-input" id="logic-before" type="time" value="'+esc(draft.before||"07:00")+'"/></label></div>';
-   }else if(selection==="sun"){
+   if(resolved==="time"){
+    if(trigger)details='<label class="km-field">Heure<input class="km-input" id="logic-at" type="time" value="'+esc(draft.at||"07:00")+'"/></label>';
+    else{
+     const days=[["mon","Lun"],["tue","Mar"],["wed","Mer"],["thu","Jeu"],["fri","Ven"],["sat","Sam"],["sun","Dim"]];
+     details='<div class="km-formgrid"><label class="km-field">À partir de<input class="km-input" id="logic-after" type="time" value="'+esc(draft.after||"")+'"/></label>'+
+      '<label class="km-field">Jusqu’à<input class="km-input" id="logic-before" type="time" value="'+esc(draft.before||"")+'"/></label></div>'+
+      '<label class="km-field">Jours (aucun = tous les jours)</label>'+
+      '<div id="logic-weekdays" class="km-row wrap" style="margin:9px 0">'+days.map(([key,label])=>
+       '<label class="km-chip"><input type="checkbox" value="'+key+'"'+((draft.weekdays||[]).includes(key)?" checked":"")+'/> '+label+'</label>').join("")+'</div>';
+    }
+   }else if(resolved==="sun"){
     if(trigger)details='<label class="km-field">Événement<select class="km-input" id="logic-event">'+
       opt("sunrise","Lever du soleil",draft.event)+opt("sunset","Coucher du soleil",draft.event)+'</select></label>'+
       '<label class="km-field">Décalage (minutes, facultatif)<input class="km-input" id="logic-offset" type="number" min="-720" max="720" value="'+esc(draft.offset||0)+'"/></label>';
@@ -356,10 +398,8 @@ class Card extends HTMLElement{
       '<label class="km-field">Avant<select class="km-input" id="logic-before">'+
       opt("sunrise","Lever du soleil",draft.before)+opt("sunset","Coucher du soleil",draft.before)+'</select></label></div>';
    }else{
-    const permitted=selection==="numeric_state"?
-     ["sensor","number","input_number"]:
-     ["light","binary_sensor","sensor","switch","cover","climate","person","device_tracker","input_boolean","sun"];
-    const es=this._allEntities(null,this._experimental).filter(x=>permitted.includes(x.domain));
+    const domains=this._logicDomains(selection,draft);
+    const es=this._allEntities(null,this._experimental).filter(x=>domains.includes(x.domain));
     const areaSet=new Set(es.map(x=>x.area));
     const filtered=es.filter(x=>(this._pickArea==="*"||x.area===this._pickArea)&&
      (x.label.toLowerCase().includes(this._pickSearch.toLowerCase())||x.id.includes(this._pickSearch.toLowerCase())));
@@ -368,20 +408,32 @@ class Card extends HTMLElement{
      '<label class="km-field">Pièce<select class="km-input" id="pick-area">'+
       opt("*","Toutes les pièces",this._pickArea)+
       [...areaSet].map(area=>opt(area,es.find(x=>x.area===area)?.areaName||"Autres équipements",this._pickArea)).join("")+
-     '</select></label><label class="km-field">Rechercher un capteur<input id="pick-search" class="km-input" placeholder="Ex. mouvement, température…" value="'+esc(this._pickSearch)+'"/></label></div>'+
+     '</select></label><label class="km-field">Rechercher un appareil ou capteur<input id="pick-search" class="km-input" placeholder="Ex. mouvement, température…" value="'+esc(this._pickSearch)+'"/></label></div>'+
      '<div class="km-selection" id="pick-entities">'+
-     (filtered.length?filtered.map(x=>'<button type="button" class="km-device'+(x.id===selected?" selected":"")+'" data-do="select-entity" data-id="'+esc(x.id)+'">'+esc(x.label)+'<small>'+esc(x.areaName)+'</small></button>').join(""):'<div class="km-empty">Aucun capteur ici.</div>')+'</div>';
-    if(selection==="state")details+='<label class="km-field" style="margin-top:9px">'+
-     (trigger?"Nouvel état":"État attendu")+
-     '<select id="logic-state" class="km-input">'+
-      [...new Set([trigger?draft.to:draft.state,"on","off","open","closed","home","not_home","below_horizon","above_horizon"].filter(Boolean))]
-       .map(v=>opt(v,v,trigger?draft.to:draft.state)).join("")+'</select></label>';
-    else details+='<div class="km-formgrid" style="margin-top:9px">'+
-     '<label class="km-field">Au-dessus de<input id="logic-above" class="km-input" type="number" step="any" value="'+esc(draft.above||"")+'"/></label>'+
-     '<label class="km-field">En dessous de<input id="logic-below" class="km-input" type="number" step="any" value="'+esc(draft.below||"")+'"/></label></div>';
+      (filtered.length?filtered.map(x=>'<button type="button" class="km-device'+(x.id===selected?" selected":"")+'" data-do="select-entity" data-id="'+esc(x.id)+'">'+esc(x.label)+'<small>'+esc(x.areaName)+'</small></button>').join(""):'<div class="km-empty">Aucun appareil pour cette catégorie.</div>')+'</div>';
+    if(resolved==="state"){
+     const stateValue=trigger?draft.to:draft.state;
+     const domain=selected?.split(".")[0];
+     const zones=Object.entries(this._hass?.states||{}).filter(([id])=>id.startsWith("zone."))
+      .map(([id,s])=>s.attributes?.friendly_name||id.slice(5));
+     const states=domain==="weather"||selection==="weather"?
+      ["sunny","clear-night","partlycloudy","cloudy","rainy","pouring","lightning","lightning-rainy","snowy","snowy-rainy","fog","hail","windy","windy-variant","exceptional"]:
+      (["person","device_tracker"].includes(domain)||selection==="presence")?
+      ["home","not_home",...zones]:["on","off","open","closed","home","not_home","below_horizon","above_horizon"];
+     const current=this._hass?.states?.[selected]?.state;
+     details+='<label class="km-field" style="margin-top:9px">'+(trigger?"Nouvel état":"État attendu")+
+      '<input id="logic-state" class="km-input" list="kimia-state-examples" placeholder="Choisir ou saisir un état" value="'+esc(stateValue||"on")+'"/>'+
+      '<datalist id="kimia-state-examples">'+[...new Set([stateValue,current,...states].filter(v=>v!==undefined&&v!==null&&v!==""))]
+       .map(v=>'<option value="'+esc(v)+'"></option>').join("")+'</datalist></label>';
+     if(trigger)details+='<label class="km-field" style="margin-top:9px">Durée dans cet état (secondes, 0 = immédiat)'+
+      '<input id="logic-seconds" class="km-input" type="number" min="0" max="86400" step="1" value="'+esc(draft.seconds||0)+'"/></label>';
+    }else details+='<div class="km-formgrid" style="margin-top:9px">'+
+      '<label class="km-field">Au-dessus de<input id="logic-above" class="km-input" type="number" step="any" value="'+esc(draft.above||"")+'"/></label>'+
+      '<label class="km-field">En dessous de<input id="logic-below" class="km-input" type="number" step="any" value="'+esc(draft.below||"")+'"/></label></div>';
    }
   }
-  return '<div class="km-tool"><div class="km-tool-head">'+(trigger?"Quand cela doit-il se produire ?":"Quelle condition vérifier ?")+'</div>'+
+  return '<div class="km-tool"><div class="km-tool-head">'+(trigger?"Quand cela doit-il se produire ?":
+   this._groupChildEditor?"Choisir un critère du groupe":"Quelle condition vérifier ?")+'</div>'+
    '<div class="km-tiles">'+options.map(([key,name,ico])=>'<button class="km-tile'+(selection===key?" selected":"")+
     '" type="button" data-do="logic-type" data-value="'+key+'">'+icon(ico)+esc(name)+'</button>').join("")+'</div>'+
    (details?'<div class="km-divider"></div>'+details:"")+
