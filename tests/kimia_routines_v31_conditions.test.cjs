@@ -52,7 +52,7 @@ assert.equal(card._logicPicker("trigger").includes("Arrivée / départ"),true);
 card._groupDraft={type:"and",conditions:[stateCond,weatherCond]};
 card._pickerCat="and";
 assert(card._groupPicker("and").includes("Ajouter un critère"));
-assert(card._groupPicker("and").includes("Jade")===false); // ID not friendly in generic mock
+assert(card._groupPicker("and").includes("Jade")); // Le libellé de Home Assistant est préservé
 const controls={
  "logic-after":{value:""},
  "logic-before":{value:""},
