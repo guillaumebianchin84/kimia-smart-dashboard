@@ -9,6 +9,8 @@ Ce dossier est **indépendant** de la mécanique V5, des dashboards KIMIA et du 
 - [visage-lvgl.yaml](./visage-lvgl.yaml) : paquet ESPHome/LVGL avec yeux, pupilles, bouche, clignements, mouvements du regard et écran tactile (360×360).
 - [apercu.svg](./apercu.svg) : **maquette statique**, pas une capture d'écran d'un firmware exécuté.
 - [INTEGRATION_AUDIO_ET_ASSIST.md](./INTEGRATION_AUDIO_ET_ASSIST.md) : raccordement futur aux états Assist, au micro XVF3800 et au volume réel.
+- [SCHEMA_CABLAGE_REV_B.md](./SCHEMA_CABLAGE_REV_B.md) : tableau détaillé des broches ESP32-S3, de l'écran Waveshare, des capteurs et du XVF3800.
+- [schema_cablage_rev_b.svg](./schema_cablage_rev_b.svg) : schéma de câblage illustré (version d'étude, non validée électriquement).
 
 ## Ce que fait déjà le code
 
