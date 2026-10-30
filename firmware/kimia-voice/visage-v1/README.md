@@ -37,15 +37,12 @@ Dans **une configuration de test ESPHome**, déjà dotée de l'afficheur `displa
 
 ```yaml
 packages:
-  kimia_face:
-    # Exemple : importer ce fichier depuis le dépôt privé avec les moyens
-    # de déploiement de l'environnement de développement.
-    file: visage-lvgl.yaml
+  kimia_face: !include visage-lvgl.yaml
 ```
 
-Le bloc ci-dessus suppose que le fichier a été copié localement, ou chargé par une inclusion de package Git ESPHome correctement configurée. **Il ne constitue pas une configuration autonome compilable** : il ne contient ni `esp32:`, ni le pilotage QSPI ST77916 du Waveshare, ni le tactile CST816S, ni le câblage I2S du XVF3800.
+Le bloc ci-dessus suppose que le fichier `visage-lvgl.yaml` a été copié dans le même répertoire que la configuration de test. Pour accéder à ce dépôt **privé** via Git, une authentification adaptée est nécessaire. **Il ne constitue pas une configuration autonome compilable** : il ne contient ni `esp32:`, ni le pilotage QSPI ST77916 du Waveshare, ni le tactile CST816S, ni le câblage I2S du XVF3800.
 
-Pour contrôler le visage sans matériel audio, on peut temporairement déclencher les scripts `kimia_face_idle`, `kimia_face_listening`, `kimia_face_thinking`, `kimia_face_speaking`, `kimia_face_error` depuis une configuration ESPHome de test.
+Pour contrôler le visage sans matériel audio, la nouvelle entité de test `KIMIA V5 - etat visage a tester (DEMO)` permet de choisir `Repos`, `Ecoute`, `Reflexion`, `Parole` ou `Erreur` depuis Home Assistant. Les scripts `kimia_face_*` peuvent aussi être déclenchés depuis les événements Assist plus tard.
 
 ## Suite proposée — ordre de validation
 
