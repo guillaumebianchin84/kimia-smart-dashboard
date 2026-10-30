@@ -1,0 +1,395 @@
+# KIMIA Voice V5 - Visage minimal ESPHome/LVGL - PROTOTYPE UI UNIQUEMENT
+# Charger ce fichier comme un package dans une configuration ESPHome existante
+# qui fournit deja un ecran LVGL tactile 360x360.
+# Ne contient ni driver Waveshare, ni configuration micro/XVF3800.
+# IMPORTANT : micro/son/volume sont des CONSIGNES DEMO, sans effet sur le
+# materiel audio tant que le pont de commande n'est pas raccorde et teste.
+
+globals:
+  - id: kimia_face_phase
+    type: int
+    restore_value: no
+    initial_value: '0'  # 0 repos, 1 ecoute, 2 reflexion, 3 parole, 4 erreur
+  - id: kimia_mouth_is_open
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
+switch:
+  - platform: template
+    name: "KIMIA V5 - demande micro actif (DEMO)"
+    id: kimia_ui_mic_requested
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    on_turn_on:
+      - lvgl.label.update:
+          id: kimia_lbl_mic
+          text: "MIC ON"
+      - logger.log: "KIMIA UI: micro demande ON (AUCUN pilotage physique)"
+    on_turn_off:
+      - lvgl.label.update:
+          id: kimia_lbl_mic
+          text: "MIC OFF"
+      - logger.log: "KIMIA UI: micro demande OFF (AUCUN pilotage physique)"
+
+  - platform: template
+    name: "KIMIA V5 - demande son actif (DEMO)"
+    id: kimia_ui_sound_requested
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    on_turn_on:
+      - lvgl.label.update:
+          id: kimia_lbl_sound
+          text: "SON ON"
+      - logger.log: "KIMIA UI: son demande ON (AUCUN pilotage physique)"
+    on_turn_off:
+      - lvgl.label.update:
+          id: kimia_lbl_sound
+          text: "SON OFF"
+      - logger.log: "KIMIA UI: son demande OFF (AUCUN pilotage physique)"
+
+number:
+  - platform: template
+    name: "KIMIA V5 - volume souhaite (DEMO)"
+    id: kimia_ui_volume_requested
+    optimistic: true
+    restore_value: true
+    initial_value: 50
+    min_value: 0
+    max_value: 100
+    step: 5
+    mode: slider
+    on_value:
+      - lvgl.label.update:
+          id: kimia_lbl_volume
+          text:
+            format: "VOL %.0f%%"
+            args: [x]
+      - logger.log:
+          format: "KIMIA UI: volume souhaite %.0f%% (AUCUN pilotage physique)"
+          args: [x]
+
+script:
+  # Entrees d'etats appelees PLUS TARD depuis voice_assistant: (voir doc).
+  - id: kimia_face_idle
+    mode: restart
+    then:
+      - lambda: 'id(kimia_face_phase) = 0;'
+      - script.execute: kimia_face_refresh
+  - id: kimia_face_listening
+    mode: restart
+    then:
+      - lambda: 'id(kimia_face_phase) = 1;'
+      - script.execute: kimia_face_refresh
+  - id: kimia_face_thinking
+    mode: restart
+    then:
+      - lambda: 'id(kimia_face_phase) = 2;'
+      - script.execute: kimia_face_refresh
+  - id: kimia_face_speaking
+    mode: restart
+    then:
+      - lambda: 'id(kimia_face_phase) = 3;'
+      - script.execute: kimia_face_refresh
+  - id: kimia_face_error
+    mode: restart
+    then:
+      - lambda: 'id(kimia_face_phase) = 4;'
+      - script.execute: kimia_face_refresh
+
+  - id: kimia_face_refresh
+    mode: restart
+    then:
+      - lvgl.page.show: kimia_page_face
+      - if:
+          condition:
+            lambda: 'return id(kimia_face_phase) == 0;'
+          then:
+            - lvgl.label.update:
+                id: kimia_lbl_status
+                text: "Bonjour !"
+            - lvgl.widget.update:
+                id: kimia_mouth
+                x: 146
+                y: 222
+                width: 68
+                height: 9
+                radius: 5
+                bg_color: 0x55DCC5
+      - if:
+          condition:
+            lambda: 'return id(kimia_face_phase) == 1;'
+          then:
+            - lvgl.label.update:
+                id: kimia_lbl_status
+                text: "Je t'ecoute"
+            - lvgl.widget.update:
+                id: kimia_mouth
+                x: 169
+                y: 214
+                width: 22
+                height: 25
+                radius: 12
+                bg_color: 0x55DCC5
+      - if:
+          condition:
+            lambda: 'return id(kimia_face_phase) == 2;'
+          then:
+            - lvgl.label.update:
+                id: kimia_lbl_status
+                text: "Je reflechis..."
+            - lvgl.widget.update:
+                id: kimia_mouth
+                x: 170
+                y: 222
+                width: 20
+                height: 8
+                radius: 4
+                bg_color: 0x55DCC5
+      - if:
+          condition:
+            lambda: 'return id(kimia_face_phase) == 3;'
+          then:
+            - lvgl.label.update:
+                id: kimia_lbl_status
+                text: "Je te reponds"
+            - lvgl.widget.update:
+                id: kimia_mouth
+                x: 165
+                y: 216
+                width: 30
+                height: 20
+                radius: 10
+                bg_color: 0x55DCC5
+      - if:
+          condition:
+            lambda: 'return id(kimia_face_phase) == 4;'
+          then:
+            - lvgl.label.update:
+                id: kimia_lbl_status
+                text: "Oups..."
+            - lvgl.widget.update:
+                id: kimia_mouth
+                x: 159
+                y: 223
+                width: 42
+                height: 7
+                radius: 3
+                bg_color: 0xFF887B
+
+  - id: kimia_face_blink
+    mode: single
+    then:
+      - lvgl.widget.update:
+          id: [kimia_eye_left, kimia_eye_right]
+          height: 5
+          radius: 3
+      - delay: 140ms
+      - lvgl.widget.update:
+          id: [kimia_eye_left, kimia_eye_right]
+          height: 64
+          radius: 20
+
+  - id: kimia_face_look_around
+    mode: single
+    then:
+      - lvgl.widget.update:
+          id: [kimia_pupil_left, kimia_pupil_right]
+          x: 9
+      - delay: 650ms
+      - lvgl.widget.update:
+          id: [kimia_pupil_left, kimia_pupil_right]
+          x: 27
+      - delay: 650ms
+      - lvgl.widget.update:
+          id: [kimia_pupil_left, kimia_pupil_right]
+          x: 18
+
+interval:
+  - interval: 5s
+    then:
+      - if:
+          condition:
+            lambda: 'return id(kimia_face_phase) == 0 || id(kimia_face_phase) == 2;'
+          then:
+            - script.execute: kimia_face_blink
+  - interval: 9s
+    then:
+      - if:
+          condition:
+            lambda: 'return id(kimia_face_phase) == 0;'
+          then:
+            - script.execute: kimia_face_look_around
+  - interval: 260ms
+    then:
+      - if:
+          condition:
+            lambda: 'return id(kimia_face_phase) == 3;'
+          then:
+            - lambda: 'id(kimia_mouth_is_open) = !id(kimia_mouth_is_open);'
+            - if:
+                condition:
+                  lambda: 'return id(kimia_mouth_is_open);'
+                then:
+                  - lvgl.widget.update:
+                      id: kimia_mouth
+                      x: 165
+                      y: 212
+                      width: 30
+                      height: 29
+                      radius: 14
+                else:
+                  - lvgl.widget.update:
+                      id: kimia_mouth
+                      x: 165
+                      y: 225
+                      width: 30
+                      height: 7
+                      radius: 3
+
+lvgl:
+  pages:
+    - id: kimia_page_face
+      skip: true
+      bg_color: 0x0B1629
+      widgets:
+        - label:
+            x: 145
+            y: 33
+            text: "KIMIA"
+            text_color: 0x55DCC5
+        - label:
+            id: kimia_lbl_status
+            x: 122
+            y: 65
+            text: "Bonjour !"
+            text_color: 0xF4F9FA
+        - obj:
+            id: kimia_eye_left
+            x: 94
+            y: 126
+            width: 56
+            height: 64
+            radius: 20
+            bg_color: 0xF7FAFC
+            border_width: 0
+            pad_all: 0
+            scrollable: false
+            widgets:
+              - obj:
+                  id: kimia_pupil_left
+                  x: 18
+                  y: 19
+                  width: 20
+                  height: 25
+                  radius: 10
+                  bg_color: 0x172838
+                  border_width: 0
+        - obj:
+            id: kimia_eye_right
+            x: 210
+            y: 126
+            width: 56
+            height: 64
+            radius: 20
+            bg_color: 0xF7FAFC
+            border_width: 0
+            pad_all: 0
+            scrollable: false
+            widgets:
+              - obj:
+                  id: kimia_pupil_right
+                  x: 18
+                  y: 19
+                  width: 20
+                  height: 25
+                  radius: 10
+                  bg_color: 0x172838
+                  border_width: 0
+        - obj:
+            id: kimia_mouth
+            x: 146
+            y: 222
+            width: 68
+            height: 9
+            radius: 5
+            bg_color: 0x55DCC5
+            border_width: 0
+        # Boutons situes dans la zone utile d'un ecran rond 360 x 360.
+        - button:
+            id: kimia_btn_mic
+            x: 44
+            y: 261
+            width: 65
+            height: 42
+            radius: 13
+            bg_color: 0x1C344B
+            on_click:
+              - switch.toggle: kimia_ui_mic_requested
+            widgets:
+              - label:
+                  id: kimia_lbl_mic
+                  align: CENTER
+                  text: "MIC ON"
+                  text_color: 0xFFFFFF
+        - button:
+            id: kimia_btn_sound
+            x: 113
+            y: 261
+            width: 65
+            height: 42
+            radius: 13
+            bg_color: 0x1C344B
+            on_click:
+              - switch.toggle: kimia_ui_sound_requested
+            widgets:
+              - label:
+                  id: kimia_lbl_sound
+                  align: CENTER
+                  text: "SON ON"
+                  text_color: 0xFFFFFF
+        - button:
+            id: kimia_btn_less
+            x: 182
+            y: 261
+            width: 65
+            height: 42
+            radius: 13
+            bg_color: 0x1C344B
+            on_click:
+              - number.decrement:
+                  id: kimia_ui_volume_requested
+                  cycle: false
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "-"
+                  text_color: 0xFFFFFF
+        - button:
+            id: kimia_btn_more
+            x: 251
+            y: 261
+            width: 65
+            height: 42
+            radius: 13
+            bg_color: 0x1C344B
+            on_click:
+              - number.increment:
+                  id: kimia_ui_volume_requested
+                  cycle: false
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "+"
+                  text_color: 0xFFFFFF
+        - label:
+            id: kimia_lbl_volume
+            x: 151
+            y: 320
+            text: "VOL 50%"
+            text_color: 0x92AABD
+        - label:
+            x: 142
+            y: 346
+            text: "DEMO UI"
+            text_color: 0x526A80
