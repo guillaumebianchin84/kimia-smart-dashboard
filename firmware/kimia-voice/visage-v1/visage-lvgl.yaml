@@ -69,6 +69,41 @@ number:
           format: "KIMIA UI: volume souhaite %.0f%% (AUCUN pilotage physique)"
           args: [x]
 
+# Selecteur de test dans Home Assistant : simulation des phases sans micro.
+select:
+  - platform: template
+    name: "KIMIA V5 - etat visage a tester (DEMO)"
+    id: kimia_ui_demo_phase
+    optimistic: true
+    options: ["Repos", "Ecoute", "Reflexion", "Parole", "Erreur"]
+    initial_option: "Repos"
+    set_action:
+      - if:
+          condition:
+            lambda: 'return x == "Repos";'
+          then:
+            - script.execute: kimia_face_idle
+      - if:
+          condition:
+            lambda: 'return x == "Ecoute";'
+          then:
+            - script.execute: kimia_face_listening
+      - if:
+          condition:
+            lambda: 'return x == "Reflexion";'
+          then:
+            - script.execute: kimia_face_thinking
+      - if:
+          condition:
+            lambda: 'return x == "Parole";'
+          then:
+            - script.execute: kimia_face_speaking
+      - if:
+          condition:
+            lambda: 'return x == "Erreur";'
+          then:
+            - script.execute: kimia_face_error
+
 script:
   # Entrees d'etats appelees PLUS TARD depuis voice_assistant: (voir doc).
   - id: kimia_face_idle
@@ -250,7 +285,7 @@ interval:
 lvgl:
   pages:
     - id: kimia_page_face
-      skip: true
+      skip: false
       bg_color: 0x0B1629
       widgets:
         - label:
