@@ -13,14 +13,14 @@ views:
             icon: mdi:floor-plan
           - type: markdown
             content: >-
-              Découvrez votre logement sur un plan interactif.
-              L'installateur peut y placer lumières, volets et capteurs.
+              Le plan interactif Maquette est désormais l'accueil de KIMIA.
+              L'installateur peut y associer les lumières, volets et capteurs, et configurer les scénarios.
           - type: button
-            name: Ouvrir le plan de maison
+            name: Ouvrir ma maison
             icon: mdi:floor-plan
             tap_action:
               action: navigate
-              navigation_path: /kimia-smart/plan
+              navigation_path: /kimia-smart/accueil
             grid_options:
               columns: 12
               rows: 2
@@ -195,24 +195,14 @@ views:
           - type: heading
             heading: Contenu de l'accueil
             icon: mdi:view-dashboard-outline
-          - type: tile
-            entity: input_select.kimia_meteo_visible
-            name: Afficher la météo
-            icon: mdi:weather-partly-cloudy
-            tap_action:
-              action: more-info
-            grid_options:
-              columns: 6
-              rows: 1
-          - type: tile
-            entity: input_select.kimia_journal_visible
-            name: Afficher les actualités
-            icon: mdi:newspaper-variant-outline
-            tap_action:
-              action: more-info
-            grid_options:
-              columns: 6
-              rows: 1
+          - type: markdown
+            content: >-
+              L'accueil réunit le plan interactif, les raccourcis,
+              la météo et un aperçu du journal.
+              Les panneaux et widgets sont personnalisés
+              par l'installateur dans l'éditeur Maquette.
+              Les actualités détaillées restent disponibles
+              dans leur propre onglet.
           - type: heading
             heading: Maintenance
             icon: mdi:wrench-clock

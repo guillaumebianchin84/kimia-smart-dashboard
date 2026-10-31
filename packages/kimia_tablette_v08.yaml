@@ -1,0 +1,253 @@
+# KIMIA Smart V0.8 — scripts de façade et capteurs de synthèse.
+# Chaque scène renvoie vers un script réel choisi par l'installateur.
+# Aucun appareil n'est actionné si la scène n'est pas associée.
+# Installer UNE SEULE FOIS sous /config/packages/kimia_tablette_v08.yaml.
+# Ne pas mettre d'identifiants/jetons dans ce fichier.
+input_text:
+  kimia_cible_au_lit:
+    name: "Scénario KIMIA · Au lit — script cible"
+    icon: mdi:link-variant
+    max: 120
+    mode: text
+  kimia_cible_depart:
+    name: "Scénario KIMIA · Départ — script cible"
+    icon: mdi:link-variant
+    max: 120
+    mode: text
+  kimia_cible_retour:
+    name: "Scénario KIMIA · Retour — script cible"
+    icon: mdi:link-variant
+    max: 120
+    mode: text
+  kimia_cible_reveil:
+    name: "Scénario KIMIA · Réveil — script cible"
+    icon: mdi:link-variant
+    max: 120
+    mode: text
+  kimia_cible_ambiance_detente:
+    name: "Scénario KIMIA · Ambiance détente — script cible"
+    icon: mdi:link-variant
+    max: 120
+    mode: text
+  kimia_cible_ambiance_soiree:
+    name: "Scénario KIMIA · Ambiance soirée — script cible"
+    icon: mdi:link-variant
+    max: 120
+    mode: text
+  kimia_cible_ambiance_cinema:
+    name: "Scénario KIMIA · Ambiance cinéma — script cible"
+    icon: mdi:link-variant
+    max: 120
+    mode: text
+script:
+  kimia_au_lit:
+    alias: "KIMIA · Au lit"
+    icon: mdi:bed-clock
+    mode: single
+    sequence:
+      - variables:
+          cible: "{{ states('input_text.kimia_cible_au_lit') | trim }}"
+      - if:
+          - condition: template
+            value_template: >-
+              {{ cible.startswith('script.') and
+                 not cible.startswith('script.kimia_') and
+                 states(cible) not in ['unknown','unavailable'] }}
+        then:
+          - action: script.turn_on
+            target:
+              entity_id: "{{ cible }}"
+        else:
+          - action: persistent_notification.create
+            data:
+              title: "KIMIA Smart · Au lit"
+              message: >-
+                Scénario non configuré. L'installateur doit renseigner
+                input_text.kimia_cible_au_lit avec l'identifiant
+                d'un script Home Assistant existant (script.xxx).
+  kimia_depart:
+    alias: "KIMIA · Départ"
+    icon: mdi:door-open
+    mode: single
+    sequence:
+      - variables:
+          cible: "{{ states('input_text.kimia_cible_depart') | trim }}"
+      - if:
+          - condition: template
+            value_template: >-
+              {{ cible.startswith('script.') and
+                 not cible.startswith('script.kimia_') and
+                 states(cible) not in ['unknown','unavailable'] }}
+        then:
+          - action: script.turn_on
+            target:
+              entity_id: "{{ cible }}"
+        else:
+          - action: persistent_notification.create
+            data:
+              title: "KIMIA Smart · Départ"
+              message: >-
+                Scénario non configuré. L'installateur doit renseigner
+                input_text.kimia_cible_depart avec l'identifiant
+                d'un script Home Assistant existant (script.xxx).
+  kimia_retour:
+    alias: "KIMIA · Retour"
+    icon: mdi:home-import-outline
+    mode: single
+    sequence:
+      - variables:
+          cible: "{{ states('input_text.kimia_cible_retour') | trim }}"
+      - if:
+          - condition: template
+            value_template: >-
+              {{ cible.startswith('script.') and
+                 not cible.startswith('script.kimia_') and
+                 states(cible) not in ['unknown','unavailable'] }}
+        then:
+          - action: script.turn_on
+            target:
+              entity_id: "{{ cible }}"
+        else:
+          - action: persistent_notification.create
+            data:
+              title: "KIMIA Smart · Retour"
+              message: >-
+                Scénario non configuré. L'installateur doit renseigner
+                input_text.kimia_cible_retour avec l'identifiant
+                d'un script Home Assistant existant (script.xxx).
+  kimia_reveil:
+    alias: "KIMIA · Réveil"
+    icon: mdi:weather-sunset-up
+    mode: single
+    sequence:
+      - variables:
+          cible: "{{ states('input_text.kimia_cible_reveil') | trim }}"
+      - if:
+          - condition: template
+            value_template: >-
+              {{ cible.startswith('script.') and
+                 not cible.startswith('script.kimia_') and
+                 states(cible) not in ['unknown','unavailable'] }}
+        then:
+          - action: script.turn_on
+            target:
+              entity_id: "{{ cible }}"
+        else:
+          - action: persistent_notification.create
+            data:
+              title: "KIMIA Smart · Réveil"
+              message: >-
+                Scénario non configuré. L'installateur doit renseigner
+                input_text.kimia_cible_reveil avec l'identifiant
+                d'un script Home Assistant existant (script.xxx).
+  kimia_ambiance_detente:
+    alias: "KIMIA · Ambiance détente"
+    icon: mdi:sofa
+    mode: single
+    sequence:
+      - variables:
+          cible: "{{ states('input_text.kimia_cible_ambiance_detente') | trim }}"
+      - if:
+          - condition: template
+            value_template: >-
+              {{ cible.startswith('script.') and
+                 not cible.startswith('script.kimia_') and
+                 states(cible) not in ['unknown','unavailable'] }}
+        then:
+          - action: script.turn_on
+            target:
+              entity_id: "{{ cible }}"
+        else:
+          - action: persistent_notification.create
+            data:
+              title: "KIMIA Smart · Ambiance détente"
+              message: >-
+                Scénario non configuré. L'installateur doit renseigner
+                input_text.kimia_cible_ambiance_detente avec l'identifiant
+                d'un script Home Assistant existant (script.xxx).
+  kimia_ambiance_soiree:
+    alias: "KIMIA · Ambiance soirée"
+    icon: mdi:party-popper
+    mode: single
+    sequence:
+      - variables:
+          cible: "{{ states('input_text.kimia_cible_ambiance_soiree') | trim }}"
+      - if:
+          - condition: template
+            value_template: >-
+              {{ cible.startswith('script.') and
+                 not cible.startswith('script.kimia_') and
+                 states(cible) not in ['unknown','unavailable'] }}
+        then:
+          - action: script.turn_on
+            target:
+              entity_id: "{{ cible }}"
+        else:
+          - action: persistent_notification.create
+            data:
+              title: "KIMIA Smart · Ambiance soirée"
+              message: >-
+                Scénario non configuré. L'installateur doit renseigner
+                input_text.kimia_cible_ambiance_soiree avec l'identifiant
+                d'un script Home Assistant existant (script.xxx).
+  kimia_ambiance_cinema:
+    alias: "KIMIA · Ambiance cinéma"
+    icon: mdi:movie-open
+    mode: single
+    sequence:
+      - variables:
+          cible: "{{ states('input_text.kimia_cible_ambiance_cinema') | trim }}"
+      - if:
+          - condition: template
+            value_template: >-
+              {{ cible.startswith('script.') and
+                 not cible.startswith('script.kimia_') and
+                 states(cible) not in ['unknown','unavailable'] }}
+        then:
+          - action: script.turn_on
+            target:
+              entity_id: "{{ cible }}"
+        else:
+          - action: persistent_notification.create
+            data:
+              title: "KIMIA Smart · Ambiance cinéma"
+              message: >-
+                Scénario non configuré. L'installateur doit renseigner
+                input_text.kimia_cible_ambiance_cinema avec l'identifiant
+                d'un script Home Assistant existant (script.xxx).
+template:
+  - sensor:
+      - name: 'KIMIA Température Libreville'
+        unique_id: kimia_temperature_libreville
+        icon: mdi:weather-partly-cloudy
+        unit_of_measurement: '°C'
+        state: >-
+          {% set t = state_attr('weather.forecast_lbv', 'temperature') %}
+          {{ t if t is number else 'unknown' }}
+      - name: 'KIMIA Humidité Libreville'
+        unique_id: kimia_humidite_libreville
+        icon: mdi:water-percent
+        unit_of_measurement: '%'
+        state: >-
+          {% set h = state_attr('weather.forecast_lbv', 'humidity') %}
+          {{ h if h is number else 'unknown' }}
+      - name: 'KIMIA Flash Gabon'
+        unique_id: kimia_flash_gabon
+        icon: mdi:newspaper
+        state: >-
+          {% set a = state_attr('sensor.rss_gabon_actu', 'articles') %}
+          {% if a is sequence and a | length > 0 and a[0] is mapping %}
+            {{ (a[0].get('title', '') | string)[:110] }}
+          {% else %}
+            Actualités en attente
+          {% endif %}
+      - name: 'KIMIA Flash Monde'
+        unique_id: kimia_flash_monde
+        icon: mdi:earth
+        state: >-
+          {% set a = state_attr('sensor.rss_france_24', 'articles') %}
+          {% if a is sequence and a | length > 0 and a[0] is mapping %}
+            {{ (a[0].get('title', '') | string)[:110] }}
+          {% else %}
+            Actualités en attente
+          {% endif %}

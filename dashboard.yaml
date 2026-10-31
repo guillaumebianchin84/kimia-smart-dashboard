@@ -1,4 +1,4 @@
-# KIMIA Smart - source YAML historique
+# KIMIA Smart V0.8 - source YAML modulaire ; maquette est l'accueil
 # Pour déplacer les cartes dans l'éditeur visuel, importer dashboard-ui-import.yaml dans un dashboard géré par l'UI.
 title: KIMIA Smart
 button_card_templates:
@@ -58,13 +58,60 @@ button_card_templates:
         - max-width: 100%
         - overflow: hidden
         - text-overflow: ellipsis
+  kimia_v08_scene:
+    section_mode: true
+    show_name: true
+    show_icon: true
+    show_state: false
+    show_label: true
+    triggers_update: all
+    label: |
+      [[[
+        const ident = entity?.entity_id || '';
+        const cfg = 'input_text.kimia_cible_' + ident.replace('script.kimia_', '');
+        const val = states[cfg]?.state || '';
+        return val.startsWith('script.') && !val.startsWith('script.kimia_') ? 'Prêt · toucher' : 'À associer';
+      ]]]
+    styles:
+      card:
+        - background: 'linear-gradient(115deg, var(--card-background-color), rgba(30,120,130,.15))'
+        - color: var(--primary-text-color)
+        - border: '1px solid var(--ha-card-border-color, rgba(50,205,190,.32))'
+        - border-radius: 20px
+        - box-shadow: '0 5px 17px rgba(0,33,60,.12)'
+        - padding: '11px 15px'
+        - overflow: hidden
+      grid:
+        - grid-template-areas: '"i n" "i l"'
+        - grid-template-columns: '45px minmax(0,1fr)'
+        - grid-template-rows: '1fr 1fr'
+        - column-gap: 8px
+      img_cell:
+        - height: 43px
+        - width: 43px
+        - border-radius: 14px
+        - background: 'rgba(57,199,185,.13)'
+      icon:
+        - width: 25px
+        - color: '[[[ return variables.couleur || "#42D4C3"; ]]]'
+      name:
+        - font-size: 14px
+        - font-weight: 700
+        - justify-self: start
+        - align-self: end
+        - color: var(--primary-text-color)
+      label:
+        - font-size: 11px
+        - justify-self: start
+        - align-self: start
+        - color: var(--secondary-text-color)
 views:
   - !include /config/kimia/views/01-accueil.yaml
-  - !include /config/kimia/views/10-plan-maison.yaml
   - !include /config/kimia/views/02-lumieres.yaml
   - !include /config/kimia/views/03-volets.yaml
   - !include /config/kimia/views/04-climatisation.yaml
   - !include /config/kimia/views/05-musique.yaml
   - !include /config/kimia/views/06-securite.yaml
   - !include /config/kimia/views/08-prises.yaml
+  - !include /config/kimia/views/11-actualites.yaml
   - !include /config/kimia/views/07-parametres.yaml

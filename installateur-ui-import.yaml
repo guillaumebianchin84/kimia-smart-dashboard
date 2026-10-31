@@ -1,0 +1,96 @@
+# Configuration installateur — NE PAS rendre visible aux clients non-admin.
+# Créer le dashboard en mode UI, URL "kimia-installateur", admins uniquement.
+title: KIMIA · Installation
+views:
+  - title: Configuration technique
+    path: configuration
+    icon: mdi:tools
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Scénarios de la maison
+            icon: mdi:gesture-tap-button
+            grid_options:
+              columns: full
+              rows: 1
+          - type: markdown
+            content: >-
+              **Raccordement des boutons KIMIA :** chaque champ accepte
+              l'identifiant d'un script existant, par exemple
+              `script.coucher_maison`. Ne pas indiquer un scénario KIMIA
+              comme cible afin d'éviter une boucle. Une cible absente
+              déclenche seulement un avertissement, jamais une commande
+              fictive.
+            grid_options:
+              columns: full
+              rows: auto
+          - type: entities
+            title: "Scénarios rapides · Accueil"
+            entities:
+              - entity: input_text.kimia_cible_au_lit
+                name: Au lit
+              - entity: input_text.kimia_cible_depart
+                name: Départ
+              - entity: input_text.kimia_cible_retour
+                name: Retour
+              - entity: input_text.kimia_cible_reveil
+                name: Réveil
+          - type: entities
+            title: "Ambiances · Lumières"
+            entities:
+              - entity: input_text.kimia_cible_ambiance_detente
+                name: Détente
+              - entity: input_text.kimia_cible_ambiance_soiree
+                name: Soirée
+              - entity: input_text.kimia_cible_ambiance_cinema
+                name: Cinéma
+      - type: grid
+        cards:
+          - type: heading
+            heading: Plan Maquette
+            icon: mdi:floor-plan
+            grid_options:
+              columns: full
+              rows: 1
+          - type: markdown
+            content: >-
+              Le plan de l'accueil est **un gabarit fictif**.
+              Depuis un compte administrateur, ouvrir le plan,
+              redessiner les pièces, ajouter murs, ouvertures, étages,
+              puis associer les entités réelles. Maquette enregistre
+              directement dans le dashboard géré par l'interface.
+          - type: button
+            name: Ouvrir et éditer le plan
+            icon: mdi:pencil-ruler
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-smart/accueil
+          - type: heading
+            heading: Intégrations et données
+            icon: mdi:cloud-check-outline
+            grid_options:
+              columns: full
+              rows: 1
+          - type: entities
+            title: État des flux KIMIA
+            entities:
+              - entity: sensor.kimia_temperature_libreville
+                name: Météo
+              - entity: sensor.rss_gabon_actu
+                name: Gabon Actu
+              - entity: sensor.rss_gabonreview
+                name: GabonReview
+              - entity: sensor.rss_rfi_afrique
+                name: RFI Afrique
+              - entity: sensor.rss_france_24
+                name: France 24
+          - type: markdown
+            content: >-
+              Avant de livrer : adapter `weather.forecast_lbv`,
+              les flux RSS et les noms d'entités au pays du client ;
+              tester les scripts sur site et les comptes non administrateurs.
+              **Aucun script de contrôle du routeur, d'alarme ou d'ouverture
+              sensible ne doit être activé sans validation.**

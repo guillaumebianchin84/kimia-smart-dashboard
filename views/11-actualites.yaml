@@ -1,0 +1,75 @@
+# KIMIA Smart V0.8 — journal détaillé, séparé de l'accueil Maquette.
+title: Actualités
+path: actualites
+icon: mdi:newspaper-variant-outline
+type: sections
+max_columns: 2
+sections:
+  - type: grid
+    cards:
+      - type: heading
+        heading: "🇬🇦 Gabon · L'essentiel"
+        icon: mdi:map-marker-radius-outline
+        grid_options:
+          columns: full
+          rows: 1
+      - type: custom:rss-news-card
+        title: "Gabon Actu · GabonReview"
+        sources:
+          - entity: sensor.rss_gabon_actu
+            name: Gabon Actu
+            color: "#28C8AD"
+          - entity: sensor.rss_gabonreview
+            name: GabonReview
+            color: "#50A7D8"
+        max_articles: 8
+        show_description: true
+        show_source: true
+        show_date: true
+        image_width: 120
+        image_height: 72
+        grid_options:
+          columns: full
+          rows: auto
+        card_mod:
+          style: |
+            ha-card {
+              border: 1px solid rgba(49,190,186,.35);
+              background: var(--card-background-color);
+              border-radius: 21px;
+              overflow: hidden;
+            }
+  - type: grid
+    cards:
+      - type: heading
+        heading: "🌍 Afrique & Monde"
+        icon: mdi:earth
+        grid_options:
+          columns: full
+          rows: 1
+      - type: custom:rss-news-card
+        title: "RFI Afrique · France 24"
+        sources:
+          - entity: sensor.rss_rfi_afrique
+            name: RFI Afrique
+            color: "#E7AD49"
+          - entity: sensor.rss_france_24
+            name: France 24
+            color: "#528FD6"
+        max_articles: 8
+        show_description: true
+        show_source: true
+        show_date: true
+        image_width: 120
+        image_height: 72
+        grid_options:
+          columns: full
+          rows: auto
+        card_mod:
+          style: |
+            ha-card {
+              border: 1px solid rgba(88,150,210,.35);
+              background: var(--card-background-color);
+              border-radius: 21px;
+              overflow: hidden;
+            }
