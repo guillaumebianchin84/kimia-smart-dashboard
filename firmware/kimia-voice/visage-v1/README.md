@@ -9,7 +9,8 @@ Ce dossier est **indépendant** de la mécanique V5, des dashboards KIMIA et du 
 - [visage-lvgl.yaml](./visage-lvgl.yaml) : paquet ESPHome/LVGL avec yeux, pupilles, bouche, clignements, mouvements du regard et écran tactile (360×360).
 - [apercu.svg](./apercu.svg) : **maquette statique**, pas une capture d'écran d'un firmware exécuté.
 - [INTEGRATION_AUDIO_ET_ASSIST.md](./INTEGRATION_AUDIO_ET_ASSIST.md) : raccordement futur aux états Assist, au micro XVF3800 et au volume réel.
-- [CABLAGE_KIMIA_V5_REV_E_XVF_ECRAN.md](./CABLAGE_KIMIA_V5_REV_E_XVF_ECRAN.md) : **référence de câblage actuelle**, XVF3800 6P + écran Waveshare 2×6P signaux (QSPI + commandes/tactile) + alimentations 2P séparées ; non compilé et non testé.
+- [CABLAGE_KIMIA_V5_REV_F_CONNECTEURS_OPTIMISES.md](./CABLAGE_KIMIA_V5_REV_F_CONNECTEURS_OPTIMISES.md) : **référence de câblage ACTUELLE**, trois groupes de 6 GPIO physiquement contiguës (XVF, écran QSPI, écran commandes/tactile), alimentations séparées. Non compilée et non testée.
+- [CABLAGE_KIMIA_V5_REV_E_XVF_ECRAN.md](./CABLAGE_KIMIA_V5_REV_E_XVF_ECRAN.md) : **ancienne REV E**, deux connecteurs écran déjà prévus mais GPIO non optimisées ; archive seulement.
 - [CABLAGE_KIMIA_V5_REV_D_DEUX_BUS_I2C.md](./CABLAGE_KIMIA_V5_REV_D_DEUX_BUS_I2C.md) : **ancienne REV D**, deux bus I²C conservés dans la REV E ; historique seulement.
 - [CABLAGE_XVF3800_N16R8_REV_C.md](./CABLAGE_XVF3800_N16R8_REV_C.md) : **ancienne REV C**, six GPIO du XVF conservées mais ancien bus I²C partagé pour écran/capteur ; historique uniquement.
 - [SCHEMA_CABLAGE_REV_B.md](./SCHEMA_CABLAGE_REV_B.md) : **ancienne REV B, historique uniquement** ; contient le brochage formatBCE d'origine et les affectations initiales de l'écran.
