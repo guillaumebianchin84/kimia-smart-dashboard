@@ -1,5 +1,8 @@
 # KIMIA Voice V5 — schéma de câblage REV. B (étude de banc)
 
+> ⚠️ **ARCHIVE — BROCHAGE DÉPASSÉ : utiliser [REV C](./CABLAGE_XVF3800_N16R8_REV_C.md) pour le câblage N16R8–XVF3800.** Cette REV B conserve GPIO5/6, 7/8, 43/44 et ne doit plus être utilisée pour le nouveau connecteur 6 broches. Les autres périphériques I²C partageront désormais GPIO1/2 ; les options radar utilisant 39 à 42 sont à revoir.
+
+
 > **NON VALIDÉ POUR SOUDURE OU MISE SOUS TENSION COMPLÈTE.**
 > Schéma fonctionnel et allocation GPIO pour **un seul ESP32-S3 N16R8 OTRONIC OT1022**, **un module Waveshare 1.85inch Touch LCD Module 360×360 (SKU 35079)** et **un reSpeaker XVF3800**. Vérifier les références exactes des modules reçus, le sens et les numéros de broche, les tensions et la version firmware. Le XVF commandé **a un XIAO ESP32-S3 monté d'origine** : ne pas câbler un second ESP32 sur ses interfaces tant que l'isolement/éventuel retrait du XIAO n'est pas validé.
 
