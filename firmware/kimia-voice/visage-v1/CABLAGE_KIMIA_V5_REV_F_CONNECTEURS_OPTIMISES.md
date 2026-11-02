@@ -66,6 +66,43 @@ La **broche LCD_TE du GH1.25 n° 9 reste NC**, comme pour la REV E. Les 15 fils 
 
 **Important** : l'écran Waveshare a un connecteur **GH1.25 15P**, pas directement deux embases 6P. Les groupes A/B sont les **connecteurs côté ESP32**, qui devront rejoindre le câble GH1.25 à travers un faisceau adapté ou une petite carte de regroupement. Les fils doivent respecter la correspondance ci-dessus, et non être branchés un pour un dans l'ordre 1–15.
 
+## Capteur identifié — Bosch BME280 sur module annoncé 5 V / I²C
+
+**Référence communiquée : « Capteur 3-en-1 Température, Humidité et Pression atmosphérique | 5V | I2C | Bosch BME280 ».** Il s'agit d'un **module**, pas d'une puce BME280 nue. Le BME280 Bosch lui-même exige VDD entre **1,71 et 3,6 V** et VDDIO jusqu'à **3,6 V** ; **la carte doit comporter un régulateur** pour accepter une alimentation 5 V. La présence d'un **convertisseur de niveaux I²C n'est pas encore confirmée** pour le module exact.
+
+### Connecteur capteur BME-4P dédié, sur petite carte de distribution / dérivation
+
+| Broche faisceau 4P | Signal BME280 (nom à confirmer sur PCB) | Liaison KIMIA |
+| ---: | --- | --- |
+| 1 | VCC / VIN | **+5 V seulement si la carte exacte est bien certifiée alimentation 5 V** et si régulation réellement présente ; autrement alimentation 3,3 V selon documentation PCB |
+| 2 | GND | GND commun ESP32 / écran / XVF |
+| 3 | SDA | **GPIO5**, bus I²C n° 2, en parallèle avec TP_SDA écran |
+| 4 | SCL | **GPIO6**, bus I²C n° 2, en parallèle avec TP_SCL écran |
+
+**Ordre 1–4 = convention de notre faisceau, PAS la sérigraphie physique du module** : contrôler les pads exacts (GND, VCC, SCL, SDA et leur ordre) à réception. Il n'y a **aucune nouvelle GPIO à réserver** : on crée une **dérivation I²C** sur la carte de distribution, et un connecteur capteur 4P indépendant pour faciliter le démontage.
+
+**Vérification critique avant connexion ESP32** : alimenter le module sur banc conformément à la fiche fabricant, puis mesurer au multimètre la tension à l'état haut sur SDA et SCL **sans connecter les GPIO**. Si ces lignes sont rappelées au 5 V, **ne pas raccorder directement à GPIO5/6** ; utiliser une adaptation de niveau I²C ou passer à un module 3,3 V. Si elles sont à 3,3 V, vérifier aussi les éventuelles résistances pull-up en parallèle avec celles de l'écran (et les schémas correspondants).
+
+ESPHome : **`sensor: - platform: bme280_i2c`**, bus **`i2c_id: peripherals_i2c`**, adresse **`0x76` ou `0x77`** selon module / scan, `temperature`, `humidity` et `pressure`, intervalle envisagé 60 s. Exemple de structure :
+
+```yaml
+sensor:
+  - platform: bme280_i2c
+    i2c_id: peripherals_i2c
+    address: 0x76 # adapter à l'adresse réelle retournée par le scan
+    temperature:
+      name: "KIMIA - Température ambiante"
+    humidity:
+      name: "KIMIA - Humidité ambiante"
+    pressure:
+      name: "KIMIA - Pression atmosphérique"
+    update_interval: 60s
+```
+
+**Emplacement physique** : près d'une petite grille d'aération, hors du flux chaud de l'ESP32, du régulateur 5 V et du haut-parleur ; suffisamment éloigné de l'écran et sans exposer le capteur à la chaleur du boîtier. Ne pas confiner le capteur dans un compartiment complètement étanche.
+
+Références : [fiche technique Bosch BME280](https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf), [ESPHome BME280](https://esphome.io/components/sensor/bme280/).
+
 ## Bus I²C et résistances de rappel
 
 - **I²C n° 1 : XVF3800 + codec audio**, SDA GPIO1 / SCL GPIO2 ; ESPHome `internal_i2c`.
