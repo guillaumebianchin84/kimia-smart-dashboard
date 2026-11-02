@@ -1,6 +1,6 @@
 # KIMIA Voice V5 — câblage retenu REV D : deux bus I²C distincts
 
-> ⚠️ **REV D ARCHIVÉE : utiliser désormais la [REV E, qui intègre les deux connecteurs écran](./CABLAGE_KIMIA_V5_REV_E_XVF_ECRAN.md).** Les deux bus I²C de cette REV D restent retenus, mais les affectations LCD / TP_RST / TP_INT sont désormais définies en REV E. Cette archive ne doit pas être utilisée seule pour le montage de l'écran.
+> ⚠️ **REV D ARCHIVÉE : utiliser désormais la [REV F avec connecteurs optimisés](./CABLAGE_KIMIA_V5_REV_F_CONNECTEURS_OPTIMISES.md).** Les deux bus I²C de cette REV D restent retenus, mais les affectations LCD / TP_RST / TP_INT sont désormais définies en REV E. Cette archive ne doit pas être utilisée seule pour le montage de l'écran.
 
 **Décision du 02/11/2026 — référence actuelle pour le prototype.**
 
