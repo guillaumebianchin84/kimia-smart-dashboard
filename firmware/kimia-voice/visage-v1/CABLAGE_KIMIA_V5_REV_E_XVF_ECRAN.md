@@ -1,5 +1,7 @@
 # KIMIA Voice V5 — brochage retenu REV E : XVF3800 + écran Waveshare + 2 bus I²C
 
+> ⚠️ **ARCHIVE : utiliser la [REV F — connecteurs optimisés](./CABLAGE_KIMIA_V5_REV_F_CONNECTEURS_OPTIMISES.md).** La REV E présente des affectations QSPI et de contrôle de l'écran désormais remplacées. Ne pas mélanger les deux tableaux.
+
 **Décision du 02/11/2026. Statut : plan de câblage retenu, NON compilé, NON testé électriquement, NON validé pour la soudure définitive.**
 
 Ce document devient la **référence provisoire de câblage complète** et remplace les répartitions GPIO des REV B/C/D. La REV D (deux bus I²C séparés) et le brochage XVF3800 restent inchangés ; la REV E ajoute et fige la **proposition de 2 connecteurs 6 broches pour les signaux de l'écran**, plus son alimentation indépendante. Les documents REV B et les SVG associés sont archivés et représentent d'anciennes répartitions.
