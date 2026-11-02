@@ -1,6 +1,6 @@
 # KIMIA Voice V5 - Câblage XVF3800 / ESP32-S3 N16R8 - REV C
 
-> ⚠️ **ARCHIVE : la [REV E](./CABLAGE_KIMIA_V5_REV_E_XVF_ECRAN.md) est désormais la référence.** Les six GPIO de communication XVF3800 de la REV C restent retenues, mais **le tactile écran et les capteurs I²C sont déplacés sur un second bus GPIO5/6**, séparé du XVF GPIO1/2. Les mentions de bus I²C partagé avec le XVF ci-dessous sont dépassées.
+> ⚠️ **ARCHIVE : la [REV F](./CABLAGE_KIMIA_V5_REV_F_CONNECTEURS_OPTIMISES.md) est désormais la référence.** Les six GPIO de communication XVF3800 de la REV C restent retenues, mais **le tactile écran et les capteurs I²C sont déplacés sur un second bus GPIO5/6**, séparé du XVF GPIO1/2. Les mentions de bus I²C partagé avec le XVF ci-dessous sont dépassées.
 
 **Décision retenue pour le prototype** : un connecteur **6 broches pour les 6 signaux de communication** (4 I2S + 2 I2C), et un **connecteur 2 broches +5V / GND** indépendant raccordé à une future carte de distribution 5V.
 
