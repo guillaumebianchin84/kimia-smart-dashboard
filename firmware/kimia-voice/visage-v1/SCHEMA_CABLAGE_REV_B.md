@@ -1,6 +1,6 @@
 # KIMIA Voice V5 — schéma de câblage REV. B (étude de banc)
 
-> ⚠️ **ARCHIVE — BROCHAGE DÉPASSÉ : utiliser [REV D](./CABLAGE_KIMIA_V5_REV_D_DEUX_BUS_I2C.md) pour le câblage N16R8–XVF3800.** Cette REV B conserve GPIO5/6, 7/8, 43/44 et ne doit plus être utilisée pour le nouveau connecteur 6 broches. L'écran et les capteurs utilisent désormais un bus I²C distinct GPIO5/6 ; le XVF3800 seul utilise GPIO1/2 ; les options radar utilisant 39 à 42 sont à revoir.
+> ⚠️ **ARCHIVE — BROCHAGE DÉPASSÉ : utiliser [REV E](./CABLAGE_KIMIA_V5_REV_E_XVF_ECRAN.md) pour le câblage N16R8–XVF3800.** Cette REV B conserve GPIO5/6, 7/8, 43/44 et ne doit plus être utilisée pour le nouveau connecteur 6 broches. L'écran et les capteurs utilisent désormais un bus I²C distinct GPIO5/6 ; le XVF3800 seul utilise GPIO1/2 ; les options radar utilisant 39 à 42 sont à revoir.
 
 
 > **NON VALIDÉ POUR SOUDURE OU MISE SOUS TENSION COMPLÈTE.**
