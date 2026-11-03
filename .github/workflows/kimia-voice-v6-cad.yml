@@ -39,6 +39,7 @@ jobs:
           python hardware/kimia-voice/v6/generer_kimia_v6.py
           python hardware/kimia-voice/v6/generer_fixations_v6.py
           python hardware/kimia-voice/v6/auditer_assemblage_v6.py
+          python hardware/kimia-voice/v6/generer_vue_3_pieces_v6.py
       - name: Publish V6 printable STL and STEP
         uses: actions/upload-artifact@v4
         with:
@@ -53,7 +54,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add hardware/kimia-voice/v6/00_KIMIA_VOICE_V6_GITHUB.stl
+          git add \
+            hardware/kimia-voice/v6/00_KIMIA_VOICE_V6_GITHUB.stl \
+            hardware/kimia-voice/v6/00_KIMIA_V6_3_PIECES_VUE_ECLATEE.stl \
+            hardware/kimia-voice/v6/01_socle_HP_vers_le_bas.stl \
+            hardware/kimia-voice/v6/02_caisson_cylindrique_avec_ancrages.stl \
+            hardware/kimia-voice/v6/03_coque_blanche_continue_ecran.stl
           if ! git diff --cached --quiet; then
             git commit -m "Add KIMIA Voice V6 preview STL for GitHub 3D viewer"
             git push origin HEAD:feature/kimia-voice-v6-caisson-cylindrique
