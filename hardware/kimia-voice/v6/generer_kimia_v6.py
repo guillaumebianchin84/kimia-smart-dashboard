@@ -34,6 +34,11 @@ CAISSON_H=72.0
 CAISSON_CAP=4.0
 JOIN_SCREWS=((0.0,54.0),(-52.0,-35.0),(52.0,-35.0))
 TOP_SCREWS=JOIN_SCREWS
+# Independent bottom-only fasteners hold the base onto the white shell,
+# while the three separate service shafts secure the upper cap.
+BASE_SCREWS=((-26.0,-52.0),(26.0,-52.0),(-15.0,50.0),(15.0,50.0))
+BASE_BOSS_R=4.8
+BASE_INSERT_R=2.25
 FRONT_HALF_WIDTH=44.0*SCALE_X
 REAR_POINT_Y=76.0*SCALE_Y
 DESIGN_MAX_WIDTH=157.8*SCALE_X
@@ -111,8 +116,13 @@ def base_hp():
     fix=[(SPEAKER_PCD/2*math.cos(math.radians(a)),SPEAKER_PCD/2*math.sin(math.radians(a))) for a in (45,135,225,315)]
     s=cut_xy_holes(s,fix,1.85,-.1,BASE_H+.3)
     for x,y in fix:s=s.cut(cylinder(3.25,2.2,x,y,-.1))
-    # Bottom-only service access for 3 cap screws, with long screwdriver.
+    # Service access to the hidden top-cover screws.
     s=cut_xy_holes(s,JOIN_SCREWS,SCREW_ACCESS_R,-.1,BASE_H+.3)
+    # Four independent underside screws attach the base to the white shell.
+    # Recess the M3 heads by 2 mm and provide full shank clearance.
+    for x,y in BASE_SCREWS:
+        s=s.cut(cylinder(1.7,BASE_H+.3,x,y,-.1))
+        s=s.cut(cylinder(3.25,2.1,x,y,-.1))
     # Emboîtement caisson Ø88 + jeu radial 0,5mm. Joint à assurer.
     rim=cylinder(CAISSON_R+2.5,2.5,z=BASE_H)
     rim=rim.cut(cylinder(CAISSON_R+.5,2.8,z=BASE_H-.1))
@@ -138,6 +148,11 @@ def corps():
     for x in (-33.0,33.0):
         s=s.union(axis_y_cylinder(5.7,12.5,x,FRONT_Y+3.5,SCREEN_Z))
         s=s.cut(axis_y_cylinder(1.25,11.5,x,FRONT_Y+5,SCREEN_Z))
+    # Short bosses for the independent bottom base-to-body attachment.
+    # Blind insert holes from the bottom: provisional M3 inserts Ø4.5 x 4 mm.
+    for x,y in BASE_SCREWS:
+        s=linked_post(s,x,y,BODY_Z,12,BASE_BOSS_R)
+        s=s.cut(cylinder(BASE_INSERT_R,4.8,x,y,BODY_Z-.1))
     # Three continuous structural pillars, each accessible from underneath.
     # Long access bores stop at a shoulder that seats an M3x12 screw head;
     # the last 8mm is a smaller shank clearance hole up into the top cover.
@@ -212,6 +227,12 @@ def validate_layout():
     assert FRONT_Y+2.1+9.4 < -CAISSON_R-2, 'screen PCB hits caisson'
     assert BODY_TOP>SCREEN_Z+32, 'screen bezel too high'
     assert FRONT_HALF_WIDTH>=34.0, 'too little flat face for screen trim'
+    for xy in BASE_SCREWS:
+        q=Point(*xy)
+        assert PROFILE.contains(q.buffer(BASE_BOSS_R,resolution=24)), f'Base boss outside {xy}'
+        assert q.distance(Point(0,0))>=CAISSON_R+BASE_BOSS_R+2, f'Base boss hits caisson {xy}'
+        assert min(q.distance(Point(*p)) for p in JOIN_SCREWS)>BASE_BOSS_R+5.5+2, f'Base boss conflicts cap post {xy}'
+        assert min(q.distance(Point(*p)) for p in ((-40,-42),(40,-42),(-30,43),(30,43)))>=BASE_BOSS_R+8+2, f'Base boss conflicts foot {xy}'
     assert TOP_H-CAP_INSERT_DEPTH>=4.0, 'blind inserts risk piercing top cover'
     assert SCREW_SHOULDER_Z+12.0<=BODY_TOP+CAP_INSERT_DEPTH, 'cap screw too long'
     assert SCREW_SHOULDER_Z+12.0>=BODY_TOP+3.5, 'cap screw insert engagement too short'
