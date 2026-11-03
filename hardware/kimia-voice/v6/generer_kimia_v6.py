@@ -168,8 +168,8 @@ def dessus_xvf():
 
 def plexi():
     s=cylinder(53,1.5)
-    for x in (-33,33):
-        for y in (-33,33):s=s.cut(cylinder(4.2,1.9,x,y,-.2))
+    # No screw holes in the top plexiglass: perimeter fixing with thin adhesive
+    # gasket on the support ledge (must avoid blocking microphone openings).
     for a in (45,135,225,315):
         for dt in (-8,8):
             ang=math.radians(a+dt)
