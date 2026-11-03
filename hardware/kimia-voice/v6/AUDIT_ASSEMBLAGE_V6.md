@@ -16,6 +16,7 @@ L'audit est fondé sur les sources CadQuery, les pièces STEP/STL exportées et 
 | Clips XVF dans logements | Emboîtement intentionnel présent ; flexibilité PETG réelle inconnue |
 | Berceau ESP32 sur ancrages de toit du caisson | Interférence d'encliquetage intentionnelle |
 | Tournevis vers les 3 vis supérieures par le dessous | Trajets Ø5,8 mm contrôlés dans les volumes CAO |
+| Continuité des colonnes du capot | **Défaut détecté et corrigé** : l'ancienne colonne arrière (0,54) était coupée à 50 % par l'ouverture du câble à Z~39 mm. Colonne masquée déplacée en (18,50) et un bossage de socle repositionné. L'ouverture et la silhouette visibles ne changent pas. L'audit vérifie désormais la continuité de matière autour de chaque colonne à Z=39 mm. |
 | Extrémité +X du berceau ESP32 | **Corrigée** : deux butées latérales, passage central USB simulé |
 | Serrage HP | **Corrigé** : quatre logements d'écrous M3 captifs par l'intérieur du socle |
 | Plexiglas | Bande d'adhésif périphérique prévue : 1,5 mm radial + ~0,30 mm pour la colle |
