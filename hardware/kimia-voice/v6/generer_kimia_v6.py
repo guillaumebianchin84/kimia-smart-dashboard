@@ -46,9 +46,11 @@ def bezier4(p0,p1,p2,p3,n=18):
                        u**3*p0[1]+3*u*u*t*p1[1]+3*u*t*t*p2[1]+t**3*p3[1]))
     return result
 
-# V5: soften the transition from the planar front to the flanks and slightly reduce XY footprint.
+# V6 refinement: slightly round the two front vertical corners while keeping
+# the approved planar front, exterior bounds, XVF seat and internal layout.
+# Only Bezier control handles change: curve endpoints remain those of V5.
 RIGHT_CURVES=[
- ((50,-78),(62,-78),(72,-74),(76,-63)),
+ ((50,-78),(64,-78),(73,-72),(76,-63)),
  ((76,-63),(81,-47),(79,-22),(74,3)),
  ((74,3),(67,28),(53,52),(30,70)),
  ((30,70),(19,74),(8,76),(0,76)),
