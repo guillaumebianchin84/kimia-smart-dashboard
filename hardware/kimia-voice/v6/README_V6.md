@@ -30,7 +30,7 @@
 La réduction de hauteur vient de l'emboîtement des fonctions, et non d'une réduction du haut-parleur ou de l'écran. **Volume acoustique indicatif**, avant déplacement d'air par l'arrière du HP, joints et câblage : ne constitue pas un réglage acoustique certifié.
 
 ## Fixation invisible du capot (nouvelle révision)
-- Aucune tête de vis visible sur la couronne XVF3800.
+- Aucune tête de vis visible sur la couronne XVF3800 **ni sur le plexiglas**. Le plexiglas est retenu provisoirement par un adhésif/joint périphérique sur la feuillure, sans masquer les microphones (à valider).
 - Trois longues colonnes internes liées à la coque blanche, alignées avec des passages de tournevis **accessibles par la face inférieure du socle**.
 - Épaulement à Z = 86 mm ; vis M3 × 12 proposées, introduites depuis le bas avec un tournevis aimanté assez long.
 - Trois poches borgnes dans le capot pour inserts thermiques M3 (Ø4,5 × 4 mm **à confirmer sur les inserts achetés**) ; profondeur de poche CAO 4,8 mm.
