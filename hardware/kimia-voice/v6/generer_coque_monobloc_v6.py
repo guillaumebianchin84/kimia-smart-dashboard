@@ -90,6 +90,20 @@ def test_and_export():
         clip=fx.clip_xvf(angle)
         overlap=s.val().intersect(clip.val()).Volume()
         assert .15<overlap<2.5,('XVF clip socket inaccessible',angle,overlap)
+    # The user's assembly sequence also requires inserting the entire
+    # acoustic cylinder with its ESP tray LAST (after the screen and BME).
+    # Scan its straight translation through the open bottom of the housing.
+    traveling=cyl.union(fx.support_esp32_amovible()).val()
+    front_screen=fx.support_ecran_assemble().val()
+    bme=fx.porte_bme280_sur_fentes_existantes().val()
+    for shift in (-75.,-60.,-45.,-30.,-20.,-10.,-5.,0.):
+        item=traveling.translate((0,0,shift))
+        for blocker,name in ((s.val(),'outer shell'),
+                             (front_screen,'screen rear bracket'),
+                             (bme,'BME holder')):
+            assert item.intersect(blocker).Volume()<.02, (
+                'final cylinder+ESP insertion blocked',shift,name)
+    print('V6 MONOBLOC: acoustic cylinder + ESP insertion LAST confirmed in CAD',flush=True)
     print('V6 MONOBLOC: CAD valid, upper-module insertion from below clear',flush=True)
     parts={
         '01_coque_blanche_monobloc_V6':s,
