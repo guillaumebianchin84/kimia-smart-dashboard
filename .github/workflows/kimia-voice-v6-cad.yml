@@ -41,6 +41,7 @@ jobs:
           python hardware/kimia-voice/v6/auditer_assemblage_v6.py
           python hardware/kimia-voice/v6/generer_vue_3_pieces_v6.py
           python hardware/kimia-voice/v6/generer_comparatif_couronne_v6.py
+          python hardware/kimia-voice/v6/generer_coque_monobloc_v6.py
       - name: Publish V6 printable STL and STEP
         uses: actions/upload-artifact@v4
         with:
@@ -60,6 +61,11 @@ jobs:
             hardware/kimia-voice/v6/00_KIMIA_V6_3_PIECES_VUE_ECLATEE.stl \
             hardware/kimia-voice/v6/00_KIMIA_V6_4_PIECES_VUE_ECLATEE.stl \
             hardware/kimia-voice/v6/00_KIMIA_V6_ETUDE_COQUE_COURONNE_INTEGREES.stl \
+            hardware/kimia-voice/v6/00_KIMIA_V6_MONOBLOC_ASSEMBLAGE.stl \
+            hardware/kimia-voice/v6/00_KIMIA_V6_MONOBLOC_VUE_ECLATEE.stl \
+            hardware/kimia-voice/v6/01_coque_blanche_monobloc_V6.stl \
+            hardware/kimia-voice/v6/02_socle_bas_V6.stl \
+            hardware/kimia-voice/v6/03_caisson_cylindrique_V6.stl \
             hardware/kimia-voice/v6/04_couronne_XVF_avec_logements_clips.stl \
             hardware/kimia-voice/v6/01_socle_HP_vers_le_bas.stl \
             hardware/kimia-voice/v6/02_caisson_cylindrique_avec_ancrages.stl \
