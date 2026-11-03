@@ -114,7 +114,12 @@ def support_esp32_amovible():
         s=s.union(box(59.2,1.00,.70,0,sign*(half-.05),tz+1.70+2.85))
     # Butée et languette à l'extrémité, sans recouvrir les ports USB.
     s=s.union(box(.85,15.0,2.1,-(ESP_PCB_LENGTH/2+ESP_PCB_ALLOWANCE+.45),0,tz+1.70+1.05))
-    s=s.union(box(.8,8.0,2.5,ESP_PCB_LENGTH/2+ESP_PCB_ALLOWANCE+1.0,0,tz+1.70+1.25))
+    # Two lateral stops, not one central bar: keep a 19.7 mm USB access
+    # corridor at the +X end, independent of the provisional board length.
+    # The connector position must still be checked against the real PCB.
+    for side in (-1,1):
+        s=s.union(box(.8,2.3,2.5,ESP_PCB_LENGTH/2+ESP_PCB_ALLOWANCE+1.0,
+                      side*11.0,tz+1.70+1.25))
     return s
 
 
@@ -208,6 +213,11 @@ def validate_fixtures():
     # Interference at four headed pegs is deliberate for snap-fit PETG.
     assert support_esp32_amovible().val().intersect(
         caisson_avec_ancrages().val()).Volume()<15.0, 'ESP peg fit too stiff'
+    # Keep the presumed USB end clear for a centered plug/cable path.
+    # A mock plug 8 x 12 x 2 mm at +X must not hit the end stops.
+    mock_usb=box(8.0,12.0,2.0,33.0,0.0,
+                 v6.BASE_H+v6.CAISSON_H+4.8)
+    assert support_esp32_amovible().val().intersect(mock_usb.val()).Volume()<.01, 'USB access blocked by ESP support'
     # Height budget above speaker caisson before bottom of XVF cap.
     avail=v6.BODY_TOP-(roof+4.0)
     assert avail>=13.0,'Not enough space to install ESP tray'
