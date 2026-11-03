@@ -1,5 +1,15 @@
 # KIMIA Voice V6 — coque continue et caisson cylindrique interne
 
+## Décision retenue — coque monobloc (03/11/2026)
+
+Après étude du montage depuis le dessous, la **couronne XVF3800 est intégrée directement à la coque blanche**. Le caisson est positionné en dernier, avec une boucle de service sur le fil du haut-parleur pour le poser sur le côté pendant le raccordement. Les fixations de la couronne séparée sont supprimées et deux bossages intérieurs du socle sont légèrement déplacés pour laisser passer le PCB XVF Ø100 pendant l'assemblage. **La forme extérieure et les dimensions restent strictement les mêmes.**
+
+- [Plan de montage monobloc détaillé](./MONTAGE_MONOBLOC_V6.md)
+- [Vue 3D éclatée — les 3 grandes pièces](./00_KIMIA_V6_MONOBLOC_VUE_ECLATEE.stl)
+- [Coque monobloc en 3D](./01_coque_blanche_monobloc_V6.stl)
+
+Les indications de couronne *séparée* plus bas documentent le prototype historique, conservé pour comparaison. **Le monobloc est l'option privilégiée**, sous réserve des essais de montage réels.
+
 **Statut : CAO de prototype.** Forme et architecture décidées le 3 novembre 2026 à partir du modèle V5 et du croquis validé. **Ni l'emboîtement réel, ni l'acoustique n'ont encore été validés par impression/assemblage.** La V5 reste intacte dans `../v5/`.
 
 ## Architecture validée — à conserver
