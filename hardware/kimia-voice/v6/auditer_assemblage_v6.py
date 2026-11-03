@@ -71,6 +71,15 @@ def run():
             check(clash(tool,s[target]) < .05,
                   f"cap screwdriver shaft clear at {(x,y)} from {target}")
 
+    # A hidden cap pillar must remain a complete annulus around the screw
+    # even at the rear cable opening (which cut the old (0,54) pillar in half).
+    for x,y in v6.JOIN_SCREWS:
+        ring = (v6.cylinder(5.1,1.0,x,y,39.0)
+                .cut(v6.cylinder(3.55,1.2,x,y,38.9))).val()
+        actual = clash(ring,s["shell"])
+        check(actual/ring.Volume() > .97,
+              f"solid screw-column ring at z=39: {(x,y)} {actual/ring.Volume():.1%}")
+
     # USB port may sit on +X end of the provisional ESP board.
     mock_usb = cq.Workplane("XY").box(8,12,2).translate((33,0,81.8)).val()
     check(clash(mock_usb,s["esp"]) < .05, "ESP +X centered USB plug access free")
