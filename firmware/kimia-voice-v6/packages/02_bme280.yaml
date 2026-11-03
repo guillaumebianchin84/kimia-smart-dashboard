@@ -1,0 +1,20 @@
+# BME280 sur bus I2C GPIO5/6 — 0x76 à vérifier (0x77 possible).
+# Seules les broches DATA doivent rester à 3,3 V logiques.
+# Tester sur l'alimentation 3V3 une fois le régulateur du module identifié.
+sensor:
+  - platform: bme280_i2c
+    i2c_id: kimia_i2c
+    address: 0x76
+    temperature:
+      name: "KIMIA température"
+      id: kimia_temperature
+      oversampling: 16x
+    pressure:
+      name: "KIMIA pression"
+      id: kimia_pression
+      oversampling: 16x
+    humidity:
+      name: "KIMIA humidité"
+      id: kimia_humidite
+      oversampling: 16x
+    update_interval: 30s
