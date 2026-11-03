@@ -1,0 +1,142 @@
+# KIMIA Voice V6 — réemploi CIBLE des fonctions D'ECOUTE d'Ikabot.
+# Référence : guillaumebianchin84/Respeakerikabot-XVF3800-ESPHome-integration
+# Repo utilisateur épinglé à e9b11374... (configuration & composants compatibles).
+# Pas de LED animées, alarmes, Sendspin, Music Assistant ni TTS dans ce module.
+# Le XVF3800 doit être piloté par UN SEUL hôte : isoler le XIAO d'origine.
+
+external_components:
+  # Le fork I2S est indispensable pour ce montage XVF3800 en mode secondaire.
+  - source:
+      type: git
+      url: https://github.com/formatBCE/esphome
+      ref: respeaker_microphone
+    components:
+      - i2s_audio
+    refresh: 1d
+  - source:
+      type: git
+      url: https://github.com/guillaumebianchin84/Respeakerikabot-XVF3800-ESPHome-integration
+      ref: e9b11374c7bd9d3ba95ce084dfd30860eb7e4bc7
+    components:
+      - respeaker_xvf3800
+    refresh: 1d
+
+# Audio REV B : WS=GPIO7, BCLK=GPIO8, DATA1 microphone=GPIO43.
+# GPIO44 est réservé à la future sortie I2S HP : NON utilisée pour l'écoute.
+i2s_audio:
+  - id: kimia_i2s_input
+    i2s_lrclk_pin: GPIO7
+    i2s_bclk_pin: GPIO8
+
+microphone:
+  - platform: i2s_audio
+    id: kimia_xvf_mics
+    i2s_din_pin: GPIO43
+    adc_type: external
+    pdm: false
+    sample_rate: 48000
+    bits_per_sample: 32bit
+    i2s_mode: secondary
+    i2s_audio_id: kimia_i2s_input
+    channel: stereo
+
+respeaker_xvf3800:
+  id: kimia_respeaker
+  i2c_id: kimia_i2c
+  address: 0x2C
+  mute_switch:
+    id: kimia_mic_mute
+    name: "KIMIA couper microphone"
+    update_interval: 1s
+  dfu_version:
+    name: "KIMIA firmware XVF"
+    update_interval: 120s
+  # Firmware XMOS issu du projet Ikabot. Pas d'action de flash automatique.
+  firmware:
+    url: https://github.com/formatBCE/Respeaker-XVF3800-ESPHome-integration/raw/main/application_xvf3800_inthost-lr48-sqr-i2c-v1.0.7-release.bin
+    version: "1.0.7"
+    md5: 043a848f544ff2c7265ac19685daf5de
+
+text_sensor:
+  - platform: template
+    id: kimia_voice_state
+    name: "KIMIA état écoute"
+    update_interval: never
+  - platform: template
+    id: kimia_last_command
+    name: "KIMIA dernière commande entendue"
+    update_interval: never
+
+micro_wake_word:
+  id: kimia_wake
+  microphone:
+    microphone: kimia_xvf_mics
+    channels: 1
+  stop_after_detection: false
+  models:
+    - model: https://github.com/OHF-Voice/micro-wake-word/releases/download/okay_nabu_20241226.3/okay_nabu.json
+      id: kimia_ok_nabu
+  vad:
+    probability_cutoff: 0.05
+  on_wake_word_detected:
+    - if:
+        condition:
+          switch.is_off: kimia_mic_mute
+        then:
+          - if:
+              condition:
+                voice_assistant.is_running:
+              then:
+                - voice_assistant.stop:
+              else:
+                - voice_assistant.start:
+                    wake_word: !lambda return wake_word;
+
+voice_assistant:
+  id: kimia_assist
+  microphone:
+    microphone: kimia_xvf_mics
+    channels: 0
+  micro_wake_word: kimia_wake
+  use_wake_word: false
+  noise_suppression_level: 0
+  auto_gain: 0 dbfs
+  volume_multiplier: 1
+  on_client_connected:
+    - micro_wake_word.start:
+    - text_sensor.template.publish:
+        id: kimia_voice_state
+        state: "Prêt"
+  on_client_disconnected:
+    - voice_assistant.stop:
+    - micro_wake_word.stop:
+    - text_sensor.template.publish:
+        id: kimia_voice_state
+        state: "Déconnecté"
+  on_listening:
+    - text_sensor.template.publish:
+        id: kimia_voice_state
+        state: "Écoute"
+  on_stt_vad_start:
+    - text_sensor.template.publish:
+        id: kimia_voice_state
+        state: "Parole"
+  on_stt_vad_end:
+    - text_sensor.template.publish:
+        id: kimia_voice_state
+        state: "Réflexion"
+  on_stt_end:
+    - text_sensor.template.publish:
+        id: kimia_last_command
+        state: !lambda "return x;"
+  on_end:
+    - text_sensor.template.publish:
+        id: kimia_voice_state
+        state: "Prêt"
+  on_error:
+    - text_sensor.template.publish:
+        id: kimia_voice_state
+        state: "Erreur"
+
+# Aucun speaker / media_player volontairement : UNIQUEMENT l'écoute.
+# La synthèse vocale et le rendu audio seront intégrés/testés séparément.
