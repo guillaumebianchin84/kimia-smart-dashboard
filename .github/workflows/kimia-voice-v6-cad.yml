@@ -27,10 +27,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install "cadquery>=2.4,<3" "shapely>=2,<3"
-      - name: Compile and export
+      - name: Compile base CAD and complete internal mounts
         run: |
           python -m py_compile hardware/kimia-voice/v6/generer_kimia_v6.py
+          python -m py_compile hardware/kimia-voice/v6/generer_fixations_v6.py
           python hardware/kimia-voice/v6/generer_kimia_v6.py
+          python hardware/kimia-voice/v6/generer_fixations_v6.py
       - name: Publish V6 printable STL and STEP
         uses: actions/upload-artifact@v4
         with:
