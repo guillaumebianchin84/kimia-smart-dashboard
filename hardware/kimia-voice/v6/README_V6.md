@@ -31,8 +31,9 @@ La réduction de hauteur vient de l'emboîtement des fonctions, et non d'une ré
 
 ## Fixation invisible du capot (nouvelle révision)
 - Aucune tête de vis visible sur la couronne XVF3800 **ni sur le plexiglas**. Le plexiglas est retenu provisoirement par un adhésif/joint périphérique sur la feuillure, sans masquer les microphones (à valider).
-- Trois longues colonnes internes liées à la coque blanche, alignées avec des passages de tournevis **accessibles par la face inférieure du socle**.
+- Trois longues colonnes internes liées à la coque blanche, alignées avec des passages de tournevis **accessibles par la face inférieure du socle**. Ces trois vis servent **uniquement au capot supérieur**.
 - Épaulement à Z = 86 mm ; vis M3 × 12 proposées, introduites depuis le bas avec un tournevis aimanté assez long.
+- **Quatre fixations indépendantes du socle**, elles aussi accessibles **uniquement par le dessous** : passages fraisés et logements borgnes pour inserts M3 dans les pieds de fixation de la coque ; vis M3 × 10 proposées. Elles permettent le démontage du socle sans désolidariser le capot XVF3800.
 - Trois poches borgnes dans le capot pour inserts thermiques M3 (Ø4,5 × 4 mm **à confirmer sur les inserts achetés**) ; profondeur de poche CAO 4,8 mm.
 - Vérifier qu'aucune colonne ou vis ne gêne les connecteurs et qu'il est possible de serrer les vis avec le haut-parleur monté. Cette fixation est une **proposition à éprouver**, pas une validation d'assemblage.
 
@@ -66,7 +67,7 @@ Le workflow GitHub Actions `kimia-voice-v6-cad.yml` lance l'export et publie les
 ## Montage / validations impératives
 
 1. **Montage à blanc** du XVF réel, de l'écran, du support, de l'ESP32 et du capteur ; vérifier la profondeur derrière l'écran, les connecteurs USB et les positions exactes de microphones.
-2. Contrôler les trois colonnes de fixation du capot : passage du tournevis **par le dessous**, placement des inserts M3 et absence de collision avec câbles, écran et caisson.
+2. Contrôler les trois colonnes de fixation du capot **et les quatre fixations indépendantes du socle** : passage du tournevis par le dessous, placement des inserts M3 et absence de collision avec pieds, câbles, écran et caisson.
 3. Positionner le cylindre à l'intérieur de la coque, l'emboîter dans le rebord de centrage du socle, jointoyer son pied. Le passe-fil AR Ø4 mm doit être étanchéifié après le passage des deux conducteurs.
 4. Fixer le haut-parleur sur la face inférieure du socle, membrane vers le bas, pour **fermer l'ouverture inférieure du cylindre** ; ajouter un joint sous la bride HP. Vérifier géométrie réelle de bride, trous et vis avant perçage définitif.
 5. Tester acoustique, vibrations, qualité de détection XVF et espace libre de 10 mm sous la sortie sonore ; augmenter l'espace si la table atténue trop le son.
