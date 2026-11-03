@@ -46,6 +46,19 @@ La réduction de hauteur vient de l'emboîtement des fonctions, et non d'une ré
 
 Les encombrements des connecteurs/XIAO et des cartes auxiliaires (ESP32-S3, BME280, etc.) ne sont pas suffisamment cotés dans les fichiers V5 pour garantir leur placement. **Ne pas inventer leurs dimensions** : présenter les vrais composants lors de l'essai à blanc. Les fentes de capteur et l'accès alimentation restent provisoires.
 
+## Fixations complètes ajoutées (sans retouche de la silhouette extérieure)
+
+- [**Plan de montage, colle, clips et visserie**](./PLAN_MONTAGE_V6.md).
+- [**Générateur CadQuery des fixations internes**](./generer_fixations_v6.py), conçu comme un complément à la V6 de référence.
+- XVF3800 sans trous de fixation : 3 clips plastiques amovibles sous la couronne, enclenchés dans des poches borgnes non visibles depuis le dessus.
+- ESP32-S3 : berceau à glissières fixé par 4 plots clipsés **sur** le toit du cylindre, sans ouverture de la chambre acoustique.
+- Écran : bague arrière existante réellement installée dans l'assemblage 3D sur les 2 appuis M2.
+- Capteur BME280 : porte-capteur sur les fentes latérales existantes, sans nouveau perçage extérieur.
+- Câbles : 2 boucles d'attache internes et passage HP à étanchéifier.
+- Plexiglas Ø106 × 1,5 mm collé : bande périphérique prévue **1,5 mm radial** sur la feuillure déjà en place, réserve de colle ~0,30 mm en hauteur ; aucune vis visible.
+
+**Important** : les gabarits détaillés ESP32-S3 (provisoirement 57 × 28 mm) et BME280 (20 × 15 mm) ne viennent pas de mesures réelles du matériel reçu. La longueur des pattes, la rigidité des clips et les encombrements des connecteurs XVF/XIAO doivent être vérifiés avant impression finale. Le modèle extérieur validé n'est pas modifié.
+
 ## Fichiers et reconstruction
 
 - [Générateur CadQuery V6](./generer_kimia_v6.py) — génère STL et STEP de chaque pièce, plus un STL/STEP assemblé pour visualisation.
@@ -60,7 +73,7 @@ Les encombrements des connecteurs/XIAO et des cartes auxiliaires (ESP32-S3, BME2
 `00_KIMIA_VOICE_V6_GITHUB.stl` est **un assemblage de visualisation uniquement**, pas une pièce à imprimer d'un bloc.
 
 Installation : `pip install "cadquery>=2.4,<3" "shapely>=2"`, puis
-`python hardware/kimia-voice/v6/generer_kimia_v6.py`.
+`python hardware/kimia-voice/v6/generer_kimia_v6.py`, puis `python hardware/kimia-voice/v6/generer_fixations_v6.py`.
 
 Le workflow GitHub Actions `kimia-voice-v6-cad.yml` lance l'export et publie les pièces en **artefact ZIP** téléchargeable, sans modifier les versions historiques.
 
