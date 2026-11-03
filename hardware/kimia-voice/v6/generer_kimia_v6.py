@@ -34,9 +34,16 @@ CAISSON_H=72.0
 CAISSON_CAP=4.0
 JOIN_SCREWS=((0.0,54.0),(-52.0,-35.0),(52.0,-35.0))
 TOP_SCREWS=JOIN_SCREWS
-FRONT_HALF_WIDTH=50.0*SCALE_X
+FRONT_HALF_WIDTH=44.0*SCALE_X
 REAR_POINT_Y=76.0*SCALE_Y
 DESIGN_MAX_WIDTH=157.8*SCALE_X
+# Hidden cap screws: underside access bores, upper screw seats, blind brass inserts.
+# M3 x 12 from the shoulder at z=86; inserts must be verified before fabrication.
+SCREW_ACCESS_R=3.35
+SCREW_CLEARANCE_R=1.70
+SCREW_SHOULDER_Z=86.0
+CAP_INSERT_R=2.25
+CAP_INSERT_DEPTH=4.8
 
 def bezier4(p0,p1,p2,p3,n=18):
     result=[]
@@ -50,7 +57,7 @@ def bezier4(p0,p1,p2,p3,n=18):
 # the approved planar front, exterior bounds, XVF seat and internal layout.
 # Only Bezier control handles change: curve endpoints remain those of V5.
 RIGHT_CURVES=[
- ((50,-78),(64,-78),(73,-72),(76,-63)),
+ ((44,-78),(55,-78),(72,-74),(76,-63)),
  ((76,-63),(81,-47),(79,-22),(74,3)),
  ((74,3),(67,28),(53,52),(30,70)),
  ((30,70),(19,74),(8,76),(0,76)),
@@ -104,7 +111,8 @@ def base_hp():
     fix=[(SPEAKER_PCD/2*math.cos(math.radians(a)),SPEAKER_PCD/2*math.sin(math.radians(a))) for a in (45,135,225,315)]
     s=cut_xy_holes(s,fix,1.85,-.1,BASE_H+.3)
     for x,y in fix:s=s.cut(cylinder(3.25,2.2,x,y,-.1))
-    s=cut_xy_holes(s,JOIN_SCREWS,1.8,-.1,BASE_H+.3)
+    # Bottom-only service access for 3 cap screws, with long screwdriver.
+    s=cut_xy_holes(s,JOIN_SCREWS,SCREW_ACCESS_R,-.1,BASE_H+.3)
     # Emboîtement caisson Ø88 + jeu radial 0,5mm. Joint à assurer.
     rim=cylinder(CAISSON_R+2.5,2.5,z=BASE_H)
     rim=rim.cut(cylinder(CAISSON_R+.5,2.8,z=BASE_H-.1))
@@ -130,11 +138,15 @@ def corps():
     for x in (-33.0,33.0):
         s=s.union(axis_y_cylinder(5.7,12.5,x,FRONT_Y+3.5,SCREEN_Z))
         s=s.cut(axis_y_cylinder(1.25,11.5,x,FRONT_Y+5,SCREEN_Z))
+    # Three continuous structural pillars, each accessible from underneath.
+    # Long access bores stop at a shoulder that seats an M3x12 screw head;
+    # the last 8mm is a smaller shank clearance hole up into the top cover.
     for x,y in JOIN_SCREWS:
-        s=linked_post(s,x,y,BODY_Z,12,5.5)
-        s=s.cut(cylinder(1.4,12.4,x,y,BODY_Z-.1))
-        s=linked_post(s,x,y,BODY_TOP-10,10,5.5)
-        s=s.cut(cylinder(1.4,10.4,x,y,BODY_TOP-10-.1))
+        s=linked_post(s,x,y,BODY_Z,BODY_TOP-BODY_Z,5.5)
+        s=s.cut(cylinder(SCREW_ACCESS_R,SCREW_SHOULDER_Z-BODY_Z+.2,
+                         x,y,BODY_Z-.1))
+        s=s.cut(cylinder(SCREW_CLEARANCE_R,BODY_TOP-SCREW_SHOULDER_Z+.3,
+                         x,y,SCREW_SHOULDER_Z-.1))
     for zz in (26,32,38):
         box=cq.Workplane('XY').box(15,15,1.6).translate((-64,2,zz))
         s=s.cut(box)
@@ -147,9 +159,11 @@ def dessus_xvf():
     s=s.cut(cylinder(50.8,6.6,y=TOP_CENTER_Y,z=BODY_TOP-.2))
     s=s.cut(cylinder(48.9,TOP_H+.3,y=TOP_CENTER_Y,z=BODY_TOP-.15))
     s=s.cut(cylinder(53.2,1.85,y=TOP_CENTER_Y,z=BODY_TOP+TOP_H-1.8))
+    # Blind insert pockets opened from underneath: NO screw holes on the top.
+    # M3 heat-set brass inserts nominal Ø4.5 x 4mm (prototype dimensions).
     for x,y in TOP_SCREWS:
-        s=s.cut(cylinder(1.75,TOP_H+.4,x,y,BODY_TOP-.2))
-        s=s.cut(cylinder(3.2,2.2,x,y,BODY_TOP+TOP_H-2.1))
+        s=s.cut(cylinder(CAP_INSERT_R,CAP_INSERT_DEPTH+.1,
+                         x,y,BODY_TOP-.05))
     return s
 
 def plexi():
@@ -197,6 +211,10 @@ def validate_layout():
         assert Point(*xy).distance(Point(0,0))>=CAISSON_R+6.5, f'Screw hits caisson {xy}'
     assert FRONT_Y+2.1+9.4 < -CAISSON_R-2, 'screen PCB hits caisson'
     assert BODY_TOP>SCREEN_Z+32, 'screen bezel too high'
+    assert FRONT_HALF_WIDTH>=34.0, 'too little flat face for screen trim'
+    assert TOP_H-CAP_INSERT_DEPTH>=4.0, 'blind inserts risk piercing top cover'
+    assert SCREW_SHOULDER_Z+12.0<=BODY_TOP+CAP_INSERT_DEPTH, 'cap screw too long'
+    assert SCREW_SHOULDER_Z+12.0>=BODY_TOP+3.5, 'cap screw insert engagement too short'
     print('V6 dimensions',tuple(round(n,2) for n in PROFILE.bounds),
           'total height',BODY_TOP+TOP_H+FOOT_H,flush=True)
 
