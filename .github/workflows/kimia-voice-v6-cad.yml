@@ -11,6 +11,11 @@ on:
       - "hardware/kimia-voice/v6/**"
       - ".github/workflows/kimia-voice-v6-cad.yml"
 
+# Avoid outdated simultaneous builds competing to update the preview STL.
+concurrency:
+  group: kimia-voice-v6-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
