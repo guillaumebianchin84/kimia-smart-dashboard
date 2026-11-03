@@ -32,11 +32,14 @@ CAISSON_R=44.0
 CAISSON_WALL=3.5
 CAISSON_H=72.0
 CAISSON_CAP=4.0
-JOIN_SCREWS=((0.0,54.0),(-52.0,-35.0),(52.0,-35.0))
+# Rear power opening is x=-10..+10, z=34..44. The former rear
+# cap pillar at (0,54) was sliced in half by that opening! Move only the
+# HIDDEN rear screw to (18,50); the exterior profile and cable slot stay fixed.
+JOIN_SCREWS=((18.0,50.0),(-52.0,-35.0),(52.0,-35.0))
 TOP_SCREWS=JOIN_SCREWS
-# Independent bottom-only fasteners hold the base onto the white shell,
-# while the three separate service shafts secure the upper cap.
-BASE_SCREWS=((-26.0,-52.0),(26.0,-52.0),(-15.0,50.0),(15.0,50.0))
+# Independent underside base screws: one rear boss also moves to keep
+# safe material separation around the relocated top-cover pillar.
+BASE_SCREWS=((-26.0,-52.0),(26.0,-52.0),(-15.0,50.0),(0.0,53.0))
 BASE_BOSS_R=4.8
 BASE_INSERT_R=2.25
 FRONT_HALF_WIDTH=44.0*SCALE_X
