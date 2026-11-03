@@ -115,7 +115,16 @@ def base_hp():
     s=slab(BASE_Z,BASE_H).cut(cylinder(SPEAKER_CUT_D/2,BASE_H+.4,z=-.2))
     fix=[(SPEAKER_PCD/2*math.cos(math.radians(a)),SPEAKER_PCD/2*math.sin(math.radians(a))) for a in (45,135,225,315)]
     s=cut_xy_holes(s,fix,1.85,-.1,BASE_H+.3)
-    for x,y in fix:s=s.cut(cylinder(3.25,2.2,x,y,-.1))
+    # Four M3 captive nuts above the 5 mm base. The original underside
+    # counterbores were removed: they overlapped a useful nut pocket depth.
+    # Nut pockets are INSIDE the sealed speaker chamber (nothing visible outside).
+    # M3 nut AF 5.5 mm; prototype hex cutout 6.6 mm vertex circle, depth 2.65.
+    # Only ~0.2 mm nominal radial gap to the cylinder inner wall: verify real
+    # nut corner clearance and print tolerances before assembling.
+    for x,y in fix:
+        pocket=(cq.Workplane('XY').center(x,y).polygon(6,6.6)
+                .extrude(2.85).translate((0,0,BASE_H-2.65)))
+        s=s.cut(pocket)
     # Service access to the hidden top-cover screws.
     s=cut_xy_holes(s,JOIN_SCREWS,SCREW_ACCESS_R,-.1,BASE_H+.3)
     # Four independent underside screws attach the base to the white shell.
