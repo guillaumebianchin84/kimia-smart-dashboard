@@ -4,8 +4,8 @@
 
 ## Architecture validée — à conserver
 
-- **Même silhouette que la V5** : galet triangulaire très arrondi, face avant plane, courbes de Bézier d'origine simplement réduites en X et en Y. Ne pas changer en cube, rond ou triangle géométrique.
-- **Dessus** : module XVF3800 horizontal Ø100 mm ; disque de protection/plexiglas envisagé Ø106, avec une bordure extérieure blanche de l'ordre de 5 mm au point le plus serré. Les orifices micros du gabarit sont *indicatifs*, surtout pas définitifs.
+- **Même silhouette que la V5** : galet triangulaire très arrondi ; les 2 coins de façade commencent à s'arrondir dès après le cadre de l'écran. La façade reste plane sur ~69,5 mm, le reste de la silhouette et les dimensions maximales sont conservés. Ne pas changer en cube, rond ou triangle géométrique.
+- **Dessus sans vis apparentes** : module XVF3800 horizontal Ø100 mm ; disque de protection/plexiglas envisagé Ø106, avec une bordure extérieure blanche de l'ordre de 5 mm au point le plus serré. La couronne supérieure est retenue par **3 vis depuis le dessous** dans des logements borgnes avec inserts M3 (cotes préliminaires). Les orifices micros du gabarit sont *indicatifs*, surtout pas définitifs.
 - **Façade** : écran rond centré environ à mi-hauteur, même enveloppe PCB Ø55 et diamètre visible Ø45,68 qu'en V5 ; il passe **devant** le caisson cylindrique.
 - **Coque** : une enveloppe extérieure **blanche continue**, du haut jusqu'au socle inférieur. Aucune bande bleue extérieure superposée.
 - **À l'intérieur** : **caisson acoustique CYLINDRIQUE**, imprimable en bleu ou autre couleur, fermé en haut et ouvert en bas. Le haut-parleur **ferme le bas** une fois monté, membrane dirigée vers la table. Joint d'étanchéité nécessaire entre caisson, socle et haut-parleur.
@@ -28,6 +28,13 @@
 | Dégagement HP sous le socle | 12 mm | **10 mm** |
 
 La réduction de hauteur vient de l'emboîtement des fonctions, et non d'une réduction du haut-parleur ou de l'écran. **Volume acoustique indicatif**, avant déplacement d'air par l'arrière du HP, joints et câblage : ne constitue pas un réglage acoustique certifié.
+
+## Fixation invisible du capot (nouvelle révision)
+- Aucune tête de vis visible sur la couronne XVF3800.
+- Trois longues colonnes internes liées à la coque blanche, alignées avec des passages de tournevis **accessibles par la face inférieure du socle**.
+- Épaulement à Z = 86 mm ; vis M3 × 12 proposées, introduites depuis le bas avec un tournevis aimanté assez long.
+- Trois poches borgnes dans le capot pour inserts thermiques M3 (Ø4,5 × 4 mm **à confirmer sur les inserts achetés**) ; profondeur de poche CAO 4,8 mm.
+- Vérifier qu'aucune colonne ou vis ne gêne les connecteurs et qu'il est possible de serrer les vis avec le haut-parleur monté. Cette fixation est une **proposition à éprouver**, pas une validation d'assemblage.
 
 ## Gabarits de composants conservés strictement de V5
 
@@ -59,10 +66,10 @@ Le workflow GitHub Actions `kimia-voice-v6-cad.yml` lance l'export et publie les
 ## Montage / validations impératives
 
 1. **Montage à blanc** du XVF réel, de l'écran, du support, de l'ESP32 et du capteur ; vérifier la profondeur derrière l'écran, les connecteurs USB et les positions exactes de microphones.
-2. Contrôler que les trois nouveaux points de vissage ne gênent ni l'assemblage, ni l'intérieur du caisson.
+2. Contrôler les trois colonnes de fixation du capot : passage du tournevis **par le dessous**, placement des inserts M3 et absence de collision avec câbles, écran et caisson.
 3. Positionner le cylindre à l'intérieur de la coque, l'emboîter dans le rebord de centrage du socle, jointoyer son pied. Le passe-fil AR Ø4 mm doit être étanchéifié après le passage des deux conducteurs.
 4. Fixer le haut-parleur sur la face inférieure du socle, membrane vers le bas, pour **fermer l'ouverture inférieure du cylindre** ; ajouter un joint sous la bride HP. Vérifier géométrie réelle de bride, trous et vis avant perçage définitif.
 5. Tester acoustique, vibrations, qualité de détection XVF et espace libre de 10 mm sous la sortie sonore ; augmenter l'espace si la table atténue trop le son.
 6. Contrôler la mécanique réelle des perçages et la marge du XVF : **le dessin n'est pas une validation d'impression**.
 
-**Règle ferme pour les itérations suivantes : conserver cette architecture et le galet V5 réduit, sauf décision explicite contraire.**
+**Règle ferme pour les itérations suivantes : conserver cette architecture et le galet V5 réduit, avec arrondis de façade accentués et aucune vis sur le dessus, sauf décision explicite contraire.**
