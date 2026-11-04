@@ -135,10 +135,10 @@ respeaker_xvf3800:
     # This poll is also the azimuth source for beam lock. Set update_interval to
     # never, and the Beam lock switch stops working.
     update_interval: 100ms
-  firmware:
-    url: https://raw.githubusercontent.com/guillaumebianchin84/Respeakerikabot-XVF3800-ESPHome-integration/main/application_xvf3800_inthost-lr48-sqr-i2c-v1.0.7-release.bin
-    version: "1.0.7"
-    md5: 043a848f544ff2c7265ac19685daf5de
+  # SECURITE : mise a jour automatique du firmware XMOS DESACTIVEE.
+  # Restaurer le firmware officiel Seeed I2S par DFU USB directement sur le XVF3800.
+  # Attention : le pilote formatBCE peut requerir son firmware XMOS specifique
+  # et ne garantit pas la compatibilite avec le firmware officiel Seeed.
 
 audio_dac:
   - platform: aic3104
