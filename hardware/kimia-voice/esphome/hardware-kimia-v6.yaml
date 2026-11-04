@@ -136,7 +136,7 @@ respeaker_xvf3800:
     # never, and the Beam lock switch stops working.
     update_interval: 100ms
   firmware:
-    url: https://github.com/formatBCE/Respeaker-XVF3800-ESPHome-integration/raw/${respeaker_ref}/application_xvf3800_inthost-lr48-sqr-i2c-v1.0.7-release.bin
+    url: https://raw.githubusercontent.com/guillaumebianchin84/Respeakerikabot-XVF3800-ESPHome-integration/main/application_xvf3800_inthost-lr48-sqr-i2c-v1.0.7-release.bin
     version: "1.0.7"
     md5: 043a848f544ff2c7265ac19685daf5de
 
