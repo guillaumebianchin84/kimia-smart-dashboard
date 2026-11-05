@@ -1,5 +1,5 @@
 # KIMIA Voice V6 - ETAPE 1 / initialisation du pilote XMOS et du codec
-# But : valider le pilote apres correction de la connectique, en I2C 400 kHz.
+# But : valider le pilote apres correction de la connectique, en I2C 100 kHz.
 # Ce fichier NE TESTE PAS ENCORE les flux I2S / micro / haut-parleur.
 # Installation : uniquement ESP32-S3 N16R8 externe, jamais l'Ikabot en service.
 # Aucun firmware XMOS, aucune mise a jour DFU, pas d'effet LED, pas de configuration audio XMOS.
@@ -24,7 +24,7 @@ i2c:
   id: internal_i2c
   sda: GPIO5
   scl: GPIO6
-  frequency: 400kHz
+  frequency: 100kHz
   timeout: 13ms
   scan: false
 
