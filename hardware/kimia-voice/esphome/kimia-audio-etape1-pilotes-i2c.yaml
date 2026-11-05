@@ -52,11 +52,8 @@ audio_dac:
     address: 0x18
     # La classe AIC3104 ne modifie aucun registre pendant setup().
 
-# Sonde non destructive du codec, pour verifier l'ACK du peripherique.
-i2c_device:
-  id: codec_probe
-  i2c_id: internal_i2c
-  address: 0x18
+# Sonde non destructive du codec directement via son objet audio_dac.
+# Evite de declarer deux peripheriques I2C differents a la meme adresse.
 
 interval:
   - interval: 5s
@@ -64,7 +61,7 @@ interval:
       - lambda: |-
           static unsigned essai = 0;
           ++essai;
-          const auto codec_err = id(codec_probe).write_read(nullptr, 0, nullptr, 0);
+          const auto codec_err = id(aic3104_dac).write_read(nullptr, 0, nullptr, 0);
           ESP_LOGI("kimia_audio_etape1", "ESSAI %u : codec 0x18 code=%d ; pilote XVF3800=%s",
                    essai, (int) codec_err,
                    id(respeaker).is_failed() ? "FAILED" : "NON-FAILED");
