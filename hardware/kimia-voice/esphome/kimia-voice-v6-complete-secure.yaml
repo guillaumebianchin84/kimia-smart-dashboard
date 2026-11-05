@@ -1,0 +1,92 @@
+# =============================================================================
+# KIMIA Voice V6 - COMPLETE SAFE, ESP32-S3 N16R8 EXTERNE + XVF3800
+# Version de test au banc. Ne jamais installer sur l'Ikabot en service.
+# Fichier AUTONOME : packages charges depuis la branche KIMIA dediee sur GitHub.
+#
+# Connexions physiques (testees au moins en RX microphone):
+#   ESP32 GPIO5 -> XVF3800 SDA   / GPIO6 -> SCL   / GND commun
+#   ESP32 GPIO7 <- XVF3800 LRCLK / GPIO8 <- BCLK (XMOS I2S master)
+#   ESP32 GPIO1 <- XVF3800 I2S microphone / GPIO2 -> sortie I2S XVF3800
+#   Alimentation 5 V commune via votre montage actuel; ne pas doubler USB+5V.
+#
+# IMPORTANT : le code ESPHome est flashe sur l'ESP32 EXTERNE UNIQUEMENT.
+# Le firmware XMOS v1.0.9 n'est ni modifie ni mis a jour.
+# Le pilote bloque toute demande DFU, y compris si une section firmware
+# etait ajoutee par erreur. Pas de flash XMOS via I2C.
+#
+# LED : test bleu a l'initialisation du pilote, puis effet couleur unie
+# compatible LED_EFFECT=3 / LED_COLOR=16 selon documentation Seeed.
+# La programmation individuelle des 12 LED (mode 5) est suspendue tant
+# que sa prise en charge par le firmware XMOS 1.0.9 n'a pas ete confirmee.
+# =============================================================================
+
+substitutions:
+  name: kimia-i2c-test
+  friendly_name: KIMIA Voice V6
+  respeaker_ref: kimia-v6-secure-20261105
+  log_level: INFO
+
+packages:
+  kimia_full_safe:
+    url: https://github.com/guillaumebianchin84/Respeakerikabot-XVF3800-ESPHome-integration
+    ref: kimia-v6-secure-20261105
+    refresh: 0s
+    files:
+      - packages/base.yaml
+      - packages/voice-assistant.yaml
+      - packages/leds.yaml
+      - packages/timers-alarm.yaml
+      - packages/hardware-kimia.yaml
+
+# ESP32-S3 N16R8: 16 MB flash, 8 MB PSRAM.
+esp32:
+  flash_size: 16MB
+
+# Indispensable au mode complet de l'assistant (inutiles pour les diagnostics).
+# Verifier que ces 4 cles existent dans ESPHome / secrets.yaml.
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  - platform: esphome
+    id: ota_esphome
+    password: !secret ota_password
+
+# Test visuel LED automatique independant des commandes vocales.
+# Le pilote envoie deja un allumage bleu apres GETVERSION; le light
+# ci-dessous le rend visible egalement au repos et via Home Assistant.
+esphome:
+  on_boot:
+    - priority: -100
+      then:
+        - delay: 8s
+        - light.turn_on:
+            id: led_ring_light
+            red: 0%
+            green: 20%
+            blue: 100%
+            brightness: 35%
+        - script.execute: control_leds
+        - logger.log: "KIMIA V6 FULL SAFE: LED demandee / XMOS DFU interdit"
+
+button:
+  - platform: template
+    name: "KIMIA - Test LED bleu"
+    id: kimia_led_blue_test
+    icon: mdi:led-on
+    on_press:
+      - light.turn_on:
+          id: led_ring_light
+          red: 0%
+          green: 40%
+          blue: 100%
+          brightness: 65%
+      - script.execute: control_leds
+
+# Le haut-parleur et le wake word seront testes pendant la recette,
+# apres confirmation du montage, des secrets et de la connexion HA.
