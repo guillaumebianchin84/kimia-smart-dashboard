@@ -1,0 +1,70 @@
+# KIMIA Voice V6 - ETAPE 1 / initialisation du pilote XMOS et du codec
+# But : valider le pilote apres correction de la connectique, en I2C 400 kHz.
+# Ce fichier NE TESTE PAS ENCORE les flux I2S / micro / haut-parleur.
+# Installation : uniquement ESP32-S3 N16R8 externe, jamais l'Ikabot en service.
+# Aucun firmware XMOS, aucune mise a jour DFU, pas d'effet LED, pas de configuration audio XMOS.
+# Source XMOS : branche du pilote de diagnostic isole (main Ikabot intacte).
+
+esphome:
+  name: kimia-i2c-test
+  friendly_name: KIMIA Pilotes I2C Etape 1
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+logger:
+  level: DEBUG
+  baud_rate: 115200
+
+i2c:
+  id: internal_i2c
+  sda: GPIO5
+  scl: GPIO6
+  frequency: 400kHz
+  timeout: 13ms
+  scan: false
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/guillaumebianchin84/Respeakerikabot-XVF3800-ESPHome-integration
+      ref: kimia-xmos-i2c-diagnostic-20261105
+    components:
+      - respeaker_xvf3800
+      - aic3104
+    refresh: 0s
+
+respeaker_xvf3800:
+  id: respeaker
+  i2c_id: internal_i2c
+  address: 0x2C
+  # PAS de firmware: evite tout update DFU automatique.
+  # Pilote de diagnostic : lit la version, n'applique pas les reglages audio.
+
+audio_dac:
+  - platform: aic3104
+    id: aic3104_dac
+    i2c_id: internal_i2c
+    address: 0x18
+    # La classe AIC3104 ne modifie aucun registre pendant setup().
+
+# Sonde non destructive du codec, pour verifier l'ACK du peripherique.
+i2c_device:
+  id: codec_probe
+  i2c_id: internal_i2c
+  address: 0x18
+
+interval:
+  - interval: 5s
+    then:
+      - lambda: |-
+          static unsigned essai = 0;
+          ++essai;
+          const auto codec_err = id(codec_probe).write_read(nullptr, 0, nullptr, 0);
+          ESP_LOGI("kimia_audio_etape1", "ESSAI %u : codec 0x18 code=%d ; pilote XVF3800=%s",
+                   essai, (int) codec_err,
+                   id(respeaker).is_failed() ? "FAILED" : "NON-FAILED");
