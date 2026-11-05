@@ -1,0 +1,73 @@
+# KIMIA V6 - DIAGNOSTIC DE L'HORLOGE I2S SANS CAPTURE AUDIO
+# But : détecter 48 kHz sur LRCLK (GPIO7) avec le compteur materiel ESP32-S3.
+# IMPORTANT : c'est un diagnostic, aucun signal I2S n'est emise par l'ESP32.
+# Le compteur attend donc l'horloge fournie par le XVF3800, si celui-ci
+# possède et exécute un firmware I2S MASTER 48 kHz.
+# Cible ESP32-S3 N16R8 EXTERNE; NE PAS installer sur Ikabot.
+# NE flash PAS le firmware XMOS. Aucun changement physique de fils.
+
+esphome:
+  name: kimia-i2c-test
+  friendly_name: KIMIA diagnostic horloge I2S LRCLK
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+logger:
+  level: INFO
+  baud_rate: 115200
+
+i2c:
+  id: internal_i2c
+  sda: GPIO5
+  scl: GPIO6
+  frequency: 100kHz
+  timeout: 13ms
+  scan: false
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/guillaumebianchin84/Respeakerikabot-XVF3800-ESPHome-integration
+      ref: kimia-xmos-i2c-diagnostic-20261105
+    components:
+      - respeaker_xvf3800
+    refresh: 0s
+
+respeaker_xvf3800:
+  id: respeaker
+  i2c_id: internal_i2c
+  address: 0x2C
+  # Pas de firmware = PAS de flash DFU.
+
+sensor:
+  - platform: pulse_counter
+    id: lrclk_hz
+    pin:
+      number: GPIO7
+      mode: INPUT
+    use_pcnt: true
+    internal_filter: 0us
+    update_interval: 1s
+    count_mode:
+      rising_edge: INCREMENT
+      falling_edge: DISABLE
+    # pulse_counter exprime des impulsions par minute : conversion en Hz.
+    filters:
+      - multiply: 0.016666666667
+    unit_of_measurement: "Hz"
+    accuracy_decimals: 0
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("kimia_lrclk", "LRCLK GPIO7 = %.0f Hz (attendu ~48000 si XMOS I2S master 48 kHz)", x);
+
+interval:
+  - interval: 10s
+    then:
+      - lambda: |-
+          ESP_LOGI("kimia_lrclk", "Pilote XMOS = %s", id(respeaker).is_failed() ? "FAILED" : "NON-FAILED");
