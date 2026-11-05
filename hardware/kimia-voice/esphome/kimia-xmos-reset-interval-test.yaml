@@ -1,0 +1,68 @@
+# KIMIA Voice V6 - diagnostic I2C avec sondage periodique et reset XMOS
+# But : verifier si le bouton RST du XVF3800 restaure les lectures I2C
+# sans redemarrer l'ESP32. Ne modifie ni le firmware XMOS ni l'Ikabot.
+# Flasher UNIQUEMENT l'ESP32-S3 externe, sur son port USB.
+# Pas de bus audio, pas de pilote formatBCE, pas de commande de reboot XMOS.
+#
+# Procedure :
+# 1) Observer une premiere lecture 10 s apres boot puis toutes les 10 s.
+# 2) Appuyer sur "Redemarrer l'appareil" dans ESPHome; observer plusieurs lectures.
+# 3) Si elles echouent, sans redemarrer l'ESP32, appuyer BRIÈVEMENT
+#    sur le bouton RST du module XVF3800 (pas le MUTE ni SAFE MODE).
+# 4) Observer si des lectures "SUCCES" reviennent.
+# Ne pas utiliser l'USB DFU du XVF3800.
+
+esphome:
+  name: kimia-i2c-test
+  friendly_name: KIMIA XMOS Reset Diagnostics
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+logger:
+  level: DEBUG
+  baud_rate: 115200
+
+i2c:
+  id: xvf_bus
+  sda: GPIO5
+  scl: GPIO6
+  frequency: 100kHz
+  timeout: 13ms
+  scan: false
+
+i2c_device:
+  id: xvf_probe
+  i2c_id: xvf_bus
+  address: 0x2C
+
+interval:
+  - interval: 10s
+    then:
+      - lambda: |-
+          static unsigned attempt = 0;
+          ++attempt;
+          const uint8_t request[] = {0xF0, 0xD8, 0x04};
+          uint8_t response[4] = {0xEE, 0xEE, 0xEE, 0xEE};
+          const auto err = id(xvf_probe).write_read(
+              request, sizeof(request), response, sizeof(response));
+
+          if (err != esphome::i2c::ERROR_OK) {
+            ESP_LOGW("xmos_reset_test", "ESSAI %u : I2C ECHEC code=%d (2=NACK,3=timeout)",
+                     attempt, (int) err);
+            return;
+          }
+
+          ESP_LOGI("xmos_reset_test", "ESSAI %u : I2C OK / %02X %02X %02X %02X",
+                   attempt, response[0], response[1], response[2], response[3]);
+          if (response[0] == 0x00) {
+            ESP_LOGI("xmos_reset_test", "ESSAI %u : SUCCES, version XMOS %u.%u.%u",
+                     attempt, (unsigned) response[1], (unsigned) response[2], (unsigned) response[3]);
+          } else {
+            ESP_LOGW("xmos_reset_test", "ESSAI %u : status XMOS 0x%02X",
+                     attempt, response[0]);
+          }
