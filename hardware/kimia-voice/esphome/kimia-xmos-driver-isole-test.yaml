@@ -1,0 +1,43 @@
+# KIMIA Voice V6 - test isole du pilote XVF3800 modifie
+# Ne modifie PAS Ikabot en service, KIMIA V6 originale ni le firmware XMOS.
+# A flasher uniquement sur l'ESP32-S3 EXTERNE, port USB correspondant.
+# Tests : sans audio, sans LED, sans DFU, sans HA, lecture de version seulement.
+# Source du pilote : branche de diagnostic du fork Ikabot (main reste intacte).
+
+esphome:
+  name: kimia-i2c-test
+  friendly_name: KIMIA XMOS driver diagnostic
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+logger:
+  level: DEBUG
+  baud_rate: 115200
+
+i2c:
+  id: internal_i2c
+  sda: GPIO5
+  scl: GPIO6
+  frequency: 100kHz
+  timeout: 13ms
+  scan: true
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/guillaumebianchin84/Respeakerikabot-XVF3800-ESPHome-integration
+      ref: kimia-xmos-i2c-diagnostic-20261105
+    components:
+      - respeaker_xvf3800
+    refresh: 0s
+
+respeaker_xvf3800:
+  id: respeaker_diag
+  i2c_id: internal_i2c
+  address: 0x2C
+  # AUCUN firmware: aucun flash XMOS possible via cette configuration.
