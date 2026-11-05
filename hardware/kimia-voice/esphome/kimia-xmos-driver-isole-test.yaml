@@ -25,7 +25,7 @@ i2c:
   scl: GPIO6
   frequency: 100kHz
   timeout: 13ms
-  scan: true
+  scan: false  # diagnostic : exclure le scan I2C au demarrage
 
 external_components:
   - source:
