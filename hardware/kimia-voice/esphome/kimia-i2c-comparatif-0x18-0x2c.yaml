@@ -1,0 +1,63 @@
+# KIMIA Voice V6 - Test comparatif I2C (codec 0x18 / XMOS 0x2C)
+# Diagnostic en lecture uniquement, aucun firmware XMOS, aucune modification de l'Ikabot.
+# Installer uniquement sur l'ESP32-S3 externe.
+# Toutes les 10 s :
+#   - sonde une fois l'adresse codec 0x18 (sans ecrire de registre)
+#   - lit la version XMOS a l'adresse 0x2C (commande DFU_GETVERSION)
+#   - UNIQUEMENT si la lecture echoue : sonde l'adresse 0x2C sans commande
+# interpretation : code 0=OK, 2=NACK ou invalid response ESP-IDF, 3=timeout.
+# La ligne I2C transaction timeout detected peut coexister avec code=2.
+
+esphome:
+  name: kimia-i2c-test
+  friendly_name: KIMIA I2C Comparatif
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+logger:
+  level: DEBUG
+  baud_rate: 115200
+
+i2c:
+  id: xvf_bus
+  sda: GPIO5
+  scl: GPIO6
+  frequency: 100kHz
+  timeout: 13ms
+  scan: false
+
+i2c_device:
+  - id: codec_probe
+    i2c_id: xvf_bus
+    address: 0x18
+  - id: xvf_probe
+    i2c_id: xvf_bus
+    address: 0x2C
+
+interval:
+  - interval: 10s
+    then:
+      - lambda: |-
+          static unsigned essai = 0;
+          ++essai;
+          // Probe d'adresse seulement : aucun registre du codec n'est modifie.
+          const auto codec = id(codec_probe).write_read(nullptr, 0, nullptr, 0);
+
+          const uint8_t req[] = {0xF0, 0xD8, 0x04};
+          uint8_t resp[4] = {0xEE, 0xEE, 0xEE, 0xEE};
+          const auto xmos = id(xvf_probe).write_read(req, sizeof(req), resp, sizeof(resp));
+
+          if (xmos == esphome::i2c::ERROR_OK) {
+            ESP_LOGI("comparatif", "ESSAI %u : codec 0x18=%d ; XMOS 0x2C=%d ; reponse=%02X %02X %02X %02X",
+                     essai, (int) codec, (int) xmos, resp[0], resp[1], resp[2], resp[3]);
+          } else {
+            // Probe d'adresse supplementaire, seulement en cas d'echec.
+            const auto xmos_addr = id(xvf_probe).write_read(nullptr, 0, nullptr, 0);
+            ESP_LOGW("comparatif", "ESSAI %u : codec 0x18=%d ; XMOS GETVERSION=%d ; XMOS adresse seule=%d",
+                     essai, (int) codec, (int) xmos, (int) xmos_addr);
+          }
