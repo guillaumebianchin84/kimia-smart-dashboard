@@ -1,0 +1,63 @@
+# =============================================================================
+# KIMIA Voice V6 - GPO ONLY TEST, ESP32-S3 N16R8 EXTERNE + XVF3800
+# Version de test au banc. Ne jamais installer sur l'Ikabot en service.
+# Fichier AUTONOME : packages charges depuis la branche KIMIA dediee sur GitHub.
+#
+# Connexions physiques (testees au moins en RX microphone):
+#   ESP32 GPIO5 -> XVF3800 SDA   / GPIO6 -> SCL   / GND commun
+#   ESP32 GPIO7 <- XVF3800 LRCLK / GPIO8 <- BCLK (XMOS I2S master)
+#   ESP32 GPIO1 <- XVF3800 I2S microphone / GPIO2 -> sortie I2S XVF3800
+#   Alimentation 5 V commune via votre montage actuel; ne pas doubler USB+5V.
+#
+# IMPORTANT : le code ESPHome est flashe sur l'ESP32 EXTERNE UNIQUEMENT.
+# Le firmware XMOS v1.0.9 n'est ni modifie ni mis a jour.
+# Le pilote bloque toute demande DFU, y compris si une section firmware
+# etait ajoutee par erreur. Pas de flash XMOS via I2C.
+#
+# GPO TEST: lecture mute/GPO toutes les secondes uniquement; pas de LED, pas d'azimuth.
+# Verification XMOS GETVERSION toutes les 5 secondes.
+# AUCUN DFU XMOS. Le cercle LED peut rester eteint: c'est intentionnel.
+# =============================================================================
+
+substitutions:
+  name: kimia-i2c-test
+  friendly_name: KIMIA Voice V6 GPO Test
+  respeaker_ref: kimia-v6-gpo-only-20261105
+  log_level: INFO
+
+packages:
+  kimia_full_safe:
+    url: https://github.com/guillaumebianchin84/Respeakerikabot-XVF3800-ESPHome-integration
+    ref: kimia-v6-gpo-only-20261105
+    refresh: 0s
+    files:
+      - packages/base.yaml
+      - packages/voice-assistant.yaml
+      - packages/leds.yaml
+      - packages/timers-alarm.yaml
+      - packages/hardware-kimia.yaml
+
+# ESP32-S3 N16R8: 16 MB flash, 8 MB PSRAM.
+esp32:
+  flash_size: 16MB
+
+# Indispensable au mode complet de l'assistant (inutiles pour les diagnostics).
+# Verifier que ces 4 cles existent dans ESPHome / secrets.yaml.
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  encryption:
+    key: !secret kimia_api_encryption_key
+
+ota:
+  - platform: esphome
+    id: ota_esphome
+    password: !secret kimia_ota_password
+
+# Les commandes LED sont volontairement desactivees dans ce test.
+# Ne pas utiliser cette configuration pour la version finale du prototype.
+
+# Le haut-parleur et le wake word seront testes pendant la recette,
+# apres confirmation du montage, des secrets et de la connexion HA.
