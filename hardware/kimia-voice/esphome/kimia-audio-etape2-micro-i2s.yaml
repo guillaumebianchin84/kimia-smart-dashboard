@@ -1,0 +1,117 @@
+# KIMIA VOICE V6 - ETAPE 2: test de reception du flux microphone I2S
+# Cible: ESP32-S3 N16R8 EXTERNE uniquement; ne pas flasher sur Ikabot.
+# Basé sur le pilote diagnostic XMOS (sans réglages audio, sans DFU).
+# Test: échantillons PCM stereo 48 kHz, 32 bits; aucune sortie haut-parleur.
+# GPIO5 SDA, GPIO6 SCL, GPIO7 LRCLK, GPIO8 BCLK, GPIO1 DIN micro.
+# GPIO2 DOUT haut-parleur reste physiquement branche mais non pilote ici.
+
+esphome:
+  name: kimia-i2c-test
+  friendly_name: KIMIA microphone I2S diagnostic
+  on_boot:
+    priority: -100
+    then:
+      - delay: 5s
+      - logger.log: "KIMIA AUDIO: démarrage de la capture microphone I2S"
+      - microphone.capture:
+          id: i2s_mics
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+logger:
+  level: DEBUG
+  baud_rate: 115200
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+i2c:
+  id: internal_i2c
+  sda: GPIO5
+  scl: GPIO6
+  frequency: 100kHz
+  timeout: 13ms
+  scan: false
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/guillaumebianchin84/Respeakerikabot-XVF3800-ESPHome-integration
+      ref: kimia-xmos-i2c-diagnostic-20261105
+    components:
+      - respeaker_xvf3800
+      - aic3104
+    refresh: 0s
+
+respeaker_xvf3800:
+  id: respeaker
+  i2c_id: internal_i2c
+  address: 0x2C
+  # PAS de firmware XMOS: aucune mise à jour DFU.
+
+audio_dac:
+  - platform: aic3104
+    id: aic3104_dac
+    i2c_id: internal_i2c
+    address: 0x18
+
+i2s_audio:
+  - id: i2s_input
+    i2s_lrclk_pin: GPIO7
+    i2s_bclk_pin: GPIO8
+
+microphone:
+  - platform: i2s_audio
+    id: i2s_mics
+    i2s_din_pin: GPIO1
+    adc_type: external
+    pdm: false
+    sample_rate: 48000
+    bits_per_sample: 32bit
+    i2s_mode: secondary
+    i2s_audio_id: i2s_input
+    channel: stereo
+    on_data:
+      - lambda: |-
+          // On additionne les échantillons entrants, mais on log une seule fois par seconde.
+          static uint64_t total_bytes = 0;
+          static uint64_t nonzero_samples = 0;
+          static uint64_t total_samples = 0;
+          static uint32_t peak = 0;
+          static uint32_t last_report_ms = 0;
+          total_bytes += x.size();
+          // PCM stereo 32 bits, chaque échantillon occupe quatre octets.
+          for (size_t offset = 0; offset + 4 <= x.size(); offset += 4) {
+            int32_t sample;
+            memcpy(&sample, x.data() + offset, sizeof(sample));
+            if (sample != 0) ++nonzero_samples;
+            ++total_samples;
+            const uint32_t magnitude = static_cast<uint32_t>(sample < 0 ? -static_cast<int64_t>(sample) : sample);
+            if (magnitude > peak) peak = magnitude;
+          }
+          const uint32_t now = millis();
+          if (last_report_ms == 0) last_report_ms = now;
+          if (now - last_report_ms >= 1000) {
+            ESP_LOGI("kimia_i2s", "AUDIO I2S : octets=%llu, echantillons=%llu, non_nuls=%llu, pic=%lu",
+                     static_cast<unsigned long long>(total_bytes),
+                     static_cast<unsigned long long>(total_samples),
+                     static_cast<unsigned long long>(nonzero_samples),
+                     static_cast<unsigned long>(peak));
+            total_bytes = 0;
+            nonzero_samples = 0;
+            total_samples = 0;
+            peak = 0;
+            last_report_ms = now;
+          }
+
+interval:
+  - interval: 10s
+    then:
+      - lambda: |-
+          ESP_LOGI("kimia_i2s", "ETAT : pilote XMOS=%s", id(respeaker).is_failed() ? "FAILED" : "NON-FAILED");
