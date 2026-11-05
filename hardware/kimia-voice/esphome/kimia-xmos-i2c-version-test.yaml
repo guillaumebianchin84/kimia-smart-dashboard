@@ -1,0 +1,64 @@
+# KIMIA Voice V6 - Diagnostic XMOS XVF3800 par I2C
+# TEST AUTONOME : ne charge ni les packages KIMIA/Ikabot ni le composant respeaker_xvf3800.
+# Ne flashe PAS le XMOS ; seule la carte ESP32-S3 externe est concernee.
+# A utiliser avec le meme cablage que le scan I2C minimal reussi :
+# ESP32 GPIO5=SDA, GPIO6=SCL, GND commun et alimentation XVF3800 existante.
+# Lecture non destructive : DFU_GETVERSION, protocole XMOS [0xF0, 0xD8, 0x04].
+#
+# Les logs sont disponibles par USB/UART (115200 baud).
+# Apres chaque redemarrage de l'ESP32 : une seule transaction I2C apres 5 s.
+
+esphome:
+  name: kimia-xmos-i2c-test
+  friendly_name: KIMIA XMOS I2C Test
+  on_boot:
+    - priority: -100
+      then:
+        - delay: 5s
+        - lambda: |-
+            const uint8_t req[] = {0xF0, 0xD8, 0x04};
+            uint8_t resp[] = {0xEE, 0xEE, 0xEE, 0xEE};
+
+            ESP_LOGI("xmos_diag", "Lecture XMOS DFU_GETVERSION par write_read (START repete)...");
+            const auto err = id(xvf_probe).write_read(req, sizeof(req), resp, sizeof(resp));
+
+            if (err != esphome::i2c::ERROR_OK) {
+              ESP_LOGE("xmos_diag", "ERREUR I2C : code=%d (2=NACK, 3=timeout, 4=bus non initialise, 6=autre)", (int) err);
+              return;
+            }
+
+            ESP_LOGI("xmos_diag", "I2C OK, reponse brute : %02X %02X %02X %02X",
+                     resp[0], resp[1], resp[2], resp[3]);
+
+            if (resp[0] == 0x00) {
+              ESP_LOGI("xmos_diag", "SUCCES : XMOS version %u.%u.%u",
+                       (unsigned) resp[1], (unsigned) resp[2], (unsigned) resp[3]);
+            } else if (resp[0] == 0x01 || resp[0] == 0x40) {
+              ESP_LOGW("xmos_diag", "XMOS occupe / commande a retenter plus tard (status=0x%02X)", resp[0]);
+            } else {
+              ESP_LOGW("xmos_diag", "Reponse recue, mais status XMOS inattendu : 0x%02X", resp[0]);
+            }
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+logger:
+  level: DEBUG
+  baud_rate: 115200
+
+i2c:
+  id: xvf_bus
+  sda: GPIO5
+  scl: GPIO6
+  frequency: 100kHz
+  timeout: 13ms
+  scan: false
+
+i2c_device:
+  id: xvf_probe
+  i2c_id: xvf_bus
+  address: 0x2C
