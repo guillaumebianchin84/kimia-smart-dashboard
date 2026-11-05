@@ -50,12 +50,12 @@ wifi:
 
 api:
   encryption:
-    key: !secret api_key
+    key: !secret kimia_api_encryption_key
 
 ota:
   - platform: esphome
     id: ota_esphome
-    password: !secret ota_password
+    password: !secret kimia_ota_password
 
 # Test visuel LED automatique independant des commandes vocales.
 # Le pilote envoie deja un allumage bleu apres GETVERSION; le light
