@@ -22,6 +22,7 @@ void RespeakerXVF3800::setup() {
   uint8_t test_data;
   i2c::ErrorCode err = this->read(&test_data, 1);
   if (err != i2c::ERROR_OK) {
+    ESP_LOGE(TAG, "KIMIA DIAG: SETUP I2C probe failed, error=%d (before normal polling)", (int) err);
     ESP_LOGE(TAG, "Could not communicate with XVF3800 at configured I2C address");
     this->mark_failed();
     return;
@@ -30,6 +31,7 @@ void RespeakerXVF3800::setup() {
   // Wait for XMOS to boot...
   this->set_timeout(3000, [this]() {
     if (!this->dfu_get_version_()) {
+      ESP_LOGE(TAG, "KIMIA DIAG: SETUP DFU version handshake failed after initial probe");
       ESP_LOGE(TAG, "Communication with Respeaker XVF3800 failed");
       this->mark_failed();
     } else if (!this->versions_match_() && this->firmware_bin_is_valid_()) {
@@ -371,7 +373,16 @@ bool RespeakerXVF3800::read_gpo_values(uint8_t *buffer, uint8_t *status) {
   uint8_t data[6] = {0};
   i2c::ErrorCode err = this->write_read(request, sizeof(request), data, sizeof(data));
   
+  if (err != i2c::ERROR_OK)
+    ESP_LOGW(TAG, "KIMIA DIAG: GPO_READ (mute poll) I2C error=%d", (int) err);
   if (!this->kimia_i2c_record_(err)) return false;
+  if (data[0] != CTRL_DONE) {
+    if (data[0] == CTRL_WAIT || data[0] == SERVICER_COMMAND_RETRY)
+      ESP_LOGD(TAG, "KIMIA DIAG: GPO_READ busy status=0x%02X; next poll retries", data[0]);
+    else
+      ESP_LOGW(TAG, "KIMIA DIAG: GPO_READ unexpected XMOS status=0x%02X", data[0]);
+    return false;
+  }
 
   *status = data[0];
   for (uint8_t i = 0; i < GPO_GPO_READ_NUM_BYTES; i++) {
@@ -404,7 +415,8 @@ void RespeakerXVF3800::write_mute_status(bool value) {
            value ? "MUTE" : "UNMUTE", payload[0], payload[1], payload[2], payload[3], payload[4]);
   
   i2c::ErrorCode err = this->write(payload, sizeof(payload));
-
+  if (err != i2c::ERROR_OK)
+    ESP_LOGW(TAG, "KIMIA DIAG: GPO_WRITE mute=%d I2C error=%d", (int) value, (int) err);
   this->kimia_i2c_record_(err);
 }
 
@@ -426,6 +438,8 @@ bool RespeakerXVF3800::read_azimuth_radians_(float &out_radians, uint8_t beam_in
   if (!this->kimia_i2c_ready_())
     return false;
   i2c::ErrorCode err = this->write_read(aec_req, sizeof(aec_req), aec_resp, sizeof(aec_resp));
+  if (err != i2c::ERROR_OK)
+    ESP_LOGW(TAG, "KIMIA DIAG: AEC_AZIMUTH READ (beam=%u) I2C error=%d", beam_index, (int) err);
   if (!this->kimia_i2c_record_(err))
     return false;
 
@@ -530,7 +544,9 @@ bool RespeakerXVF3800::xmos_write_bytes(uint8_t resid, uint8_t cmd, const uint8_
   }
 
   i2c::ErrorCode err = this->write(payload, 3 + write_byte_num);
-  
+  if (err != i2c::ERROR_OK)
+    ESP_LOGW(TAG, "KIMIA DIAG: XMOS_WRITE resid=%u cmd=%u bytes=%u I2C error=%d",
+             resid, cmd, write_byte_num, (int) err);
   return this->kimia_i2c_record_(err);
 }
 
@@ -566,8 +582,12 @@ std::string RespeakerXVF3800::read_dfu_version() {
   const uint8_t request[] = {0xF0, 0x58 | I2C_COMMAND_READ_BIT, 4};
   
   i2c::ErrorCode err = this->write(request, sizeof(request));
+  if (err != i2c::ERROR_OK)
+    ESP_LOGW(TAG, "KIMIA DIAG: DFU_VERSION request WRITE I2C error=%d", (int) err);
   if (!this->kimia_i2c_record_(err)) return "Unknown";
   err = this->read(data, 4);
+  if (err != i2c::ERROR_OK)
+    ESP_LOGW(TAG, "KIMIA DIAG: DFU_VERSION response READ I2C error=%d", (int) err);
   if (this->kimia_i2c_record_(err) && data[0] == 0) {
       ESP_LOGI(TAG, "Version request successful: %u.%u.%u", data[1], data[2], data[3]);
       return str_sprintf("%u.%u.%u", data[1], data[2], data[3]);
