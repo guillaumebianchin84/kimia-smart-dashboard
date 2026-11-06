@@ -371,8 +371,22 @@ bool RespeakerXVF3800::read_gpo_values(uint8_t *buffer, uint8_t *status) {
                             GPO_GPO_READ_NUM_BYTES + 1};
 
   uint8_t data[6] = {0};
-  i2c::ErrorCode err = this->write_read(request, sizeof(request), data, sizeof(data));
-  
+  // EXPERIMENT: two independent I2C transactions (STOP then START) in place of
+  // ESP-IDF's combined repeated-START write_read(). Only GPO and azimuth reads
+  // are affected. A failure in either stage is logged separately.
+  const uint32_t t0 = millis();
+  i2c::ErrorCode err = this->write(request, sizeof(request));
+  if (err != i2c::ERROR_OK) {
+    ESP_LOGW(TAG, "KIMIA SPLIT: GPO_READ request WRITE failed error=%d elapsed=%u ms",
+             (int) err, (unsigned) (millis() - t0));
+  } else {
+    const uint32_t t1 = millis();
+    err = this->read(data, sizeof(data));
+    if (err != i2c::ERROR_OK)
+      ESP_LOGW(TAG, "KIMIA SPLIT: GPO_READ response READ failed error=%d elapsed=%u ms",
+               (int) err, (unsigned) (millis() - t1));
+  }
+
   if (err != i2c::ERROR_OK)
     ESP_LOGW(TAG, "KIMIA DIAG: GPO_READ (mute poll) I2C error=%d", (int) err);
   if (!this->kimia_i2c_record_(err)) return false;
@@ -437,7 +451,20 @@ bool RespeakerXVF3800::read_azimuth_radians_(float &out_radians, uint8_t beam_in
   // for LED, azimuth, GPO/mute, beam controls and periodic version reads.
   if (!this->kimia_i2c_ready_())
     return false;
-  i2c::ErrorCode err = this->write_read(aec_req, sizeof(aec_req), aec_resp, sizeof(aec_resp));
+  // EXPERIMENT: STOP between command write and response read, versus the
+  // original combined repeated-START transaction. No delay or retry added.
+  const uint32_t t0 = millis();
+  i2c::ErrorCode err = this->write(aec_req, sizeof(aec_req));
+  if (err != i2c::ERROR_OK) {
+    ESP_LOGW(TAG, "KIMIA SPLIT: AEC_AZIMUTH request WRITE beam=%u failed error=%d elapsed=%u ms",
+             beam_index, (int) err, (unsigned) (millis() - t0));
+  } else {
+    const uint32_t t1 = millis();
+    err = this->read(aec_resp, sizeof(aec_resp));
+    if (err != i2c::ERROR_OK)
+      ESP_LOGW(TAG, "KIMIA SPLIT: AEC_AZIMUTH response READ beam=%u failed error=%d elapsed=%u ms",
+               beam_index, (int) err, (unsigned) (millis() - t1));
+  }
   if (err != i2c::ERROR_OK)
     ESP_LOGW(TAG, "KIMIA DIAG: AEC_AZIMUTH READ (beam=%u) I2C error=%d", beam_index, (int) err);
   if (!this->kimia_i2c_record_(err))
