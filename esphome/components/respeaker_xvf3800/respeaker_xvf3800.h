@@ -236,6 +236,8 @@ class RespeakerXVF3800 : public i2c::I2CDevice, public Component {
   void start_dfu_update();
   uint8_t read_vnr();
 
+  bool kimia_i2c_ready() const { return this->kimia_i2c_ready_(); }
+
   // Public methods for child components
   bool read_gpo_values(uint8_t *buffer, uint8_t *status);
   bool read_gpio_status(uint32_t *gpio_status);
@@ -324,10 +326,11 @@ class RespeakerXVF3800 : public i2c::I2CDevice, public Component {
   float last_azimuth_rad_{0.0f};
   uint32_t last_azimuth_ms_{0};
 
-  // KIMIA diagnostic — only rate-limit failed AEC azimuth I2C requests.
-  uint8_t azimuth_i2c_failure_count_{0};
-  uint8_t azimuth_backoff_step_{0};
-  uint32_t azimuth_retry_after_ms_{0};
+  // KIMIA-only shared guard for all runtime XMOS commands.
+  uint8_t kimia_i2c_failures_{0};
+  uint32_t kimia_pause_until_ms_{0};
+  bool kimia_i2c_ready_() const;
+  bool kimia_i2c_record_(i2c::ErrorCode err);
 
   // Last frame written by set_led_ring(), so an unchanged frame skips the bus.
   uint32_t last_led_frame_[12]{};
@@ -343,7 +346,7 @@ class RespeakerXVF3800 : public i2c::I2CDevice, public Component {
   void write_agc_max_gain_();
 
   // Helper method for XMOS communication
-  void xmos_write_bytes(uint8_t resid, uint8_t cmd, const uint8_t *value, uint8_t write_byte_num);
+  bool xmos_write_bytes(uint8_t resid, uint8_t cmd, const uint8_t *value, uint8_t write_byte_num);
 
   // Reads one of the four AEC azimuth slots (radians) returned by cmd 75:
   //   0 = beam 1 (fixed beam 1 when fixed mode is on)
