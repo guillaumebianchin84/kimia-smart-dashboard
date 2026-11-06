@@ -1,5 +1,6 @@
 # KIMIA XVF3800 — diagnostic backoff I2C azimuth
 # TEST ONLY. Ikabot is not changed.
+# Normal original XVF3800 polling/LED/I2C rates; KIMIA-only I2C error backoff.
 substitutions:
   name: kimia-xvf-voice-test
   friendly_name: "KIMIA XVF Voice Test"
@@ -40,17 +41,17 @@ speaker:
 respeaker_xvf3800:
   firmware: !remove
   led_beam_sensor:
-    update_interval: 500ms
+    update_interval: 100ms
   mute_switch:
-    update_interval: never
+    update_interval: 1s
 
 i2c:
   - id: !extend internal_i2c
-    frequency: 100kHz
+    frequency: 400kHz
 
 interval:
   - id: !extend led_animation_interval
-    interval: 500ms
+    interval: 50ms
 
 wifi:
   ssid: !secret wifi_ssid
