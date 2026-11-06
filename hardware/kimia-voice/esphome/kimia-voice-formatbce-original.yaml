@@ -40,7 +40,12 @@ speaker:
 respeaker_xvf3800:
   firmware: !remove
 
-# Bus I2C d'origine formatBCE : 400 kHz, scan actif.
+# Nos fils Dupont : ralentir le bus formatBCE de 400 a 100 kHz.
+# Comparaison a changement unique : meme pilote officiel, meme montage.
+i2c:
+  - id: !extend internal_i2c
+    frequency: 100kHz
+
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
