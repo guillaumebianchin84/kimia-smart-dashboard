@@ -7,6 +7,7 @@
 #include "esphome/core/log.h"
 #include "esphome/core/hal.h"
 
+#include <algorithm>
 #include <cinttypes>
 #include <cstring>
 
