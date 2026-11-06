@@ -205,11 +205,11 @@ external_components:
     components:
       - i2s_audio
     refresh: 0s
-  # KIMIA-only patched XVF3800 component; branch isolated from Ikabot.
+  # KIMIA-only shared I2C recovery guard; Ikabot remains untouched.
   - source:
       type: git
       url: https://github.com/guillaumebianchin84/kimia-smart-dashboard
-      ref: kimia-xvf-i2c-backoff-test
+      ref: kimia-xvf-full-i2c-guard
     components:
       - respeaker_xvf3800
     refresh: 0s
