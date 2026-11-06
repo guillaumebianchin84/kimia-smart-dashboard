@@ -339,7 +339,31 @@ bool RespeakerXVF3800::dfu_check_if_ready_() {
   return false;
 }
 
+bool RespeakerXVF3800::kimia_i2c_ready_() const {
+  return this->kimia_pause_until_ms_ == 0 ||
+         (int32_t)(millis() - this->kimia_pause_until_ms_) >= 0;
+}
+
+bool RespeakerXVF3800::kimia_i2c_record_(i2c::ErrorCode err) {
+  if (err == i2c::ERROR_OK) {
+    if (this->kimia_i2c_failures_ != 0)
+      ESP_LOGI(TAG, "KIMIA I2C: XMOS communication restored");
+    this->kimia_i2c_failures_ = 0;
+    this->kimia_pause_until_ms_ = 0;
+    return true;
+  }
+  if (this->kimia_i2c_failures_ < 5)
+    ++this->kimia_i2c_failures_;
+  // 500ms, 1s, 2s, 4s, 4s. All normal command paths skip while paused.
+  const uint32_t pause_ms = std::min<uint32_t>(500UL << (this->kimia_i2c_failures_ - 1), 4000UL);
+  this->kimia_pause_until_ms_ = millis() + pause_ms;
+  ESP_LOGW(TAG, "KIMIA I2C: transport error=%d; suspending XMOS commands for %u ms (failure %u)",
+           (int)err, (unsigned)pause_ms, (unsigned)this->kimia_i2c_failures_);
+  return false;
+}
+
 bool RespeakerXVF3800::read_gpo_values(uint8_t *buffer, uint8_t *status) {
+  if (!this->kimia_i2c_ready_()) return false;
   const uint8_t request[] = {GPO_SERVICER_RESID, 
                             GPO_SERVICER_RESID_GPO_READ_VALUES | 0x80, 
                             GPO_GPO_READ_NUM_BYTES + 1};
@@ -347,10 +371,7 @@ bool RespeakerXVF3800::read_gpo_values(uint8_t *buffer, uint8_t *status) {
   uint8_t data[6] = {0};
   i2c::ErrorCode err = this->write_read(request, sizeof(request), data, sizeof(data));
   
-  if (err != i2c::ERROR_OK) {
-    ESP_LOGW(TAG, "Failed to read GPO statuses, error=%d", (int)err);
-    return false;
-  }
+  if (!this->kimia_i2c_record_(err)) return false;
 
   *status = data[0];
   for (uint8_t i = 0; i < GPO_GPO_READ_NUM_BYTES; i++) {
@@ -376,6 +397,7 @@ bool RespeakerXVF3800::read_mute_status() {
 }
 
 void RespeakerXVF3800::write_mute_status(bool value) {
+  if (!this->kimia_i2c_ready_()) return;
   uint8_t payload[] = {GPO_SERVICER_RESID, GPO_SERVICER_RESID_GPO_WRITE_VALUE, 2, 30, (uint8_t)(value ? 1 : 0)};
   
   ESP_LOGD(TAG, "Writing mute status %s to GPIO 30: [0x%02X, 0x%02X, 0x%02X, %d, %d]", 
@@ -383,9 +405,7 @@ void RespeakerXVF3800::write_mute_status(bool value) {
   
   i2c::ErrorCode err = this->write(payload, sizeof(payload));
 
-  if (err != i2c::ERROR_OK) {
-    ESP_LOGW(TAG, "Error writing mute status to GPIO 30. Error code: %d", (int)err);
-  }
+  this->kimia_i2c_record_(err);
 }
 
 bool RespeakerXVF3800::read_azimuth_radians_(float &out_radians, uint8_t beam_index) {
@@ -400,45 +420,14 @@ bool RespeakerXVF3800::read_azimuth_radians_(float &out_radians, uint8_t beam_in
 
   uint8_t aec_resp[17];
 
-  // Single attempt. The XMOS transport protocol can return CTRL_WAIT (1) when the
-  // servicer is busy, and the host is expected to retry — but this runs in the
-  // ESPHome main loop, so the 10 Hz beam poll is the retry mechanism. A blocking
-  // retry loop here stalls every other component's loop().
-  // KIMIA diagnostic: pause *only* azimuth reads after repeated I2C transport
-  // failures. CTRL_WAIT/COMMAND_RETRY below are valid DSP replies, NOT errors.
-  const uint32_t now = millis();
-  if (this->azimuth_retry_after_ms_ != 0 &&
-      (int32_t)(now - this->azimuth_retry_after_ms_) < 0) {
+  // XMOS can legitimately answer CTRL_WAIT/COMMAND_RETRY: those are not I2C errors.
+  // A transport timeout, however, activates ONE shared non-blocking cooldown
+  // for LED, azimuth, GPO/mute, beam controls and periodic version reads.
+  if (!this->kimia_i2c_ready_())
     return false;
-  }
-
   i2c::ErrorCode err = this->write_read(aec_req, sizeof(aec_req), aec_resp, sizeof(aec_resp));
-  if (err != i2c::ERROR_OK) {
-    if (this->azimuth_i2c_failure_count_ < 255)
-      ++this->azimuth_i2c_failure_count_;
-    if (this->azimuth_i2c_failure_count_ >= 3) {
-      // 2, 4, 8, ... 30 seconds; cap the penalty and retain the error counter.
-      const uint8_t step = std::min<uint8_t>(this->azimuth_backoff_step_, 4);
-      const uint32_t cooldown_ms = std::min<uint32_t>(2000UL << step, 30000UL);
-      this->azimuth_retry_after_ms_ = millis() + cooldown_ms;
-      if (this->azimuth_backoff_step_ < 5)
-        ++this->azimuth_backoff_step_;
-      this->azimuth_i2c_failure_count_ = 0;
-      ESP_LOGW(TAG, "KIMIA azimuth: I2C error=%d, pausing reads for %u ms (backoff step %u)",
-               (int)err, (unsigned)cooldown_ms, (unsigned)this->azimuth_backoff_step_);
-    } else {
-      ESP_LOGW(TAG, "KIMIA azimuth: I2C error=%d, consecutive errors=%u/3",
-               (int)err, (unsigned)this->azimuth_i2c_failure_count_);
-    }
+  if (!this->kimia_i2c_record_(err))
     return false;
-  }
-  // A successful I2C transaction clears the transport-failure escalation,
-  // including when the XMOS legitimately replies CTRL_WAIT.
-  if (this->azimuth_backoff_step_ > 0)
-    ESP_LOGI(TAG, "KIMIA azimuth: I2C communication restored");
-  this->azimuth_i2c_failure_count_ = 0;
-  this->azimuth_backoff_step_ = 0;
-  this->azimuth_retry_after_ms_ = 0;
 
   uint8_t status = aec_resp[0];
   if (status == CTRL_DONE) {
@@ -511,11 +500,11 @@ void RespeakerXVF3800::lock_beam() {
   uint8_t payload[2 * sizeof(float)];
   memcpy(&payload[0], &radians, sizeof(float));
   memcpy(&payload[sizeof(float)], &radians, sizeof(float));
-  this->xmos_write_bytes(AEC_SERVICER_RESID, AEC_FIXEDBEAMS_AZIMUTH_CMD, payload, sizeof(payload));
+  if (!this->xmos_write_bytes(AEC_SERVICER_RESID, AEC_FIXEDBEAMS_AZIMUTH_CMD, payload, sizeof(payload))) return;
 
   // AEC_FIXEDBEAMSONOFF is int32 (little-endian on XS3).
   uint8_t on[4] = {0x01, 0x00, 0x00, 0x00};
-  this->xmos_write_bytes(AEC_SERVICER_RESID, AEC_FIXEDBEAMS_ONOFF_CMD, on, sizeof(on));
+  if (!this->xmos_write_bytes(AEC_SERVICER_RESID, AEC_FIXEDBEAMS_ONOFF_CMD, on, sizeof(on))) return;
 
   this->beam_locked_ = true;
 
@@ -524,12 +513,13 @@ void RespeakerXVF3800::lock_beam() {
 
 void RespeakerXVF3800::unlock_beam() {
   uint8_t off[4] = {0x00, 0x00, 0x00, 0x00};
-  this->xmos_write_bytes(AEC_SERVICER_RESID, AEC_FIXEDBEAMS_ONOFF_CMD, off, sizeof(off));
+  if (!this->xmos_write_bytes(AEC_SERVICER_RESID, AEC_FIXEDBEAMS_ONOFF_CMD, off, sizeof(off))) return;
   this->beam_locked_ = false;
   ESP_LOGI(TAG, "Beam lock released");
 }
 
-void RespeakerXVF3800::xmos_write_bytes(uint8_t resid, uint8_t cmd, const uint8_t *value, uint8_t write_byte_num) {
+bool RespeakerXVF3800::xmos_write_bytes(uint8_t resid, uint8_t cmd, const uint8_t *value, uint8_t write_byte_num) {
+  if (!this->kimia_i2c_ready_()) return false;
   uint8_t payload[3 + 255];
   payload[0] = resid;
   payload[1] = cmd;
@@ -541,9 +531,7 @@ void RespeakerXVF3800::xmos_write_bytes(uint8_t resid, uint8_t cmd, const uint8_
 
   i2c::ErrorCode err = this->write(payload, 3 + write_byte_num);
   
-  if (err != i2c::ERROR_OK) {
-    ESP_LOGW(TAG, "Error in xmos_write_bytes. resid=%d, cmd=%d, error=%d", resid, cmd, (int)err);
-  }
+  return this->kimia_i2c_record_(err);
 }
 
 void RespeakerXVF3800::set_led_ring(uint32_t *rgb_array) {
@@ -552,8 +540,8 @@ void RespeakerXVF3800::set_led_ring(uint32_t *rgb_array) {
   if (this->led_frame_valid_ && memcmp(this->last_led_frame_, rgb_array, sizeof(this->last_led_frame_)) == 0) {
     return;
   }
-  memcpy(this->last_led_frame_, rgb_array, sizeof(this->last_led_frame_));
-  this->led_frame_valid_ = true;
+  // Never cache a frame which was not actually accepted by the bus.
+  if (!this->kimia_i2c_ready_()) return;
 
   uint8_t payload[48];
   
@@ -565,21 +553,24 @@ void RespeakerXVF3800::set_led_ring(uint32_t *rgb_array) {
     payload[i * 4 + 3] = 0x00;
   }
   
-  this->xmos_write_bytes(GPO_SERVICER_RESID, GPO_SERVICER_RESID_LED_RING_VALUE, payload, 48);
+  if (this->xmos_write_bytes(GPO_SERVICER_RESID, GPO_SERVICER_RESID_LED_RING_VALUE, payload, 48)) {
+    memcpy(this->last_led_frame_, rgb_array, sizeof(this->last_led_frame_));
+    this->led_frame_valid_ = true;
+  }
 }
 
 std::string RespeakerXVF3800::read_dfu_version() {
+  if (!this->kimia_i2c_ready_()) return "Unknown";
   uint8_t data[4] = {0};
   
   const uint8_t request[] = {0xF0, 0x58 | I2C_COMMAND_READ_BIT, 4};
   
   i2c::ErrorCode err = this->write(request, sizeof(request));
-  if (err == i2c::ERROR_OK) {
-    err = this->read(data, 4);
-    if (err == i2c::ERROR_OK && data[0] == 0) {
+  if (!this->kimia_i2c_record_(err)) return "Unknown";
+  err = this->read(data, 4);
+  if (this->kimia_i2c_record_(err) && data[0] == 0) {
       ESP_LOGI(TAG, "Version request successful: %u.%u.%u", data[1], data[2], data[3]);
       return str_sprintf("%u.%u.%u", data[1], data[2], data[3]);
-    }
   }
   return "Unknown";
 }
@@ -654,6 +645,7 @@ void MuteSwitch::update() {
     return;
   }
 
+  if (!this->parent_->kimia_i2c_ready()) return;
   bool mute_state = this->parent_->read_mute_status();
   
   if (this->state != mute_state) {
@@ -690,6 +682,7 @@ void DFUVersionTextSensor::update() {
   }
   
   std::string version = this->parent_->read_dfu_version();
+  if (version == "Unknown") return;
   if (this->get_raw_state() != version) {
     this->publish_state(version);
   }
