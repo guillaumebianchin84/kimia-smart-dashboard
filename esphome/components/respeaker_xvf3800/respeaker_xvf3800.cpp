@@ -646,11 +646,15 @@ void MuteSwitch::update() {
   }
 
   if (!this->parent_->kimia_i2c_ready()) return;
-  bool mute_state = this->parent_->read_mute_status();
-  
-  if (this->state != mute_state) {
+  // Reading GPO may fail or be temporarily paused by the shared I2C guard.
+  // Never interpret a failed read as "unmuted": keep the previous known state.
+  uint8_t gpo_values[5] = {0};
+  uint8_t status = 0xFF;
+  if (!this->parent_->read_gpo_values(gpo_values, &status) || status != CTRL_DONE)
+    return;
+  const bool mute_state = (gpo_values[1] & 0x01) != 0;
+  if (!this->has_state() || this->state != mute_state)
     this->publish_state(mute_state);
-  }
 }
 
 void MuteSwitch::write_state(bool state) {
