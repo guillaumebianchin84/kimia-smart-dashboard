@@ -1,0 +1,55 @@
+# KIMIA Voice - pilote formatBCE officiel 2026.10.4.
+# ESP32-S3 N16R8 externe, XMOS I2S Master 48 kHz 1.0.9 deja installe.
+# Flasher UNIQUEMENT l'ESP32 externe. Ne pas relier deux sources +5V.
+
+substitutions:
+  name: kimia-xvf-formatbce
+  friendly_name: "KIMIA XVF formatBCE - essai"
+  respeaker_ref: "2026.10.4"
+  respeaker_lite_ref: "2026.10.4"
+  log_level: INFO
+
+packages:
+  original_formatbce:
+    url: https://github.com/formatBCE/Respeaker-XVF3800-ESPHome-integration
+    ref: ${respeaker_ref}
+    refresh: 0s
+    files:
+      - packages/base.yaml
+      - packages/hardware.yaml
+      - packages/voice-assistant.yaml
+      - packages/leds.yaml
+      - packages/timers-alarm.yaml
+
+# Notre ESP32 externe : 16 Mo flash.
+esp32:
+  flash_size: 16MB
+
+# XVF DATA1 -> ESP GPIO1 (micro), ESP GPIO2 -> XVF DATAQ (HP).
+# GPIO5 SDA, GPIO6 SCL, GPIO7 LRCK, GPIO8 BCLK inchanges.
+microphone:
+  - id: !extend i2s_mics_raw
+    i2s_din_pin: GPIO1
+
+speaker:
+  - id: !extend i2s_audio_speaker
+    i2s_dout_pin: GPIO2
+
+# Supprimer le firmware integre pour interdire le flash auto du XMOS.
+# Le pilote formatBCE d'origine reste intact.
+respeaker_xvf3800:
+  firmware: !remove
+
+# Bus I2C d'origine formatBCE : 400 kHz, scan actif.
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  encryption:
+    key: !secret kimia_api_encryption_key
+
+ota:
+  - platform: esphome
+    id: ota_esphome
+    password: !secret kimia_ota_password
