@@ -205,11 +205,11 @@ external_components:
     components:
       - i2s_audio
     refresh: 0s
-  # KIMIA-only shared I2C recovery guard; Ikabot remains untouched.
+  # KIMIA split-I2C experiment: only azimuth/GPO reads change; Ikabot untouched.
   - source:
       type: git
       url: https://github.com/guillaumebianchin84/kimia-smart-dashboard
-      ref: kimia-xvf-full-i2c-guard
+      ref: kimia-xvf-split-i2c-experiment
     components:
       - respeaker_xvf3800
     refresh: 0s
