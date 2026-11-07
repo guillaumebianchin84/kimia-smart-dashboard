@@ -152,3 +152,21 @@ Le retour utilisateur sur la V8 est positif (« pas mal »), ce qui confirme l'a
 Fichier : `09_visage_sans_titre_experimental.yaml`. **Seule modification fonctionnelle par rapport à V8** : suppression du widget `label` qui affichait `KIMIA` en haut de l'ecran. L'indication d'etat `Repos / Ecoute / Reflexion / Parole / Erreur` demeure visible, tous les timings, le bouton MODE, le tactile et l'affichage QSPI restent inchanges. Ce fichier **n'a pas encore ete flashe ni valide par l'utilisateur**. Installation USB uniquement ; repli fiable : `07_visage_lvgl_valide.yaml`.
 
 Pistes d'evolution (non codees pour l'instant, a prioriser par la qualite visuelle et la fluidite) : 1) transitions douces des pupilles au lieu de sauts entre directions ; 2) gestes plus expressifs selon l'etat, avec clignements naturels ; 3) mouvement de bouche piloté plus tard par les evenements ou l'audio reel du XVF3800, au lieu d'animations purement aleatoires. Ne pas compliquer l'interface avec des libelles et boutons permanents inutiles.
+
+
+## V10 expérimentale — veille + swipe (préparée le 07/11/2026)
+
+**Fichier** : `10_veille_swipe_experimental.yaml`, basé sur la V9 sans titre ; **non flashé ni validé sur le montage** à la création. Conserver intactes les versions V7 validée, V8 et V9.
+
+Changements visibles :
+- **Suppression du bouton MODE** ; balayage horizontal du doigt depuis la gauche vers la droite = mode précédent, depuis la droite vers la gauche = mode suivant (seuil ~55 px, geste essentiellement horizontal). Simple pression = ne change pas le mode.
+- Après **120 secondes** sans contact, arrêt du **rétroéclairage GPIO17 uniquement** (panneau LCD/LVGL/ESP32 continuent de tourner ; ce n'est pas une coupure électrique totale).
+- **Premier toucher lorsque l'écran est sombre = réveil uniquement** sans modification du mode ; toucher ou swipe suivant utilisable normalement.
+- Scripts `kimia_screen_sleep` et `kimia_screen_wake` réutilisables lors d'une future intégration (événements vocaux, présence, etc.). Aucune intégration audio réelle ici.
+- Diagnostics USB : `KIMIA_TOUCH: DEBUT`, `FIN dx=... dy=...`, `KIMIA GESTE : ...`, `KIMIA_SLEEP: ...`.
+
+Rappels matériels **inchangés** : QSPI 3 MHz, LCD RST GPIO16, CST816T sur I2C GPIO5/6 INT GPIO21, **ne pas activer RESET tactile GPIO18**. LVGL dessine l'écran.
+
+**Test** : flasher en USB, tenter glissements horizontaux gauche/droite sur l'image sans toucher à l'ancien bouton ; vérifier la progression et le retour en arrière des cinq modes. Attendre 2 min pour voir l'écran devenir sombre, puis vérifier qu'un toucher le rallume sans changer le mode. En cas de swipe non reconnu, recueillir les logs `FIN dx/dy`. En cas d'instabilité, restaurer `07_visage_lvgl_valide.yaml`.
+
+Point à vérifier : la puce CST816T doit bien envoyer les mises à jour de coordonnées pendant un glissement pour que le geste soit reconnu ; cela n'est pas encore confirmé sur le montage. Ne pas déclarer cette fonction validée tant que l'utilisateur n'a pas testé.
