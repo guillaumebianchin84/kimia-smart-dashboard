@@ -53,3 +53,11 @@ Alimentation : VCC et GND à vérifier suivant le modèle et le montage réel. A
 - Référence constructeur : https://github.com/waveshareteam/1.85inch-Touch-LCD-Module
 
 **Ne pas remplacer le fichier rouge validé par des essais non confirmés.**
+
+## Essai combiné du 7 novembre 2026 (tactile fonctionne, écran noir)
+
+L'utilisateur a flashé `03_visage_tactile_cst816_test.yaml` : **rétroéclairage allumé et appuis tactiles détectés, mais plus aucun visage affiché**. Les tests 01 et 02 (sans I2C/tactile) affichaient correctement rouge et visage. Conclusion : affichage et tactile validés séparément ; leur cohabitation reste à résoudre. Ne pas conclure à une carte ou un écran HS.
+
+Hypothèse à tester : l'impulsion de RESET logiciel sur le CST816S (GPIO18) peut interférer avec l'initialisation de l'afficheur ST77916 ou entraîner une perturbation de l'alimentation/des signaux. Un incident ressemblant existe sur une **autre carte** Waveshare 1.85C (https://github.com/espressif/esp-bsp/issues/775), sans preuve d'identité de cause pour notre module.
+
+**Étape expérimentale suivante** : `04_visage_tactile_sans_reset_test.yaml`, identique à V3 sauf suppression de la ligne `reset_pin: GPIO18` dans la section `touchscreen:`. **Laisser le fil GPIO18 branché**, reflasher par USB, puis faire un cycle d'alimentation complet. Vérifier (a) l'affichage du visage, (b) les logs de touches. Si l'écran reste noir, obtenir le journal de démarrage complet et le comparer aux versions 02 et 03, sans changer d'autres paramètres. Le test 04 **n'est pas encore validé**.
