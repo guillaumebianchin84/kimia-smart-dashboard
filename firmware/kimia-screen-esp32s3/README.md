@@ -93,3 +93,20 @@ Extrait du journal confirmé :
 - Hypothèse fortement confortée : le RESET logiciel GPIO18 du tactile perturbait l'affichage au démarrage. Cela ne démontre pas encore le mécanisme électrique exact.
 - **Éviter toute modification du câblage actuellement fonctionnel.**
 - Étape suivante proposée : tester une variante expérimentale avec animations faciales et/ou LVGL, en conservant l'affichage à 3 MHz et la configuration tactile validée ; optimiser la vitesse seulement ensuite, par étapes, sans sacrifier la base connue fonctionnelle.
+
+## V6 expérimentale — LVGL, visage animé (préparée le 07/11/2026)
+
+Fichier : `06_visage_lvgl_animation_experimental.yaml` — **non flashé, non validé matériellement**. Conserve le matériel éprouvé de la V5 (QSPI 3 MHz GPIO10-17, I2C GPIO5/6, tactile INT GPIO21 avec `skip_probe: true`, **pas de `reset_pin: GPIO18`**). Le reset LCD `GPIO16` reste présent.
+
+**Différence majeure** : LVGL prend en charge l'affichage. Les options `auto_clear_enabled: false`, `update_interval: never` et **absence de `display.lambda`** sont intentionnelles, selon les recommandations ESPHome pour LVGL.
+
+Comportement attendu :
+- Affiche KIMIA sur fond bleu nuit, yeux turquoise avec pupilles, bouche claire et statut « Repos ».
+- Clignement automatique toutes les 5 secondes, pendant ~180 ms (sauf mode Parole).
+- Bouton tactile « MODE » au bas de l'écran, séquence : Repos → Ecoute → Reflexion → Parole → Erreur → Repos.
+- En mode Parole, bouche qui change de hauteur environ toutes les 450 ms.
+- **Démonstration d'interface seulement** : aucun pilotage micro, son, XVF3800 ni Home Assistant ; installation et logs par USB.
+
+Test demandé : reflasher par USB, vérifier (1) le visage LVGL s'affiche, (2) clignements, (3) bouton MODE cycle entre les cinq états et (4) bouche bouge en mode Parole. Contrôler les logs de démarrage si écran noir/erreur. **Toujours revenir à `05_visage_tactile_valide.yaml` si cette version expérimentale échoue**. Ne pas modifier la base 05.
+
+Ancienne source de l'interface : branche `feature/kimia-voice-v5-visage-lvgl-v1`, fichier `firmware/kimia-voice/visage-v1/visage-lvgl.yaml`. La V6 standalone ne reprend pas les switches micro/son fictifs pour éviter toute confusion avec de vraies commandes matérielles.
