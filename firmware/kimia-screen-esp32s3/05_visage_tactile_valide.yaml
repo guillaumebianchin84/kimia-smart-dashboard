@@ -1,0 +1,97 @@
+esphome:
+  name: kimia-ecran-test
+  friendly_name: KIMIA Ecran Test
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: DEBUG
+
+# QSPI Waveshare 1.85 pouce / ST77916, REV B / V6
+# LCD_TE n'est pas connecte.
+# VALIDE PHYSIQUEMENT le 07/11/2026 : visage + appuis tactiles.
+# Le journal detecte le controleur comme CST816T (adresse I2C 0x15).
+# Conserver le RESET GPIO18 deconnecte DU LOGICIEL ; LCD GPIO16 conserve.
+spi:
+  - id: kimia_qspi
+    type: quad
+    interface: spi2
+    clk_pin: GPIO10
+    data_pins:
+      - GPIO11
+      - GPIO12
+      - GPIO13
+      - GPIO14
+
+display:
+  - platform: mipi_spi
+    id: kimia_display
+    model: ESP-VOCAT
+    spi_id: kimia_qspi
+    bus_mode: quad
+    cs_pin: GPIO15
+    reset_pin: GPIO16
+    dimensions:
+      width: 360
+      height: 360
+    data_rate: 3MHz
+    color_order: rgb
+    update_interval: 2s
+    lambda: |-
+      // Fond bleu nuit
+      it.fill(Color(7, 15, 30));
+
+      // Deux yeux turquoise
+      it.filled_circle(112, 154, 40, Color(88, 224, 232));
+      it.filled_circle(248, 154, 40, Color(88, 224, 232));
+
+      // Pupilles
+      it.filled_circle(122, 157, 15, Color(14, 31, 45));
+      it.filled_circle(258, 157, 15, Color(14, 31, 45));
+
+      // Bouche blanche
+      it.filled_rectangle(146, 248, 68, 12, Color(255, 255, 255));
+
+# Essai SANS reset logiciel du tactile. Fil GPIO18 conserve physiquement.
+# Test tactile CST816S : independant du QSPI de l'ecran.
+# scan: false car certaines variantes ne repondent pas au scan I2C.
+i2c:
+  id: kimia_touch_i2c
+  sda: GPIO5
+  scl: GPIO6
+  frequency: 100kHz
+  scan: false
+
+touchscreen:
+  - platform: cst816
+    id: kimia_touch
+    i2c_id: kimia_touch_i2c
+    display: kimia_display
+    interrupt_pin: GPIO21
+    skip_probe: true
+    on_touch:
+      - lambda: |-
+          ESP_LOGI("KIMIA_TOUCH", "TOUCH x=%d y=%d", touch.x, touch.y);
+    on_release:
+      - lambda: |-
+          ESP_LOGI("KIMIA_TOUCH", "RELEASE");
+
+output:
+  - platform: ledc
+    id: lcd_backlight
+    pin: GPIO17
+
+light:
+  - platform: monochromatic
+    id: lcd_light
+    output: lcd_backlight
+    restore_mode: ALWAYS_ON
