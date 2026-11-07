@@ -185,3 +185,17 @@ Source : `11_bouche_rapide_experimental.yaml`. Nouveau fichier `12_visage_agrand
 - Bouche dans toutes les expressions agrandie proportionnellement : repos 62×11 → **78×14**, mode Parole 30 px de large → **40 px** et quatre hauteurs entre 9 et 34 px. Clignement ajuste pour fermer/rouvrir des yeux de 98 px.
 - Couleurs, états, gestes horizontaux, veille à 2 minutes, réveil au toucher, écran QSPI 3 MHz et **aucun RESET tactile GPIO18** restent inchanges. Animation bouche toutes les 200 ms inchangee. L'etiquette d'etat reste identique.
 - Procedure : flasher par USB, verifier que les yeux et la bouche restent visibles dans l'ecran circulaire, tester le glissement dans les deux sens et le clignement, puis les 4 ouvertures en mode parole. Revenir a la version precedente si le rendu parait trop grand. **La V7 reste le point de retour physiquement valide**.
+
+
+## V13 expérimentale — visage plus grand (07/11/2026)
+
+**Fichier** : `13_visage_plus_grand_experimental.yaml`, copié depuis `12_visage_agrandi_experimental.yaml`, **non flashé, non validé matériellement** à ce stade. L'utilisateur voit encore une marge visuelle d'environ 8 mm sur son écran rond, et souhaite encore agrandir **tout** le visage ; la V12 lui plaît par ailleurs.
+
+- Yeux agrandis de 96×98 à **116×116 px** (gauche x46/y96, droite x198/y96), environ +20 % linéaire ; radius 52. Leurs limites restent théoriquement à l'intérieur du disque 360×360 (y compris angles des bounding boxes, marge minimale géométrique ~22 px aux coins des cadres).
+- Pupilles de 22×28 à **28×34 px**, repositionnées au centre des yeux x44/y41 (coordonnées relatives) ; mouvements du regard adaptés x27, x61, y23, y59.
+- Bouche au repos de 78×14 à **94×17 px**, placée au centre en x133/y244. Toutes les expressions et les 4 formes d'animation Parole sont agrandies et repositionnées plus bas pour conserver les espaces avec les yeux.
+- Clignements adaptés à des yeux de 116 px de hauteur (fermé à y149/h10, ouvert y96/h116).
+- **Inchangés** : QSPI 3 MHz, LCD RST GPIO16, tactile INT GPIO21 sans reset GPIO18, animations 200 ms, balayage gauche/droite, mise en veille après 2 min, réveil au premier toucher. Aucun changement de câblage ni ajout de son.
+- Test : flasher par USB, regarder si les bords des yeux sont entiers sur le cercle réel, vérifier les clignements, les mouvements des pupilles, la bouche en mode Parole et les swipes. Si résultat trop grand, revenir à `12_visage_agrandi_experimental.yaml` ; la référence fonctionnelle historique V7 reste intacte.
+
+**ATTENTION** : calcul des marges théorique seulement, non testé sur l'écran ; ne pas déclarer le résultat validé avant retour utilisateur.
