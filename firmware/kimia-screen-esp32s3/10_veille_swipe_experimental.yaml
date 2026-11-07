@@ -1,0 +1,602 @@
+# KIMIA — V10 EXPERIMENTALE : veille au bout de 2 min et balayage tactile.
+# Version derivee de la V9 (pas de titre). V7 validee preservee.
+# Tout premier toucher ecran eteint = reveil uniquement, sans changer l'etat.
+# Glissement horizontal >= 55px change les etats gauche / droite.
+# Aucune commande audio ni connexion HA dans cette version.
+# Veille = retroeclairage coupe seulement ; tactile et LVGL restent actifs.
+# Base = V7 LVGL validee le 07/11/2026, conservee intacte.
+# Seules les animations changent, pas le pilote ni le cablage.
+# Blink pseudo-aleatoire toutes les 3.4 a 7.9 sec (+ double blink rare).
+# Regard se deplace toutes les 2.6 a 6.6 sec.
+# Bouche : 4 ouvertures aleatoires en mode "Parole".
+# AUCUN pilotage audio/micro/XVF3800 dans ce firmware.
+# IMPORTANT : NE PAS ajouter reset_pin GPIO18 dans touchscreen.
+# LCD : ESP-VOCAT QSPI 3 MHz ; ne pas augmenter sans essai separe.
+esphome:
+  name: kimia-ecran-test
+  friendly_name: KIMIA Ecran Test
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: DEBUG
+
+spi:
+  - id: kimia_qspi
+    type: quad
+    interface: spi2
+    clk_pin: GPIO10
+    data_pins:
+      - GPIO11
+      - GPIO12
+      - GPIO13
+      - GPIO14
+
+display:
+  - platform: mipi_spi
+    id: kimia_display
+    model: ESP-VOCAT
+    spi_id: kimia_qspi
+    bus_mode: quad
+    cs_pin: GPIO15
+    reset_pin: GPIO16
+    dimensions:
+      width: 360
+      height: 360
+    data_rate: 3MHz
+    color_order: rgb
+    auto_clear_enabled: false
+    update_interval: never
+    # Pas de lambda : c'est LVGL qui dessine.
+
+i2c:
+  id: kimia_touch_i2c
+  sda: GPIO5
+  scl: GPIO6
+  frequency: 100kHz
+  scan: false
+
+touchscreen:
+  - platform: cst816
+    id: kimia_touch
+    i2c_id: kimia_touch_i2c
+    display: kimia_display
+    interrupt_pin: GPIO21
+    skip_probe: true
+    # NE PAS activer reset_pin: GPIO18 (ecran noir en V3).
+    # Debut du geste ; si l'ecran dormait, ce toucher sert UNIQUEMENT au reveil.
+    on_touch:
+      - lambda: |-
+          id(kimia_touch_active) = true;
+          id(kimia_touch_start_x) = touch.x;
+          id(kimia_touch_start_y) = touch.y;
+          id(kimia_touch_last_x) = touch.x;
+          id(kimia_touch_last_y) = touch.y;
+          id(kimia_wake_touch_only) = id(kimia_screen_sleeping);
+          id(kimia_last_activity_ms) = millis();
+          ESP_LOGI("KIMIA_TOUCH", "DEBUT x=%d y=%d, reveil=%d", touch.x, touch.y, id(kimia_wake_touch_only));
+      - if:
+          condition:
+            lambda: 'return id(kimia_wake_touch_only);'
+          then:
+            - script.execute: kimia_screen_wake
+
+    # Derniere position durant le glissement.
+    on_update:
+      - lambda: |-
+          if (id(kimia_touch_active) && !touches.empty()) {
+            id(kimia_touch_last_x) = touches[0].x;
+            id(kimia_touch_last_y) = touches[0].y;
+            id(kimia_last_activity_ms) = millis();
+          }
+
+    # Balayage reconnu a la fin ; un tap simple ne change pas le mode.
+    on_release:
+      - if:
+          condition:
+            lambda: |-
+              if (!id(kimia_touch_active) || id(kimia_wake_touch_only)) return false;
+              const int dx = id(kimia_touch_last_x) - id(kimia_touch_start_x);
+              const int dy = id(kimia_touch_last_y) - id(kimia_touch_start_y);
+              const int adx = dx < 0 ? -dx : dx;
+              const int ady = dy < 0 ? -dy : dy;
+              return adx >= 55 && adx > ady * 3 / 2;
+          then:
+            - if:
+                condition:
+                  lambda: 'return id(kimia_touch_last_x) < id(kimia_touch_start_x);'
+                then:
+                  - logger.log: "KIMIA GESTE : glissement gauche => etat suivant"
+                  - script.execute: kimia_next_mode
+                else:
+                  - logger.log: "KIMIA GESTE : glissement droite => etat precedent"
+                  - script.execute: kimia_previous_mode
+      - lambda: |-
+          id(kimia_touch_active) = false;
+          id(kimia_wake_touch_only) = false;
+          id(kimia_last_activity_ms) = millis();
+
+output:
+  - platform: ledc
+    id: lcd_backlight
+    pin: GPIO17
+
+light:
+  - platform: monochromatic
+    id: lcd_light
+    output: lcd_backlight
+    restore_mode: ALWAYS_ON
+
+globals:
+  - id: kimia_mode
+    type: int
+    restore_value: no
+    initial_value: '0' # 0 repos, 1 ecoute, 2 reflexion, 3 parole, 4 erreur
+  - id: kimia_mouth_shape
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: kimia_gaze_direction
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: kimia_next_blink_ms
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
+  - id: kimia_next_gaze_ms
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
+  # Veille et reconnaissance du swipe
+  - id: kimia_screen_sleeping
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: kimia_last_activity_ms
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
+  - id: kimia_wake_touch_only
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: kimia_touch_active
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: kimia_touch_start_x
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: kimia_touch_start_y
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: kimia_touch_last_x
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: kimia_touch_last_y
+    type: int
+    restore_value: no
+    initial_value: '0'
+
+lvgl:
+  displays: [kimia_display]
+  touchscreens: [kimia_touch]
+  buffer_size: 25%
+  pages:
+    - id: kimia_face
+      bg_color: 0x07101F
+      widgets:
+        - label:
+            id: kimia_status
+            x: 140
+            y: 67
+            text: "Repos"
+            text_color: 0xE1EFF4
+
+        - obj:
+            id: kimia_eye_left
+            x: 83
+            y: 113
+            width: 76
+            height: 78
+            radius: 36
+            bg_color: 0x5CE1E6
+            border_width: 0
+            pad_all: 0
+            clip_corner: true
+            scrollable: false
+            widgets:
+              - obj:
+                  id: kimia_pupil_left
+                  x: 30
+                  y: 29
+                  width: 17
+                  height: 22
+                  radius: 11
+                  bg_color: 0x0E1F2D
+                  border_width: 0
+                  scrollable: false
+
+        - obj:
+            id: kimia_eye_right
+            x: 201
+            y: 113
+            width: 76
+            height: 78
+            radius: 36
+            bg_color: 0x5CE1E6
+            border_width: 0
+            pad_all: 0
+            clip_corner: true
+            scrollable: false
+            widgets:
+              - obj:
+                  id: kimia_pupil_right
+                  x: 30
+                  y: 29
+                  width: 17
+                  height: 22
+                  radius: 11
+                  bg_color: 0x0E1F2D
+                  border_width: 0
+                  scrollable: false
+
+        - obj:
+            id: kimia_mouth
+            x: 149
+            y: 224
+            width: 62
+            height: 11
+            radius: 6
+            bg_color: 0xE1EFF4
+            border_width: 0
+            scrollable: false
+
+
+script:
+  # Controle veille — appele plus tard par detection vocale/presence si besoin.
+  # Ne coupe que le retroeclairage pour garder le tactile operationnel.
+  - id: kimia_screen_sleep
+    mode: restart
+    then:
+      - lambda: |-
+          id(kimia_screen_sleeping) = true;
+          ESP_LOGI("KIMIA_SLEEP", "Ecran en veille (retro-eclairage OFF)");
+      - light.turn_off:
+          id: lcd_light
+          transition_length: 0s
+
+  - id: kimia_screen_wake
+    mode: restart
+    then:
+      - lambda: |-
+          id(kimia_screen_sleeping) = false;
+          id(kimia_last_activity_ms) = millis();
+          ESP_LOGI("KIMIA_SLEEP", "Ecran reveille (retro-eclairage ON)");
+      - light.turn_on:
+          id: lcd_light
+          transition_length: 0s
+
+  - id: kimia_previous_mode
+    mode: restart
+    then:
+      - lambda: |-
+          id(kimia_mode) = (id(kimia_mode) + 4) % 5;
+          id(kimia_mouth_shape) = 0;
+          ESP_LOGI("KIMIA", "Mode visage = %d", id(kimia_mode));
+      - script.execute: kimia_refresh_mode
+
+  - id: kimia_next_mode
+    mode: restart
+    then:
+      - lambda: |-
+          id(kimia_mode) = (id(kimia_mode) + 1) % 5;
+          id(kimia_mouth_shape) = 0;
+          ESP_LOGI("KIMIA", "Mode visage = %d", id(kimia_mode));
+      - script.execute: kimia_refresh_mode
+
+  - id: kimia_refresh_mode
+    mode: restart
+    then:
+      - if:
+          condition:
+            lambda: 'return id(kimia_mode) == 0;'
+          then:
+            - lvgl.label.update:
+                id: kimia_status
+                text: "Repos"
+            - lvgl.widget.update:
+                id: [kimia_eye_left, kimia_eye_right]
+                bg_color: 0x5CE1E6
+            - lvgl.widget.update:
+                id: kimia_mouth
+                x: 149
+                y: 224
+                width: 62
+                height: 11
+                radius: 6
+                bg_color: 0xE1EFF4
+      - if:
+          condition:
+            lambda: 'return id(kimia_mode) == 1;'
+          then:
+            - lvgl.label.update:
+                id: kimia_status
+                text: "Ecoute"
+            - lvgl.widget.update:
+                id: [kimia_eye_left, kimia_eye_right]
+                bg_color: 0x9EFAED
+            - lvgl.widget.update:
+                id: kimia_mouth
+                x: 168
+                y: 214
+                width: 24
+                height: 28
+                radius: 12
+                bg_color: 0xE1EFF4
+      - if:
+          condition:
+            lambda: 'return id(kimia_mode) == 2;'
+          then:
+            - lvgl.label.update:
+                id: kimia_status
+                text: "Reflexion"
+            - lvgl.widget.update:
+                id: [kimia_eye_left, kimia_eye_right]
+                bg_color: 0x5CE1E6
+            - lvgl.widget.update:
+                id: kimia_mouth
+                x: 168
+                y: 225
+                width: 24
+                height: 7
+                radius: 3
+                bg_color: 0xE1EFF4
+      - if:
+          condition:
+            lambda: 'return id(kimia_mode) == 3;'
+          then:
+            - lvgl.label.update:
+                id: kimia_status
+                text: "Parole"
+            - lvgl.widget.update:
+                id: [kimia_eye_left, kimia_eye_right]
+                bg_color: 0x5CE1E6
+            - lvgl.widget.update:
+                id: kimia_mouth
+                x: 165
+                y: 224
+                width: 30
+                height: 9
+                radius: 5
+                bg_color: 0xE1EFF4
+      - if:
+          condition:
+            lambda: 'return id(kimia_mode) == 4;'
+          then:
+            - lvgl.label.update:
+                id: kimia_status
+                text: "Erreur"
+            - lvgl.widget.update:
+                id: [kimia_eye_left, kimia_eye_right]
+                bg_color: 0xFFAE67
+            - lvgl.widget.update:
+                id: kimia_mouth
+                x: 154
+                y: 224
+                width: 52
+                height: 8
+                radius: 4
+                bg_color: 0xFF7777
+
+  # Regarder autour sans bouger le visage complet.
+  # Chaque pupille reste a l'interieur de son oeil.
+  - id: kimia_move_gaze
+    mode: restart
+    then:
+      - if:
+          condition:
+            lambda: 'return id(kimia_gaze_direction) == 0;'
+          then:
+            - lvgl.widget.update:
+                id: [kimia_pupil_left, kimia_pupil_right]
+                x: 30
+                y: 29
+      - if:
+          condition:
+            lambda: 'return id(kimia_gaze_direction) == 1;'
+          then:
+            - lvgl.widget.update:
+                id: [kimia_pupil_left, kimia_pupil_right]
+                x: 18
+                y: 29
+      - if:
+          condition:
+            lambda: 'return id(kimia_gaze_direction) == 2;'
+          then:
+            - lvgl.widget.update:
+                id: [kimia_pupil_left, kimia_pupil_right]
+                x: 41
+                y: 29
+      - if:
+          condition:
+            lambda: 'return id(kimia_gaze_direction) == 3;'
+          then:
+            - lvgl.widget.update:
+                id: [kimia_pupil_left, kimia_pupil_right]
+                x: 30
+                y: 17
+      - if:
+          condition:
+            lambda: 'return id(kimia_gaze_direction) == 4;'
+          then:
+            - lvgl.widget.update:
+                id: [kimia_pupil_left, kimia_pupil_right]
+                x: 30
+                y: 41
+
+  # Mouvement de bouche en quatre niveaux, test DEMO sans vrai son.
+  - id: kimia_animate_mouth
+    mode: restart
+    then:
+      - if:
+          condition:
+            lambda: 'return id(kimia_mouth_shape) == 0;'
+          then:
+            - lvgl.widget.update:
+                id: kimia_mouth
+                x: 165
+                y: 224
+                width: 30
+                height: 7
+                radius: 4
+      - if:
+          condition:
+            lambda: 'return id(kimia_mouth_shape) == 1;'
+          then:
+            - lvgl.widget.update:
+                id: kimia_mouth
+                x: 165
+                y: 222
+                width: 30
+                height: 11
+                radius: 6
+      - if:
+          condition:
+            lambda: 'return id(kimia_mouth_shape) == 2;'
+          then:
+            - lvgl.widget.update:
+                id: kimia_mouth
+                x: 165
+                y: 218
+                width: 30
+                height: 19
+                radius: 10
+      - if:
+          condition:
+            lambda: 'return id(kimia_mouth_shape) == 3;'
+          then:
+            - lvgl.widget.update:
+                id: kimia_mouth
+                x: 165
+                y: 214
+                width: 30
+                height: 27
+                radius: 13
+
+  - id: kimia_blink
+    mode: single
+    then:
+      - lvgl.widget.update:
+          id: [kimia_pupil_left, kimia_pupil_right]
+          hidden: true
+      - lvgl.widget.update:
+          id: [kimia_eye_left, kimia_eye_right]
+          y: 148
+          height: 8
+      - delay: 180ms
+      - lvgl.widget.update:
+          id: [kimia_eye_left, kimia_eye_right]
+          y: 113
+          height: 78
+      - lvgl.widget.update:
+          id: [kimia_pupil_left, kimia_pupil_right]
+          hidden: false
+      # Environ 1 clignement sur 8 est un double-clignement.
+      - if:
+          condition:
+            lambda: 'return (random_uint32() % 8) == 0;'
+          then:
+            - delay: 150ms
+            - lvgl.widget.update:
+                id: [kimia_pupil_left, kimia_pupil_right]
+                hidden: true
+            - lvgl.widget.update:
+                id: [kimia_eye_left, kimia_eye_right]
+                y: 148
+                height: 8
+            - delay: 160ms
+            - lvgl.widget.update:
+                id: [kimia_eye_left, kimia_eye_right]
+                y: 113
+                height: 78
+            - lvgl.widget.update:
+                id: [kimia_pupil_left, kimia_pupil_right]
+                hidden: false
+
+interval:
+  # Veille apres 120 s sans toucher : valeur de test, modifiable plus tard.
+  - interval: 1s
+    then:
+      - if:
+          condition:
+            lambda: |-
+              if (id(kimia_screen_sleeping) || id(kimia_touch_active)) return false;
+              if (id(kimia_last_activity_ms) == 0) {
+                id(kimia_last_activity_ms) = millis();
+                return false;
+              }
+              return (uint32_t) (millis() - id(kimia_last_activity_ms)) >= 120000UL;
+          then:
+            - script.execute: kimia_screen_sleep
+
+  # Horloge interne de l'animation : espacements aleatoires.
+  - interval: 500ms
+    then:
+      - if:
+          condition:
+            lambda: |-
+              if (id(kimia_mode) == 3 || id(kimia_mode) == 4) return false;
+              const uint32_t now = millis();
+              if (id(kimia_next_blink_ms) == 0) {
+                id(kimia_next_blink_ms) = now + 2000 + (random_uint32() % 2500);
+                return false;
+              }
+              if ((int32_t) (now - id(kimia_next_blink_ms)) < 0) return false;
+              id(kimia_next_blink_ms) = now + 3400 + (random_uint32() % 4500);
+              return true;
+          then:
+            - script.execute: kimia_blink
+
+  # Regard discret : gauche, droite, haut, bas, centre.
+  - interval: 700ms
+    then:
+      - if:
+          condition:
+            lambda: |-
+              if (id(kimia_mode) == 3 || id(kimia_mode) == 4) return false;
+              const uint32_t now = millis();
+              if (id(kimia_next_gaze_ms) == 0) {
+                id(kimia_next_gaze_ms) = now + 1800 + (random_uint32() % 2200);
+                return false;
+              }
+              if ((int32_t) (now - id(kimia_next_gaze_ms)) < 0) return false;
+              id(kimia_next_gaze_ms) = now + 2600 + (random_uint32() % 4000);
+              id(kimia_gaze_direction) = random_uint32() % 5;
+              return true;
+          then:
+            - script.execute: kimia_move_gaze
+
+  # Parole fictive : 4 ouvertures de bouche aleatoires.
+  - interval: 400ms
+    then:
+      - if:
+          condition:
+            lambda: 'return id(kimia_mode) == 3;'
+          then:
+            - lambda: |-
+                id(kimia_mouth_shape) = random_uint32() % 4;
+            - script.execute: kimia_animate_mouth
