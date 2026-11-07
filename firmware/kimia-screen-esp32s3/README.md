@@ -127,3 +127,20 @@ Versions validées au 07/11/2026 :
 **Paramètres à conserver** : ESP32-S3 N16R8, `psram: octal 80MHz`, ST77916 piloté par `ESP-VOCAT`, SPI quad à `3MHz`, GPIO10 (CLK), GPIO11–14 (IO0-3), GPIO15 (CS), GPIO16 (RST LCD), GPIO17 (BL) ; tactile identifié `CST816T` en I2C GPIO5/6, INT GPIO21, `skip_probe: true`, **pas de reset GPIO18 dans `touchscreen:`**. V6 utilise `lvgl:` sans `display.lambda`.
 
 **Suite envisagée** : enrichir les expressions de l'assistant, évaluer le framerate et optimiser le bus QSPI un seul paramètre à la fois, puis raccorder les états vocaux quand la nouvelle carte XVF3800 sera disponible. Ne pas mélanger logiciel de démo et commandes matérielles réelles.
+
+
+## V8 expérimentale — mouvements plus naturels (préparée le 07/11/2026)
+
+Code : `08_visage_naturel_experimental.yaml`. **NON FLASHÉ / NON VALIDÉ SUR MATÉRIEL à ce stade.**
+
+Base : `07_visage_lvgl_valide.yaml`, version LVGL fonctionnelle sauvegardée et **non modifiée**. V8 conserve les GPIO, QSPI 3 MHz, pilote `ESP-VOCAT`, écran GPIO16 RESET, rétroéclairage GPIO17 et CST816T INT GPIO21, sans reset tactile GPIO18. Installation **USB uniquement**.
+
+Nouveautés visibles par rapport à V7 :
+- Intervalle du clignement variable environ 3,4 à 7,9 s ; double-clignement rare (~1 sur 8).
+- Regard alternant centre/gauche/droite/haut/bas avec un délai variable environ 2,6 à 6,6 s. Pupilles déplacées à l'intérieur de leurs objets LVGL.
+- Mode « Parole » simulé : quatre niveaux d'ouverture de bouche choisis toutes les 400 ms ; **pas de synchronisation audio**.
+- Bouton « MODE » et cinq états demo conservés. Pas de micro/son/XVF3800 ni de Wi-Fi dans cette variante.
+
+Technique : timers `millis()` + `random_uint32()` (fonction ESPHome présente dans `esphome/core/helpers.h` en version 2026.10.2) via `interval:`/condition `lambda`; changements localisés de widgets LVGL pour limiter les rafraîchissements. Les premiers intervalles commencent après une attente initiale. **Pas de compilation matérielle ni validation ESPHome réalisée par l'assistant**.
+
+Procédure : copier le fichier V8 complet dans la configuration ESPHome de test et **flasher par USB** ; tester visage LVGL, clignements non réguliers, mouvements pupilles, bouton MODE et animation bouche en « Parole ». En cas d'erreur de validation, envoyer la première erreur de compilation. En cas d'écran noir ou régression tactile, **reflasher la V7 validée** (sans modifier le montage). Ne pas augmenter la fréquence SPI avant d'avoir confirmé la stabilité de la V8.
