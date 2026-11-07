@@ -7,7 +7,7 @@ Ce dossier conserve les essais pour reprendre le développement de KIMIA même s
 ## Code disponible
 
 - `01_ecran_rouge_valide.yaml` : **validé physiquement**. Écran rouge visible ; rétroéclairage fonctionnel ; ESP32-S3 démarre ; initialisation du pilote terminée.
-- `02_visage_kimia_test.yaml` : **à essayer**, non encore validé physiquement. Même configuration que le test rouge, avec dessin simple (fond bleu nuit, yeux turquoise, pupilles et bouche blanche).
+- `02_visage_kimia_test.yaml` : **VALIDÉ PHYSIQUEMENT le 7 novembre 2026 à 20:00 (heure France)**. Même configuration que le test rouge, avec dessin simple (fond bleu nuit, yeux turquoise, pupilles et bouche blanche). L'utilisateur confirme : « j'ai bien le visage ».
 - Pas d'I2C, de tactile, de Wi-Fi ni d'API Home Assistant dans ces deux fichiers ; **installation par USB uniquement**, pas OTA.
 
 ## Brochage écran validé pour la partie affichage
@@ -40,9 +40,9 @@ Alimentation : VCC et GND à vérifier suivant le modèle et le montage réel. A
 
 ## Étapes suivantes
 
-1. Flasher `02_visage_kimia_test.yaml` par USB et confirmer que les formes s'affichent.
+1. **FAIT le 07/11/2026** : `02_visage_kimia_test.yaml` flashé par USB, le visage KIMIA est visible. Logs : `setup() finished successfully!`, SPI2_HOST QSPI à 3 MHz, PSRAM 8 Mo ; avertissement `display took a long time for an operation (204 ms)` sans panne observée.
 2. Une fois l'affichage stable, tester le tactile CST816S séparément (RESET GPIO18, INT GPIO21, I2C GPIO5/6), puis l'intégrer à l'écran. Ne pas confondre QSPI de l'affichage et I2C du tactile.
-3. Ajouter les animations LVGL et le contrôle via Home Assistant dans une étape ultérieure.
+3. Ajouter les animations LVGL et le contrôle via Home Assistant dans une étape ultérieure. Préserver le YAML du visage actuel comme base éprouvée ; valider le tactile isolément avant toute intégration.
 4. Reprendre le XVF3800 avec une **nouvelle carte sans XIAO** lorsque disponible ; ne pas retoucher la carte XVF précédente.
 
 ## Liens vers les développements précédents
