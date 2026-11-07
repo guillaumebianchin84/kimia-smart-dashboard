@@ -170,3 +170,9 @@ Rappels matériels **inchangés** : QSPI 3 MHz, LCD RST GPIO16, CST816T sur I2C 
 **Test** : flasher en USB, tenter glissements horizontaux gauche/droite sur l'image sans toucher à l'ancien bouton ; vérifier la progression et le retour en arrière des cinq modes. Attendre 2 min pour voir l'écran devenir sombre, puis vérifier qu'un toucher le rallume sans changer le mode. En cas de swipe non reconnu, recueillir les logs `FIN dx/dy`. En cas d'instabilité, restaurer `07_visage_lvgl_valide.yaml`.
 
 Point à vérifier : la puce CST816T doit bien envoyer les mises à jour de coordonnées pendant un glissement pour que le geste soit reconnu ; cela n'est pas encore confirmé sur le montage. Ne pas déclarer cette fonction validée tant que l'utilisateur n'a pas testé.
+
+## V11 expérimentale — bouche plus rapide (07/11/2026)
+
+`11_bouche_rapide_experimental.yaml` : copie de `10_veille_swipe_experimental.yaml` avec **une seule modification fonctionnelle** en mode Parole : le changement aléatoire parmi 4 formes de bouche se produit toutes les **200 ms** au lieu de **400 ms**. Veille après 2 minutes, réveil au toucher, swipe et câblage conservés à l'identique. Cela double la cadence théorique, sans véritable synchronisation avec le son. **Version non flashée / non validée sur montage** au moment de sa création. Ne pas toucher aux bases stables V7/V5.
+
+En cas d'animation saccadée, revenir à 300 ms ou au fichier V10. La fréquence QSPI reste à 3 MHz ; la V11 n'accélère pas la transmission graphique.
