@@ -110,3 +110,20 @@ Comportement attendu :
 Test demandé : reflasher par USB, vérifier (1) le visage LVGL s'affiche, (2) clignements, (3) bouton MODE cycle entre les cinq états et (4) bouche bouge en mode Parole. Contrôler les logs de démarrage si écran noir/erreur. **Toujours revenir à `05_visage_tactile_valide.yaml` si cette version expérimentale échoue**. Ne pas modifier la base 05.
 
 Ancienne source de l'interface : branche `feature/kimia-voice-v5-visage-lvgl-v1`, fichier `firmware/kimia-voice/visage-v1/visage-lvgl.yaml`. La V6 standalone ne reprend pas les switches micro/son fictifs pour éviter toute confusion avec de vraies commandes matérielles.
+
+
+## Validation de la V6 LVGL — 07/11/2026 (retour utilisateur)
+
+L'utilisateur confirme après flash de `06_visage_lvgl_animation_experimental.yaml` : **« nickel ca fonctionne »**. La V6 animee sous LVGL fonctionne sur le montage, en utilisant l'affichage QSPI à 3 MHz et le tactile sans RESET logiciel GPIO18. Les details de chaque etat et des animations n'ont pas été documentés séparément dans les logs ; le fonctionnement general est confirmé par observation utilisateur, mais aucun essai d'endurance n'a encore été réalisé.
+
+**Nouvelle base fonctionnelle à préserver : `07_visage_lvgl_valide.yaml`**, copie du code de la V6, avec seulement les commentaires d'etat actualisés. Ne pas ecraser ce fichier lors des prochaines experiences.
+
+Versions validées au 07/11/2026 :
+- `01_ecran_rouge_valide.yaml` : test image rouge ;
+- `02_visage_kimia_test.yaml` : visage statique confirmé ;
+- `05_visage_tactile_valide.yaml` : visage statique + touches confirmés ;
+- `07_visage_lvgl_valide.yaml` : visage LVGL animé confirmé par l'utilisateur.
+
+**Paramètres à conserver** : ESP32-S3 N16R8, `psram: octal 80MHz`, ST77916 piloté par `ESP-VOCAT`, SPI quad à `3MHz`, GPIO10 (CLK), GPIO11–14 (IO0-3), GPIO15 (CS), GPIO16 (RST LCD), GPIO17 (BL) ; tactile identifié `CST816T` en I2C GPIO5/6, INT GPIO21, `skip_probe: true`, **pas de reset GPIO18 dans `touchscreen:`**. V6 utilise `lvgl:` sans `display.lambda`.
+
+**Suite envisagée** : enrichir les expressions de l'assistant, évaluer le framerate et optimiser le bus QSPI un seul paramètre à la fois, puis raccorder les états vocaux quand la nouvelle carte XVF3800 sera disponible. Ne pas mélanger logiciel de démo et commandes matérielles réelles.
