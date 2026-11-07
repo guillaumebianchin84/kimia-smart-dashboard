@@ -256,3 +256,16 @@ Spécification validée :
 **Matériel et sécurité à conserver** : ESP32-S3 N16R8, Waveshare ST77916 en QSPI 3 MHz, reset écran GPIO16, écran BL GPIO17, tactile contrôleur CST816T sur I²C GPIO5/6 IRQ GPIO21, sans reset logiciel GPIO18. Le XVF3800 nu est commandé mais **non raccordé** à ce firmware.
 
 **Étapes ultérieures prévues, sans toucher au visage validé** : glissement vertical pour contrôler le volume quand un lecteur/amp réel est relié ; branchement de chaque expression aux événements réels du pipeline vocal (réveil, écoute, traitement, synthèse/parole, erreur), avec le nouveau XVF3800. Ne pas attribuer à la puce micro seule des états de traitement ou de sortie vocale. Sauvegarder les prochaines variantes dans de nouveaux fichiers. Cette validation concerne le rendu visuel utilisateur, pas un test d'endurance matériel.
+
+
+## Prochaine étape — interface BME280 et gestes tactiles (plan approuvé le 07/11/2026)
+
+Le détail des décisions utilisateur est enregistré dans [PLAN_INTERFACE_V15.md](./PLAN_INTERFACE_V15.md).
+
+- **Visage V14 conservé à l'identique** (pas d'agrandissement pour l'instant).
+- Page dédiée température, humidité et pression : apparitions périodiques **au repos**, puis retour automatique au visage ; appui court pour la revoir.
+- **Glissement vertical** : futur réglage du volume avec jauge temporaire ; **appui long** : future coupure effective du microphone avec état confirmé et indication visuelle.
+- Conserver les gestes existants pendant la démonstration ; le premier appui de réveil n'exécute aucune commande. Les états vocaux doivent primer sur la page environnementale.
+- BME280 à tester d'abord sur le bus I²C partagé GPIO5/6 **après vérification des niveaux logiques et de l'alimentation**.
+- XVF3800 nu **commandé, pas encore raccordé** ; les commandes de micro et de volume ne sont donc **pas implémentées**.
+- **Ne pas modifier `14_visage_kimia_valide_fige.yaml`** : créer un fichier V15 expérimental séparé lorsque les tests reprendront.
