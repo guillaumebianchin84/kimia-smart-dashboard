@@ -61,3 +61,35 @@ L'utilisateur a flashé `03_visage_tactile_cst816_test.yaml` : **rétroéclairag
 Hypothèse à tester : l'impulsion de RESET logiciel sur le CST816S (GPIO18) peut interférer avec l'initialisation de l'afficheur ST77916 ou entraîner une perturbation de l'alimentation/des signaux. Un incident ressemblant existe sur une **autre carte** Waveshare 1.85C (https://github.com/espressif/esp-bsp/issues/775), sans preuve d'identité de cause pour notre module.
 
 **Étape expérimentale suivante** : `04_visage_tactile_sans_reset_test.yaml`, identique à V3 sauf suppression de la ligne `reset_pin: GPIO18` dans la section `touchscreen:`. **Laisser le fil GPIO18 branché**, reflasher par USB, puis faire un cycle d'alimentation complet. Vérifier (a) l'affichage du visage, (b) les logs de touches. Si l'écran reste noir, obtenir le journal de démarrage complet et le comparer aux versions 02 et 03, sans changer d'autres paramètres. Le test 04 **n'est pas encore validé**.
+
+
+## Validation écran + tactile — 07/11/2026, 20:10 (Europe/Paris)
+
+**VALIDÉ PHYSIQUEMENT PAR L'UTILISATEUR** : avec le firmware expérimental 04 (suppression uniquement de `reset_pin: GPIO18` dans `touchscreen:`), **le visage est visible et les appuis fonctionnent simultanément**. La ligne `reset_pin: GPIO16` du `display:` reste indispensable. Fil physique GPIO18 laissé en place.
+
+**Référence de sauvegarde recommandée** : `05_visage_tactile_valide.yaml` — copie fonctionnelle de la V4 avec en-tête indiquant la validation. **Ne pas modifier ce fichier pour les futurs tests**, créer V6, V7, etc. Fichiers 01, 02 et 05 = versions physiques vérifiées. 03 = combinaison qui rendait l'écran noir.
+
+Extrait du journal confirmé :
+```text
+[D][spi_device:404]: mode 0, data_rate 3000kHz
+[I][app:130]: setup() finished successfully!
+[C][i2c:092]: I2C Bus:
+[C][i2c:093]:   SDA Pin: GPIO5
+[C][i2c:093]:   SCL Pin: GPIO6
+[C][cst816.touchscreen:090]:   Address: 0x15
+[C][cst816.touchscreen:131]:   Interrupt Pin: GPIO21
+[C][cst816.touchscreen:120]:   Chip type: CST816T
+[I][KIMIA_TOUCH:080]: TOUCH x=184 y=225
+[I][KIMIA_TOUCH:086]: RELEASE
+[I][KIMIA_TOUCH:080]: TOUCH x=259 y=241
+[I][KIMIA_TOUCH:086]: RELEASE
+[W][component:419]: display took a long time for an operation (205 ms)
+```
+
+### À ne pas oublier
+
+- **Le pilote ESPHome identifie la puce tactile comme CST816T**, même si le module était précédemment désigné CST816S. Se fier à la détection réelle : adresse 0x15, lecture tactile opérationnelle.
+- `[W][touchscreen:032]: Touch Polling Stopped` n'est pas un échec du tactile : l'interruption GPIO21 est active et les événements sont bien remontés.
+- Hypothèse fortement confortée : le RESET logiciel GPIO18 du tactile perturbait l'affichage au démarrage. Cela ne démontre pas encore le mécanisme électrique exact.
+- **Éviter toute modification du câblage actuellement fonctionnel.**
+- Étape suivante proposée : tester une variante expérimentale avec animations faciales et/ou LVGL, en conservant l'affichage à 3 MHz et la configuration tactile validée ; optimiser la vitesse seulement ensuite, par étapes, sans sacrifier la base connue fonctionnelle.
