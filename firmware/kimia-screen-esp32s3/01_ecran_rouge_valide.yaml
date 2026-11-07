@@ -1,0 +1,59 @@
+esphome:
+  name: kimia-ecran-test
+  friendly_name: KIMIA Ecran Test
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: DEBUG
+
+# QSPI Waveshare 1.85 pouce / ST77916, REV B / V6
+# LCD_TE n'est pas connecte.
+# Tactile CST816S desactive volontairement pour ce test.
+spi:
+  - id: kimia_qspi
+    type: quad
+    interface: spi2
+    clk_pin: GPIO10
+    data_pins:
+      - GPIO11
+      - GPIO12
+      - GPIO13
+      - GPIO14
+
+display:
+  - platform: mipi_spi
+    id: kimia_display
+    model: ESP-VOCAT
+    spi_id: kimia_qspi
+    bus_mode: quad
+    cs_pin: GPIO15
+    reset_pin: GPIO16
+    dimensions:
+      width: 360
+      height: 360
+    data_rate: 3MHz
+    color_order: rgb
+    update_interval: 2s
+    lambda: |-
+      it.fill(Color(255, 0, 0));
+
+output:
+  - platform: ledc
+    id: lcd_backlight
+    pin: GPIO17
+
+light:
+  - platform: monochromatic
+    id: lcd_light
+    output: lcd_backlight
+    restore_mode: ALWAYS_ON
