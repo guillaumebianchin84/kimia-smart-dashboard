@@ -176,3 +176,12 @@ Point à vérifier : la puce CST816T doit bien envoyer les mises à jour de coor
 `11_bouche_rapide_experimental.yaml` : copie de `10_veille_swipe_experimental.yaml` avec **une seule modification fonctionnelle** en mode Parole : le changement aléatoire parmi 4 formes de bouche se produit toutes les **200 ms** au lieu de **400 ms**. Veille après 2 minutes, réveil au toucher, swipe et câblage conservés à l'identique. Cela double la cadence théorique, sans véritable synchronisation avec le son. **Version non flashée / non validée sur montage** au moment de sa création. Ne pas toucher aux bases stables V7/V5.
 
 En cas d'animation saccadée, revenir à 300 ms ou au fichier V10. La fréquence QSPI reste à 3 MHz ; la V11 n'accélère pas la transmission graphique.
+
+
+## V12 experimentale — visage entier agrandi (07/11/2026)
+
+Source : `11_bouche_rapide_experimental.yaml`. Nouveau fichier `12_visage_agrandi_experimental.yaml`, **non flashe et non valide physiquement** a sa creation.
+- Yeux 76×78 → **96×98 px** (gauche x62, droite x202 ; y103), pupilles 17×22 → **22×28 px**. Regard adapte aux nouvelles dimensions (centre x37/y35, 4 autres directions).
+- Bouche dans toutes les expressions agrandie proportionnellement : repos 62×11 → **78×14**, mode Parole 30 px de large → **40 px** et quatre hauteurs entre 9 et 34 px. Clignement ajuste pour fermer/rouvrir des yeux de 98 px.
+- Couleurs, états, gestes horizontaux, veille à 2 minutes, réveil au toucher, écran QSPI 3 MHz et **aucun RESET tactile GPIO18** restent inchanges. Animation bouche toutes les 200 ms inchangee. L'etiquette d'etat reste identique.
+- Procedure : flasher par USB, verifier que les yeux et la bouche restent visibles dans l'ecran circulaire, tester le glissement dans les deux sens et le clignement, puis les 4 ouvertures en mode parole. Revenir a la version precedente si le rendu parait trop grand. **La V7 reste le point de retour physiquement valide**.
