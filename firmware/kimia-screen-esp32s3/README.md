@@ -236,3 +236,23 @@ Comportements de la V14 :
 - Conservés : LCD ST77916/ESP-VOCAT QSPI 3 MHz, GPIO LCD RESET16, CST816T IRQ21 I²C GPIO5/6 **sans RESET GPIO18**, veille après 120 s et réveil tactile. **Aucun lien vocal réel avec le XVF3800** à ce stade.
 
 **Plan de test USB** : flasher V14 ; depuis Repos glisser une fois à gauche vers Écoute (pupilles montent/descendent), puis de nouveau à gauche vers Réflexion (cercles rapides), puis Parole (bouche animée) ; vérifier retour par swipe droit et réveil tactile après veille. En cas de saccades à 125 ms, faire une variante à 150–180 ms, sans modifier la V13. L'animation doit rester fidèle à l'écran rond. Pour restaurer les fonctions éprouvées, reflasher `13_visage_kimia_fige.yaml`.
+
+
+## VALIDATION VISUELLE DÉFINITIVE — KIMIA V14 (07/11/2026)
+
+L'utilisateur confirme que le résultat V14 lui convient pleinement : « ok je valide. ca me plait grave. cest tout mignon et cest exactement ce que je cherchais ». Il valide également explicitement la **couleur menthe en mode Écoute**, différente du turquoise du Repos.
+
+**Fichier à considérer comme référence visuelle figée : `14_visage_kimia_valide_fige.yaml`.** Copie strictement identique de `14_expressions_ecoute_reflexion_experimental.yaml` pour la configuration exécutée, avec uniquement des commentaires d'en-tête. Préserver les V13 et V14 antérieures.
+
+Spécification validée :
+- Visage agrandi V13 (yeux 116×116, pupilles 28×34, bouche 94×17 au repos), sans titre supérieur ni bouton permanent.
+- **Repos :** turquoise `#5CE1E6`, regards et clignements naturels.
+- **Écoute :** menthe `#9EFAED`, montée/descente synchronisée des pupilles, 2 secondes par cycle.
+- **Réflexion :** turquoise, orbite rapide des deux pupilles, ~1 tour/seconde.
+- **Parole :** turquoise, bouche avec 4 formes et cadence de 200 ms (démonstration sans synchronisation sonore).
+- **Erreur :** yeux orange `#FFAE67`, bouche rouge.
+- Balayage horizontal pour changer manuellement de tête en démonstration ; après 120 s sans toucher, rétroéclairage éteint et réveil au toucher.
+
+**Matériel et sécurité à conserver** : ESP32-S3 N16R8, Waveshare ST77916 en QSPI 3 MHz, reset écran GPIO16, écran BL GPIO17, tactile contrôleur CST816T sur I²C GPIO5/6 IRQ GPIO21, sans reset logiciel GPIO18. Le XVF3800 nu est commandé mais **non raccordé** à ce firmware.
+
+**Étapes ultérieures prévues, sans toucher au visage validé** : glissement vertical pour contrôler le volume quand un lecteur/amp réel est relié ; branchement de chaque expression aux événements réels du pipeline vocal (réveil, écoute, traitement, synthèse/parole, erreur), avec le nouveau XVF3800. Ne pas attribuer à la puce micro seule des états de traitement ou de sortie vocale. Sauvegarder les prochaines variantes dans de nouveaux fichiers. Cette validation concerne le rendu visuel utilisateur, pas un test d'endurance matériel.
