@@ -217,3 +217,22 @@ Base à préserver :
 3. Éventuellement réveil d'écran par mot d'activation, voix, capteur de présence ou autre événement, plus tard. Les scripts `kimia_screen_sleep` / `kimia_screen_wake` sont déjà présents dans la référence.
 
 Le firmware figé reste **USB-only** sans micro ni son ni intégration HA. Ne pas annoncer volume ni expressions synchronisées comme opérationnels aujourd'hui.
+
+
+## V14 expérimentale — animations distinctes Écoute / Réflexion (07/11/2026)
+
+**Validation de l'idée par l'utilisateur** : en réflexion, pupilles qui tournent en rond assez rapidement ; en écoute, mouvement lent du regard de haut en bas. Le visage et les proportions de V13 **restent figés**.
+
+Fichier créé : `14_expressions_ecoute_reflexion_experimental.yaml`, variante dérivée de `13_visage_kimia_fige.yaml` (la référence reste intouchée). **Non flashée, non validée matériellement**.
+
+Comportements de la V14 :
+- **Repos (mode 0)** : comportement V13, regard aléatoire et clignements.
+- **Écoute (mode 1)** : 8 positions verticales, toutes les 250 ms, soit un cycle de 2 s : centre, un peu haut, haut, un peu haut, centre, un peu bas, bas, un peu bas. Clignement aléatoire conservé.
+- **Réflexion (mode 2)** : pupilles en orbite synchronisée de 8 positions, toutes les 125 ms, soit environ **1 tour/seconde**. Clignements désactivés dans ce mode pour éviter les conflits visuels.
+- **Parole (mode 3)** : bouche 4 formes à 200 ms comme V13, regard centré.
+- **Erreur (mode 4)** : expression et regard fixe comme V13.
+- Le balayage tactile gauche/droite reste le sélecteur de démonstration. En changement de mode, les pupilles sont recentrées et les séquences d'animation redémarrent.
+- La fonction de mouvement aléatoire `kimia_move_gaze` est **réservée au Repos** (elle ne doit pas écraser l'Écoute ou la Réflexion).
+- Conservés : LCD ST77916/ESP-VOCAT QSPI 3 MHz, GPIO LCD RESET16, CST816T IRQ21 I²C GPIO5/6 **sans RESET GPIO18**, veille après 120 s et réveil tactile. **Aucun lien vocal réel avec le XVF3800** à ce stade.
+
+**Plan de test USB** : flasher V14 ; depuis Repos glisser une fois à gauche vers Écoute (pupilles montent/descendent), puis de nouveau à gauche vers Réflexion (cercles rapides), puis Parole (bouche animée) ; vérifier retour par swipe droit et réveil tactile après veille. En cas de saccades à 125 ms, faire une variante à 150–180 ms, sans modifier la V13. L'animation doit rester fidèle à l'écran rond. Pour restaurer les fonctions éprouvées, reflasher `13_visage_kimia_fige.yaml`.
