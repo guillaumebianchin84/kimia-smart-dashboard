@@ -144,3 +144,11 @@ Nouveautés visibles par rapport à V7 :
 Technique : timers `millis()` + `random_uint32()` (fonction ESPHome présente dans `esphome/core/helpers.h` en version 2026.10.2) via `interval:`/condition `lambda`; changements localisés de widgets LVGL pour limiter les rafraîchissements. Les premiers intervalles commencent après une attente initiale. **Pas de compilation matérielle ni validation ESPHome réalisée par l'assistant**.
 
 Procédure : copier le fichier V8 complet dans la configuration ESPHome de test et **flasher par USB** ; tester visage LVGL, clignements non réguliers, mouvements pupilles, bouton MODE et animation bouche en « Parole ». En cas d'erreur de validation, envoyer la première erreur de compilation. En cas d'écran noir ou régression tactile, **reflasher la V7 validée** (sans modifier le montage). Ne pas augmenter la fréquence SPI avant d'avoir confirmé la stabilité de la V8.
+
+## V9 experimentale — retrait du titre KIMIA en haut (07/11/2026)
+
+Le retour utilisateur sur la V8 est positif (« pas mal »), ce qui confirme l'affichage de l'interface, mais les animations n'ont pas fait l'objet d'une validation individuelle ou d'endurance. La V8 est préservée.
+
+Fichier : `09_visage_sans_titre_experimental.yaml`. **Seule modification fonctionnelle par rapport à V8** : suppression du widget `label` qui affichait `KIMIA` en haut de l'ecran. L'indication d'etat `Repos / Ecoute / Reflexion / Parole / Erreur` demeure visible, tous les timings, le bouton MODE, le tactile et l'affichage QSPI restent inchanges. Ce fichier **n'a pas encore ete flashe ni valide par l'utilisateur**. Installation USB uniquement ; repli fiable : `07_visage_lvgl_valide.yaml`.
+
+Pistes d'evolution (non codees pour l'instant, a prioriser par la qualite visuelle et la fluidite) : 1) transitions douces des pupilles au lieu de sauts entre directions ; 2) gestes plus expressifs selon l'etat, avec clignements naturels ; 3) mouvement de bouche piloté plus tard par les evenements ou l'audio reel du XVF3800, au lieu d'animations purement aleatoires. Ne pas compliquer l'interface avec des libelles et boutons permanents inutiles.
