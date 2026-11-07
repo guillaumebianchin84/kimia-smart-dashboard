@@ -199,3 +199,21 @@ Source : `11_bouche_rapide_experimental.yaml`. Nouveau fichier `12_visage_agrand
 - Test : flasher par USB, regarder si les bords des yeux sont entiers sur le cercle réel, vérifier les clignements, les mouvements des pupilles, la bouche en mode Parole et les swipes. Si résultat trop grand, revenir à `12_visage_agrandi_experimental.yaml` ; la référence fonctionnelle historique V7 reste intacte.
 
 **ATTENTION** : calcul des marges théorique seulement, non testé sur l'écran ; ne pas déclarer le résultat validé avant retour utilisateur.
+
+
+## Visage V13 FIGÉ — référence KIMIA (07/11/2026)
+
+**Décision utilisateur :** « ok on est bien la. tu peux figer ca pour la partie petit bonhomme. on y ajoutera la gestion du son en slide et la gestion des differentes tete selon le SVF ». L'utilisateur confirme que le rendu de la V13 lui convient. **Référence visuelle figée** : `13_visage_kimia_fige.yaml`, copie exactement identique de `13_visage_plus_grand_experimental.yaml` côté firmware, avec seulement un préambule de commentaires. Ne plus modifier ni l'un ni l'autre pour développer les fonctions à venir ; créer des variantes distinctes. Le test visuel utilisateur confirme l'apparence, mais ne prétend pas constituer un test complet de stabilité/endurance.
+
+Base à préserver :
+- Écran Waveshare ST77916 360 × 360, QSPI ESP-VOCAT à 3 MHz, GPIO10–17, rétroéclairage GPIO17, reset LCD GPIO16.
+- Tactile détecté **CST816T** sur I²C GPIO5/6, IRQ GPIO21, `skip_probe: true` ; **ne surtout pas réintroduire le reset logiciel GPIO18**.
+- Visage agrandi V13 : yeux 116×116, pupilles 28×34, bouche 94×17 au repos ; regard, clignements aléatoires, bouche animée 200 ms.
+- Sans titre KIMIA ni bouton MODE ; swipe horizontal pour changement de tête (démonstration), veille par rétroéclairage après 120 s, réveil au premier toucher.
+
+**Fonctionnalités futures demandées — NE PAS CODER AVANT INTÉGRATION / ESSAIS :**
+1. **Volume par glissement vertical** : mouvement vers le haut augmente, vers le bas diminue (par exemple par pas de 5 %, à confirmer aux essais). Préserver gestes horizontaux de démonstration ; distinguer les axes pour éviter les erreurs. Le slider ne devra commander un volume **réel** que lorsqu'un amplificateur/player audio et son interface de contrôle seront présents. Prévoir un retour visuel temporaire du niveau, sans encombrer le visage en permanence.
+2. **Différentes expressions selon les états de l'assistant vocal** : repos, détection/réveil, écoute, réflexion, parole, erreur. Le XVF3800 est la partie captation micro ; les états « réflexion » et « parole » devront provenir du **pipeline vocal ESPHome / Home Assistant**, pas être déduits du XVF3800 seul. Quand le nouveau XVF3800 nu arrivera, valider d'abord son démarrage et ses interfaces, puis câbler les événements vocaux aux scripts du visage. Ne pas réécrire le visage.
+3. Éventuellement réveil d'écran par mot d'activation, voix, capteur de présence ou autre événement, plus tard. Les scripts `kimia_screen_sleep` / `kimia_screen_wake` sont déjà présents dans la référence.
+
+Le firmware figé reste **USB-only** sans micro ni son ni intégration HA. Ne pas annoncer volume ni expressions synchronisées comme opérationnels aujourd'hui.
