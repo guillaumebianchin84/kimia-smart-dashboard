@@ -8,7 +8,8 @@ Ce dossier conserve les essais pour reprendre le développement de KIMIA même s
 
 - `01_ecran_rouge_valide.yaml` : **validé physiquement**. Écran rouge visible ; rétroéclairage fonctionnel ; ESP32-S3 démarre ; initialisation du pilote terminée.
 - `02_visage_kimia_test.yaml` : **VALIDÉ PHYSIQUEMENT le 7 novembre 2026 à 20:00 (heure France)**. Même configuration que le test rouge, avec dessin simple (fond bleu nuit, yeux turquoise, pupilles et bouche blanche). L'utilisateur confirme : « j'ai bien le visage ».
-- Pas d'I2C, de tactile, de Wi-Fi ni d'API Home Assistant dans ces deux fichiers ; **installation par USB uniquement**, pas OTA.
+- `03_visage_tactile_cst816_test.yaml` : **EXPÉRIMENTAL / NON ENCORE FLASHÉ**. Reprend le visage validé avec QSPI à 3 MHz et ajoute le tactile CST816S (I2C GPIO5/6, reset GPIO18, interruption GPIO21, `skip_probe: true`, `scan: false`). Chaque appui doit créer une ligne de journal `KIMIA_TOUCH: TOUCH x=... y=...` suivie de `RELEASE`. Ne pas marquer testé sans confirmation.
+- Pas de Wi-Fi ni d'API Home Assistant dans ces fichiers ; **installation par USB uniquement**, pas OTA.
 
 ## Brochage écran validé pour la partie affichage
 
@@ -41,7 +42,7 @@ Alimentation : VCC et GND à vérifier suivant le modèle et le montage réel. A
 ## Étapes suivantes
 
 1. **FAIT le 07/11/2026** : `02_visage_kimia_test.yaml` flashé par USB, le visage KIMIA est visible. Logs : `setup() finished successfully!`, SPI2_HOST QSPI à 3 MHz, PSRAM 8 Mo ; avertissement `display took a long time for an operation (204 ms)` sans panne observée.
-2. Une fois l'affichage stable, tester le tactile CST816S séparément (RESET GPIO18, INT GPIO21, I2C GPIO5/6), puis l'intégrer à l'écran. Ne pas confondre QSPI de l'affichage et I2C du tactile.
+2. **EN COURS** : tester le CST816S avec `03_visage_tactile_cst816_test.yaml` (RESET GPIO18, INT GPIO21, I2C GPIO5/6). Le visage est conservé comme repère visuel. Sur certaines variantes CST816S, le scan I2C peut être vide même si le tactile réagit : `skip_probe: true` et `scan: false` sont volontaires. Test : flasher par USB, toucher l'écran plusieurs fois, observer les lignes `KIMIA_TOUCH`. En cas d'échec ou d'écran noir, reflasher `02_visage_kimia_test.yaml` validé. Ne pas confondre QSPI et I2C.
 3. Ajouter les animations LVGL et le contrôle via Home Assistant dans une étape ultérieure. Préserver le YAML du visage actuel comme base éprouvée ; valider le tactile isolément avant toute intégration.
 4. Reprendre le XVF3800 avec une **nouvelle carte sans XIAO** lorsque disponible ; ne pas retoucher la carte XVF précédente.
 
