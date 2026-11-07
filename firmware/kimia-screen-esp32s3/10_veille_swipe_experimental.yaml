@@ -101,6 +101,13 @@ touchscreen:
 
     # Balayage reconnu a la fin ; un tap simple ne change pas le mode.
     on_release:
+      - lambda: |-
+          if (id(kimia_touch_active)) {
+            ESP_LOGI("KIMIA_TOUCH", "FIN dx=%d dy=%d, reveil_seul=%d",
+                     id(kimia_touch_last_x) - id(kimia_touch_start_x),
+                     id(kimia_touch_last_y) - id(kimia_touch_start_y),
+                     id(kimia_wake_touch_only));
+          }
       - if:
           condition:
             lambda: |-
