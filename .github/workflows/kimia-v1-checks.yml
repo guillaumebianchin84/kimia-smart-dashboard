@@ -19,6 +19,7 @@ on:
       - fix/kimia-securite-titre-tuiles-12-20261108
       - fix/kimia-cartes-pieces-natives-sans-commande-20261108
       - fix/kimia-carte-piece-aucun-clic-20261108
+      - fix/kimia-routines-suppression-directe-20261108
   workflow_dispatch:
 jobs:
   check:
