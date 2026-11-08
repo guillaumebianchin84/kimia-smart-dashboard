@@ -60,6 +60,7 @@ jobs:
           node tests/kimia_v15_review.test.cjs
           node tests/kimia_v16_routines.test.cjs
           node tests/kimia_studio_v2_fusion.test.cjs
+          node tests/kimia_home_shortcuts.test.cjs
           node tests/kimia_inventory_v1.test.cjs
           node tests/kimia_header_toggle_v1.test.cjs
           node tests/kimia_v161_local_preferences.test.cjs
