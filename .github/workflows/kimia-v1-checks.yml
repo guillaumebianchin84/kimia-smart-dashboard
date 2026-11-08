@@ -15,6 +15,7 @@ on:
       - fix/kimia-v163-themes-cartes-natives-20261026
       - feat/kimia-v17-maquette-areas-acl-20261026
       - feat/kimia-usages-prises-et-cartes-20261108
+      - fix/kimia-appareils-indisponibles-20261108
   workflow_dispatch:
 jobs:
   check:
@@ -45,6 +46,7 @@ jobs:
           node --check www/kimia-routine-editor-v16-card.js
           node tests/kimia_v1.test.cjs
           node tests/kimia_zigbee_v1.test.cjs
+          node tests/kimia_safe_tile_v1.test.cjs
           node tests/kimia_v14.test.cjs
           node tests/kimia_v15_admin.test.cjs
           node tests/kimia_v15_profiles.test.cjs
