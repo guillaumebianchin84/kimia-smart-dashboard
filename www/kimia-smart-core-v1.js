@@ -18,6 +18,22 @@
     ["securite", ["binary_sensor", "alarm_control_panel"]]
   ];
   const SUPPORTED = new Set(CATEGORIES.flatMap(x => x[1]));
+  // Labels natifs HA partagés avec le gestionnaire Zigbee KIMIA.
+  // Une seule utilisation principale, mais une prise reste toujours dans Prises.
+  const USE_LABELS={
+    lampe:"KIMIA · usage · Lampe",
+    surpresseur:"KIMIA · usage · Surpresseur",
+    clim:"KIMIA · usage · Climatisation",
+    ventilateur:"KIMIA · usage · Ventilateur"
+  };
+  const plugUsage=(device,labels) => {
+    if(!Array.isArray(device?.labels))return "autre";
+    for(const [usage,name] of Object.entries(USE_LABELS)) {
+      const label=labels.find(x=>x.name===name);
+      if(label&&device.labels.includes(label.label_id))return usage;
+    }
+    return "autre";
+  };
   const safeClone = obj => JSON.parse(JSON.stringify(obj));
   const natural = (a, b) => a.localeCompare(b, "fr", { sensitivity: "base" });
   const getArea = (e, devices) => e.area_id || devices.get(e.device_id)?.area_id || null;
@@ -37,38 +53,55 @@
     }
     return true;
   };
-  const tile = e => {
-    const x = {
-      type: "tile",
-      entity: e.entity_id,
-      name: undefined,
-      grid_options: { columns: 6, rows: 1 }
+  const tile = (e,path="",usage="autre") => {
+    const switchEntity=e.entity_id.startsWith("switch.");
+    const isSensor=e.entity_id.startsWith("binary_sensor.") ||
+      e.entity_id.startsWith("sensor.");
+    const x={
+      type:"tile",
+      entity:e.entity_id,
+      name:undefined,
+      // 12 colonnes natives pour les prises, capteurs et mesures : texte lisible.
+      grid_options:{columns:switchEntity||isSensor?12:6,rows:1}
     };
-    // Ne jamais appliquer de fonctions incompatibles aux entités.
-    if (e.entity_id.startsWith("light.")) x.features = [{ type: "light-brightness" }];
-    if (e.entity_id.startsWith("cover.")) x.features = [{ type: "cover-open-close" }];
-    if (e.entity_id.startsWith("switch.")) {
-      // Un appui actionne la vraie prise; appui long = fiche détaillée.
-      x.tap_action = { action: "toggle" };
-      x.hold_action = { action: "more-info" };
+    if(e.entity_id.startsWith("light."))
+      x.features=[{type:"light-brightness"}];
+    if(e.entity_id.startsWith("cover."))
+      x.features=[{type:"cover-open-close"}];
+    if(switchEntity) {
+      if(usage==="clim") {
+        // Ne jamais couper une climatisation par simple toucher accidentel.
+        x.tap_action={action:"more-info"};
+        x.icon_tap_action={action:"more-info"};
+      } else {
+        x.tap_action={action:"toggle"};
+      }
+      x.hold_action={action:"more-info"};
     }
     return x;
   };
-  const legacyTile = e => {
-    const x=tile(e);
-    delete x.tap_action;
-    delete x.hold_action;
+  const oldTapTile=e=>{
+    const x=tile(e,"","autre");
+    x.grid_options={columns:6,rows:1};
+    return x;
+  };
+  const legacyTile=e=>{
+    const x=oldTapTile(e);
+    delete x.tap_action;delete x.hold_action;
     return x;
   };
   const heading = (label, icon = "mdi:home-outline") => ({
     type: "heading", heading: label, icon, heading_style: "subtitle",
     grid_options: { columns: "full", rows: 1 }
   });
-  const roomCard = area => ({
+  const roomCard = (area,path="") => ({
     type: "area",
     area: area.area_id,
     display_type: "compact",
-    features: [{ type: "area-controls" }],
+    // Le contrôle général de pièce n'a rien à faire sur Sécurité,
+    // Eau ou Climatisation : il pourrait piloter des prises non concernées.
+    features: ["securite","eau","climatisation"].includes(path)
+      ? []:[{type:"area-controls"}],
     features_position: "bottom",
     grid_options: { columns: 12, rows: "auto" },
     tap_action: { action: "navigate", navigation_path: "/kimia-next/pieces" }
@@ -86,7 +119,7 @@
   const createRoomSection = (area, view) => ({
     type: "grid",
     column_span: Math.min(Number(view.max_columns) || 3, 3),
-    cards: [roomCard(area)]
+    cards: [roomCard(area,view.path)]
   });
   const countCards = cfg => (cfg.views || []).reduce((n, v) =>
     n + allCards(v).length, 0);
@@ -146,18 +179,22 @@
   const isLegacyGeneratedTile = card =>
     card?.type === "tile" && typeof card.entity === "string" &&
     JSON.stringify(card) === JSON.stringify(safeClone(legacyTile({entity_id:card.entity})));
-  const isGeneratedTile = card =>
-    isLegacyGeneratedTile(card) ||
-    (card?.type === "tile" && typeof card.entity === "string" &&
-     JSON.stringify(card) === JSON.stringify(safeClone(tile({entity_id:card.entity}))));
+  const isGeneratedTile = card => {
+    if(card?.type!=="tile"||typeof card.entity!=="string")return false;
+    const e={entity_id:card.entity};
+    return [legacyTile(e),oldTapTile(e),tile(e),tile(e,"","clim")]
+      .some(candidate=>JSON.stringify(card)===JSON.stringify(safeClone(candidate)));
+  };
   // Une carte Pièce n'est gérée par KIMIA que si toutes ses options sont intactes.
   // Les variantes personnalisées doivent rester sous contrôle de l'habitant.
   const isGeneratedRoomCard = card => {
     if(card?.type !== "area" || typeof card.area !== "string") return false;
-    const now=roomCard({area_id:card.area});
-    const old={...now,grid_options:{columns:6,rows:"auto"}};
-    return JSON.stringify(card)===JSON.stringify(now) ||
-      JSON.stringify(card)===JSON.stringify(old);
+    return ["","securite","climatisation"].some(path=>{
+      const now=roomCard({area_id:card.area},path);
+      const old={...now,grid_options:{columns:6,rows:"auto"}};
+      return JSON.stringify(card)===JSON.stringify(now) ||
+        JSON.stringify(card)===JSON.stringify(old);
+    });
   };
   const isGeneratedRoomHeading = (card, areaName) =>
     card?.type==="heading" && card.heading_style==="subtitle" &&
@@ -169,11 +206,19 @@
     if (section?.type!=="grid" || !Array.isArray(section.cards)) return null;
     return section.cards.find(isGeneratedRoomCard) || null;
   };
-  const expectedDomain = (path, e, hass) => {
+  const expectedDomain = (path,e,hass,devices,labels) => {
+    const domain=e.entity_id.split(".")[0];
+    const usage=plugUsage(devices.get(e.device_id),labels);
     if(path==="pieces")return true;
+    if(path==="prises")return domain==="switch";
+    if(path==="lumieres")return domain==="light" ||
+      (domain==="switch"&&usage==="lampe");
+    if(path==="climatisation")return ["climate","fan"].includes(domain) ||
+      (domain==="switch"&&["clim","ventilateur"].includes(usage));
+    if(path==="eau")return domain==="switch"&&usage==="surpresseur";
     const category=CATEGORIES.find(c=>c[0]===path);
-    if(!category || !category[1].some(d=>e.entity_id.startsWith(d+"."))) return false;
-    if(path!=="securite" || e.entity_id.startsWith("alarm_control_panel."))return true;
+    if(!category||!category[1].includes(domain))return false;
+    if(path!=="securite"||domain==="alarm_control_panel")return true;
     return ["door","window","moisture","smoke","motion","occupancy"].includes(
       hass.states?.[e.entity_id]?.attributes?.device_class);
   };
