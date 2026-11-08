@@ -81,7 +81,7 @@ class Studio extends HTMLElement{
   this._busy=false;this._notice="";this._error=false;this._advanced=null;
   this._habits=null;this._deletedIds=new Set();
   this._homeSlots=[null,null,null,null];this._homeBaseline=null;
-  this._homeLoading=false;
+  this._homeLoading=false;this._needsMerge=false;this._checkedMerge=false;
   this.shadowRoot.addEventListener("click",ev=>this._click(ev));
   this.shadowRoot.addEventListener("change",ev=>this._change(ev));
   this.shadowRoot.addEventListener("input",ev=>this._input(ev));
@@ -95,6 +95,7 @@ class Studio extends HTMLElement{
   if(oldUser!==h?.user?.id){this._loaded=false;this._reg={areas:[],entities:[],devices:[]};}
   this._hass=h;
   if(h?.user?.is_admin&&!this._loaded){this._loaded=true;void this._load();}
+  if(h?.user?.is_admin&&!this._checkedMerge){this._checkedMerge=true;void this._inspectMerge();}
   if(this._advanced)this._advanced.hass=h;
   if(this._habits)this._habits.hass=h;
   // Le frontend HA met à jour hass très souvent : ne pas interrompre une
@@ -164,6 +165,8 @@ class Studio extends HTMLElement{
    '<div class="nav-links">'+
     this._B(this._I("mdi:home-automation")+" Mes habitudes","habits","small")+
     this._B(this._I("mdi:tune-vertical")+" Atelier avancé","advanced","small")+
+    (this._needsMerge?this._B(this._I("mdi:merge")+" Réunir les deux pages",
+       "merge-admin","small primary"):"")+
    '</div></div>'+
    '<div class="tabs" role="tablist">'+tabs.map(([id,label])=>
     '<button class="tab" role="tab" type="button" aria-selected="'+(this._tab===id)+
@@ -336,6 +339,74 @@ class Studio extends HTMLElement{
    '</div><div class="note">KIMIA enregistre une véritable routine Home Assistant. Les autres automatisations et scripts sont intacts.</div>';
  }
 
+ _adminMergePlan(config){
+  if(!Array.isArray(config?.views))throw Error("Dashboard administrateur introuvable.");
+  const views=config.views;
+  const old=views.find(v=>v.path==="scenarios");
+  if(!old)throw Error("Vue Scénarios d'origine introuvable. Fusion annulée.");
+  const duplicate=views.find(v=>v.path==="studio-v2");
+  const nestedCards=view=>(view?.sections||[]).flatMap(section=>
+   (section?.cards||[]).flatMap(card=>
+    [card,...(Array.isArray(card?.cards)?card.cards:[])]));
+  const oldCards=nestedCards(old),studioCards=nestedCards(duplicate);
+  const studioType="custom:kimia-studio-v2-admin-card";
+  const legacy=new Set([
+   "heading","markdown","shortcut","custom:kimia-routine-editor-v16-card",
+   "custom:kimia-scenarios-v1-card","custom:kimia-studio-v2-admin-card"
+  ]);
+  const studioAllowed=new Set([
+   "heading","markdown","custom:kimia-studio-v2-admin-card",
+   "custom:navbar-card","custom:button-card"
+  ]);
+  if(oldCards.some(card=>!legacy.has(card.type)))
+   throw Error("Scénarios contient des cartes personnalisées. Fusion manuelle nécessaire.");
+  if(duplicate&&studioCards.some(card=>!studioAllowed.has(card.type)))
+   throw Error("Studio V2 contient des cartes personnalisées. Fusion automatique refusée.");
+  if(duplicate&&!studioCards.some(card=>card.type===studioType))
+   throw Error("Ancienne vue Studio V2 inattendue : fusion manuelle nécessaire.");
+  const hasOld=oldCards.some(card=>card.type!=="heading"&&card.type!=="markdown"&&card.type!==studioType);
+  if(!hasOld&&!duplicate&&oldCards.filter(card=>card.type===studioType).length===1)
+   return null;
+  const next=clone(config),dest=next.views.find(v=>v.path==="scenarios");
+  dest.title="Mes routines";dest.type="sections";dest.max_columns=2;
+  dest.sections=[{type:"grid",column_span:2,
+   cards:[{type:studioType,grid_options:{columns:"full",rows:"auto"}}]}];
+  if(duplicate)next.views=next.views.filter(v=>v.path!=="studio-v2");
+  return next;
+ }
+ async _inspectMerge(){
+  const h=this._hass;
+  try{
+   const config=await h.callWS({type:"lovelace/config",url_path:"kimia-admin-next"});
+   if(h!==this._hass)return;
+   this._needsMerge=!!this._adminMergePlan(config);
+   if(this._page==="library")this._draw();
+  }catch{
+   this._needsMerge=false;
+  }
+ }
+ async _mergeAdminPages(){
+  if(!this._admin()||this._busy)return;
+  const h=this._hass;this._busy=true;
+  try{
+   const before=await h.callWS({type:"lovelace/config",url_path:"kimia-admin-next"});
+   const next=this._adminMergePlan(before);
+   if(!next){this._needsMerge=false;this._notice="Les pages sont déjà réunies.";return;}
+   if(!window.confirm("Remplacer l'ancien atelier Scénarios par « Mes routines » "+
+    "et retirer la page Studio V2 en double ? Sauvegarde le dashboard avant de confirmer."))return;
+   const latest=await h.callWS({type:"lovelace/config",url_path:"kimia-admin-next"});
+   if(canon(before)!==canon(latest))
+    throw Error("Le dashboard administrateur a changé. Recharge avant de fusionner.");
+   await h.callWS({type:"lovelace/config/save",
+    url_path:"kimia-admin-next",config:next});
+   this._needsMerge=false;this._notice="Les deux pages sont réunies.";
+   this._error=false;
+   window.location?.assign?.("/kimia-admin-next/scenarios");
+  }catch(err){
+   this._notice="Fusion impossible : "+(err?.message||err);
+   this._error=true;
+  }finally{this._busy=false;this._draw();}
+ }
  _homeSection(config){
   const view=config?.views?.find(v=>v.path==="accueil");
   if(!view||!Array.isArray(view.sections))
@@ -538,6 +609,7 @@ class Studio extends HTMLElement{
   else if(a==="edit")this._edit(b.dataset.id);
   else if(a==="delete")void this._deleteRoutine(b.dataset.id);
   else if(a==="save-home")void this._saveHomeSlots();
+  else if(a==="merge-admin")void this._mergeAdminPages();
   else if(a==="swap-home"){
    const index=Number(b.dataset.index),dir=Number(b.dataset.direction),dest=index+dir;
    if(index>=0&&index<4&&dest>=0&&dest<4){
