@@ -27,6 +27,7 @@
  "textarea{min-height:65px;resize:vertical}",
  "button{font:inherit;font-weight:650;border:0;border-radius:10px;cursor:pointer;padding:10px 13px;background:var(--primary-color);color:var(--text-primary-color,#fff)}",
  "button.secondary{background:var(--secondary-background-color);color:var(--primary-text-color);border:1px solid var(--divider-color)}",
+ "button.danger{background:var(--secondary-background-color);color:var(--error-color,#cc5454);border:1px solid var(--error-color,#cc5454)}",
  "button.mini{padding:5px 9px;font-size:12px;min-width:31px}",
  "button:disabled{opacity:.42;cursor:default}",
  ".tabs{display:flex;gap:7px;flex-wrap:wrap;margin:15px 0}",
@@ -73,6 +74,7 @@
    this._hass=null;this._started=false;this._busy=false;
    this._draft=null;this._editing=null;this._baseline=null;
    this._catalog=[];this._selected="";this._notice="";this._error="";
+   this._deletedIds=new Set();
    this._drag=null;this._render();
   }
   setConfig(cfg){this._cfg=cfg||{};}
@@ -94,7 +96,14 @@
      found.push({kind:"automation",id:String(obj.attributes.id),entityId,name:obj.attributes?.friendly_name||entityId});
    }
    found.sort((a,b)=>a.name.localeCompare(b.name,"fr"));
-   this._catalog=found;
+   // HA peut conserver une entité supprimée quelques instants dans states.
+   // Éviter de reproposer la routine jusqu'à sa disparition côté serveur.
+   this._deletedIds??=new Set();
+   const stillFound=new Set(found.map(x=>x.kind+":"+x.id));
+   for(const key of this._deletedIds){
+    if(!stillFound.has(key))this._deletedIds.delete(key);
+   }
+   this._catalog=found.filter(x=>!this._deletedIds.has(x.kind+":"+x.id));
   }
   _message(message,error=false){
    this._error=error?message:"";this._notice=error?"":message;this._render();
@@ -415,6 +424,51 @@
    }catch(e){this._error="Impossible de modifier l'état : "+(e?.message||e);this._notice="";}
    finally{this._busy=false;this._render();}
   }
+  async _deleteSelected(){
+   if(this._busy||!this._admin())return;
+   const entry=this._catalog.find(x=>x.kind+":"+x.id===this._selected);
+   if(!entry){
+    this._message("Sélectionnez une routine KIMIA à supprimer.",true);
+    return;
+   }
+   // Les routines extérieures à KIMIA ne doivent jamais être supprimées.
+   if(!((entry.kind==="script"&&/^(ks_|kimia_)/.test(entry.id)) ||
+        (entry.kind==="automation"&&entry.id.startsWith("kimia_")))){
+    this._message("Cette routine n'appartient pas à KIMIA : suppression refusée.",true);
+    return;
+   }
+   if(typeof this._hass.callApi!=="function"){
+    this._message("API Home Assistant inaccessible.",true);
+    return;
+   }
+   this._busy=true;this._render();
+   try{
+    const key=entry.kind+":"+entry.id;
+    const url="config/"+entry.kind+"/config/"+encodeURIComponent(entry.id);
+    const baseline=await this._hass.callApi("GET",url);
+    const type=entry.kind==="script"?"scénario":"automatisation";
+    if(!window.confirm("Supprimer définitivement "+type+" « "+entry.name+
+      " » de Home Assistant ? Cette action est irréversible."))return;
+    // Relecture obligatoire après confirmation pour éviter une suppression
+    // silencieuse si quelqu'un a modifié la routine entre-temps.
+    const latest=await this._hass.callApi("GET",url);
+    if(JSON.stringify(latest)!==JSON.stringify(baseline))
+     throw Error("La routine a été modifiée entre-temps. Rechargez la liste.");
+    await this._hass.callApi("DELETE",url);
+    this._deletedIds??=new Set();
+    this._deletedIds.add(key);
+    if(this._editing?.kind===entry.kind&&this._editing.id===entry.id){
+     this._editing=null;this._baseline=null;
+     this._draft=H().create(entry.kind);
+    }
+    this._selected="";
+    this._catalogRefresh();
+    this._error="";this._notice="Routine « "+entry.name+" » supprimée.";
+   }catch(e){
+    this._error="Suppression refusée : "+(e?.message||e);
+    this._notice="";
+   }finally{this._busy=false;this._render();}
+  }
   async _remove(){
    if(this._busy||!this._admin()||!this._editing)return;
    if(!window.confirm("Supprimer définitivement la routine « "+this._draft.alias+" » ? Cette opération est irréversible."))return;
@@ -456,9 +510,14 @@
     o.value=rec.kind+":"+rec.id;sel.append(o);
    }
    sel.value=this._selected;
-   sel.disabled=this._busy;sel.addEventListener("change",()=>{this._selected=sel.value;});
+   sel.disabled=this._busy;
+   sel.addEventListener("change",()=>{this._selected=sel.value;this._render();});
    pickrow.append(sel);
-   pickrow.append(this._button("Ouvrir",()=>void this._open(),"secondary",!this._catalog.length));
+   const selectedAvailable=this._catalog.some(x=>x.kind+":"+x.id===this._selected);
+   pickrow.append(this._button("Ouvrir",()=>void this._open(),
+     "secondary",!selectedAvailable));
+   pickrow.append(this._button("Supprimer",()=>void this._deleteSelected(),
+     "danger",!selectedAvailable));
    pickrow.append(this._button("↻ Liste",()=>{this._catalogRefresh();this._render();}));
    card.append(pickrow);
    const tabs=n("div",undefined,"tabs");

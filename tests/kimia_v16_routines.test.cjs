@@ -176,6 +176,71 @@ async function test(){
  await card._toggle();
  assert.equal(serviceCalls[2].service,"turn_off");
  assert.equal(serviceCalls.length,3,"no unexpected execution");
- console.log("KIMIA V1.6 OK : 2 types, logique, blocs imbriqués, aller-retour sans perte, conflit CRUD et commandes explicites.");
+
+ // Suppression rapide depuis la liste, sans ouvrir l'éditeur.
+ const quick=Object.create(Card.prototype);
+ Object.assign(quick,{_hass:hass,_busy:false,_draft:plain(E.create("script")),
+  _editing:null,_baseline:null,_catalog:[],_selected:"",
+  _notice:"",_error:"",_deletedIds:new Set(),_render(){}});
+ quick._draft.alias="Routine test à supprimer";
+ quick._draft.actions=[{type:"call",entity:"light.salon",operation:"turn_on",value:""}];
+ await quick._save();
+ const quickId=quick._editing.id;
+ const quickUrl=quick._currentUrl();
+ assert(db.has(quickUrl),"La routine test est bien enregistrée");
+ hass.states["script."+quickId]={state:"off",
+  attributes:{friendly_name:"Routine test à supprimer"}};
+ quick._catalogRefresh();
+ quick._editing=null;quick._baseline=null;
+ quick._draft=plain(E.create("script"));
+ quick._selected="script:"+quickId;
+ assert(quick._catalog.some(x=>x.id===quickId));
+
+ const previousConfirm=window.confirm;
+ window.confirm=()=>false;
+ const deletionsBefore=requests.filter(x=>x.method==="DELETE").length;
+ await quick._deleteSelected();
+ assert(db.has(quickUrl),"Annulation : la routine reste présente");
+ assert.equal(requests.filter(x=>x.method==="DELETE").length,deletionsBefore);
+
+ // Conflit concurrent pendant la boîte de confirmation : refus de suppression.
+ window.confirm=()=>{
+  db.get(quickUrl).description="Modification depuis un autre écran";
+  return true;
+ };
+ await quick._deleteSelected();
+ assert.match(quick._error,/modifiée entre-temps/);
+ assert(db.has(quickUrl),"La modification externe n'est pas supprimée");
+
+ // Suppression confirmée : API HA, nettoyage du menu et état de l'éditeur.
+ window.confirm=()=>true;
+ quick._editing={kind:"script",id:quickId,name:"Routine test à supprimer"};
+ quick._baseline=plain(db.get(quickUrl));
+ await quick._deleteSelected();
+ assert(!db.has(quickUrl),"La routine sélectionnée est effacée de Home Assistant");
+ assert.equal(quick._editing,null);
+ assert.equal(quick._selected,"");
+ assert(quick._deletedIds.has("script:"+quickId));
+ assert(!quick._catalog.some(x=>x.id===quickId),
+  "Une entité stale dans hass.states ne recrée pas l'option supprimée");
+ quick._catalogRefresh();
+ assert(!quick._catalog.some(x=>x.id===quickId),
+  "Un nouveau rafraîchissement n'affiche pas une routine supprimée en attente");
+ delete hass.states["script."+quickId];
+ quick._catalogRefresh();
+ assert(!quick._deletedIds.has("script:"+quickId));
+
+ quick._catalog=[{kind:"script",id:"outside",name:"Hors KIMIA"}];
+ quick._selected="script:outside";
+ await quick._deleteSelected();
+ assert.match(quick._error,/n'appartient pas à KIMIA/);
+ const forbiddenCalls=requests.filter(x=>x.method==="DELETE").length;
+ quick._hass={...hass,user:{is_admin:false}};
+ await quick._deleteSelected();
+ assert.equal(requests.filter(x=>x.method==="DELETE").length,forbiddenCalls,
+  "L'administrateur est obligatoire");
+ window.confirm=previousConfirm;
+
+ console.log("KIMIA V1.6 OK : CRUD, suppression rapide confirmée, conflit, sécurité admin et liste actualisée.");
 }
 test().catch(e=>{console.error(e);process.exitCode=1;});
