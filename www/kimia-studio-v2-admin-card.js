@@ -144,8 +144,7 @@ class Studio extends HTMLElement{
    noEngine?'<div class="main"><div class="feedback error">Charge la ressource kimia-routine-engine-v16.js avant Studio V2.</div></div>':
    this._page==="wizard"?this._wizard():this._page==="habits"?this._habitsPage():this._library();
   this.shadowRoot.innerHTML='<style>'+CSS+'</style><ha-card>'+this._header()+content+'</ha-card>';
-  if(this._page==="habits")this._mountHabits();
-  else this._habits=null;
+
  }
  _header(){
   return '<div class="hero"><div class="hero-top"><span class="brand">'+this._I("mdi:creation")+
@@ -736,23 +735,58 @@ class Studio extends HTMLElement{
   catch(err){this._msg("Commande impossible : "+(err?.message||err),true);}
   finally{this._busy=false;this._draw();}
  }
- async _addHomeShortcutForScript(scriptId){
-  const h=this._hass,entityId="script."+scriptId;
-  if(!/^script\.(?:ks_|kimia_)[a-z0-9_]+$/.test(entityId))
-   throw Error("Identifiant de scénario inattendu.");
+ async _setHomeShortcutForScript(entityId,show,appearance){
+  if(!/^script\.[a-z0-9_]+$/.test(entityId))
+   throw Error("Identifiant de scénario invalide.");
+  const h=this._hass;
   const before=await h.callWS({type:"lovelace/config",url_path:"kimia-next"});
-  const slots=this._homeSlotsFromConfig(before);
-  if(slots.includes(entityId))return "Déjà présent sur l’accueil.";
-  const free=slots.indexOf(null);
-  if(free<0)return "Les 4 places d’accueil sont occupées : choisis un emplacement dans Mes habitudes.";
-  slots[free]=entityId;
+  const slots=this._homeSlotsFromConfig(before),looks=this._homeLooksFromConfig(before);
+  const existing=slots.indexOf(entityId);
+  let message="";
+  if(show){
+   if(existing<0){
+    const free=slots.indexOf(null);
+    if(free<0)return "Les 4 places d’accueil sont occupées : retire un bouton dans « Organiser l’accueil ».";
+    slots[free]=entityId;
+    message="Bouton ajouté à l’accueil (position "+(free+1)+").";
+   }else message="Bouton conservé sur l’accueil.";
+   const icon=appearance?.icon, color=appearance?.color;
+   const current=looks[entityId]||{};
+   looks[entityId]={
+    icon:validIcon(icon)?icon:validIcon(current.icon)?current.icon:
+     (this._hass?.states?.[entityId]?.attributes?.icon||"mdi:home-outline"),
+    color:validColor(color)?color:validColor(current.color)?current.color:"purple"
+   };
+  }else{
+   if(existing<0)return "Ce bouton n’est déjà plus sur l’accueil.";
+   slots[existing]=null;
+   message="Bouton retiré de l’accueil. La routine est conservée.";
+  }
+  const next=clone(before);this._applyHomeSlots(next,slots,looks);
+  if(canon(next)===canon(before))return message;
   const latest=await h.callWS({type:"lovelace/config",url_path:"kimia-next"});
   if(canon(latest)!==canon(before))
-   throw Error("L’accueil a changé depuis la lecture. Ajoute le bouton dans Mes habitudes.");
-  const next=clone(before);
-  this._applyHomeSlots(next,slots);
+   throw Error("L’accueil a été modifié ailleurs. Actualise la page avant de réessayer.");
   await h.callWS({type:"lovelace/config/save",url_path:"kimia-next",config:next});
-  return "Bouton ajouté à l’accueil (position "+(free+1)+").";
+  this._homeSlots=slots;this._homeLooks=looks;this._homeBaseline=canon(next);
+  return message;
+ }
+ async _addHomeShortcutForScript(scriptId){
+  if(!/^(?:ks_|kimia_)[a-z0-9_]+$/.test(scriptId))
+   throw Error("Identifiant de scénario KIMIA inattendu.");
+  return this._setHomeShortcutForScript("script."+scriptId,true);
+ }
+ async _toggleHome(id){
+  if(this._busy||this._homeLoading||!this._admin())return;
+  const record=this._all().find(r=>r.id===id&&r.kind==="script");
+  if(!record||protectedRoutine(record))return this._msg("Ce scénario n’est pas sélectionnable.",true);
+  const show=!this._homeSlots.includes(id);
+  this._busy=true;this._draw();
+  try{
+   const notice=await this._setHomeShortcutForScript(id,show);
+   this._notice=notice;this._error=false;
+  }catch(err){this._notice="Accueil non modifié : "+(err?.message||err);this._error=true;}
+  finally{this._busy=false;this._draw();}
  }
  async _save(){
   if(!this._admin()||this._busy||!this._draft)return;
@@ -760,7 +794,8 @@ class Studio extends HTMLElement{
   const editing=this._editing;
   const id=editing?.id||(d.kind==="script"?"ks_":"kimia_")+H().slug(d.alias)+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,6);
   let payload;
-  try{payload=H().serialize(d,id);}catch(err){return this._msg("Configuration incomplète : "+(err?.message||err),true);}
+  try{payload=H().serialize(d,id);if(validIcon(this._icon))payload.icon=this._icon;}
+  catch(err){return this._msg("Configuration incomplète : "+(err?.message||err),true);}
   const url="config/"+d.kind+"/config/"+encodeURIComponent(id);
   this._busy=true;this._notice="";this._draw();
   try{
@@ -775,11 +810,13 @@ class Studio extends HTMLElement{
    }
    await this._hass.callApi("POST",url,payload);
    let homeNotice="";
-   if(d.kind==="script"&&this._addHomeOnSave){
-    try{homeNotice=await this._addHomeShortcutForScript(id);}
-    catch(homeError){homeNotice="Scénario enregistré, mais bouton Accueil non ajouté : "+(homeError?.message||homeError);}
+   if(d.kind==="script"){
+    try{
+     if(this._addHomeOnSave||this._homeSlots.includes("script."+id))
+      homeNotice=await this._setHomeShortcutForScript("script."+id,this._addHomeOnSave,{icon:this._icon,color:this._color});
+    }catch(homeError){homeNotice="Scénario enregistré, mais accueil non modifié : "+(homeError?.message||homeError);}
    }
-   this._page="library";this._tab=d.kind;this._editing=null;this._addHomeOnSave=false;
+   this._page="library";this._tab=d.kind;this._editing=null;this._addHomeOnSave=false;this._appearanceOpen=false;
    this._notice="« "+d.alias+" » "+(editing?"mise à jour":"créée")+" dans Home Assistant sans exécution."+
     (homeNotice?"\n"+homeNotice:"");
    this._error=false;
