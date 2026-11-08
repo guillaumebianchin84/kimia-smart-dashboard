@@ -39,7 +39,7 @@ function mock(initial){
  const card=Object.assign(Object.create(Card.prototype),{
   _hass:hass,_busy:false,_notice:"",_error:false,_page:"library",_tab:"all",
   _deletedIds:new Set(),_addHomeOnSave:false,_editing:null,
-  _I:()=>"",_B:()=>"",_devices:()=>[],_notification:()=>"",
+  _I:()=>"",_B:label=>label,_devices:()=>[],_notification:()=>"",
   _draw(){},_msg(msg,err){this._notice=msg;this._error=err;}
  });
  return {card,reads:()=>reads,writes:()=>homeWrites,saves:()=>saves,config:()=>config,
