@@ -338,6 +338,42 @@
         }
     return {added,modified};
   };
+  // L'onglet Eau apparaît uniquement si un surpresseur est classé dans KIMIA
+  // (ou s'il existe déjà). Aucun onglet fantôme dans une maison sans eau.
+  const ensureWaterView=(next,hasPump)=>{
+    const existing=next.views.find(v=>v.path==="eau");
+    if(!hasPump&&!existing)return {added:0,modified:0};
+    let added=0,modified=0;
+    const nav=next.views.flatMap(allCards).find(kimiaNav);
+    if(!nav)throw Error("Navigation KIMIA introuvable pour l'onglet Eau.");
+    const route={
+      url:"/kimia-next/eau",
+      icon:"mdi:water-pump",
+      label:"Eau"
+    };
+    for(const view of next.views) {
+      for(const card of allCards(view)) {
+        if(!kimiaNav(card)||card.routes.some(r=>r.url===route.url))continue;
+        const idx=card.routes.findIndex(r=>r.url==="/kimia-next/prises");
+        card.routes.splice(idx<0?card.routes.length:idx+1,0,safeClone(route));
+        modified++;
+      }
+    }
+    if(!existing) {
+      const water={
+        title:"Eau",path:"eau",icon:"mdi:water-pump",
+        type:"sections",max_columns:3,sections:[
+          brandBanner({max_columns:3}),
+          {type:"grid",column_span:3,cards:[safeClone(nav)]}
+        ]
+      };
+      water.sections[0].cards[0].custom_fields.slogan=bannerSlogan("Eau");
+      next.views.push(water);
+      added+=countCards({views:[water]});
+    }
+    return {added,modified};
+  };
+
   // V1.5 : mise à jour additive du tableau de bord administrateur.
   // N'efface ni ne recompose aucune carte existante (notamment personnalisée).
   const ADMIN_DASHBOARD = "kimia-admin-next";
@@ -393,7 +429,7 @@
   // Toute visibilité personnalisée d'un autre format reste intouchée.
   const applyRoomVisibility = (next,hiddenByArea) => {
     let modified=0;
-    for(const path of ["pieces",...CATEGORIES.map(x=>x[0])]){
+    for(const path of ["pieces",...CATEGORIES.map(x=>x[0]),"eau"]){
       const view=next.views.find(v=>v.path===path);
       for(const section of view?.sections||[]){
         // La pièce peut avoir été personnalisée : le filtre concerne la section,
@@ -781,19 +817,21 @@
       notify({ state: "busy", message: "Organisation de la maison…", added: 0 });
       try {
         // La confirmation storage évite toute écriture sur un dashboard YAML.
-        const [dashboards, areas, devices, entities, config] = await Promise.all([
+        const [dashboards,areas,devices,entities,labels,config]=await Promise.all([
           getDashboards(hass),
-          hass.callWS({ type: "config/area_registry/list" }),
-          hass.callWS({ type: "config/device_registry/list" }),
-          hass.callWS({ type: "config/entity_registry/list" }),
-          hass.callWS({ type: "lovelace/config", url_path: DASHBOARD })
+          hass.callWS({type:"config/area_registry/list"}),
+          hass.callWS({type:"config/device_registry/list"}),
+          hass.callWS({type:"config/entity_registry/list"}),
+          hass.callWS({type:"config/label_registry/list"}),
+          hass.callWS({type:"lovelace/config",url_path:DASHBOARD})
         ]);
         if (!Array.isArray(dashboards) ||
             !dashboards.some(d => d.url_path === DASHBOARD && d.mode === "storage")) {
           throw new Error("Le dashboard KIMIA Nouvelle génération n'est pas créé en mode Interface.");
         }
         if (!Array.isArray(areas) || !Array.isArray(devices) ||
-            !Array.isArray(entities) || !config || !Array.isArray(config.views) ||
+            !Array.isArray(entities) || !Array.isArray(labels) ||
+            !config || !Array.isArray(config.views) ||
             config.strategy) {
           throw new Error("Registres ou configuration KIMIA indisponibles.");
         }
@@ -818,8 +856,13 @@
         for (const [, list] of byArea)
           list.sort((a, b) => natural(entityName(a, hass), entityName(b, hass)));
 
-        const next = safeClone(config), vmap = new Map(next.views.map(v => [v.path, v]));
-        let added = 0, removed = 0, modified = 0;
+        const next=safeClone(config);
+        const hasPump=devices.some(d=>plugUsage(d,labels)==="surpresseur") &&
+          entities.some(e=>e.entity_id?.startsWith("switch.") &&
+            plugUsage(devices.find(d=>d.id===e.device_id),labels)==="surpresseur");
+        const water=ensureWaterView(next,hasPump);
+        const vmap=new Map(next.views.map(v=>[v.path,v]));
+        let added=water.added,removed=0,modified=water.modified;
         // Le bandeau de marque doit refléter le TITRE de l'onglet, pas "Ma maison"
         // partout. L'Accueil conserve "Ma maison".
         for (const view of next.views) {
@@ -863,14 +906,15 @@
 
         // Répartition par pièce dans les vrais onglets, jamais dans Accueil.
         // Chaque salle occupe toute la largeur; les tuiles 6/12 se placent dessous.
-        const targets=["pieces",...CATEGORIES.map(x=>x[0])];
+        const targets=["pieces",...CATEGORIES.map(x=>x[0]),
+          ...(vmap.has("eau")?["eau"]:[])];
         const areaIds=new Set(orderedAreas.map(a=>a.area_id));
         const names=new Map(orderedAreas.map(a=>[a.area_id,a.name]));
         for(const path of targets) {
           const view=vmap.get(path);
           const desired=new Map(orderedAreas.map(area=>[
             area.area_id,(byArea.get(area.area_id)||[])
-              .filter(e=>expectedDomain(path,e,hass))
+              .filter(e=>expectedDomain(path,e,hass,mapDevices,labels))
           ]));
           const kept=[];
           for(const section of view.sections || []) {
@@ -899,9 +943,11 @@
               if(section.cards.length)kept.push(section);
               continue;
             }
-            // Réécriture uniquement des cartes Area standard KIMIA.
-            if(areaCard.grid_options?.columns!==12) {
-              areaCard.grid_options={columns:12,rows:"auto"};
+            // Garder la carte Area native, sans commandes générales qui
+            // toucheraient aussi les prises dans Sécurité/Climatisation/Eau.
+            const wantedArea=roomCard({area_id:areaId},path);
+            if(JSON.stringify(areaCard)!==JSON.stringify(wantedArea)){
+              section.cards[section.cards.indexOf(areaCard)]=wantedArea;
               modified++;
             }
             const span=Math.min(Number(view.max_columns)||3,3);
@@ -917,12 +963,17 @@
             section.cards=section.cards.filter(c=>
               !isGeneratedTile(c) || entitiesWanted.has(c.entity));
             removed+=tileCount-section.cards.length;
-            // Migrer uniquement nos anciennes tuiles de prise intactes.
-            // Une tuile modifiée par un habitant n'est jamais réécrite.
+            // Migrer seulement les cartes KIMIA intactes vers 12 colonnes.
+            // Les tuiles personnalisées restent strictement inchangées.
             for(let i=0;i<section.cards.length;i++){
               const card=section.cards[i];
-              if(card?.entity?.startsWith("switch.") && isLegacyGeneratedTile(card)){
-                section.cards[i]=tile({entity_id:card.entity});
+              if(!isGeneratedTile(card)||!entitiesWanted.has(card.entity))continue;
+              const registry=entities.find(e=>e.entity_id===card.entity);
+              if(!registry)continue;
+              const use=plugUsage(mapDevices.get(registry.device_id),labels);
+              const expected=tile(registry,path,use);
+              if(JSON.stringify(card)!==JSON.stringify(expected)){
+                section.cards[i]=expected;
                 modified++;
               }
             }
@@ -943,7 +994,8 @@
             }
             for(const e of selected) {
               if(existing.has(e.entity_id))continue;
-              section.cards.push(tile(e));
+              section.cards.push(tile(e,path,
+                plugUsage(mapDevices.get(e.device_id),labels)));
               existing.add(e.entity_id);
               added++;
             }
