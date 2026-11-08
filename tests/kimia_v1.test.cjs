@@ -91,7 +91,7 @@ for (const path of ["pieces","musique"]) {
 let config=clone(original),saveCount=0,lastPath=null;
 const hass={
  user:{is_admin:true},
- states:{},
+ states:{"binary_sensor.presence_salon":{state:"on",attributes:{device_class:"motion"}}},
  callWS:async request=>{
   switch(request.type){
    case "lovelace/dashboards/list":return [{url_path:"kimia-next",mode:"storage"}];
