@@ -185,9 +185,12 @@ async function main(){
  assert.equal(again.removed,0);
  assert.equal(saveCount,saves,"Synchronisation idempotente");
 
- // Ancienne tuile KIMIA générée sans action directe : migration ciblée.
- delete prise.tap_action;
- delete prise.hold_action;
+ // Simuler une tuile réellement héritée de la première version KIMIA.
+ const legacyPrise=roomSection("prises","cuisine").cards.find(c=>
+  c.entity==="switch.prise");
+ legacyPrise.grid_options={columns:6,rows:1};
+ delete legacyPrise.tap_action;
+ delete legacyPrise.hold_action;
  const migrated=await window.KimiaSmartCore.sync(hass);
  assert(migrated.modified>=1,"Une ancienne tuile de prise est migrée");
  assert.equal(roomSection("prises","cuisine").cards.find(c=>
