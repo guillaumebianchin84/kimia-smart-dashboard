@@ -299,6 +299,15 @@
     }
     return x;
   };
+  const safeTile=(e,path="",usage="autre")=>{
+    const native=tile(e,path,usage);
+    return {
+      type:SAFE_TILE_TYPE,
+      entity:e.entity_id,
+      card:native,
+      grid_options:{...native.grid_options}
+    };
+  };
   const oldTapTile=e=>{
     const x=tile(e,"","autre");
     x.grid_options={columns:6,rows:1};
@@ -399,10 +408,15 @@
     card?.type === "tile" && typeof card.entity === "string" &&
     JSON.stringify(card) === JSON.stringify(safeClone(legacyTile({entity_id:card.entity})));
   const isGeneratedTile = card => {
-    if(card?.type!=="tile"||typeof card.entity!=="string")return false;
+    if(typeof card?.entity!=="string")return false;
     const e={entity_id:card.entity};
-    return [legacyTile(e),oldTapTile(e),tile(e),tile(e,"","clim")]
-      .some(candidate=>JSON.stringify(card)===JSON.stringify(safeClone(candidate)));
+    const variants=card.type===SAFE_TILE_TYPE
+      ?[safeTile(e),safeTile(e,"","clim")]
+      :card.type==="tile"
+        ?[legacyTile(e),oldTapTile(e),tile(e),tile(e,"","clim")]
+        :[];
+    return variants.some(candidate=>
+      JSON.stringify(card)===JSON.stringify(safeClone(candidate)));
   };
   // Une carte Pièce n'est gérée par KIMIA que si toutes ses options sont intactes.
   // Les variantes personnalisées doivent rester sous contrôle de l'habitant.
@@ -1190,7 +1204,7 @@
               const registry=entities.find(e=>e.entity_id===card.entity);
               if(!registry)continue;
               const use=plugUsage(mapDevices.get(registry.device_id),labels);
-              const expected=tile(registry,path,use);
+              const expected=safeTile(registry,path,use);
               if(JSON.stringify(card)!==JSON.stringify(expected)){
                 section.cards[i]=expected;
                 modified++;
@@ -1201,7 +1215,8 @@
           view.sections=kept;
           // Ajouts après nettoyage : pas de doublon, même après déplacement.
           const existing=new Set(allCards(view)
-            .filter(c=>c.type==="tile").map(c=>c.entity));
+            .filter(c=>c.type==="tile"||c.type===SAFE_TILE_TYPE)
+            .map(c=>c.entity));
           for(const area of orderedAreas) {
             const selected=desired.get(area.area_id)||[];
             if(path!=="pieces" && !selected.length)continue;
@@ -1213,7 +1228,7 @@
             }
             for(const e of selected) {
               if(existing.has(e.entity_id))continue;
-              section.cards.push(tile(e,path,
+              section.cards.push(safeTile(e,path,
                 plugUsage(mapDevices.get(e.device_id),labels)));
               existing.add(e.entity_id);
               added++;
