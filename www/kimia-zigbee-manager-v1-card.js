@@ -167,7 +167,7 @@
         e.device_id===deviceId && e.entity_id?.startsWith("switch.") &&
         !e.disabled_by && !e.hidden_by &&
         e.entity_category!=="config" && e.entity_category!=="diagnostic" &&
-        !/(?:led|voyant)\\s*(?:de\\s*)?(?:réseau|network|status)/i.test(
+        !/(?:led|voyant)\s*(?:de\s*)?(?:réseau|network|status)/i.test(
           [e.name,e.original_name].filter(Boolean).join(" ")));
     }
     _deviceUsage(device) {
