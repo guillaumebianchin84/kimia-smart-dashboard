@@ -196,34 +196,49 @@ class Studio extends HTMLElement{
   this._preset=key;this._editing=null;this._draft=H().create(p[1]);this._draft.alias=p[2].includes(" libre")?"":p[2];
   if(p[1]==="automation")this._draft.triggers=[H().trigger(key==="evening"?"sun":key==="energy"?"numeric_state":"time")];
   this._selected=new Set();this._area="*";this._query="";this._step=1;
-  this._addHomeOnSave=p[1]==="script";this._notice="";this._draw();
+  this._addHomeOnSave=p[1]==="script";this._icon=key==="night"?"mdi:weather-night":key==="departure"?"mdi:door-open":key==="arrival"?"mdi:home-outline":key==="morning"?"mdi:weather-sunny":"mdi:home-outline";
+  this._color=key==="night"?"purple":key==="departure"?"amber":key==="arrival"?"green":"blue";this._notice="";this._draw();
  }
  _wizard(){
-  const labels=["Démarrage","Appareils","Actions","Si / Quand","Terminer"];
-  const main=this._step===0?this._choose():this._step===1?this._equipmentStep():this._step===2?this._actionsStep():this._step===3?this._conditionsStep():this._review();
-  return '<div class="main"><div class="wizard-top"><h2>'+(this._editing?"Modifier la routine":"Nouvelle routine")+'</h2>'+this._B("Fermer","home","small")+'</div>'+
-   '<div class="progress">'+labels.map((_,i)=>'<i class="'+(i<=this._step?"done":"")+'"></i>').join("")+'</div>'+
-   '<div class="step-label">ÉTAPE '+(this._step+1)+' / 5 · '+labels[this._step].toUpperCase()+'</div>'+
-   this._notification()+main+
-   '<div class="footer">'+this._B(this._I("mdi:arrow-left")+" Retour",this._step===0?"home":"prev")+
-   '<div class="actions">'+this._B(this._I("mdi:code-braces")+" Expert","advanced")+
-   (this._step===4?this._B(this._I("mdi:content-save-check-outline")+' Enregistrer dans HA',"save","primary",this._busy?"disabled":""):
-     this._B("Continuer "+this._I("mdi:arrow-right"),"next","primary"))+'</div></div></div>';
+  if(!this._draft)return '<div class="main">'+this._notification()+
+   '<div class="nav"><h2>Créer une routine</h2>'+this._B("Annuler","home","small")+'</div>'+
+   this._choose()+'</div>';
+  const d=this._draft,icon=validIcon(this._icon)?this._icon:"mdi:home-outline";
+  const shade=ROUTINE_COLORS[this._color]||ROUTINE_COLORS.purple;
+  const picker=ROUTINE_ICONS.map(([value,label])=>
+   '<button type="button" class="icon-choice" data-act="set-icon" data-value="'+value+
+   '" title="'+e(label)+'" aria-label="'+e(label)+'" aria-pressed="'+(icon===value)+'">'+this._I(value)+'</button>').join("");
+  const colors=Object.entries(ROUTINE_COLORS).map(([name,hex])=>
+   '<button type="button" class="color-choice" data-act="set-color" data-value="'+name+
+   '" style="--choice-color:'+hex+'" title="'+name+'" aria-label="Couleur '+name+
+   '" aria-pressed="'+(this._color===name)+'"></button>').join("");
+  return '<div class="main">'+this._notification()+
+   '<div class="nav"><h2 style="margin:0">'+(this._editing?"Modifier la routine":"Nouvelle routine")+'</h2>'+
+   this._B("Annuler","home","small")+'</div>'+
+   '<div class="editor-title"><span class="routine-avatar" style="--avatar-color:'+shade+'">'+this._I(icon)+'</span>'+
+   '<div style="flex:1"><label class="fieldlabel">Nom de la routine<input id="draft-name" maxlength="70" type="text" placeholder="Ex. Bonne nuit" value="'+e(d.alias)+'" /></label></div></div>'+
+   '<details class="simple-section"><summary><strong>Personnaliser l’icône et la couleur</strong> <span class="section-badge">Facultatif</span></summary>'+
+   '<div class="section-title">Choisir une icône</div><div class="icon-picker">'+picker+'</div>'+
+   (d.kind==="script"?'<div class="section-title">Couleur du bouton d’accueil</div><div class="color-picker">'+colors+'</div>':"")+
+   '</details>'+
+   '<div class="simple-section"><h3>SI · Quand ?</h3>'+this._conditionsStep()+'</div>'+
+   '<div class="simple-section"><h3>ALORS · Que fait la maison ?</h3>'+this._actionsStep()+'</div>'+
+   (d.kind==="script"?'<div class="simple-section"><label style="display:flex;align-items:center;gap:12px;cursor:pointer">'+
+    '<input id="add-home-on-save" type="checkbox" style="width:21px;height:21px;min-height:0" '+(this._addHomeOnSave?"checked":"")+' />'+
+    '<span><strong>Afficher sur l’accueil</strong><br><small class="help">Tu peux le retirer quand tu veux sans supprimer la routine. Quatre boutons maximum.</small></span></label></div>':"")+
+   '<div class="footer">'+this._B(this._I("mdi:open-in-new")+' Mode expert (Home Assistant)',"mode-expert","small")+
+   this._B(this._I("mdi:content-save")+' Enregistrer',"save","primary",this._busy?"disabled":"")+
+   '</div></div>';
  }
  _choose(){
-  const card=(key,icon,title,detail)=>'<button class="option" data-act="preset" data-value="'+key+'" type="button">'+
-   '<span class="o-icon">'+this._I(icon)+'</span><span><b>'+title+'</b><small>'+detail+'</small></span></button>';
-  return '<h3>SI… comment démarre la routine ?</h3>'+
-   '<p class="help">Choisis simplement ce qui doit la lancer. Tu décideras ensuite des appareils et des actions.</p>'+
-   '<div class="options">'+
-   card("blank-script","mdi:gesture-tap-button","J’appuie sur un bouton",
-    "Un geste sur l’accueil KIMIA : Bonne nuit, Départ, Retour…")+
-   card("blank-automation","mdi:clock-outline","La maison réagit toute seule",
-    "À une heure, au soleil, ou quand un capteur change.")+'</div>'+
-   '<details style="margin-top:20px"><summary style="cursor:pointer;font-weight:800;padding:10px 0">'+
-   this._I("mdi:lightbulb-on-outline")+' Partir d’un exemple (facultatif)</summary>'+
+  const option=(key,icon,title,help)=>'<button class="option" data-act="preset" data-value="'+key+'" type="button">'+
+   '<span class="o-icon">'+this._I(icon)+'</span><span><b>'+title+'</b><small>'+help+'</small></span></button>';
+  return '<p class="help">Comment veux-tu lancer cette routine ?</p><div class="quick-start">'+
+   option("blank-script","mdi:gesture-tap-button","J’appuie sur un bouton","Depuis l’accueil de KIMIA.")+
+   option("blank-automation","mdi:clock-outline","La maison agit toute seule","À une heure ou quand quelque chose se produit.")+
+   '</div><details style="margin-top:18px"><summary>Voir quelques exemples</summary>'+
    '<div class="options" style="margin-top:12px">'+PRESETS.filter(p=>!p[0].startsWith("blank-")).map(p=>
-    card(p[0],p[4],e(p[2]),e(p[3]))).join("")+'</div></details>';
+    option(p[0],p[4],e(p[2]),e(p[3]))).join("")+'</div></details>';
  }
  _equipmentStep(){
   const devices=this._devices(),listed=devices.filter(x=>(this._area==="*"||x.area===this._area)&&
@@ -272,26 +287,30 @@ class Studio extends HTMLElement{
  }
  _actionsStep(){
   const ops=H().OPERATIONS,names=new Map(this._devices().map(x=>[x.id,x.name]));
-  return '<p class="help">Les commandes seront exécutées dans cet ordre. Le déplacement fonctionne aussi sur tablette avec les flèches.</p>'+
-  (this._draft.actions.length?this._draft.actions.map((x,i)=>
-   '<div class="block"><div class="blocktop"><strong>Action '+(i+1)+' · '+e(x.type==="call"?(names.get(x.entity)||x.entity):x.type==="delay"?"Attente":"Attendre un capteur")+'</strong>'+
-   '<div class="actions">'+this._B(this._I("mdi:arrow-up"),"move","small",'data-index="'+i+'" data-direction="-1" '+(i===0?"disabled":""))+
-    this._B(this._I("mdi:arrow-down"),"move","small",'data-index="'+i+'" data-direction="1" '+(i===this._draft.actions.length-1?"disabled":""))+
-    this._B(this._I("mdi:trash-can-outline"),"del-action","small danger",'data-index="'+i+'"')+'</div></div>'+
-   (x.type==="call"?'<div class="fields"><label class="fieldlabel">Équipement<input type="text" value="'+e(names.get(x.entity)||x.entity)+'" disabled /></label>'+
+  const devices=this._devices();
+  const options=devices.map(x=>'<option value="'+e(x.id)+'">'+e(x.room+" · "+x.name)+'</option>').join("");
+  const rows=(this._draft.actions||[]).map((x,i)=>
+    '<div class="block"><div class="blocktop"><strong>'+(i+1)+'. '+e(x.type==="call"?(names.get(x.entity)||x.entity):x.type==="delay"?"Pause":"Attendre un capteur")+'</strong>'+
+    '<div class="subtle-actions">'+this._B("↑","move","small",'data-index="'+i+'" data-direction="-1" '+(i===0?"disabled":""))+
+    this._B("↓","move","small",'data-index="'+i+'" data-direction="1" '+(i===this._draft.actions.length-1?"disabled":""))+
+    this._B(this._I("mdi:close"),"del-action","small danger",'data-index="'+i+'" title="Retirer cette action"')+'</div></div>'+
+    (x.type==="call"?'<div class="fields"><label class="fieldlabel">Appareil<input type="text" value="'+e(names.get(x.entity)||x.entity)+'" disabled /></label>'+
     '<label class="fieldlabel">Action<select data-action-field="operation" data-index="'+i+'">'+(ops[x.entity.split(".")[0]]||[]).map(([op,label])=>
     '<option value="'+e(op)+'" '+(op===x.operation?"selected":"")+'>'+e(label)+'</option>').join("")+'</select></label></div>'+
-    (["set_temperature","set_cover_position","volume_set"].includes(x.operation)?'<label class="fieldlabel" style="margin-top:10px">Valeur ('+
-    (x.operation==="set_temperature"?"°C":x.operation==="set_cover_position"?"%":"0 à 1")+
-    ')<input type="number" step="any" data-action-field="value" data-index="'+i+'" value="'+e(x.value)+'"/></label>':""):
-    x.type==="delay"?'<label class="fieldlabel">Durée en secondes<input type="number" data-action-field="seconds" data-index="'+i+'" min="1" value="'+e(x.seconds)+'"/></label>':
+    (["set_temperature","set_cover_position","volume_set"].includes(x.operation)?'<label class="fieldlabel">Valeur '+
+    (x.operation==="set_temperature"?"(°C)":x.operation==="set_cover_position"?"(%)":"(0 à 1)")+
+    '<input type="number" step="any" data-action-field="value" data-index="'+i+'" value="'+e(x.value)+'"/></label>':""):
+    x.type==="delay"?'<label class="fieldlabel">Durée en secondes<input type="number" min="1" data-action-field="seconds" data-index="'+i+'" value="'+e(x.seconds)+'"/></label>':
     '<div class="fields"><label class="fieldlabel">Capteur<select data-action-field="entity" data-index="'+i+'">'+this._entityOptions(x.entity)+'</select></label>'+
     '<label class="fieldlabel">État attendu<input type="text" data-action-field="to" data-index="'+i+'" value="'+e(x.to)+'"/></label>'+
-    '<label class="fieldlabel">Limite (secondes)<input type="number" data-action-field="timeout" data-index="'+i+'" value="'+e(x.timeout)+'"/></label></div>')+
-   '</div>').join(""):'<div class="empty"><b>Aucune action</b>Reviens choisir des appareils ou ajoute une attente.</div>')+
-   '<div class="actions">'+this._B(this._I("mdi:timer-outline")+" Ajouter une pause","add-delay")+
-   this._B(this._I("mdi:progress-clock")+" Attendre un capteur","add-wait")+'</div>'+
-   '<div class="note">Les branches SI / ALORS / SINON, boucles, répétitions, groupes ET / OU et paramètres experts sont disponibles dans l’atelier avancé. Aucun bloc complexe n’est simplifié automatiquement.</div>';
+    '<label class="fieldlabel">Délai maximum (secondes)<input type="number" data-action-field="timeout" data-index="'+i+'" value="'+e(x.timeout)+'"/></label></div>')+
+    '</div>').join("");
+  return (rows||'<p class="help">Choisis un appareil pour commencer.</p>')+
+   '<div class="compact-actions"><select id="quick-action-entity" aria-label="Choisir un appareil"><option value="">Choisir un appareil…</option>'+options+'</select>'+
+   this._B(this._I("mdi:plus")+' Ajouter',"quick-action","primary",devices.length?"":"disabled")+'</div>'+
+   '<details><summary>Ajouter une pause ou attendre un capteur</summary><div class="subtle-actions" style="margin-top:10px">'+
+   this._B("Ajouter une pause","add-delay","small")+this._B("Attendre un capteur","add-wait","small")+
+   '</div></details>';
  }
  _conditionBlock(x,i,isTrigger){
   const prefix=isTrigger?"trigger":"condition",dataAttr='data-'+prefix+'-field',types=isTrigger?
@@ -314,27 +333,13 @@ class Studio extends HTMLElement{
  }
  _conditionsStep(){
   const d=this._draft,auto=d.kind==="automation";
-  return (auto?'<div class="section-title">'+this._I("mdi:play-circle-outline")+
-    ' SI · Quel événement déclenche la routine ?</div>'+
-    '<p class="help">Exemples : à 7 h, au coucher du soleil, ou quand un détecteur passe à « on ». Un seul événement suffit pour démarrer.</p>'+
+  return (auto?'<p class="help">La maison démarre la routine quand cet événement se produit.</p>'+
     d.triggers.map((x,i)=>this._conditionBlock(x,i,true)).join("")+
-    this._B(this._I("mdi:plus")+" Ajouter un autre événement (OU)","add-trigger"):
-    '<div class="section-title">'+this._I("mdi:gesture-tap-button")+
-    ' SI · J’appuie sur un bouton</div>'+
-    '<div class="block"><strong>Déclenchement manuel</strong>'+
-    '<p class="help">Cette routine se lance par un bouton dans KIMIA, ou par « Lancer » dans Mes routines. Aucun capteur ni horaire nécessaire.</p>'+
-    '<label style="display:flex;align-items:center;gap:10px;margin-top:14px;cursor:pointer">'+
-    '<input id="add-home-on-save" type="checkbox" style="width:20px;height:20px;min-height:0" '+
-    (this._addHomeOnSave?"checked":"")+' />'+
-    '<span><strong>Ajouter un bouton sur l’accueil KIMIA</strong><br>'+
-    '<small class="help">Utilise la première des quatre places libres. Ne remplace jamais un bouton existant.</small></span></label></div>')+
-   '<details '+(d.conditions.length?'open':'')+' style="margin-top:20px">'+
-   '<summary class="section-title" style="cursor:pointer">'+this._I("mdi:filter-check-outline")+
-   ' SEULEMENT SI · Ajouter une condition (facultatif)</summary>'+
-   '<p class="help">Exemple : seulement si quelqu’un est à la maison. Si la condition est fausse, les actions ne se lancent pas.</p>'+
-   d.conditions.map((x,i)=>this._conditionBlock(x,i,false)).join("")+
-   this._B(this._I("mdi:plus")+" Ajouter une condition","add-condition")+
-   '<p class="help">Pour les conditions ET / OU, les boucles ou des boutons physiques Zigbee, utilise l’atelier avancé ou l’éditeur Home Assistant.</p></details>';
+    this._B(this._I("mdi:plus")+' Un autre déclencheur (OU)',"add-trigger","small"):
+    '<p class="help"><strong>Appui sur un bouton KIMIA.</strong> La routine se lance seulement quand tu appuies. Aucun horaire nécessaire.</p>')+
+   '<details '+(d.conditions.length?"open":"")+' style="margin-top:18px"><summary><strong>Seulement si…</strong> <span class="section-badge">Conditions facultatives</span></summary>'+
+   '<div style="margin-top:12px">'+d.conditions.map((x,i)=>this._conditionBlock(x,i,false)).join("")+
+   this._B(this._I("mdi:plus")+' Ajouter une condition',"add-condition","small")+'</div></details>';
  }
  _review(){
   const d=this._draft,names=new Map(this._devices().map(x=>[x.id,x.name]));
