@@ -29,9 +29,8 @@ function mock(initial){
    assert.equal(req.url_path,"kimia-next");
    if(req.type==="lovelace/config"){
     reads++;
-    const current=copy(config);
     if(conflict&&reads%2===0)config.views[1].sections[0].cards[0].content="Modifié ailleurs";
-    return current;
+    return copy(config);
    }
    if(req.type==="lovelace/config/save"){homeWrites++;config=copy(req.config);return {};}
    throw Error("WS inattendu "+req.type);
