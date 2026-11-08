@@ -287,3 +287,33 @@ Le détail des décisions utilisateur est enregistré dans [PLAN_INTERFACE_V15.m
 - **Aucune commande volume/micro encore implémentée.** Un essai de compilation ESPHome et un test matériel restent nécessaires avant toute validation.
 
 **Test après flash proposé :** vérifier que le visage démarre comme en V14, faire un appui court → slide avec les trois valeurs, faire un second appui → retour, puis attendre 12 s sur le slide → retour automatique. Vérifier aussi le swipe horizontal sur le visage et le réveil tactile après veille. Si erreur à la compilation ou affichage : relever les journaux, corriger une nouvelle variante sans modifier V14.
+
+
+## VALIDATION MATÉRIELLE — KIMIA V16 avec page BME280 (08/11/2026)
+
+**L'utilisateur confirme que la V16 fonctionne sur son vrai ESP32-S3 avec l'écran rond tactile : « cool ca fonctionne ».** Les capteurs BME280 étaient déjà confirmés dans les journaux de la V15b (adresse I²C `0x76`, lecture température, humidité, pression toutes les 10 secondes). L'interface de mesure et le retour au visage sont donc considérés comme **opérationnels à cette étape**, sans prétendre à un essai d'endurance ni à un étalonnage métrologique.
+
+**Référence figée du firmware effectivement testé : [`16_slide_mesures_bme280_valide_fige.yaml`](./16_slide_mesures_bme280_valide_fige.yaml).**
+- Copie de `16_slide_mesures_bme280_experimental.yaml` **sans aucune modification de YAML ou de logique** (ajout de commentaires d'en-tête uniquement).
+- Conserver à l'identique également `14_visage_kimia_valide_fige.yaml` (référence purement visuelle V14). Toute prochaine évolution se fait dans une **nouvelle variante**, jamais directement dans un fichier figé.
+- Écran visage original + deuxième slide : température en grand, humidité/pression plus petites dessous, tap court pour ouvrir/revenir, retour automatique après 12 secondes, swipe horizontal de démonstration conservé sur le visage, veille conservée.
+- L'affichage automatique périodique du slide, le volume et la coupure réelle du micro **ne sont pas encore implémentés**.
+
+### Nettoyage du code : à faire dans une variante ultérieure, pas dans la V16 validée
+
+Il y a quelques **éléments de diagnostic / démonstration** qui ne sont pas nécessaires à l'utilisation finale, mais ne bloquent pas le fonctionnement actuellement validé :
+1. `logger: level: DEBUG` : très bavard à l'initialisation du LCD. On pourra passer à `INFO` après validation longue durée.
+2. `on_value` des trois mesures : messages `ESP_LOGI("KIMIA_BME280", ...)` toutes les 10 s, utiles pour diagnostiquer mais non indispensables à l'affichage LVGL.
+3. Le bloc `interval: 15s` `AUCUNE MESURE complete publiee` / `OK T=...` : **diagnostic de test**, pouvant afficher une alerte transitoire au démarrage (lorsque les mesures arrivent 1 seconde après) ; à supprimer ou remplacer par une surveillance fiable des valeurs dans un futur code stabilisé.
+4. `ESP_LOGI("KIMIA_TOUCH", ...)` et logs de navigation : utiles au débogage des gestes, dispensables en production.
+5. Le swipe horizontal de changement d'expressions est une **simulation** en attendant le pipeline vocal ; à conserver tant qu'on teste visuellement les états, puis à remplacer par leurs déclenchements audio réels, sans changer l'aspect du visage.
+
+**Décision à ce stade : on NE nettoie PAS la V16 figée**. Pas besoin de reflasher uniquement pour enlever des traces de test, et aucun souci de fonctionnement rapporté par l'utilisateur. Le prochain firmware expérimental pourra retirer progressivement le diagnostic, indépendamment de la référence.
+
+### Étalonnage des mesures BME280
+
+- Mesures observées : environ 20,95 °C, 53,64 % HR, 1019,34 hPa ; résultats plausibles, **mais non comparés à une référence**.
+- Le BME280 applique déjà ses données de calibration d'usine ; ne pas corriger arbitrairement.
+- Comparer les valeurs du BME280 avec des instruments fiables placés au même endroit (loin de l'échauffement de l'ESP32 et de l'amplificateur), après stabilisation thermique ; éviter d'enfermer le BME280 avec des sources de chaleur sans circulation d'air.
+- Une correction de chaque mesure peut se faire avec un filtre ESPHome `offset` ou une calibration linéaire si l'écart est établi. Ne pas appliquer de filtre dans la version figée sans mesures de référence.
+- Pour la pression, distinguer la **pression absolue au capteur** de la pression météorologique ramenée au niveau de la mer ; un écart avec la météo ne prouve pas une mauvaise calibration.
