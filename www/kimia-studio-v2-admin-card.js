@@ -13,7 +13,7 @@ const canon=v=>JSON.stringify(v,(_,x)=>x&&typeof x==='object'&&!Array.isArray(x)
  Object.fromEntries(Object.entries(x).sort(([a],[b])=>a.localeCompare(b))):x);
 const DOMAINS={light:"Lumières",switch:"Prises",input_boolean:"Options",cover:"Volets",climate:"Chauffage / clim",fan:"Ventilation",media_player:"Musique",scene:"Scènes",script:"Scénarios"};
 const ICONS={light:"mdi:lightbulb-outline",switch:"mdi:power-socket-eu",input_boolean:"mdi:toggle-switch-outline",cover:"mdi:window-shutter",climate:"mdi:thermostat",fan:"mdi:fan",media_player:"mdi:music",scene:"mdi:palette-outline",script:"mdi:play-box-multiple-outline",automation:"mdi:robot-outline"};
-const ROUTINE_ICONS=[["mdi:weather-night","Nuit"],["mdi:home-outline","Maison"],["mdi:door-open","Départ"],["mdi:weather-sunny","Réveil"],["mdi:movie-open","Cinéma"],["mdi:music","Musique"],["mdi:lightbulb-group-outline","Lumières"],["mdi:shield-home-outline","Sécurité"],["mdi:power","Énergie"]];
+const ROUTINE_ICONS=[["mdi:weather-night","Nuit"],["mdi:home-outline","Maison"],["mdi:door-open","Départ"],["mdi:weather-sunny","Réveil"],["mdi:movie-open","Cinéma"],["mdi:music","Musique"],["mdi:lightbulb-group-outline","Lumières"],["mdi:shield-home-outline","Sécurité"],["mdi:power","Énergie"],["mdi:play-box-multiple-outline","Scénario"],["mdi:robot-outline","Automatisation"]];
 const ROUTINE_COLORS={purple:"#9680DF",green:"#44A58D",blue:"#65A4E8",amber:"#E1A04D",red:"#D66B70",teal:"#25A6AE"};
 const validIcon=v=>ROUTINE_ICONS.some(([icon])=>icon===v);
 const validColor=v=>Object.prototype.hasOwnProperty.call(ROUTINE_COLORS,v);
@@ -87,7 +87,7 @@ class Studio extends HTMLElement{
   this._habits=null;this._deletedIds=new Set();
   this._homeSlots=[null,null,null,null];this._homeBaseline=null;
   this._homeLoading=false;this._needsMerge=false;this._checkedMerge=false;
-  this._addHomeOnSave=false;this._icon="mdi:home-outline";this._color="purple";this._homeLooks={};this._homeReady=false;
+  this._addHomeOnSave=false;this._icon="mdi:home-outline";this._color="purple";this._homeLooks={};this._homeReady=false;this._appearanceOpen=false;
   this.shadowRoot.addEventListener("click",ev=>this._click(ev));
   this.shadowRoot.addEventListener("change",ev=>this._change(ev));
   this.shadowRoot.addEventListener("input",ev=>this._input(ev));
@@ -101,7 +101,7 @@ class Studio extends HTMLElement{
   if(oldUser!==h?.user?.id){this._loaded=false;this._homeReady=false;this._reg={areas:[],entities:[],devices:[]};}
   this._hass=h;
   if(h?.user?.is_admin&&!this._loaded){this._loaded=true;void this._load();}
-  if(h?.user?.is_admin&&!this._homeReady){this._homeReady=true;void this._loadHomeSlots();}
+  if(h?.user?.is_admin&&!this._homeReady){this._homeReady=true;this._homeLoading=true;void this._loadHomeSlots();}
   if(h?.user?.is_admin&&!this._checkedMerge){this._checkedMerge=true;void this._inspectMerge();}
   if(this._advanced)this._advanced.hass=h;
   if(this._habits)this._habits.hass=h;
@@ -157,7 +157,7 @@ class Studio extends HTMLElement{
  _library(){
   const list=this._all();
   return '<div class="main">'+this._notification()+
-   '<div class="nav"><div><h2 style="margin:0">Mes routines <span class="chip">'+list.length+'</span></h2>'+
+   '<div class="nav"><div><h2 style="margin:0">À la maison <span class="chip">'+list.length+'</span></h2>'+
    '<p class="help" style="margin:6px 0 0">Crée une routine et retrouve-la ici, avec ses boutons d’accueil.</p></div>'+
    '<div class="nav-links">'+this._B(this._I("mdi:plus")+' Créer une routine',"new","primary")+
    this._B(this._I("mdi:home-edit-outline")+' Organiser l’accueil',"habits","small")+
@@ -182,7 +182,7 @@ class Studio extends HTMLElement{
     (auto?(on?"Automatique · Active":"Automatique · Désactivée"):"Manuelle · "+(onHome?"Sur l’accueil":"Pas sur l’accueil"))+
     '</div></div><div class="routine-controls">'+
     (!auto&&!protectedRoutine(r)?this._B(this._I(onHome?"mdi:home-check":"mdi:home-plus-outline")+
-     (onHome?" Retirer de l’accueil":" Sur l’accueil"),"toggle-home","small",'data-id="'+e(r.id)+'" '+(!this._homeReady?'disabled':"")):"")+
+     (onHome?" Retirer de l’accueil":" Sur l’accueil"),"toggle-home","small",'data-id="'+e(r.id)+'" '+((!this._homeReady||this._homeLoading)?'disabled':"")):"")+
     (auto?this._B(on?"Désactiver":"Activer","toggle","small",'data-id="'+e(r.id)+'"'):
      this._B(this._I("mdi:play")+' Lancer',"run","small",'data-id="'+e(r.id)+'"'))+
     this._B(this._I("mdi:pencil")+' Modifier',"edit","small",'data-id="'+e(r.id)+'"')+
@@ -196,7 +196,7 @@ class Studio extends HTMLElement{
   this._preset=key;this._editing=null;this._draft=H().create(p[1]);this._draft.alias=p[2].includes(" libre")?"":p[2];
   if(p[1]==="automation")this._draft.triggers=[H().trigger(key==="evening"?"sun":key==="energy"?"numeric_state":"time")];
   this._selected=new Set();this._area="*";this._query="";this._step=1;
-  this._addHomeOnSave=p[1]==="script";this._icon=key==="night"?"mdi:weather-night":key==="departure"?"mdi:door-open":key==="arrival"?"mdi:home-outline":key==="morning"?"mdi:weather-sunny":"mdi:home-outline";
+  this._addHomeOnSave=p[1]==="script";this._appearanceOpen=false;this._icon=key==="night"?"mdi:weather-night":key==="departure"?"mdi:door-open":key==="arrival"?"mdi:home-outline":key==="morning"?"mdi:weather-sunny":"mdi:home-outline";
   this._color=key==="night"?"purple":key==="departure"?"amber":key==="arrival"?"green":"blue";this._notice="";this._draw();
  }
  _wizard(){
@@ -217,7 +217,7 @@ class Studio extends HTMLElement{
    this._B("Annuler","home","small")+'</div>'+
    '<div class="editor-title"><span class="routine-avatar" style="--avatar-color:'+shade+'">'+this._I(icon)+'</span>'+
    '<div style="flex:1"><label class="fieldlabel">Nom de la routine<input id="draft-name" maxlength="70" type="text" placeholder="Ex. Bonne nuit" value="'+e(d.alias)+'" /></label></div></div>'+
-   '<details class="simple-section"><summary><strong>Personnaliser l’icône et la couleur</strong> <span class="section-badge">Facultatif</span></summary>'+
+   '<details class="simple-section" '+(this._appearanceOpen?"open":"")+'><summary><strong>Personnaliser l’icône et la couleur</strong> <span class="section-badge">Facultatif</span></summary>'+
    '<div class="section-title">Choisir une icône</div><div class="icon-picker">'+picker+'</div>'+
    (d.kind==="script"?'<div class="section-title">Couleur du bouton d’accueil</div><div class="color-picker">'+colors+'</div>':"")+
    '</details>'+
@@ -556,19 +556,6 @@ class Studio extends HTMLElement{
    this._error=true;
   }finally{this._busy=false;this._draw();}
  }
- _advancedPage(){
-  return '<div class="main">'+this._notification()+
-   '<div class="nav"><h2>Atelier avancé</h2>'+this._B("Retour","home")+'</div>'+
-   '<div class="note">Blocs conditionnels, répétitions, attentes, déclencheurs et actions avancées de KIMIA V1.6. Si un script HA contient des paramètres non représentables sans perte, utilise l’éditeur natif.</div>'+
-   '<div id="studio-advanced"></div></div>';
- }
- _mountAdvanced(){
-  const host=this.shadowRoot.getElementById("studio-advanced");
-  if(!host)return;
-  if(!customElements.get("kimia-routine-editor-v16-card")){host.textContent="La ressource kimia-routine-editor-v16-card.js manque. Charge-la avant Studio V2.";return;}
-  const card=document.createElement("kimia-routine-editor-v16-card");
-  card.setConfig?.({});card.hass=this._hass;host.append(card);this._advanced=card;
- }
  _input(ev){
   const x=ev.target;
   if(x.id==="studio-search"){this._q=x.value;const out=this.shadowRoot.getElementById("studio-results");if(out)out.innerHTML=this._results();}
@@ -621,7 +608,22 @@ class Studio extends HTMLElement{
    this._draw();void this._loadHomeSlots();}
   else if(a==="tab"){this._tab=b.dataset.value;this._draw();}
   else if(a==="refresh")this._msg("Liste actualisée depuis Home Assistant.");
-  else if(a==="advanced"){this._page="advanced";this._draw();}
+  else if(a==="mode-expert"){
+   const edit=this._editing;
+   window.location.assign(edit?"/config/"+edit.kind+"/edit/"+encodeURIComponent(edit.id):"/config/automation/dashboard");
+  }
+  else if(a==="set-icon"){if(validIcon(b.dataset.value)){this._icon=b.dataset.value;this._appearanceOpen=true;this._draw();}}
+  else if(a==="set-color"){if(validColor(b.dataset.value)){this._color=b.dataset.value;this._appearanceOpen=true;this._draw();}}
+  else if(a==="toggle-home")void this._toggleHome(b.dataset.id);
+  else if(a==="quick-action"){
+   const id=this.shadowRoot.getElementById("quick-action-entity")?.value;
+   if(!id||!this._devices().some(x=>x.id===id))return this._msg("Choisis un appareil compatible.",true);
+   if(this._draft.actions.some(x=>x.type==="call"&&x.entity===id))return this._msg("Cet appareil a déjà une action. Modifie-la plutôt que l’ajouter en double.",true);
+   const action=H().action("call");action.entity=id;
+   action.operation=defaultOp(id.split(".")[0],this._preset,H().OPERATIONS);
+   action.value=action.operation==="set_temperature"?"20":action.operation==="set_cover_position"?"50":action.operation==="volume_set"?"0.5":"";
+   this._draft.actions.push(action);this._selected.add(id);this._draw();
+  }
   else if(a==="preset")this._presetStart(b.dataset.value);
   else if(a==="prev"){this._step=Math.max(0,this._step-1);this._notice="";this._draw();}
   else if(a==="next")this._next();
@@ -641,7 +643,7 @@ class Studio extends HTMLElement{
   }
   else if(a==="add-delay"){this._draft.actions.push(H().action("delay"));this._draw();}
   else if(a==="add-wait"){this._draft.actions.push(H().action("wait_state"));this._draw();}
-  else if(a==="del-action"){this._draft.actions.splice(i,1);this._draw();}
+  else if(a==="del-action"){const old=this._draft.actions[i];this._draft.actions.splice(i,1);if(old?.entity)this._selected.delete(old.entity);this._draw();}
   else if(a==="move"){const to=i+Number(b.dataset.direction),list=this._draft.actions;if(to>=0&&to<list.length){[list[i],list[to]]=[list[to],list[i]];this._draw();}}
   else if(a==="add-trigger"){this._draft.triggers.push(H().trigger("time"));this._draw();}
   else if(a==="remove-trigger"){this._draft.triggers.splice(i,1);this._draw();}
@@ -687,9 +689,7 @@ class Studio extends HTMLElement{
      draft.triggers.some(x=>!["state","numeric_state","time","sun"].includes(x.type))||
      targets.length!==new Set(targets).size||
      targets.some(entity=>!this._devices().some(d=>d.id===entity))){
-    this._page="advanced";
-    this._notice="Routine avancée : garde son éditeur complet pour éviter toute perte de commandes ou d'ordre.";
-    return;
+    window.location.assign(native);return;
    }
    this._editing={kind:record.kind,id:record.configId,baseline:clone(raw)};
    this._draft=draft;this._selected=new Set(targets);this._preset="blank-script";
@@ -697,8 +697,8 @@ class Studio extends HTMLElement{
    this._addHomeOnSave=false;
    this._notice="Routine chargée sans modification. Tu peux la personnaliser avant d'enregistrer.";
   }catch(err){
-   this._page="advanced";
-   this._notice="Édition guidée indisponible : "+(err?.message||err)+". Utilise l’atelier avancé ou l’éditeur HA.";
+   this._notice="Édition simplifiée indisponible : "+(err?.message||err)+". Ouverture dans Home Assistant.";
+   window.location.assign(native);
   }finally{this._busy=false;this._draw();}
  }
  async _deleteRoutine(id){
