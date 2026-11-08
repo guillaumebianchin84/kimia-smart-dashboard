@@ -269,3 +269,21 @@ Le détail des décisions utilisateur est enregistré dans [PLAN_INTERFACE_V15.m
 - BME280 à tester d'abord sur le bus I²C partagé GPIO5/6 **après vérification des niveaux logiques et de l'alimentation**.
 - XVF3800 nu **commandé, pas encore raccordé** ; les commandes de micro et de volume ne sont donc **pas implémentées**.
 - **Ne pas modifier `14_visage_kimia_valide_fige.yaml`** : créer un fichier V15 expérimental séparé lorsque les tests reprendront.
+
+
+## KIMIA V16 expérimentale — slide des trois mesures BME280 (08/11/2026)
+
+**Fichier :** [`16_slide_mesures_bme280_experimental.yaml`](./16_slide_mesures_bme280_experimental.yaml) — variante indépendante et encore **non compilée / non flashée / non validée sur l'écran**.
+
+**Test BME280 V15b réussi (journal du 08/11/2026 à 17:02:49 et 17:02:59)** : I²C `0x76`, tactile `0x15`, température environ 20,95 °C, humidité environ 53,64 %, pression 1019,34 hPa ; nouvelles valeurs toutes les 10 s. L'avertissement de mesure non reçue une seconde avant la première lecture était transitoire.
+
+**V16 — première étape d'interface uniquement :**
+- Seconde page LVGL `kimia_measures` adaptée à l'écran rond 360×360 : température en très gros (`montserrat_48`), puis humidité (`montserrat_28`) et pression (`montserrat_26`) plus petites en dessous, palette sombre/turquoise coordonnée au visage.
+- Les labels récupèrent directement les valeurs BME280 et se mettent à jour sur chaque publication.
+- **Appui court sur le visage** pour ouvrir les mesures ; second appui pour revenir au visage ; **retour automatique après ~12 s**. Le premier toucher de réveil n'ouvre pas la page.
+- Glissements horizontaux de démonstration **conservés sur le visage** ; ils ne changent plus l'expression lorsque la page mesures est affichée.
+- Pour cette étape, **aucune apparition automatique périodique du slide** ; attendre la validation esthétique et tactile.
+- **La définition complète de la page `kimia_face` est identique à la V14**, vérifiée sur GitHub après création ; pas de changement d'animations, de dimensions, de couleurs ou de matériel.
+- **Aucune commande volume/micro encore implémentée.** Un essai de compilation ESPHome et un test matériel restent nécessaires avant toute validation.
+
+**Test après flash proposé :** vérifier que le visage démarre comme en V14, faire un appui court → slide avec les trois valeurs, faire un second appui → retour, puis attendre 12 s sur le slide → retour automatique. Vérifier aussi le swipe horizontal sur le visage et le réveil tactile après veille. Si erreur à la compilation ou affichage : relever les journaux, corriger une nouvelle variante sans modifier V14.
