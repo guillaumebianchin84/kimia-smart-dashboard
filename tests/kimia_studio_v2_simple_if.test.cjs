@@ -55,6 +55,8 @@ function mock(initial){
  assert.match(s.card._conditionsStep(),/Appui sur un bouton KIMIA/);
  assert.match(s.card._wizard(),/Afficher sur l’accueil/);
  assert.match(s.card._wizard(),/ALORS · Que fait la maison/);
+ assert.match(s.card._wizard(),/Personnaliser l’icône et la couleur/);
+ assert.match(s.card._wizard(),/Mode expert/);
  assert.doesNotMatch(s.card._wizard(),/ÉTAPE 1 \/ 5/);
  s.card._change({target:{id:"add-home-on-save",checked:false,dataset:{}}});
  assert.equal(s.card._addHomeOnSave,false);
@@ -65,18 +67,27 @@ function mock(initial){
  s.card._draft.actions[0].operation="turn_off";
  await s.card._save();
  assert.equal(s.saves().length,1,"Routine réellement enregistrée");
+ assert.equal(s.saves()[0].payload.icon,"mdi:home-outline","Icône personnalisable stockée dans le script");
  assert.equal(s.writes(),1,"Un seul ajout sur l’accueil");
  const id=s.saves()[0].url.split("/").at(-1);
  const target=s.card._homeSection(s.config());
  assert.equal(target.cards[target.index].slots[0],"script."+id);
  assert.equal(s.config().views[1].sections[0].cards[0].content,"À conserver");
+ assert.equal(target.cards[target.index].looks["script."+id].color,"blue");
+ assert.equal(target.cards[target.index].looks["script."+id].icon,"mdi:home-outline");
  assert.match(s.card._notice,/Bouton ajouté à l’accueil/);
  const name=s.card._draft.alias;
  assert.equal(name,"Bonne nuit");
  // Réenregistrement du même bouton : idempotent et aucun doublon.
  const same=await s.card._addHomeShortcutForScript(id);
- assert.match(same,/Déjà présent/);
+ assert.match(same,/Bouton conservé/);
  assert.equal(s.writes(),1);
+ const removed=await s.card._setHomeShortcutForScript("script."+id,false);
+ assert.match(removed,/Bouton retiré/);
+ assert.equal(s.writes(),2,"Suppression du bouton sans suppression du script");
+ assert.equal(s.saves().length,1);
+ assert.equal(s.card._homeSlots[0],null);
+ assert.equal(s.config().views[1].sections[0].cards[0].content,"À conserver");
  // Pas de place disponible : aucun bouton existant écrasé.
  const full=mock(["script.a","script.b","script.c","script.d"]);
  const result=await full.card._addHomeShortcutForScript("ks_autre");
@@ -85,7 +96,7 @@ function mock(initial){
  // Changement concurrent du dashboard : refus d'écrire.
  const race=mock([null,null,null,null]);
  race.setConflict(true);
- await assert.rejects(race.card._addHomeShortcutForScript("ks_test"),/changé/);
+ await assert.rejects(race.card._addHomeShortcutForScript("ks_test"),/modifié/);
  assert.equal(race.writes(),0);
  // Le scénario est sauvegardé même si le dashboard Accueil ne peut pas être modifié.
  const blocked=mock(["script.a","script.b","script.c","script.d"]);
