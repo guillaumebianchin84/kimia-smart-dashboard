@@ -228,6 +228,92 @@
         name:"KIMIA · Tuile protégée",description:
         "Carte native Home Assistant, commandes bloquées si l'appareil est indisponible."});
   }
+  // Les 4 raccourcis de l'accueil gardent des cartes natives "shortcut".
+  // Aucune dépendance à input_text : les choix sont stockés dans le
+  // dashboard kimia-next (configuration de cette carte).
+  if(typeof customElements!=="undefined" &&
+     !customElements.get("kimia-home-scenarios-v1-card")) {
+    const CARD="kimia-home-scenarios-v1-card";
+    const homeHelpers=()=>typeof window.loadCardHelpers==="function"
+      ?window.loadCardHelpers()
+      :Promise.reject(Error("Composants natifs Home Assistant indisponibles"));
+    class KimiaHomeScenarios extends HTMLElement {
+      constructor(){
+        super();this.attachShadow({mode:"open"});
+        this._slots=[];this._hass=null;this._cards=[];this._signature="";
+        this._token=0;
+        const style=document.createElement("style");
+        style.textContent=":host{display:block}.scenarios{display:grid;grid-template-columns:1fr;gap:8px}.empty{font-size:13px;color:var(--secondary-text-color);padding:10px}.error{font-size:12px;color:var(--error-color);padding:8px}";
+        this._root=document.createElement("div");
+        this._root.className="scenarios";
+        this.shadowRoot.append(style,this._root);
+      }
+      setConfig(config){
+        if(!Array.isArray(config?.slots)||config.slots.length>4)
+          throw Error("KIMIA accueil : quatre emplacements maximum");
+        this._slots=[...config.slots, null,null,null,null].slice(0,4)
+          .map(v=>typeof v==="string"&&/^script\.[a-z0-9_]+$/.test(v)?v:null);
+        this._signature="";this._update();
+      }
+      set hass(hass){this._hass=hass;this._update();}
+      getGridOptions(){return {columns:12,rows:"auto"};}
+      getCardSize(){return Math.max(1,this._slots.filter(Boolean).length);}
+      _update(){
+        if(!this._hass)return;
+        const visible=this._slots.filter(Boolean).map((id,index)=>{
+          const entity=this._hass.states?.[id];
+          const unavailable=!entity||["unknown","unavailable"].includes(entity.state);
+          const label=entity?.attributes?.friendly_name||id.replace(/^script\./,"").replace(/_/g," ");
+          return {id,label,icon:entity?.attributes?.icon||"mdi:play-circle-outline",
+            color:["purple","green","blue","amber"][index],unavailable};
+        });
+        const signature=JSON.stringify(visible);
+        if(signature===this._signature){
+          for(const card of this._cards)card.hass=this._hass;
+          return;
+        }
+        this._signature=signature;
+        const token=++this._token;
+        this._root.replaceChildren();
+        this._cards=[];
+        if(!visible.length){
+          const empty=document.createElement("div");
+          empty.className="empty";empty.textContent="Aucun scénario configuré.";
+          this._root.append(empty);return;
+        }
+        void homeHelpers().then(helper=>{
+          if(token!==this._token)return;
+          if(typeof helper?.createCardElement!=="function")
+            throw Error("Cartes natives non chargées");
+          const cards=visible.map(item=>{
+            const config={type:"shortcut",label:item.label,
+              description:item.unavailable?"Scénario indisponible":"Lancer le scénario",
+              icon:item.icon,color:item.color,
+              tap_action:item.unavailable?{action:"none"}:
+                {action:"perform-action",perform_action:"script.turn_on",
+                  target:{entity_id:item.id}},
+              hold_action:{action:"none"}};
+            const card=helper.createCardElement(config);
+            card.hass=this._hass;
+            return card;
+          });
+          if(token!==this._token)return;
+          this._cards=cards;
+          this._root.replaceChildren(...cards);
+        }).catch(error=>{
+          if(token!==this._token)return;
+          const msg=document.createElement("div");msg.className="error";
+          msg.textContent="Raccourcis indisponibles : "+(error?.message||error);
+          this._root.replaceChildren(msg);
+        });
+      }
+    }
+    customElements.define(CARD,KimiaHomeScenarios);
+    window.customCards=window.customCards||[];
+    if(!window.customCards.some(c=>c.type===CARD))
+      window.customCards.push({type:CARD,name:"KIMIA · 4 scénarios accueil",
+        description:"Quatre raccourcis de scénarios configurables avec cartes natives."});
+  }
   const PRODUCT = "KIMIA Smart";
   const CATEGORIES = [
     ["lumieres", ["light"]],
