@@ -80,6 +80,8 @@ class Studio extends HTMLElement{
   this._reg={areas:[],entities:[],devices:[]};this._loaded=false;this._area="*";this._query="";
   this._busy=false;this._notice="";this._error=false;this._advanced=null;
   this._habits=null;this._deletedIds=new Set();
+  this._homeSlots=[null,null,null,null];this._homeBaseline=null;
+  this._homeLoading=false;
   this.shadowRoot.addEventListener("click",ev=>this._click(ev));
   this.shadowRoot.addEventListener("change",ev=>this._change(ev));
   this.shadowRoot.addEventListener("input",ev=>this._input(ev));
@@ -333,6 +335,135 @@ class Studio extends HTMLElement{
      x.type==="delay"?"Attendre "+x.seconds+" secondes":"Attendre un capteur")+'</strong></div></div>').join("")+
    '</div><div class="note">KIMIA enregistre une véritable routine Home Assistant. Les autres automatisations et scripts sont intacts.</div>';
  }
+
+ _homeSection(config){
+  const view=config?.views?.find(v=>v.path==="accueil");
+  if(!view||!Array.isArray(view.sections))
+   throw Error("Vue Accueil introuvable dans kimia-next.");
+  const walk=cards=>{
+   if(!Array.isArray(cards))return null;
+   const custom=cards.findIndex(c=>c?.type==="custom:kimia-home-scenarios-v1-card");
+   if(custom>=0)return {cards,index:custom,custom:true};
+   const heading=cards.findIndex(c=>c?.type==="heading"&&c.heading==="Mes scénarios");
+   if(heading>=0)return {cards,index:heading,custom:false};
+   for(const card of cards){
+    const result=walk(card?.cards);
+    if(result)return result;
+   }
+   return null;
+  };
+  for(const section of view.sections){
+   const result=walk(section.cards);
+   if(result)return result;
+  }
+  throw Error("Rubrique « Mes scénarios » introuvable sur l'Accueil.");
+ }
+ _homeSlotsFromConfig(config){
+  const target=this._homeSection(config);
+  if(target.custom)
+   return [...(target.cards[target.index].slots||[]),null,null,null,null]
+    .slice(0,4).map(v=>typeof v==="string"?v:null);
+  const candidates=target.cards.filter(c=>this._isOldHomeShortcut(c))
+   .map(c=>c.tap_action.target.entity_id);
+  return [...candidates,null,null,null,null].slice(0,4);
+ }
+ _isOldHomeShortcut(c){
+  return c?.type==="shortcut" &&
+   ["Au lit","Départ","Retour","Réveil"].includes(c.label) &&
+   c.tap_action?.perform_action==="script.turn_on" &&
+   /^script\.[a-z0-9_]+$/.test(c.tap_action?.target?.entity_id||"");
+ }
+ _applyHomeSlots(config,slots){
+  const target=this._homeSection(config);
+  const newCard={type:"custom:kimia-home-scenarios-v1-card",
+   grid_options:{columns:12,rows:"auto"},slots:[...slots]};
+  if(target.custom){
+   target.cards[target.index]=newCard;
+  }else{
+   // Seulement les quatre anciens boutons de scénarios fixes.
+   // Aucun raccourci de l'assistant vocal ou d'un autre utilisateur n'est touché.
+   for(let i=target.cards.length-1;i>=0;i--)
+    if(this._isOldHomeShortcut(target.cards[i]))target.cards.splice(i,1);
+   const heading=target.cards.findIndex(c=>c?.type==="heading"&&c.heading==="Mes scénarios");
+   target.cards.splice(heading+1,0,newCard);
+  }
+ }
+ _habitsPage(){
+  const scripts=this._all().filter(r=>r.kind==="script"&&!protectedRoutine(r));
+  const helperSupported=HABIT_HELPERS.some(id=>this._hass?.states?.[id]);
+  const choices=(selected)=>'<option value="">Aucun scénario</option>'+
+   scripts.map(r=>'<option value="'+e(r.id)+'"'+(selected===r.id?' selected':'')+
+    '>'+e(r.name)+'</option>').join("");
+  const rows=[0,1,2,3].map(i=>'<div class="block"><div class="blocktop">'+
+   '<strong>Position '+(i+1)+'</strong><div class="actions">'+
+   this._B("↑","swap-home","small",'data-index="'+i+'" data-direction="-1" '+(i===0?'disabled':''))+
+   this._B("↓","swap-home","small",'data-index="'+i+'" data-direction="1" '+(i===3?'disabled':''))+
+   '</div></div><label class="fieldlabel">Scénario affiché sur Accueil'+
+   '<select data-slot="'+i+'" '+(this._homeLoading?'disabled':'')+'>'+
+   choices(this._homeSlots[i])+'</select></label></div>').join("");
+  return '<div class="main">'+this._notification()+
+   '<div class="nav"><h2>Mes raccourcis Accueil</h2></div>'+
+   '<p class="help">Choisis jusqu’à quatre scénarios et leur ordre. Un emplacement vide ne crée aucun bouton. Les scripts Home Assistant ne sont jamais modifiés.</p>'+
+   (this._homeLoading?'<p class="note">Chargement de la configuration de l’accueil…</p>':'')+
+   '<div class="cards">'+rows+'</div>'+
+   '<div class="footer">'+this._B("Retour à Mes routines","home")+
+   this._B(this._I("mdi:content-save")+" Enregistrer sur l’accueil",
+    "save-home","primary",(this._homeLoading||this._busy?'disabled':''))+'</div>'+
+   (helperSupported?'<div class="section-line"></div><h3>Autres raccourcis KIMIA</h3>'+
+    '<p class="help">Anciens boutons et ambiances disponibles si les helpers KIMIA sont installés.</p>'+
+    '<div id="studio-habits-legacy" class="habit-host"></div>':'')+'</div>';
+ }
+ _mountHabits(){
+  const host=this.shadowRoot.getElementById("studio-habits-legacy");
+  if(!host||!customElements.get("kimia-scenarios-v1-card"))return;
+  const card=document.createElement("kimia-scenarios-v1-card");
+  card.setConfig?.({});card.hass=this._hass;host.append(card);this._habits=card;
+ }
+ async _loadHomeSlots(){
+  const h=this._hass;
+  try{
+   const config=await h.callWS({type:"lovelace/config",url_path:"kimia-next"});
+   if(h!==this._hass)return;
+   this._homeSlots=this._homeSlotsFromConfig(config);
+   this._homeBaseline=canon(config);
+   this._notice="";this._error=false;
+  }catch(err){
+   this._homeBaseline=null;
+   this._notice="Configuration Accueil inaccessible : "+(err?.message||err);
+   this._error=true;
+  }finally{
+   this._homeLoading=false;
+   if(this._page==="habits")this._draw();
+  }
+ }
+ async _saveHomeSlots(){
+  if(!this._admin()||this._busy||this._homeLoading||!this._homeBaseline)return;
+  const slots=[...this._homeSlots];
+  if(slots.length!==4||
+     slots.some(id=>id!==null&&!/^script\.[a-z0-9_]+$/.test(id)) ||
+     new Set(slots.filter(Boolean)).size!==slots.filter(Boolean).length)
+   return this._msg("Choisis au maximum quatre scénarios différents.",true);
+  const allowed=new Set(this._all().filter(r=>r.kind==="script"&&!protectedRoutine(r))
+   .map(r=>r.id));
+  if(slots.some(id=>id&&!allowed.has(id)))
+   return this._msg("Un scénario choisi n'existe plus ou n'est pas sélectionnable.",true);
+  const h=this._hass;
+  this._busy=true;this._notice="";this._draw();
+  try{
+   const config=await h.callWS({type:"lovelace/config",url_path:"kimia-next"});
+   if(canon(config)!==this._homeBaseline)
+    throw Error("Le dashboard a changé depuis l'ouverture. Recharge les raccourcis.");
+   const next=clone(config);
+   this._applyHomeSlots(next,slots);
+   await h.callWS({type:"lovelace/config/save",url_path:"kimia-next",config:next});
+   this._homeBaseline=canon(next);
+   this._notice="Accueil mis à jour. Recharge la page Accueil sur les autres appareils.";
+   this._error=false;
+  }catch(err){
+   this._notice="Enregistrement impossible : "+(err?.message||err);
+   this._error=true;
+  }finally{this._busy=false;this._draw();}
+ }
  _advancedPage(){
   return '<div class="main">'+this._notification()+
    '<div class="nav"><h2>Atelier avancé</h2>'+this._B("Retour","home")+'</div>'+
@@ -360,6 +491,11 @@ class Studio extends HTMLElement{
  _change(ev){
   const x=ev.target,d=x.dataset;
   if(x.id==="studio-filter"){this._filter=x.value;this._draw();return;}
+  if(x.dataset.slot!==undefined){
+   const slot=Number(x.dataset.slot);
+   if(slot>=0&&slot<4)this._homeSlots[slot]=x.value||null;
+   return;
+  }
   if(x.id==="area-filter"){this._area=x.value;this._draw();return;}
   if(d.entity){if(x.checked)this._selected.add(d.entity);else this._selected.delete(d.entity);
    x.closest(".choice")?.classList.toggle("selected",x.checked);
@@ -388,7 +524,8 @@ class Studio extends HTMLElement{
   else if(a==="new")this._new();
   else if(a==="new-script")this._presetStart("blank-script");
   else if(a==="new-automation")this._presetStart("blank-automation");
-  else if(a==="habits"){this._page="habits";this._notice="";this._draw();}
+  else if(a==="habits"){this._page="habits";this._notice="";this._homeLoading=true;
+   this._draw();void this._loadHomeSlots();}
   else if(a==="tab"){this._tab=b.dataset.value;this._draw();}
   else if(a==="refresh")this._msg("Liste actualisée depuis Home Assistant.");
   else if(a==="advanced"){this._page="advanced";this._draw();}
@@ -400,6 +537,14 @@ class Studio extends HTMLElement{
   else if(a==="toggle")void this._toggle(b.dataset.id);
   else if(a==="edit")this._edit(b.dataset.id);
   else if(a==="delete")void this._deleteRoutine(b.dataset.id);
+  else if(a==="save-home")void this._saveHomeSlots();
+  else if(a==="swap-home"){
+   const index=Number(b.dataset.index),dir=Number(b.dataset.direction),dest=index+dir;
+   if(index>=0&&index<4&&dest>=0&&dest<4){
+    [this._homeSlots[index],this._homeSlots[dest]]=[this._homeSlots[dest],this._homeSlots[index]];
+    this._draw();
+   }
+  }
   else if(a==="add-delay"){this._draft.actions.push(H().action("delay"));this._draw();}
   else if(a==="add-wait"){this._draft.actions.push(H().action("wait_state"));this._draw();}
   else if(a==="del-action"){this._draft.actions.splice(i,1);this._draw();}
@@ -459,6 +604,34 @@ class Studio extends HTMLElement{
   }catch(err){
    this._page="advanced";
    this._notice="Édition guidée indisponible : "+(err?.message||err)+". Utilise l’atelier avancé ou l’éditeur HA.";
+  }finally{this._busy=false;this._draw();}
+ }
+ async _deleteRoutine(id){
+  if(!this._admin()||this._busy)return;
+  const r=this._all().find(item=>item.id===id);
+  if(!r||!r.own||protectedRoutine(r))return this._msg(
+    "Routine technique ou externe : suppression interdite.",true);
+  const h=this._hass,url="config/"+r.kind+"/config/"+encodeURIComponent(r.configId);
+  this._busy=true;this._notice="";this._draw();
+  try{
+   if(r.kind==="script"){
+    const config=await h.callWS({type:"lovelace/config",url_path:"kimia-next"});
+    if(this._homeSlotsFromConfig(config).includes(r.id))
+     throw Error("Retire d'abord cette routine des raccourcis Accueil.");
+   }
+   const baseline=await h.callApi("GET",url);
+   if(!window.confirm("Supprimer définitivement « "+r.name+
+    " » de Home Assistant ? Cette action est irréversible."))return;
+   const latest=await h.callApi("GET",url);
+   if(canon(latest)!==canon(baseline))
+    throw Error("La routine a été modifiée ailleurs. Recharge avant de supprimer.");
+   await h.callApi("DELETE",url);
+   this._deletedIds.add(r.id);
+   this._notice="Routine supprimée : "+r.name;
+   this._error=false;
+  }catch(err){
+   this._notice="Suppression impossible : "+(err?.message||err);
+   this._error=true;
   }finally{this._busy=false;this._draw();}
  }
  async _run(id){
