@@ -61,8 +61,8 @@ async function main(){
  const card=makeCard();
  assert.deepEqual(copy(card._homeSlotsFromConfig(config)),
   ids.slice(0,4),"Récupération des 4 anciens raccourcis");
- assert.match(card._library(),/Créer un scénario/);
- assert.match(card._library(),/Créer une automatisation/);
+ assert.match(card._library(),/Créer une routine/);
+ assert.match(card._library(),/Mes boutons d’accueil/);
  assert.match(card._library(),/Mes habitudes/);
  assert.match(card._library(),/Atelier avancé/);
  assert.match(card._library(),/Supprimer/);
