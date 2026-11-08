@@ -32,7 +32,7 @@
     if(category==="config"||category==="diagnostic")return false;
     if(e.entity_id.startsWith("switch.")) {
       const label=[e.original_name,e.name,entityName(e,hass)].filter(Boolean).join(" ");
-      if(/(?:led|voyant)\\s*(?:de\\s*)?(?:réseau|network|status)/i.test(label))
+      if(/(?:led|voyant)\s*(?:de\s*)?(?:réseau|network|status)/i.test(label))
         return false;
     }
     return true;
