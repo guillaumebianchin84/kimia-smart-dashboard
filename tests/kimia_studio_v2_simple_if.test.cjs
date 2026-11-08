@@ -48,7 +48,7 @@ function mock(initial){
 (async()=>{
  const s=mock([null,null,null,null]);
  assert.match(s.card._choose(),/J’appuie sur un bouton/);
- assert.match(s.card._choose(),/La maison réagit toute seule/);
+ assert.match(s.card._choose(),/La maison agit toute seule/);
  s.card._presetStart("blank-script");
  assert.equal(s.card._draft.kind,"script");
  assert.equal(s.card._addHomeOnSave,true);
