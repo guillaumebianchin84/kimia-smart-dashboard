@@ -158,7 +158,7 @@ sensor:
                 format: "%.0f hPa"
                 args: [x]
                 if_nan: "---- hPa"
-    update_interval: 10s
+    update_interval: 60s
 
 touchscreen:
   - platform: cst816
@@ -916,9 +916,9 @@ interval:
           then:
             - script.execute: kimia_show_face
 
-  # Diagnostic non-intrusif : confirmer la publication des trois grandeurs,
-  # meme quand ESPHome ne journalise pas les etats au niveau DEBUG.
-  - interval: 15s
+  # Diagnostic non-intrusif : laisse le temps a la premiere mesure (60s),
+  # puis verifie la presence des trois valeurs sans fausse alerte initiale.
+  - interval: 90s
     then:
       - lambda: |-
           if (!id(kimia_temperature).has_state() ||
