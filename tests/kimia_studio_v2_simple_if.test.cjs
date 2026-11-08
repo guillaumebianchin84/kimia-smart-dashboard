@@ -52,8 +52,10 @@ function mock(initial){
  s.card._presetStart("blank-script");
  assert.equal(s.card._draft.kind,"script");
  assert.equal(s.card._addHomeOnSave,true);
- assert.match(s.card._conditionsStep(),/SI · J’appuie sur un bouton/);
- assert.match(s.card._conditionsStep(),/Ajouter un bouton sur l’accueil KIMIA/);
+ assert.match(s.card._conditionsStep(),/Appui sur un bouton KIMIA/);
+ assert.match(s.card._wizard(),/Afficher sur l’accueil/);
+ assert.match(s.card._wizard(),/ALORS · Que fait la maison/);
+ assert.doesNotMatch(s.card._wizard(),/ÉTAPE 1 \/ 5/);
  s.card._change({target:{id:"add-home-on-save",checked:false,dataset:{}}});
  assert.equal(s.card._addHomeOnSave,false);
  s.card._change({target:{id:"add-home-on-save",checked:true,dataset:{}}});
@@ -99,7 +101,7 @@ function mock(initial){
  automatic.card._presetStart("blank-automation");
  assert.equal(automatic.card._draft.kind,"automation");
  assert.equal(automatic.card._addHomeOnSave,false);
- assert.match(automatic.card._conditionsStep(),/Quel événement déclenche/);
+ assert.match(automatic.card._conditionsStep(),/quand cet événement/);
  assert.doesNotMatch(automatic.card._conditionsStep(),/Ajouter un bouton sur l’accueil/);
  console.log("Studio KIMIA : SI manuel, actions, sauvegarde, limite 4, conflit et automatisations OK");
 })().catch(e=>{console.error(e);process.exitCode=1;});
