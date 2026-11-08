@@ -123,7 +123,51 @@ async function main(){
  const noAdmin=makeCard();noAdmin._hass={...hass,user:{is_admin:false}};
  await noAdmin._deleteRoutine("script.ks_depart");
  assert.equal(deleteCalls,1);
+ // Fusion sûre des deux VUES d'administration déjà installées.
+ const adminOriginal={views:[
+  {path:"scenarios",title:"Scénarios",type:"sections",max_columns:2,
+   sections:[{type:"grid",cards:[
+    {type:"heading",heading:"Mes habitudes"},
+    {type:"custom:kimia-routine-editor-v16-card"},
+    {type:"custom:kimia-scenarios-v1-card"}
+   ]}]},
+  {path:"studio-v2",title:"Studio V2",type:"sections",
+   sections:[{type:"grid",cards:[{type:"custom:kimia-studio-v2-admin-card"}]}]},
+  {path:"appareils",title:"Appareils",sections:[{cards:[{type:"tile",entity:"switch.prise"}]}]}
+ ]};
+ let adminCurrent=copy(adminOriginal),adminWrites=0;
+ const adminHass={...hass,callWS:async req=>{
+  assert.equal(req.url_path,"kimia-admin-next");
+  if(req.type==="lovelace/config")return copy(adminCurrent);
+  if(req.type==="lovelace/config/save"){adminWrites++;adminCurrent=copy(req.config);return {};}
+  throw Error("WS admin inattendu");
+ }};
+ const merging=makeCard();merging._hass=adminHass;merging._needsMerge=true;
+ const plan=merging._adminMergePlan(adminCurrent);
+ assert.equal(plan.views.filter(x=>x.path==="studio-v2").length,0);
+ assert.equal(plan.views.find(x=>x.path==="scenarios").sections[0].cards[0].type,
+  "custom:kimia-studio-v2-admin-card");
+ assert.deepEqual(copy(plan.views.find(x=>x.path==="appareils")),
+  copy(adminOriginal.views.find(x=>x.path==="appareils")));
+ const backupConfirm=window.confirm;
+ window.confirm=()=>false;
+ await merging._mergeAdminPages();
+ assert.equal(adminWrites,0,"Fusion annulée : aucun changement");
+ window.confirm=()=>true;
+ await merging._mergeAdminPages();
+ assert.equal(adminWrites,1,"Une écriture admin seulement");
+ assert.equal(adminCurrent.views.filter(x=>x.path==="studio-v2").length,0,
+  "L'entrée Studio dupliquée disparaît");
+ assert.equal(adminCurrent.views.find(x=>x.path==="scenarios").title,"Mes routines");
+ assert.equal(merging._needsMerge,false);
+ assert.equal(merging._adminMergePlan(adminCurrent),null,"Fusion idempotente");
+ assert.equal(links.at(-1),"/kimia-admin-next/scenarios");
+ const unknown=copy(adminOriginal);
+ unknown.views[1].sections[0].cards.push({type:"custom:carte-que-je-veux-garder"});
+ assert.throws(()=>merging._adminMergePlan(unknown),/personnalisées/,
+  "Pas de suppression des ajouts personnels");
+ window.confirm=backupConfirm;
  // Le moteur n'a pas déclenché de script automatiquement.
- console.log("KIMIA Studio fusion : catalogue, 4 raccourcis, suppression protégée, concurrence, ordre et annulations OK");
+ console.log("KIMIA Studio fusion : catalogue, 4 raccourcis, suppression protégée, concurrence, ordre et fusion admin sûre OK");
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
