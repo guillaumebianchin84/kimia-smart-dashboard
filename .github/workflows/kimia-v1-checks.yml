@@ -20,6 +20,7 @@ on:
       - fix/kimia-cartes-pieces-natives-sans-commande-20261108
       - fix/kimia-carte-piece-aucun-clic-20261108
       - fix/kimia-routines-suppression-directe-20261108
+      - feat/kimia-studio-v2-fusion-routines-20261108
   workflow_dispatch:
 jobs:
   check:
@@ -48,6 +49,7 @@ jobs:
           node --check www/kimia-user-visibility-v15-card.js
           node --check www/kimia-routine-engine-v16.js
           node --check www/kimia-routine-editor-v16-card.js
+          node --check www/kimia-studio-v2-admin-card.js
           node tests/kimia_v1.test.cjs
           node tests/kimia_zigbee_v1.test.cjs
           node tests/kimia_safe_tile_v1.test.cjs
@@ -57,6 +59,7 @@ jobs:
           node tests/kimia_v15_settings.test.cjs
           node tests/kimia_v15_review.test.cjs
           node tests/kimia_v16_routines.test.cjs
+          node tests/kimia_studio_v2_fusion.test.cjs
           node tests/kimia_inventory_v1.test.cjs
           node tests/kimia_header_toggle_v1.test.cjs
           node tests/kimia_v161_local_preferences.test.cjs
