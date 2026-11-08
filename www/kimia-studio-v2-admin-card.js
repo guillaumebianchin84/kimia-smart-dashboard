@@ -82,6 +82,7 @@ class Studio extends HTMLElement{
   this._habits=null;this._deletedIds=new Set();
   this._homeSlots=[null,null,null,null];this._homeBaseline=null;
   this._homeLoading=false;this._needsMerge=false;this._checkedMerge=false;
+  this._addHomeOnSave=false;
   this.shadowRoot.addEventListener("click",ev=>this._click(ev));
   this.shadowRoot.addEventListener("change",ev=>this._change(ev));
   this.shadowRoot.addEventListener("input",ev=>this._input(ev));
@@ -157,10 +158,10 @@ class Studio extends HTMLElement{
    this._I(icon)+'<span><strong>'+title+'</strong><small>'+detail+'</small></span></button>';
   return '<div class="main">'+this._notification()+
    '<div class="quick-actions">'+
-   cta("new-script","mdi:gesture-tap-button","Créer un scénario",
-     "Un bouton pour faire plusieurs actions. Bonne nuit, Départ, Retour…")+
-   cta("new-automation","mdi:robot-outline","Créer une automatisation",
-     "La maison agit seule à une heure ou lors d’un événement.")+'</div>'+
+   cta("new","mdi:plus-circle-outline","Créer une routine",
+     "Choisis comment elle démarre, puis ce que fait la maison.")+
+   cta("habits","mdi:gesture-tap-button","Mes boutons d’accueil",
+     "Choisir les quatre routines accessibles d’un appui.")+'</div>'+
    '<div class="nav"><h3>Mes scénarios et automatisations <span class="chip">'+list.length+'</span></h3>'+
    '<div class="nav-links">'+
     this._B(this._I("mdi:home-automation")+" Mes habitudes","habits","small")+
@@ -209,10 +210,11 @@ class Studio extends HTMLElement{
   const p=PRESETS.find(x=>x[0]===key)||PRESETS[0];
   this._preset=key;this._editing=null;this._draft=H().create(p[1]);this._draft.alias=p[2].includes(" libre")?"":p[2];
   if(p[1]==="automation")this._draft.triggers=[H().trigger(key==="evening"?"sun":key==="energy"?"numeric_state":"time")];
-  this._selected=new Set();this._area="*";this._query="";this._step=1;this._notice="";this._draw();
+  this._selected=new Set();this._area="*";this._query="";this._step=1;
+  this._addHomeOnSave=p[1]==="script";this._notice="";this._draw();
  }
  _wizard(){
-  const labels=["Objectif","Équipements","Actions","Conditions","Validation"];
+  const labels=["Démarrage","Appareils","Actions","Si / Quand","Terminer"];
   const main=this._step===0?this._choose():this._step===1?this._equipmentStep():this._step===2?this._actionsStep():this._step===3?this._conditionsStep():this._review();
   return '<div class="main"><div class="wizard-top"><h2>'+(this._editing?"Modifier la routine":"Nouvelle routine")+'</h2>'+this._B("Fermer","home","small")+'</div>'+
    '<div class="progress">'+labels.map((_,i)=>'<i class="'+(i<=this._step?"done":"")+'"></i>').join("")+'</div>'+
@@ -224,9 +226,19 @@ class Studio extends HTMLElement{
      this._B("Continuer "+this._I("mdi:arrow-right"),"next","primary"))+'</div></div></div>';
  }
  _choose(){
-  return '<p class="help">Choisis ce que tu veux accomplir. Les modèles préparent uniquement les réglages, sans commander les appareils.</p><div class="options">'+
-   PRESETS.map(p=>'<button class="option" data-act="preset" data-value="'+p[0]+'" type="button"><span class="o-icon">'+this._I(p[4])+'</span>'+
-    '<span><b>'+e(p[2])+'</b><small>'+e(p[3])+'</small></span></button>').join("")+'</div>';
+  const card=(key,icon,title,detail)=>'<button class="option" data-act="preset" data-value="'+key+'" type="button">'+
+   '<span class="o-icon">'+this._I(icon)+'</span><span><b>'+title+'</b><small>'+detail+'</small></span></button>';
+  return '<h3>SI… comment démarre la routine ?</h3>'+
+   '<p class="help">Choisis simplement ce qui doit la lancer. Tu décideras ensuite des appareils et des actions.</p>'+
+   '<div class="options">'+
+   card("blank-script","mdi:gesture-tap-button","J’appuie sur un bouton",
+    "Un geste sur l’accueil KIMIA : Bonne nuit, Départ, Retour…")+
+   card("blank-automation","mdi:clock-outline","La maison réagit toute seule",
+    "À une heure, au soleil, ou quand un capteur change.")+'</div>'+
+   '<details style="margin-top:20px"><summary style="cursor:pointer;font-weight:800;padding:10px 0">'+
+   this._I("mdi:lightbulb-on-outline")+' Partir d’un exemple (facultatif)</summary>'+
+   '<div class="options" style="margin-top:12px">'+PRESETS.filter(p=>!p[0].startsWith("blank-")).map(p=>
+    card(p[0],p[4],e(p[2]),e(p[3]))).join("")+'</div></details>';
  }
  _equipmentStep(){
   const devices=this._devices(),listed=devices.filter(x=>(this._area==="*"||x.area===this._area)&&
@@ -298,7 +310,7 @@ class Studio extends HTMLElement{
  }
  _conditionBlock(x,i,isTrigger){
   const prefix=isTrigger?"trigger":"condition",dataAttr='data-'+prefix+'-field',types=isTrigger?
-   [["time","Heure"],["sun","Soleil"],["state","État"],["numeric_state","Seuil numérique"]]:
+   [["time","À une heure précise"],["sun","Au lever / coucher du soleil"],["state","Un appareil ou capteur change d’état"],["numeric_state","Une valeur dépasse un seuil"]]:
    [["state","État"],["numeric_state","Seuil"],["time","Heure"],["sun","Jour / nuit"]];
   const field=(name,value,key,type="text")=>'<label class="fieldlabel">'+name+'<input type="'+type+'" '+dataAttr+'="'+key+'" data-index="'+i+'" value="'+e(value??"")+'"/></label>';
   let extra="";
@@ -317,14 +329,27 @@ class Studio extends HTMLElement{
  }
  _conditionsStep(){
   const d=this._draft,auto=d.kind==="automation";
-  return '<p class="help">'+(auto?"Les déclencheurs sont reliés par OU : un seul suffit. Les conditions sont vérifiées ensuite.":"Un scénario se lance manuellement. Des conditions facultatives peuvent arrêter son exécution.")+'</p>'+
-   (auto?'<div class="section-title">'+this._I("mdi:calendar-clock")+' QUAND · Déclencheurs</div>'+
+  return (auto?'<div class="section-title">'+this._I("mdi:play-circle-outline")+
+    ' SI · Quel événement déclenche la routine ?</div>'+
+    '<p class="help">Exemples : à 7 h, au coucher du soleil, ou quand un détecteur passe à « on ». Un seul événement suffit pour démarrer.</p>'+
     d.triggers.map((x,i)=>this._conditionBlock(x,i,true)).join("")+
-    this._B(this._I("mdi:plus")+" Ajouter un déclencheur","add-trigger"):"")+
-   '<div class="section-title">'+this._I("mdi:filter-check-outline")+' SI · Conditions facultatives</div>'+
+    this._B(this._I("mdi:plus")+" Ajouter un autre événement (OU)","add-trigger"):
+    '<div class="section-title">'+this._I("mdi:gesture-tap-button")+
+    ' SI · J’appuie sur un bouton</div>'+
+    '<div class="block"><strong>Déclenchement manuel</strong>'+
+    '<p class="help">Cette routine se lance par un bouton dans KIMIA, ou par « Lancer » dans Mes routines. Aucun capteur ni horaire nécessaire.</p>'+
+    '<label style="display:flex;align-items:center;gap:10px;margin-top:14px;cursor:pointer">'+
+    '<input id="add-home-on-save" type="checkbox" style="width:20px;height:20px;min-height:0" '+
+    (this._addHomeOnSave?"checked":"")+' />'+
+    '<span><strong>Ajouter un bouton sur l’accueil KIMIA</strong><br>'+
+    '<small class="help">Utilise la première des quatre places libres. Ne remplace jamais un bouton existant.</small></span></label></div>')+
+   '<details '+(d.conditions.length?'open':'')+' style="margin-top:20px">'+
+   '<summary class="section-title" style="cursor:pointer">'+this._I("mdi:filter-check-outline")+
+   ' SEULEMENT SI · Ajouter une condition (facultatif)</summary>'+
+   '<p class="help">Exemple : seulement si quelqu’un est à la maison. Si la condition est fausse, les actions ne se lancent pas.</p>'+
    d.conditions.map((x,i)=>this._conditionBlock(x,i,false)).join("")+
    this._B(this._I("mdi:plus")+" Ajouter une condition","add-condition")+
-   '<p class="help">Pour un groupe OU / NON, plusieurs branches ou un template, utilise l’atelier avancé.</p>';
+   '<p class="help">Pour les conditions ET / OU, les boucles ou des boutons physiques Zigbee, utilise l’atelier avancé ou l’éditeur Home Assistant.</p></details>';
  }
  _review(){
   const d=this._draft,names=new Map(this._devices().map(x=>[x.id,x.name]));
@@ -332,7 +357,8 @@ class Studio extends HTMLElement{
    '<div class="summary"><div class="summary-item">'+this._I(ICONS[d.kind])+
    '<div><strong>'+(d.kind==="script"?"Scénario":"Automatisation")+'</strong><div class="sub">'+e(d.description||"Sans description")+'</div></div></div>'+
    '<div class="summary-item">'+this._I("mdi:calendar-check")+
-   '<div><strong>'+d.triggers.length+' déclencheur(s) · '+d.conditions.length+' condition(s)</strong></div></div>'+
+   '<div><strong>'+(d.kind==="script"?"Démarrage : appui sur un bouton"+(this._addHomeOnSave?" · Ajout à l’accueil demandé":" · Sans bouton sur l’accueil"):
+    d.triggers.length+" événement(s) de déclenchement")+' · '+d.conditions.length+' condition(s)</strong></div></div>'+
    d.actions.map((x,i)=>'<div class="summary-item">'+this._I("mdi:check")+
     '<div><strong>'+(i+1)+'. '+e(x.type==="call"?(names.get(x.entity)||x.entity)+" → "+x.operation:
      x.type==="delay"?"Attendre "+x.seconds+" secondes":"Attendre un capteur")+'</strong></div></div>').join("")+
@@ -567,6 +593,7 @@ class Studio extends HTMLElement{
  _change(ev){
   const x=ev.target,d=x.dataset;
   if(x.id==="studio-filter"){this._filter=x.value;this._draw();return;}
+  if(x.id==="add-home-on-save"){this._addHomeOnSave=x.checked;return;}
   if(x.dataset.slot!==undefined){
    const slot=Number(x.dataset.slot);
    if(slot>=0&&slot<4)this._homeSlots[slot]=x.value||null;
@@ -677,6 +704,7 @@ class Studio extends HTMLElement{
    this._editing={kind:record.kind,id:record.configId,baseline:clone(raw)};
    this._draft=draft;this._selected=new Set(targets);this._preset="blank-script";
    this._step=1;this._area="*";this._query="";this._page="wizard";
+   this._addHomeOnSave=false;
    this._notice="Routine chargée sans modification. Tu peux la personnaliser avant d'enregistrer.";
   }catch(err){
    this._page="advanced";
@@ -727,6 +755,24 @@ class Studio extends HTMLElement{
   catch(err){this._msg("Commande impossible : "+(err?.message||err),true);}
   finally{this._busy=false;this._draw();}
  }
+ async _addHomeShortcutForScript(scriptId){
+  const h=this._hass,entityId="script."+scriptId;
+  if(!/^script\.(?:ks_|kimia_)[a-z0-9_]+$/.test(entityId))
+   throw Error("Identifiant de scénario inattendu.");
+  const before=await h.callWS({type:"lovelace/config",url_path:"kimia-next"});
+  const slots=this._homeSlotsFromConfig(before);
+  if(slots.includes(entityId))return "Déjà présent sur l’accueil.";
+  const free=slots.indexOf(null);
+  if(free<0)return "Les 4 places d’accueil sont occupées : choisis un emplacement dans Mes habitudes.";
+  slots[free]=entityId;
+  const latest=await h.callWS({type:"lovelace/config",url_path:"kimia-next"});
+  if(canon(latest)!==canon(before))
+   throw Error("L’accueil a changé depuis la lecture. Ajoute le bouton dans Mes habitudes.");
+  const next=clone(before);
+  this._applyHomeSlots(next,slots);
+  await h.callWS({type:"lovelace/config/save",url_path:"kimia-next",config:next});
+  return "Bouton ajouté à l’accueil (position "+(free+1)+").";
+ }
  async _save(){
   if(!this._admin()||this._busy||!this._draft)return;
   const d=clone(this._draft);
@@ -747,8 +793,14 @@ class Studio extends HTMLElement{
     if(exists)throw Error("Identifiant existant : aucune modification effectuée.");
    }
    await this._hass.callApi("POST",url,payload);
-   this._page="library";this._tab=d.kind;this._editing=null;
-   this._notice="« "+d.alias+" » "+(editing?"mise à jour":"créée")+" dans Home Assistant sans exécution.";
+   let homeNotice="";
+   if(d.kind==="script"&&this._addHomeOnSave){
+    try{homeNotice=await this._addHomeShortcutForScript(id);}
+    catch(homeError){homeNotice="Scénario enregistré, mais bouton Accueil non ajouté : "+(homeError?.message||homeError);}
+   }
+   this._page="library";this._tab=d.kind;this._editing=null;this._addHomeOnSave=false;
+   this._notice="« "+d.alias+" » "+(editing?"mise à jour":"créée")+" dans Home Assistant sans exécution."+
+    (homeNotice?"\n"+homeNotice:"");
    this._error=false;
   }catch(err){this._notice="Enregistrement impossible : "+(err?.message||err);this._error=true;}
   finally{this._busy=false;this._draw();}
