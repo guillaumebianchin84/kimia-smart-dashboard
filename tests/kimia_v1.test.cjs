@@ -108,11 +108,8 @@ const hass={
 };
 const cards=v=>(v.sections||[]).flatMap(s=>s.cards||[]);
 const view=path=>config.views.find(v=>v.path===path);
-const roomSection=(path,area)=>view(path).sections.find(s=>s.cards?.some(c=>
- path==="securite"
-   ?c.type==="heading"&&c.heading_style==="subtitle"&&
-    c.heading===rooms.find(r=>r.area_id===area)?.name
-   :c.type==="area"&&c.area===area));
+const roomSection=(path,area)=>view(path).sections.find(s=>
+ s.cards?.some(c=>c.type==="area"&&c.area===area));
 async function main(){
  const first=await window.KimiaSmartCore.sync(hass);
  assert(first.added>=9);
@@ -178,19 +175,27 @@ async function main(){
  assert(cards(view("eau")).some(c=>c.type==="custom:navbar-card"));
  assert(cards(view("prises")).some(c=>c.routes?.some(r=>r.url==="/kimia-next/eau")));
 
- // Sécurité : uniquement un titre natif et les tuiles de capteurs.
+ // Toutes les pages : même carte Area native et mêmes proportions, sans
+ // aucune commande générale. La rubrique Sécurité garde ainsi son esthétique.
  const security=roomSection("securite","salon");
- assert(security,"Section Salon créée avec son titre Sécurité");
- assert.equal(security.cards.filter(c=>c.type==="area").length,0,
-  "Aucune carte Area dans Sécurité (même sans features)");
- const securityTitle=security.cards[0];
- assert.equal(securityTitle.type,"heading");
- assert.equal(securityTitle.heading,"Salon");
- assert.equal(securityTitle.icon,undefined,"Un simple texte sans pictogramme");
- assert.equal(securityTitle.grid_options.columns,"full");
+ assert(security,"Salon retrouve sa vraie carte Area en Sécurité");
+ assert.equal(security.cards[0].type,"area");
+ assert.equal(security.cards[0].area,"salon");
+ assert.equal(security.cards.filter(c=>c.type==="heading").length,0,
+  "Pas de titre texte à la place du cadre Salon");
  assert.equal(security.cards.find(c=>
   c.entity==="binary_sensor.presence_salon").grid_options.columns,12);
- assert.equal(roomSection("climatisation","salon").cards[0].features.length,0);
+ for(const page of ["pieces","lumieres","volets","climatisation","prises","musique","securite","eau"]){
+  const room=roomSection(page,"salon");
+  if(!room)continue;
+  const area=room.cards[0];
+  assert.equal(area.type,"area","Cadre Area natif sur "+page);
+  assert.equal(area.display_type,"compact","Style compact conservé sur "+page);
+  assert.equal(area.features.length,0,"Aucune commande de pièce sur "+page);
+  assert.equal(area.grid_options.columns,12,"Largeur native 12 sur "+page);
+  assert.equal(area.grid_options.rows,2,"Hauteur native de l'ancien cadre conservée sur "+page);
+  assert.equal(area.tap_action.action,"navigate","Navigation du cadre conservée sur "+page);
+ }
  for(const page of ["pieces","lumieres","volets","climatisation","prises","musique","securite","eau"]){
   for(const card of cards(view(page)).filter(c=>c.type==="custom:kimia-safe-tile-v1-card")){
    assert.equal(card.grid_options.columns,12,"Largeur 12 pour "+page+" / "+card.entity);
@@ -198,14 +203,27 @@ async function main(){
   }
  }
 
- // Migration forcée d'une ancienne carte Area comportant le bouton de la prise.
+ // Migration des formats de cartes Area précédents :
+ // 1) le titre texte de Sécurité (photo 2), 2) la carte avec commandes (photo 1).
  const securityCards=roomSection("securite","salon").cards;
+ securityCards[0]={type:"heading",heading:"Salon",
+   heading_style:"subtitle",grid_options:{columns:"full",rows:1}};
+ const fromHeading=await window.KimiaSmartCore.sync(hass);
+ assert(fromHeading.modified>=1,"Ancien titre Sécurité restauré en carte Area");
+ assert.equal(roomSection("securite","salon").cards[0].type,"area");
+ assert.equal(roomSection("securite","salon").cards[0].features.length,0);
  securityCards[0]=clone(existingArea);
  const noControl=await window.KimiaSmartCore.sync(hass);
- assert(noControl.modified>=1,"Ancienne carte Area remplacée dans Sécurité");
- assert.equal(roomSection("securite","salon").cards[0].type,"heading");
- assert.equal(cards(view("securite")).filter(c=>c.type==="area").length,0,
-  "Aucun contrôle général de prise résiduel en Sécurité");
+ assert(noControl.modified>=1,"Ancien bouton de pièce retiré dans Sécurité");
+ assert.equal(roomSection("securite","salon").cards[0].type,"area");
+ assert.equal(roomSection("securite","salon").cards[0].features.length,0);
+ assert.equal(roomSection("securite","salon").cards[0].grid_options.rows,2);
+ 
+ const prisesArea=roomSection("prises","salon").cards;
+ prisesArea[0]=clone(existingArea);
+ const noControlElsewhere=await window.KimiaSmartCore.sync(hass);
+ assert(noControlElsewhere.modified>=1,"Commande générale retirée aussi dans Prises");
+ assert.equal(roomSection("prises","salon").cards[0].features.length,0);
 
  // Migration d'une ancienne carte 6 colonnes gérée par KIMIA.
  const musicCards=roomSection("musique","salon").cards;
