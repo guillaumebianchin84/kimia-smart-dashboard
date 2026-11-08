@@ -22,6 +22,7 @@ on:
       - fix/kimia-routines-suppression-directe-20261108
       - feat/kimia-studio-v2-fusion-routines-20261108
       - feat/kimia-routines-simple-if-button-20261108
+      - feat/kimia-routines-unified-editor-20261108
   workflow_dispatch:
 jobs:
   check:
