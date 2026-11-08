@@ -62,10 +62,10 @@ async function main(){
  assert.deepEqual(copy(card._homeSlotsFromConfig(config)),
   ids.slice(0,4),"Récupération des 4 anciens raccourcis");
  assert.match(card._library(),/Créer une routine/);
- assert.match(card._library(),/Mes boutons d’accueil/);
- assert.match(card._library(),/Mes habitudes/);
- assert.match(card._library(),/Atelier avancé/);
- assert.match(card._library(),/Supprimer/);
+ assert.match(card._library(),/Organiser l’accueil/);
+ assert.match(card._library(),/Mode expert/);
+ assert.doesNotMatch(card._library(),/Atelier avancé/);
+ assert.match(card._library(),/Sur l’accueil/);
  await card._loadHomeSlots();
  assert.equal(card._homeLoading,false);
  assert.deepEqual(copy(card._homeSlots),ids.slice(0,4));
