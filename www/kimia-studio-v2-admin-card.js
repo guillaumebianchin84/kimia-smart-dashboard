@@ -86,7 +86,7 @@ class Studio extends HTMLElement{
   this._busy=false;this._notice="";this._error=false;
   this._deletedIds=new Set();
   this._homeSlots=[null,null,null,null];this._homeBaseline=null;
-  this._homeLoading=false;this._needsMerge=false;this._checkedMerge=false;
+  this._homeLoading=false;
   this._addHomeOnSave=false;this._icon="mdi:home-outline";this._color="purple";this._homeLooks={};this._homeReady=false;this._appearanceOpen=false;
   this.shadowRoot.addEventListener("click",ev=>this._click(ev));
   this.shadowRoot.addEventListener("change",ev=>this._change(ev));
@@ -102,7 +102,6 @@ class Studio extends HTMLElement{
   this._hass=h;
   if(h?.user?.is_admin&&!this._loaded){this._loaded=true;void this._load();}
   if(h?.user?.is_admin&&!this._homeReady){this._homeReady=true;this._homeLoading=true;void this._loadHomeSlots();}
-  if(h?.user?.is_admin&&!this._checkedMerge){this._checkedMerge=true;void this._inspectMerge();}
   // Le frontend HA met à jour hass très souvent : ne pas interrompre une
   // recherche en cours en recréant tous les boutons/champs à chaque capteur.
   const nextDigest=this._page==="library"?
@@ -158,8 +157,7 @@ class Studio extends HTMLElement{
    '<p class="help" style="margin:6px 0 0">Crée une routine et retrouve-la ici, avec ses boutons d’accueil.</p></div>'+
    '<div class="nav-links">'+this._B(this._I("mdi:plus")+' Créer une routine',"new","primary")+
    this._B(this._I("mdi:home-edit-outline")+' Organiser l’accueil',"habits","small")+
-   this._B(this._I("mdi:open-in-new")+' Mode expert',"mode-expert","small")+
-   (this._needsMerge?this._B("Réunir les deux pages","merge-admin","small"):"")+'</div></div>'+
+   this._B(this._I("mdi:open-in-new")+' Mode expert',"mode-expert","small")+'</div></div>'+
    '<div class="tools"><input id="studio-search" type="text" placeholder="Rechercher une routine…" aria-label="Rechercher une routine" value="'+e(this._q)+'"/></div>'+
    '<div class="routines-list" id="studio-results">'+this._results()+'</div></div>';
  }
@@ -296,74 +294,6 @@ class Studio extends HTMLElement{
    '<details '+(d.conditions.length?"open":"")+' style="margin-top:18px"><summary><strong>Seulement si…</strong> <span class="section-badge">Conditions facultatives</span></summary>'+
    '<div style="margin-top:12px">'+d.conditions.map((x,i)=>this._conditionBlock(x,i,false)).join("")+
    this._B(this._I("mdi:plus")+' Ajouter une condition',"add-condition","small")+'</div></details>';
- }
- _adminMergePlan(config){
-  if(!Array.isArray(config?.views))throw Error("Dashboard administrateur introuvable.");
-  const views=config.views;
-  const old=views.find(v=>v.path==="scenarios");
-  if(!old)throw Error("Vue Scénarios d'origine introuvable. Fusion annulée.");
-  const duplicate=views.find(v=>v.path==="studio-v2");
-  const nestedCards=view=>(view?.sections||[]).flatMap(section=>
-   (section?.cards||[]).flatMap(card=>
-    [card,...(Array.isArray(card?.cards)?card.cards:[])]));
-  const oldCards=nestedCards(old),studioCards=nestedCards(duplicate);
-  const studioType="custom:kimia-studio-v2-admin-card";
-  const legacy=new Set([
-   "heading","markdown","shortcut","custom:kimia-routine-editor-v16-card",
-   "custom:kimia-scenarios-v1-card","custom:kimia-studio-v2-admin-card"
-  ]);
-  const studioAllowed=new Set([
-   "heading","markdown","custom:kimia-studio-v2-admin-card",
-   "custom:navbar-card","custom:button-card"
-  ]);
-  if(oldCards.some(card=>!legacy.has(card.type)))
-   throw Error("Scénarios contient des cartes personnalisées. Fusion manuelle nécessaire.");
-  if(duplicate&&studioCards.some(card=>!studioAllowed.has(card.type)))
-   throw Error("Studio V2 contient des cartes personnalisées. Fusion automatique refusée.");
-  if(duplicate&&!studioCards.some(card=>card.type===studioType))
-   throw Error("Ancienne vue Studio V2 inattendue : fusion manuelle nécessaire.");
-  const hasOld=oldCards.some(card=>card.type!=="heading"&&card.type!=="markdown"&&card.type!==studioType);
-  if(!hasOld&&!duplicate&&oldCards.filter(card=>card.type===studioType).length===1)
-   return null;
-  const next=clone(config),dest=next.views.find(v=>v.path==="scenarios");
-  dest.title="Mes routines";dest.type="sections";dest.max_columns=2;
-  dest.sections=[{type:"grid",column_span:2,
-   cards:[{type:studioType,grid_options:{columns:"full",rows:"auto"}}]}];
-  if(duplicate)next.views=next.views.filter(v=>v.path!=="studio-v2");
-  return next;
- }
- async _inspectMerge(){
-  const h=this._hass;
-  try{
-   const config=await h.callWS({type:"lovelace/config",url_path:"kimia-admin-next"});
-   if(h!==this._hass)return;
-   this._needsMerge=!!this._adminMergePlan(config);
-   if(this._page==="library")this._draw();
-  }catch{
-   this._needsMerge=false;
-  }
- }
- async _mergeAdminPages(){
-  if(!this._admin()||this._busy)return;
-  const h=this._hass;this._busy=true;
-  try{
-   const before=await h.callWS({type:"lovelace/config",url_path:"kimia-admin-next"});
-   const next=this._adminMergePlan(before);
-   if(!next){this._needsMerge=false;this._notice="Les pages sont déjà réunies.";return;}
-   if(!window.confirm("Remplacer l'ancien atelier Scénarios par « Mes routines » "+
-    "et retirer la page Studio V2 en double ? Sauvegarde le dashboard avant de confirmer."))return;
-   const latest=await h.callWS({type:"lovelace/config",url_path:"kimia-admin-next"});
-   if(canon(before)!==canon(latest))
-    throw Error("Le dashboard administrateur a changé. Recharge avant de fusionner.");
-   await h.callWS({type:"lovelace/config/save",
-    url_path:"kimia-admin-next",config:next});
-   this._needsMerge=false;this._notice="Les deux pages sont réunies.";
-   this._error=false;
-   window.location?.assign?.("/kimia-admin-next/scenarios");
-  }catch(err){
-   this._notice="Fusion impossible : "+(err?.message||err);
-   this._error=true;
-  }finally{this._busy=false;this._draw();}
  }
  _homeSection(config){
   const view=config?.views?.find(v=>v.path==="accueil");
@@ -549,7 +479,6 @@ class Studio extends HTMLElement{
   else if(a==="edit")this._edit(b.dataset.id);
   else if(a==="delete")void this._deleteRoutine(b.dataset.id);
   else if(a==="save-home")void this._saveHomeSlots();
-  else if(a==="merge-admin")void this._mergeAdminPages();
   else if(a==="swap-home"){
    const index=Number(b.dataset.index),dir=Number(b.dataset.direction),dest=index+dir;
    if(index>=0&&index<4&&dest>=0&&dest<4){
