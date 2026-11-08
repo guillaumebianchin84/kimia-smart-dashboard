@@ -340,16 +340,16 @@
   const securityRoomTitle=area=>({
     type:"heading",
     heading:area.name,
-    icon:"mdi:shield-home-outline",
     heading_style:"subtitle",
     grid_options:{columns:"full",rows:1}
   });
   const isSecurityRoomTitle=card=>
     card?.type==="heading" &&
-    card.icon==="mdi:shield-home-outline" &&
+    !Object.prototype.hasOwnProperty.call(card,"icon") &&
     card.heading_style==="subtitle" &&
     card.grid_options?.columns==="full" &&
     card.grid_options?.rows===1 &&
+    Object.keys(card).length===4 &&
     typeof card.heading==="string";
   const roomCard = (area,path="") => ({
     type: "area",
