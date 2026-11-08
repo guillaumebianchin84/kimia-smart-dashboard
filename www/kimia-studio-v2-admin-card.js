@@ -30,13 +30,15 @@ const CSS=[
 ".btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--divider-color,#d7e0e5);background:var(--secondary-background-color,#f5f7fa);color:var(--primary-text-color);font-weight:750;font-size:12px;padding:10px 12px;border-radius:11px;min-height:40px;text-decoration:none}.btn ha-icon{--mdc-icon-size:18px}.btn.primary{color:#fff;background:linear-gradient(110deg,#07a492,#0b8095);border-color:#0a928c}.btn.ghost{color:#fff;background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.24)}.btn.small{font-size:11px;min-height:33px;padding:7px 9px}.btn.danger{color:var(--error-color,#c03939)}.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--primary-color);outline-offset:2px}",
 ".nav{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:17px}.tabs{display:flex;gap:4px;background:var(--secondary-background-color,#f2f6f8);border-radius:12px;padding:5px}.tab{border:0;background:transparent;font-weight:800;color:var(--secondary-text-color);border-radius:9px;padding:9px 12px}.tab[aria-selected=true]{background:var(--card-background-color,#fff);color:var(--primary-text-color);box-shadow:0 2px 8px rgba(0,0,0,.08)}",
 ".stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:17px}.stat{border:1px solid var(--divider-color,#dfe6e9);padding:13px;border-radius:14px;display:flex;align-items:center;gap:10px}.stat ha-icon{color:var(--primary-color,#13998d);--mdc-icon-size:26px}.stat strong{font-size:24px;display:block}.stat small{font-size:11px;color:var(--secondary-text-color)}",
+".quick-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:21px}.quick{display:flex;align-items:center;gap:15px;width:100%;min-height:100px;text-align:left;padding:17px;border:1px solid var(--divider-color);border-radius:16px;background:var(--card-background-color);color:var(--primary-text-color);cursor:pointer}.quick:hover,.quick:focus-visible{border-color:var(--primary-color)}.quick ha-icon{--mdc-icon-size:27px;color:var(--primary-color)}.quick strong{display:block;font-size:15px}.quick small{display:block;color:var(--secondary-text-color);line-height:1.5;margin-top:5px}.section-line{border-top:1px solid var(--divider-color);margin:16px 0 18px}.nav-links{display:flex;flex-wrap:wrap;gap:8px}.routine .btn.danger{flex:0 1 auto}.habit-host{margin-top:12px}",
+
 ".tools{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px}.tools input{flex:1;min-width:170px}.tools select{max-width:155px}.field,input[type=text],input[type=time],input[type=number],select,textarea{background:var(--card-background-color,#fff);color:var(--primary-text-color);border:1px solid var(--divider-color,#d6dfe5);padding:10px 11px;min-height:41px;border-radius:10px;width:100%}.tools .btn{flex:none}",
 ".cards,.options,.devices,.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.routine,.option,.block,.choice{border:1px solid var(--divider-color,#dce4e8);background:var(--card-background-color,#fff);border-radius:15px;padding:14px;min-width:0}.routine{display:flex;flex-direction:column;gap:12px}.rtop{display:flex;gap:11px;align-items:center}.r-icon,.o-icon{display:grid;place-items:center;width:46px;height:46px;border-radius:13px;flex:none;background:color-mix(in srgb,var(--primary-color,#149b8b) 12%,var(--card-background-color))}.r-icon ha-icon,.o-icon ha-icon{color:var(--primary-color,#0d9d8e);--mdc-icon-size:25px}.rname{font-weight:850;line-height:1.3;font-size:15px;overflow-wrap:anywhere}.sub,.help{font-size:12px;line-height:1.5;color:var(--secondary-text-color)}.actions{display:flex;gap:7px;flex-wrap:wrap}.actions .btn{flex:1}",
 ".chip{font-size:11px;font-weight:700;padding:5px 9px;border:1px solid var(--divider-color,#d9e2e6);border-radius:999px;display:inline-flex;gap:5px;align-items:center}.dot{width:7px;height:7px;border-radius:50%;background:#17a473}.dot.off{background:#d8a843}.empty{border:1px dashed var(--divider-color,#cbd7df);border-radius:15px;padding:32px;text-align:center;grid-column:1/-1;color:var(--secondary-text-color)}.empty b{display:block;margin-bottom:7px;color:var(--primary-text-color)}",
 ".wizard-top{display:flex;align-items:center;justify-content:space-between;gap:9px}.wizard-top h2{margin:0;font-size:22px;letter-spacing:-.4px}.progress{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:17px 0 13px}.progress i{height:5px;background:var(--divider-color,#dfe7ed);border-radius:8px}.progress i.done{background:#0d9b91}.step-label{font-size:11px;color:var(--secondary-text-color);font-weight:900;letter-spacing:1.1px;margin-bottom:9px}.option{display:flex;align-items:center;text-align:left;gap:12px;min-height:106px}.option:hover,.choice:hover{border-color:var(--primary-color,#11a99c)}.option b,.choice b{display:block;font-size:14px;color:var(--primary-text-color)}.option small,.choice small{display:block;font-size:11px;color:var(--secondary-text-color);line-height:1.4;margin-top:4px}",
 "label.fieldlabel{display:flex;flex-direction:column;gap:6px;color:var(--secondary-text-color);font-size:12px;font-weight:750;min-width:0}label.fieldlabel input,label.fieldlabel select{font-size:13px;color:var(--primary-text-color)}.section-title{display:flex;align-items:center;gap:7px;font-weight:850;margin:19px 0 12px}.section-title ha-icon{color:var(--primary-color)}.device-tools{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap}.device-tools select{max-width:250px}.device-tools input{flex:1;min-width:170px}.devices{max-height:335px;overflow:auto;padding:3px}.choice{display:flex;align-items:center;gap:9px;min-height:64px;cursor:pointer;padding:9px}.choice.selected{background:color-mix(in srgb,var(--primary-color,#11998e) 7%,var(--card-background-color));border-color:var(--primary-color)}.choice input{width:18px;height:18px;accent-color:var(--primary-color)}.choice ha-icon{color:var(--primary-color);flex:none}",
 ".block{margin:11px 0}.blocktop{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}.blocktop strong{font-size:14px}.blocktop .actions .btn{flex:initial}.footer{border-top:1px solid var(--divider-color,#dce5e9);margin-top:19px;padding-top:16px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.note{border-left:3px solid var(--primary-color,#0da699);padding:11px 13px;background:var(--secondary-background-color,#f2f8f8);border-radius:4px 11px 11px 4px;font-size:12px;line-height:1.5;margin:14px 0}.feedback{border:1px solid var(--primary-color,#169c91);border-radius:11px;padding:11px 13px;margin:0 0 13px;font-size:13px;font-weight:650;white-space:pre-wrap}.feedback.error{border-color:var(--error-color,#be3535);color:var(--error-color,#be3535)}.summary{display:grid;gap:9px}.summary-item{border:1px solid var(--divider-color,#dce5e9);border-radius:11px;padding:12px;display:flex;align-items:center;gap:10px}.summary-item ha-icon{color:var(--primary-color)}",
-"@media(max-width:750px){.hero{padding:22px}.main{padding:14px}.cards,.options,.devices,.fields{grid-template-columns:1fr}.stats{gap:5px}.stat{padding:10px;flex-direction:column;text-align:center;gap:5px}.stat strong{font-size:21px}.stat small{font-size:10px}.option{min-height:90px}.hero h1{font-size:27px}.btn{padding:9px}.tab{padding:8px}}"
+"@media(max-width:750px){.hero{padding:22px}.main{padding:14px}.cards,.options,.devices,.fields,.quick-actions{grid-template-columns:1fr}.stats{gap:5px}.stat{padding:10px;flex-direction:column;text-align:center;gap:5px}.stat strong{font-size:21px}.stat small{font-size:10px}.option{min-height:90px}.hero h1{font-size:27px}.btn{padding:9px}.tab{padding:8px}}"
 ].join("\n");
 const areaFor=(reg,devices)=>reg?.area_id||devices?.find(d=>d.id===reg?.device_id)?.area_id||"";
 function deviceCatalog(states,entities,devices,areas,operations){
@@ -54,6 +56,15 @@ function routineCatalog(states){
    configId:script?idPart:String(s?.attributes?.id||idPart)};
  }).sort((a,b)=>a.name.localeCompare(b.name,"fr"));
 }
+const protectedRoutine=r=>r?.kind==="script" &&
+ (/recherche[_-]?internet|internet[_-]?search|kimia[_-]?maintenance/i.test(r.configId||"")||
+ /^KIMIA\s*[-–]\s*Recherche Internet$/i.test(r.name||""));
+const HABIT_HELPERS=[
+ "input_text.kimia_cible_au_lit","input_text.kimia_cible_depart",
+ "input_text.kimia_cible_retour","input_text.kimia_cible_reveil",
+ "input_text.kimia_cible_ambiance_detente","input_text.kimia_cible_ambiance_soiree",
+ "input_text.kimia_cible_ambiance_cinema"
+];
 const missing=e=>e?.status===404||e?.status_code===404||/404|Not Found/i.test(String(e?.message||e));
 const defaultOp=(dom,preset,ops)=>{
  const variants=ops[dom]||[];
@@ -68,6 +79,7 @@ class Studio extends HTMLElement{
   this._step=0;this._preset="blank-script";this._draft=null;this._editing=null;this._selected=new Set();
   this._reg={areas:[],entities:[],devices:[]};this._loaded=false;this._area="*";this._query="";
   this._busy=false;this._notice="";this._error=false;this._advanced=null;
+  this._habits=null;this._deletedIds=new Set();
   this.shadowRoot.addEventListener("click",ev=>this._click(ev));
   this.shadowRoot.addEventListener("change",ev=>this._change(ev));
   this.shadowRoot.addEventListener("input",ev=>this._input(ev));
@@ -82,6 +94,7 @@ class Studio extends HTMLElement{
   this._hass=h;
   if(h?.user?.is_admin&&!this._loaded){this._loaded=true;void this._load();}
   if(this._advanced)this._advanced.hass=h;
+  if(this._habits)this._habits.hass=h;
   // Le frontend HA met à jour hass très souvent : ne pas interrompre une
   // recherche en cours en recréant tous les boutons/champs à chaque capteur.
   const nextDigest=this._page==="library"?
@@ -104,7 +117,13 @@ class Studio extends HTMLElement{
    if(this._page==="wizard")this._draw();
   }catch(err){this._msg("Chargement des pièces partiellement indisponible : "+(err?.message||err),true);}
  }
- _all(){return routineCatalog(this._hass?.states);}
+ _all(){
+  this._deletedIds??=new Set();
+  for(const id of this._deletedIds){
+   if(!this._hass?.states?.[id])this._deletedIds.delete(id);
+  }
+  return routineCatalog(this._hass?.states).filter(r=>!this._deletedIds.has(r.id));
+ }
  _devices(){return deviceCatalog(this._hass?.states,this._reg.entities,this._reg.devices,this._reg.areas,H()?.OPERATIONS||{});}
  _msg(text,err=false){this._notice=text;this._error=err;this._draw();}
  _notification(){return this._notice?'<div role="status" class="feedback'+(this._error?' error':'')+'">'+e(this._notice)+'</div>':"";}
@@ -113,48 +132,74 @@ class Studio extends HTMLElement{
   const content=!this._hass?'<div class="main">Chargement…</div>':
    denied?'<div class="main"><div class="empty"><b>Réservé à l’administrateur</b>Tu dois utiliser un compte Home Assistant administrateur.</div></div>':
    noEngine?'<div class="main"><div class="feedback error">Charge la ressource kimia-routine-engine-v16.js avant Studio V2.</div></div>':
-   this._page==="wizard"?this._wizard():this._page==="advanced"?this._advancedPage():this._library();
+   this._page==="wizard"?this._wizard():this._page==="advanced"?this._advancedPage():
+   this._page==="habits"?this._habitsPage():this._library();
   this.shadowRoot.innerHTML='<style>'+CSS+'</style><ha-card>'+this._header()+content+'</ha-card>';
   if(this._page==="advanced")this._mountAdvanced();
+  else this._advanced=null;
+  if(this._page==="habits")this._mountHabits();
+  else this._habits=null;
  }
  _header(){
-  return '<div class="hero"><div class="hero-top"><span class="brand">'+this._I("mdi:creation")+' KIMIA SMART · ADMIN</span>'+
-   (this._admin()?this._B(this._I(this._page==="library"?"mdi:plus":"mdi:arrow-left")+(this._page==="library"?" Nouvelle routine":" Mes routines"),this._page==="library"?"new":"home","ghost"):"")+'</div>'+
-   '<h1>KIMIA Studio <span style="color:#96e5d5;font-weight:400">V2</span></h1><p>Créer, programmer et piloter toute la maison. La puissance Home Assistant, avec une interface pensée pour les humains.</p></div>';
+  return '<div class="hero"><div class="hero-top"><span class="brand">'+this._I("mdi:creation")+
+   ' KIMIA SMART · MA MAISON</span>'+
+   (this._admin()&&this._page!=="library"
+     ?this._B(this._I("mdi:arrow-left")+" Mes routines","home","ghost"):"")+
+   '</div><h1>Mes routines</h1><p>Des gestes simples pour automatiser la maison. Le reste, Home Assistant sait le faire.</p></div>';
  }
  _library(){
-  const list=this._all(),script=list.filter(x=>x.kind==="script").length,auto=list.length-script;
-  const tabs=[["all","Toutes"],["script","Scénarios"],["automation","Automatisations"]];
+  const list=this._all();
+  const tabs=[["all","Tout voir"],["script","Scénarios"],["automation","Automatisations"]];
+  const cta=(act,icon,title,detail)=>'<button type="button" class="quick" data-act="'+act+'">'+
+   this._I(icon)+'<span><strong>'+title+'</strong><small>'+detail+'</small></span></button>';
   return '<div class="main">'+this._notification()+
-   '<div class="nav"><div class="tabs" role="tablist">'+tabs.map(([id,label])=>
-    '<button class="tab" role="tab" type="button" aria-selected="'+(this._tab===id)+'" data-act="tab" data-value="'+id+'">'+label+'</button>').join("")+
-   '</div>'+this._B(this._I("mdi:tune-vertical")+" Atelier avancé","advanced")+'</div>'+
-   '<div class="stats">'+[[list.length,"Routines","mdi:playlist-play"],[script,"Scénarios","mdi:play-box-multiple-outline"],[auto,"Automatisations","mdi:robot-outline"]].map(([n,name,icon])=>
-   '<div class="stat">'+this._I(icon)+'<div><strong>'+n+'</strong><small>'+name+'</small></div></div>').join("")+'</div>'+
-   '<div class="tools"><input id="studio-search" type="text" aria-label="Rechercher une routine" placeholder="Rechercher une routine…" value="'+e(this._q)+'"/>'+
-   '<select id="studio-filter" aria-label="Filtrer l’état"><option value="all">Tous les états</option><option value="on"'+(this._filter==="on"?" selected":"")+'>Actives</option><option value="off"'+(this._filter==="off"?" selected":"")+'>Désactivées</option></select>'+
-   this._B(this._I("mdi:refresh")+" Actualiser","refresh")+'</div>'+
+   '<div class="quick-actions">'+
+   cta("new-script","mdi:gesture-tap-button","Créer un scénario",
+     "Un bouton pour faire plusieurs actions. Bonne nuit, Départ, Retour…")+
+   cta("new-automation","mdi:robot-outline","Créer une automatisation",
+     "La maison agit seule à une heure ou lors d’un événement.")+'</div>'+
+   '<div class="nav"><h3>Mes scénarios et automatisations <span class="chip">'+list.length+'</span></h3>'+
+   '<div class="nav-links">'+
+    this._B(this._I("mdi:home-automation")+" Mes habitudes","habits","small")+
+    this._B(this._I("mdi:tune-vertical")+" Atelier avancé","advanced","small")+
+   '</div></div>'+
+   '<div class="tabs" role="tablist">'+tabs.map(([id,label])=>
+    '<button class="tab" role="tab" type="button" aria-selected="'+(this._tab===id)+
+    '" data-act="tab" data-value="'+id+'">'+label+'</button>').join("")+'</div>'+
+   '<div class="tools" style="margin-top:14px"><input id="studio-search" type="text" aria-label="Rechercher une routine" placeholder="Rechercher une routine…" value="'+e(this._q)+'"/>'+
+   '<select id="studio-filter" aria-label="Filtrer l’état"><option value="all">Tous les états</option>'+
+   '<option value="on"'+(this._filter==="on"?" selected":"")+'>Actives</option>'+
+   '<option value="off"'+(this._filter==="off"?" selected":"")+'>Désactivées</option></select>'+
+   this._B(this._I("mdi:refresh")+" Actualiser","refresh","small")+'</div>'+
    '<div class="cards" id="studio-results">'+this._results()+'</div>'+
-   '<p class="help" style="margin-top:17px">Les routines existantes de Home Assistant sont conservées. Les créations KIMIA ne suppriment ni les scripts ni les automatisations actuels.</p></div>';
+   '<p class="help" style="margin-top:17px">Les routines existantes dans Home Assistant sont conservées. Les routines techniques internes ne peuvent pas être supprimées depuis Studio.</p></div>';
  }
- _results(){
+  _results(){
   const query=this._q.trim().toLowerCase();
   const items=this._all().filter(r=>(this._tab==="all"||r.kind===this._tab)&&
    (this._filter==="all"||r.kind==="script"||r.state===this._filter)&&
    (!query||r.name.toLowerCase().includes(query)||r.id.includes(query)));
-  if(!items.length)return '<div class="empty">'+this._I("mdi:playlist-remove")+'<b>Aucune routine trouvée</b>Crée une routine ou modifie les filtres.</div>';
+  if(!items.length)return '<div class="empty">'+this._I("mdi:playlist-remove")+
+   '<b>Aucune routine trouvée</b>Crée une routine ou modifie les filtres.</div>';
   return items.map(r=>{
    const auto=r.kind==="automation",on=r.state==="on";
+   const deletable=r.own&&!protectedRoutine(r);
    return '<div class="routine"><div class="rtop"><span class="r-icon">'+this._I(ICONS[r.kind])+'</span>'+
-    '<div style="min-width:0"><div class="rname">'+e(r.name)+'</div><div class="sub">'+(auto?"Automatisation":"Scénario")+' · '+(r.own?"KIMIA":"Home Assistant")+'</div></div></div>'+
-    '<div><span class="chip"><span class="dot '+(auto&&!on?"off":"")+'"></span>'+(auto?(on?"Active":"Désactivée"):"Prêt à lancer")+'</span></div>'+
+    '<div style="min-width:0"><div class="rname">'+e(r.name)+'</div><div class="sub">'+
+    (auto?"Automatisation":"Scénario")+' · '+(r.own?"KIMIA":"Home Assistant")+'</div></div></div>'+
+    '<div><span class="chip"><span class="dot '+(auto&&!on?"off":"")+'"></span>'+
+    (auto?(on?"Active":"Désactivée"):"À lancer")+'</span></div>'+
     '<div class="actions">'+(auto?
-     this._B(this._I(on?"mdi:pause-circle-outline":"mdi:power")+(on?" Désactiver":" Activer"),"toggle","small",'data-id="'+e(r.id)+'"'):
-     this._B(this._I("mdi:play")+" Lancer","run","small primary",'data-id="'+e(r.id)+'"'))+
-    this._B(this._I("mdi:pencil-outline")+" Modifier","edit","small",'data-id="'+e(r.id)+'"')+'</div></div>';
+      this._B(this._I(on?"mdi:pause-circle-outline":"mdi:power")+
+        (on?" Désactiver":" Activer"),"toggle","small",'data-id="'+e(r.id)+'"'):
+      this._B(this._I("mdi:play")+" Lancer","run","small primary",'data-id="'+e(r.id)+'"'))+
+    this._B(this._I("mdi:pencil-outline")+" Modifier","edit","small",'data-id="'+e(r.id)+'"')+
+    (deletable?this._B(this._I("mdi:trash-can-outline")+" Supprimer",
+      "delete","small danger",'data-id="'+e(r.id)+'"'):"")+
+    '</div></div>';
   }).join("");
  }
- _new(){this._page="wizard";this._step=0;this._notice="";this._draft=null;this._editing=null;this._draw();}
+  _new(){this._page="wizard";this._step=0;this._notice="";this._draft=null;this._editing=null;this._draw();}
  _presetStart(key){
   const p=PRESETS.find(x=>x[0]===key)||PRESETS[0];
   this._preset=key;this._editing=null;this._draft=H().create(p[1]);this._draft.alias=p[2].includes(" libre")?"":p[2];
@@ -341,6 +386,9 @@ class Studio extends HTMLElement{
   const a=b.dataset.act,i=Number(b.dataset.index);
   if(a==="home"){this._page="library";this._advanced=null;this._notice="";this._draw();}
   else if(a==="new")this._new();
+  else if(a==="new-script")this._presetStart("blank-script");
+  else if(a==="new-automation")this._presetStart("blank-automation");
+  else if(a==="habits"){this._page="habits";this._notice="";this._draw();}
   else if(a==="tab"){this._tab=b.dataset.value;this._draw();}
   else if(a==="refresh")this._msg("Liste actualisée depuis Home Assistant.");
   else if(a==="advanced"){this._page="advanced";this._draw();}
@@ -351,6 +399,7 @@ class Studio extends HTMLElement{
   else if(a==="run")void this._run(b.dataset.id);
   else if(a==="toggle")void this._toggle(b.dataset.id);
   else if(a==="edit")this._edit(b.dataset.id);
+  else if(a==="delete")void this._deleteRoutine(b.dataset.id);
   else if(a==="add-delay"){this._draft.actions.push(H().action("delay"));this._draw();}
   else if(a==="add-wait"){this._draft.actions.push(H().action("wait_state"));this._draw();}
   else if(a==="del-action"){this._draft.actions.splice(i,1);this._draw();}
