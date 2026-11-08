@@ -80,6 +80,7 @@ const hass={
    case "config/area_registry/list":return clone(rooms);
    case "config/device_registry/list":return clone(devices);
    case "config/entity_registry/list":return clone(entities);
+   case "config/label_registry/list":return [];
    case "lovelace/config":return clone(config);
    case "lovelace/config/save":
     lastPath=request.url_path;saveCount++;config=clone(request.config);return {};
