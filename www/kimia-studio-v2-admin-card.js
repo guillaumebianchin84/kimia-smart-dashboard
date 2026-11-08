@@ -13,6 +13,10 @@ const canon=v=>JSON.stringify(v,(_,x)=>x&&typeof x==='object'&&!Array.isArray(x)
  Object.fromEntries(Object.entries(x).sort(([a],[b])=>a.localeCompare(b))):x);
 const DOMAINS={light:"Lumières",switch:"Prises",input_boolean:"Options",cover:"Volets",climate:"Chauffage / clim",fan:"Ventilation",media_player:"Musique",scene:"Scènes",script:"Scénarios"};
 const ICONS={light:"mdi:lightbulb-outline",switch:"mdi:power-socket-eu",input_boolean:"mdi:toggle-switch-outline",cover:"mdi:window-shutter",climate:"mdi:thermostat",fan:"mdi:fan",media_player:"mdi:music",scene:"mdi:palette-outline",script:"mdi:play-box-multiple-outline",automation:"mdi:robot-outline"};
+const ROUTINE_ICONS=[["mdi:weather-night","Nuit"],["mdi:home-outline","Maison"],["mdi:door-open","Départ"],["mdi:weather-sunny","Réveil"],["mdi:movie-open","Cinéma"],["mdi:music","Musique"],["mdi:lightbulb-group-outline","Lumières"],["mdi:shield-home-outline","Sécurité"],["mdi:power","Énergie"]];
+const ROUTINE_COLORS={purple:"#9680DF",green:"#44A58D",blue:"#65A4E8",amber:"#E1A04D",red:"#D66B70",teal:"#25A6AE"};
+const validIcon=v=>ROUTINE_ICONS.some(([icon])=>icon===v);
+const validColor=v=>Object.prototype.hasOwnProperty.call(ROUTINE_COLORS,v);
 const PRESETS=[
  ["blank-script","script","Scénario libre","Créer des actions sur mesure","mdi:play-circle-outline"],
  ["night","script","Bonne nuit","Éteindre, fermer et se reposer","mdi:weather-night"],
@@ -38,6 +42,7 @@ const CSS=[
 ".wizard-top{display:flex;align-items:center;justify-content:space-between;gap:9px}.wizard-top h2{margin:0;font-size:22px;letter-spacing:-.4px}.progress{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:17px 0 13px}.progress i{height:5px;background:var(--divider-color,#dfe7ed);border-radius:8px}.progress i.done{background:#0d9b91}.step-label{font-size:11px;color:var(--secondary-text-color);font-weight:900;letter-spacing:1.1px;margin-bottom:9px}.option{display:flex;align-items:center;text-align:left;gap:12px;min-height:106px}.option:hover,.choice:hover{border-color:var(--primary-color,#11a99c)}.option b,.choice b{display:block;font-size:14px;color:var(--primary-text-color)}.option small,.choice small{display:block;font-size:11px;color:var(--secondary-text-color);line-height:1.4;margin-top:4px}",
 "label.fieldlabel{display:flex;flex-direction:column;gap:6px;color:var(--secondary-text-color);font-size:12px;font-weight:750;min-width:0}label.fieldlabel input,label.fieldlabel select{font-size:13px;color:var(--primary-text-color)}.section-title{display:flex;align-items:center;gap:7px;font-weight:850;margin:19px 0 12px}.section-title ha-icon{color:var(--primary-color)}.device-tools{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap}.device-tools select{max-width:250px}.device-tools input{flex:1;min-width:170px}.devices{max-height:335px;overflow:auto;padding:3px}.choice{display:flex;align-items:center;gap:9px;min-height:64px;cursor:pointer;padding:9px}.choice.selected{background:color-mix(in srgb,var(--primary-color,#11998e) 7%,var(--card-background-color));border-color:var(--primary-color)}.choice input{width:18px;height:18px;accent-color:var(--primary-color)}.choice ha-icon{color:var(--primary-color);flex:none}",
 ".block{margin:11px 0}.blocktop{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}.blocktop strong{font-size:14px}.blocktop .actions .btn{flex:initial}.footer{border-top:1px solid var(--divider-color,#dce5e9);margin-top:19px;padding-top:16px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.note{border-left:3px solid var(--primary-color,#0da699);padding:11px 13px;background:var(--secondary-background-color,#f2f8f8);border-radius:4px 11px 11px 4px;font-size:12px;line-height:1.5;margin:14px 0}.feedback{border:1px solid var(--primary-color,#169c91);border-radius:11px;padding:11px 13px;margin:0 0 13px;font-size:13px;font-weight:650;white-space:pre-wrap}.feedback.error{border-color:var(--error-color,#be3535);color:var(--error-color,#be3535)}.summary{display:grid;gap:9px}.summary-item{border:1px solid var(--divider-color,#dce5e9);border-radius:11px;padding:12px;display:flex;align-items:center;gap:10px}.summary-item ha-icon{color:var(--primary-color)}",
+".routines-list{display:grid;gap:10px}.routine-simple{display:flex;align-items:center;gap:14px;border:1px solid var(--divider-color);border-radius:15px;padding:14px;background:var(--card-background-color);min-width:0}.routine-avatar{width:52px;height:52px;border-radius:15px;flex:none;display:grid;place-items:center;background:color-mix(in srgb,var(--avatar-color) 17%,var(--card-background-color))}.routine-avatar ha-icon{color:var(--avatar-color);--mdc-icon-size:29px}.routine-info{flex:1;min-width:0}.routine-controls{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.simple-section{border:1px solid var(--divider-color);padding:16px;border-radius:16px;margin-top:15px}.simple-section h3{margin:0 0 10px}.icon-picker,.color-picker{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px}.icon-choice{width:45px;height:45px;display:grid;place-items:center;border-radius:12px;color:var(--primary-text-color);background:var(--secondary-background-color);border:2px solid transparent}.icon-choice ha-icon{--mdc-icon-size:25px}.icon-choice[aria-pressed=true],.color-choice[aria-pressed=true]{border-color:var(--primary-color);outline:2px solid var(--primary-color);outline-offset:2px}.color-choice{width:32px;height:32px;border:2px solid transparent;border-radius:50%;background:var(--choice-color)}.editor-title{display:flex;align-items:center;gap:13px;margin:0 0 14px}.editor-title .routine-avatar{width:61px;height:61px}.compact-actions{display:flex;gap:9px;align-items:center;margin:12px 0}.compact-actions select{flex:1}.subtle-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.quick-start{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.quick-start .option{min-height:118px}details summary{cursor:pointer}.section-badge{font-size:11px;color:var(--secondary-text-color)}",
 "@media(max-width:750px){.hero{padding:22px}.main{padding:14px}.cards,.options,.devices,.fields,.quick-actions{grid-template-columns:1fr}.stats{gap:5px}.stat{padding:10px;flex-direction:column;text-align:center;gap:5px}.stat strong{font-size:21px}.stat small{font-size:10px}.option{min-height:90px}.hero h1{font-size:27px}.btn{padding:9px}.tab{padding:8px}}"
 ].join("\n");
 const areaFor=(reg,devices)=>reg?.area_id||devices?.find(d=>d.id===reg?.device_id)?.area_id||"";
@@ -82,7 +87,7 @@ class Studio extends HTMLElement{
   this._habits=null;this._deletedIds=new Set();
   this._homeSlots=[null,null,null,null];this._homeBaseline=null;
   this._homeLoading=false;this._needsMerge=false;this._checkedMerge=false;
-  this._addHomeOnSave=false;
+  this._addHomeOnSave=false;this._icon="mdi:home-outline";this._color="purple";this._homeLooks={};this._homeReady=false;
   this.shadowRoot.addEventListener("click",ev=>this._click(ev));
   this.shadowRoot.addEventListener("change",ev=>this._change(ev));
   this.shadowRoot.addEventListener("input",ev=>this._input(ev));
@@ -93,9 +98,10 @@ class Studio extends HTMLElement{
   const oldUser=this._hass?.user?.id;
   const oldDigest=oldUser&&this._page==="library"?
    JSON.stringify(routineCatalog(this._hass?.states).map(x=>[x.id,x.name,x.state,x.own])):"";
-  if(oldUser!==h?.user?.id){this._loaded=false;this._reg={areas:[],entities:[],devices:[]};}
+  if(oldUser!==h?.user?.id){this._loaded=false;this._homeReady=false;this._reg={areas:[],entities:[],devices:[]};}
   this._hass=h;
   if(h?.user?.is_admin&&!this._loaded){this._loaded=true;void this._load();}
+  if(h?.user?.is_admin&&!this._homeReady){this._homeReady=true;void this._loadHomeSlots();}
   if(h?.user?.is_admin&&!this._checkedMerge){this._checkedMerge=true;void this._inspectMerge();}
   if(this._advanced)this._advanced.hass=h;
   if(this._habits)this._habits.hass=h;
@@ -136,11 +142,8 @@ class Studio extends HTMLElement{
   const content=!this._hass?'<div class="main">Chargement…</div>':
    denied?'<div class="main"><div class="empty"><b>Réservé à l’administrateur</b>Tu dois utiliser un compte Home Assistant administrateur.</div></div>':
    noEngine?'<div class="main"><div class="feedback error">Charge la ressource kimia-routine-engine-v16.js avant Studio V2.</div></div>':
-   this._page==="wizard"?this._wizard():this._page==="advanced"?this._advancedPage():
-   this._page==="habits"?this._habitsPage():this._library();
+   this._page==="wizard"?this._wizard():this._page==="habits"?this._habitsPage():this._library();
   this.shadowRoot.innerHTML='<style>'+CSS+'</style><ha-card>'+this._header()+content+'</ha-card>';
-  if(this._page==="advanced")this._mountAdvanced();
-  else this._advanced=null;
   if(this._page==="habits")this._mountHabits();
   else this._habits=null;
  }
@@ -153,59 +156,41 @@ class Studio extends HTMLElement{
  }
  _library(){
   const list=this._all();
-  const tabs=[["all","Tout voir"],["script","Scénarios"],["automation","Automatisations"]];
-  const cta=(act,icon,title,detail)=>'<button type="button" class="quick" data-act="'+act+'">'+
-   this._I(icon)+'<span><strong>'+title+'</strong><small>'+detail+'</small></span></button>';
   return '<div class="main">'+this._notification()+
-   '<div class="quick-actions">'+
-   cta("new","mdi:plus-circle-outline","Créer une routine",
-     "Choisis comment elle démarre, puis ce que fait la maison.")+
-   cta("habits","mdi:gesture-tap-button","Mes boutons d’accueil",
-     "Choisir les quatre routines accessibles d’un appui.")+'</div>'+
-   '<div class="nav"><h3>Mes scénarios et automatisations <span class="chip">'+list.length+'</span></h3>'+
-   '<div class="nav-links">'+
-    this._B(this._I("mdi:home-automation")+" Mes habitudes","habits","small")+
-    this._B(this._I("mdi:tune-vertical")+" Atelier avancé","advanced","small")+
-    (this._needsMerge?this._B(this._I("mdi:merge")+" Réunir les deux pages",
-       "merge-admin","small primary"):"")+
-   '</div></div>'+
-   '<div class="tabs" role="tablist">'+tabs.map(([id,label])=>
-    '<button class="tab" role="tab" type="button" aria-selected="'+(this._tab===id)+
-    '" data-act="tab" data-value="'+id+'">'+label+'</button>').join("")+'</div>'+
-   '<div class="tools" style="margin-top:14px"><input id="studio-search" type="text" aria-label="Rechercher une routine" placeholder="Rechercher une routine…" value="'+e(this._q)+'"/>'+
-   '<select id="studio-filter" aria-label="Filtrer l’état"><option value="all">Tous les états</option>'+
-   '<option value="on"'+(this._filter==="on"?" selected":"")+'>Actives</option>'+
-   '<option value="off"'+(this._filter==="off"?" selected":"")+'>Désactivées</option></select>'+
-   this._B(this._I("mdi:refresh")+" Actualiser","refresh","small")+'</div>'+
-   '<div class="cards" id="studio-results">'+this._results()+'</div>'+
-   '<p class="help" style="margin-top:17px">Les routines existantes dans Home Assistant sont conservées. Les routines techniques internes ne peuvent pas être supprimées depuis Studio.</p></div>';
+   '<div class="nav"><div><h2 style="margin:0">Mes routines <span class="chip">'+list.length+'</span></h2>'+
+   '<p class="help" style="margin:6px 0 0">Crée une routine et retrouve-la ici, avec ses boutons d’accueil.</p></div>'+
+   '<div class="nav-links">'+this._B(this._I("mdi:plus")+' Créer une routine',"new","primary")+
+   this._B(this._I("mdi:home-edit-outline")+' Organiser l’accueil',"habits","small")+
+   this._B(this._I("mdi:open-in-new")+' Mode expert',"mode-expert","small")+
+   (this._needsMerge?this._B("Réunir les deux pages","merge-admin","small"):"")+'</div></div>'+
+   '<div class="tools"><input id="studio-search" type="text" placeholder="Rechercher une routine…" aria-label="Rechercher une routine" value="'+e(this._q)+'"/></div>'+
+   '<div class="routines-list" id="studio-results">'+this._results()+'</div></div>';
  }
-  _results(){
+ _results(){
   const query=this._q.trim().toLowerCase();
-  const items=this._all().filter(r=>(this._tab==="all"||r.kind===this._tab)&&
-   (this._filter==="all"||r.kind==="script"||r.state===this._filter)&&
-   (!query||r.name.toLowerCase().includes(query)||r.id.includes(query)));
-  if(!items.length)return '<div class="empty">'+this._I("mdi:playlist-remove")+
-   '<b>Aucune routine trouvée</b>Crée une routine ou modifie les filtres.</div>';
+  const items=this._all().filter(r=>!query||r.name.toLowerCase().includes(query)||r.id.includes(query));
+  if(!items.length)return '<div class="empty"><b>Aucune routine trouvée</b>'+
+   (query?"Essaie un autre nom.":"Crée ta première routine avec le bouton ci-dessus.")+'</div>';
   return items.map(r=>{
-   const auto=r.kind==="automation",on=r.state==="on";
-   const deletable=r.own&&!protectedRoutine(r);
-   return '<div class="routine"><div class="rtop"><span class="r-icon">'+this._I(ICONS[r.kind])+'</span>'+
-    '<div style="min-width:0"><div class="rname">'+e(r.name)+'</div><div class="sub">'+
-    (auto?"Automatisation":"Scénario")+' · '+(r.own?"KIMIA":"Home Assistant")+'</div></div></div>'+
-    '<div><span class="chip"><span class="dot '+(auto&&!on?"off":"")+'"></span>'+
-    (auto?(on?"Active":"Désactivée"):"À lancer")+'</span></div>'+
-    '<div class="actions">'+(auto?
-      this._B(this._I(on?"mdi:pause-circle-outline":"mdi:power")+
-        (on?" Désactiver":" Activer"),"toggle","small",'data-id="'+e(r.id)+'"'):
-      this._B(this._I("mdi:play")+" Lancer","run","small primary",'data-id="'+e(r.id)+'"'))+
-    this._B(this._I("mdi:pencil-outline")+" Modifier","edit","small",'data-id="'+e(r.id)+'"')+
-    (deletable?this._B(this._I("mdi:trash-can-outline")+" Supprimer",
-      "delete","small danger",'data-id="'+e(r.id)+'"'):"")+
-    '</div></div>';
+   const auto=r.kind==="automation",on=r.state==="on",deletable=r.own&&!protectedRoutine(r);
+   const onHome=!auto&&this._homeSlots.includes(r.id);
+   const icon=this._hass?.states?.[r.id]?.attributes?.icon||ICONS[r.kind];
+   const color=this._homeLooks?.[r.id]?.color||"purple";
+   const shade=ROUTINE_COLORS[color]||ROUTINE_COLORS.purple;
+   return '<article class="routine-simple"><span class="routine-avatar" style="--avatar-color:'+shade+'">'+this._I(icon)+'</span>'+
+    '<div class="routine-info"><div class="rname">'+e(r.name)+'</div><div class="sub">'+
+    (auto?(on?"Automatique · Active":"Automatique · Désactivée"):"Manuelle · "+(onHome?"Sur l’accueil":"Pas sur l’accueil"))+
+    '</div></div><div class="routine-controls">'+
+    (!auto&&!protectedRoutine(r)?this._B(this._I(onHome?"mdi:home-check":"mdi:home-plus-outline")+
+     (onHome?" Retirer de l’accueil":" Sur l’accueil"),"toggle-home","small",'data-id="'+e(r.id)+'" '+(!this._homeReady?'disabled':"")):"")+
+    (auto?this._B(on?"Désactiver":"Activer","toggle","small",'data-id="'+e(r.id)+'"'):
+     this._B(this._I("mdi:play")+' Lancer',"run","small",'data-id="'+e(r.id)+'"'))+
+    this._B(this._I("mdi:pencil")+' Modifier',"edit","small",'data-id="'+e(r.id)+'"')+
+    (deletable?this._B(this._I("mdi:trash-can-outline"),"delete","small danger",'data-id="'+e(r.id)+'" title="Supprimer"'):"")+
+    '</div></article>';
   }).join("");
  }
-  _new(){this._page="wizard";this._step=0;this._notice="";this._draft=null;this._editing=null;this._draw();}
+ _new(){this._page="wizard";this._step=0;this._notice="";this._draft=null;this._editing=null;this._draw();}
  _presetStart(key){
   const p=PRESETS.find(x=>x[0]===key)||PRESETS[0];
   this._preset=key;this._editing=null;this._draft=H().create(p[1]);this._draft.alias=p[2].includes(" libre")?"":p[2];
