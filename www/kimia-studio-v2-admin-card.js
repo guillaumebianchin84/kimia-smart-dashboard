@@ -495,7 +495,12 @@ class Studio extends HTMLElement{
   try{
    const config=await h.callWS({type:"lovelace/config",url_path:"kimia-next"});
    if(h!==this._hass)return;
-   this._homeSlots=this._homeSlotsFromConfig(config);
+   // Les quatre anciens raccourcis pouvaient viser des scripts non créés.
+   // Les afficher comme "Aucun" plutôt que bloquer l'enregistrement.
+   const available=new Set(this._all().filter(r=>r.kind==="script"&&!protectedRoutine(r))
+    .map(r=>r.id));
+   this._homeSlots=this._homeSlotsFromConfig(config)
+    .map(id=>id&&available.has(id)?id:null);
    this._homeBaseline=canon(config);
    this._notice="";this._error=false;
   }catch(err){
