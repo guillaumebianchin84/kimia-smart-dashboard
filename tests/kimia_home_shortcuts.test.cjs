@@ -45,6 +45,12 @@ async function main(){
  assert.equal(card._cards[0].config.type,"shortcut","Conserver les raccourcis natifs HA du projet");
  assert.equal(card._cards[0].config.label,"Bonne nuit","Nom du scénario réel");
  assert.equal(card._cards[0].config.icon,"mdi:moon-waning-crescent","Icône HA du scénario");
+ card.setConfig({slots:["script.ks_dodo","script.ks_depart",null,"script.ks_absent"],
+  looks:{"script.ks_dodo":{icon:"mdi:weather-night",color:"teal"}}});
+ await tick();
+ assert.equal(card._cards[0].config.icon,"mdi:weather-night","Icône personnalisée prioritaire");
+ assert.equal(card._cards[0].config.color,"teal","Couleur du raccourci conservée");
+ assert.equal(card._cards[0].config.type,"shortcut","Toujours une carte native HA");
  assert.equal(card._cards[0].config.tap_action.perform_action,"script.turn_on");
  assert.equal(card._cards[0].config.tap_action.target.entity_id,"script.ks_dodo");
  assert.equal(card._cards[2].config.tap_action.action,"none","Scénario hors ligne neutralisé");
