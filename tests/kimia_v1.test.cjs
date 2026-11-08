@@ -108,7 +108,11 @@ const hass={
 };
 const cards=v=>(v.sections||[]).flatMap(s=>s.cards||[]);
 const view=path=>config.views.find(v=>v.path===path);
-const roomSection=(path,area)=>view(path).sections.find(s=>s.cards?.some(c=>c.type==="area"&&c.area===area));
+const roomSection=(path,area)=>view(path).sections.find(s=>s.cards?.some(c=>
+ path==="securite"
+   ?c.type==="heading"&&c.icon==="mdi:shield-home-outline"&&
+    c.heading===rooms.find(r=>r.area_id===area)?.name
+   :c.type==="area"&&c.area===area));
 async function main(){
  const first=await window.KimiaSmartCore.sync(hass);
  assert(first.added>=9);
@@ -137,7 +141,8 @@ async function main(){
  assert.equal(music.cards[0].type,"area");
  assert.equal(music.cards[0].grid_options.columns,12,"La carte Area occupe 12/12");
  assert.equal(music.cards.filter(c=>c.type==="heading").length,0,"Pas de titre redondant");
- assert.equal(music.cards.find(c=>c.entity==="media_player.enceinte").grid_options.columns,6);
+ assert.equal(music.cards.find(c=>c.entity==="media_player.enceinte").grid_options.columns,12,
+  "Toutes les tuiles KIMIA, y compris musique, sont larges de 12 colonnes");
  assert(roomSection("pieces","salon"));
  assert(roomSection("pieces","cuisine"));
  assert(!roomSection("musique","cuisine"),"Ne pas créer une rubrique vide");
@@ -173,14 +178,44 @@ async function main(){
  assert(cards(view("eau")).some(c=>c.type==="custom:navbar-card"));
  assert(cards(view("prises")).some(c=>c.routes?.some(r=>r.url==="/kimia-next/eau")));
 
- // Sécurité n'a plus de commande collective pour tous les appareils.
+ // Sécurité : uniquement un titre natif et les tuiles de capteurs.
  const security=roomSection("securite","salon");
- const securityArea=security.cards.find(c=>c.type==="area");
- assert.equal(securityArea.features.length,0);
+ assert(security,"Section Salon créée avec son titre Sécurité");
+ assert.equal(security.cards.filter(c=>c.type==="area").length,0,
+  "Aucune carte Area dans Sécurité (même sans features)");
+ const securityTitle=security.cards[0];
+ assert.equal(securityTitle.type,"heading");
+ assert.equal(securityTitle.heading,"Salon");
+ assert.equal(securityTitle.grid_options.columns,"full");
  assert.equal(security.cards.find(c=>
   c.entity==="binary_sensor.presence_salon").grid_options.columns,12);
  assert.equal(roomSection("climatisation","salon").cards[0].features.length,0);
+ for(const page of ["pieces","lumieres","volets","climatisation","prises","musique","securite","eau"]){
+  for(const card of cards(view(page)).filter(c=>c.type==="custom:kimia-safe-tile-v1-card")){
+   assert.equal(card.grid_options.columns,12,"Largeur 12 pour "+page+" / "+card.entity);
+   assert.equal(card.card.grid_options.columns,12,"Largeur native 12 pour "+page);
+  }
+ }
 
+ // Migration forcée d'une ancienne carte Area comportant le bouton de la prise.
+ const securityCards=roomSection("securite","salon").cards;
+ securityCards[0]=clone(existingArea);
+ const noControl=await window.KimiaSmartCore.sync(hass);
+ assert(noControl.modified>=1,"Ancienne carte Area remplacée dans Sécurité");
+ assert.equal(roomSection("securite","salon").cards[0].type,"heading");
+ assert.equal(cards(view("securite")).filter(c=>c.type==="area").length,0,
+  "Aucun contrôle général de prise résiduel en Sécurité");
+
+ // Migration d'une ancienne carte 6 colonnes gérée par KIMIA.
+ const musicCards=roomSection("musique","salon").cards;
+ const mediaIndex=musicCards.findIndex(c=>c.entity==="media_player.enceinte");
+ musicCards[mediaIndex].grid_options.columns=6;
+ musicCards[mediaIndex].card.grid_options.columns=6;
+ const resized=await window.KimiaSmartCore.sync(hass);
+ assert(resized.modified>=1,"Ancienne tuile musique 6 colonnes agrandie");
+ assert.equal(roomSection("musique","salon").cards.find(c=>
+   c.entity==="media_player.enceinte").grid_options.columns,12);
+ 
  const saves=saveCount;
  const again=await window.KimiaSmartCore.sync(hass);
  assert.equal(again.added,0);
