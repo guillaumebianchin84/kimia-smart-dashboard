@@ -110,7 +110,7 @@ const cards=v=>(v.sections||[]).flatMap(s=>s.cards||[]);
 const view=path=>config.views.find(v=>v.path===path);
 const roomSection=(path,area)=>view(path).sections.find(s=>s.cards?.some(c=>
  path==="securite"
-   ?c.type==="heading"&&c.icon==="mdi:shield-home-outline"&&
+   ?c.type==="heading"&&c.heading_style==="subtitle"&&
     c.heading===rooms.find(r=>r.area_id===area)?.name
    :c.type==="area"&&c.area===area));
 async function main(){
@@ -186,6 +186,7 @@ async function main(){
  const securityTitle=security.cards[0];
  assert.equal(securityTitle.type,"heading");
  assert.equal(securityTitle.heading,"Salon");
+ assert.equal(securityTitle.icon,undefined,"Un simple texte sans pictogramme");
  assert.equal(securityTitle.grid_options.columns,"full");
  assert.equal(security.cards.find(c=>
   c.entity==="binary_sensor.presence_salon").grid_options.columns,12);
