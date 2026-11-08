@@ -666,7 +666,12 @@ class Studio extends HTMLElement{
    // Ne jamais ouvrir un éditeur guidé qui modifierait silencieusement
    // des champs HA non maîtrisés (icône, options supplémentaires, etc.).
    // Pour ces routines, utiliser l'éditeur natif ou l'atelier avancé.
-   if(canon(H().serialize(draft,record.configId))!==canon(raw)){
+   const roundtrip=H().serialize(draft,record.configId);
+   if(raw.icon!==undefined){
+    if(!validIcon(raw.icon)){window.location.assign(native);return;}
+    roundtrip.icon=raw.icon;
+   }
+   if(canon(roundtrip)!==canon(raw)){
     window.location.assign(native);return;
    }
    const common=["call","delay","wait_state"];
@@ -682,9 +687,11 @@ class Studio extends HTMLElement{
     window.location.assign(native);return;
    }
    this._editing={kind:record.kind,id:record.configId,baseline:clone(raw)};
-   this._draft=draft;this._selected=new Set(targets);this._preset="blank-script";
+   this._draft=draft;this._selected=new Set(targets);this._preset=record.kind==="script"?"blank-script":"blank-automation";
    this._step=1;this._area="*";this._query="";this._page="wizard";
-   this._addHomeOnSave=false;
+   this._icon=validIcon(raw.icon)?raw.icon:"mdi:home-outline";
+   this._color=validColor(this._homeLooks[record.id]?.color)?this._homeLooks[record.id].color:"purple";
+   this._addHomeOnSave=this._homeSlots.includes(record.id);this._appearanceOpen=false;
    this._notice="Routine chargée sans modification. Tu peux la personnaliser avant d'enregistrer.";
   }catch(err){
    this._notice="Édition simplifiée indisponible : "+(err?.message||err)+". Ouverture dans Home Assistant.";
