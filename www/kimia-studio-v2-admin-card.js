@@ -757,7 +757,7 @@ class Studio extends HTMLElement{
  }
  async _addHomeShortcutForScript(scriptId){
   const h=this._hass,entityId="script."+scriptId;
-  if(!/^script\.ks_[a-z0-9_]+$/.test(entityId))
+  if(!/^script\.(?:ks_|kimia_)[a-z0-9_]+$/.test(entityId))
    throw Error("Identifiant de scénario inattendu.");
   const before=await h.callWS({type:"lovelace/config",url_path:"kimia-next"});
   const slots=this._homeSlotsFromConfig(before);
