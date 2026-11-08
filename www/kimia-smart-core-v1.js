@@ -275,14 +275,12 @@
   };
   const tile = (e,path="",usage="autre") => {
     const switchEntity=e.entity_id.startsWith("switch.");
-    const isSensor=e.entity_id.startsWith("binary_sensor.") ||
-      e.entity_id.startsWith("sensor.");
     const x={
       type:"tile",
       entity:e.entity_id,
       name:undefined,
-      // 12 colonnes natives pour les prises, capteurs et mesures : texte lisible.
-      grid_options:{columns:switchEntity||isSensor?12:6,rows:1}
+      // Toutes les tuiles gérées par KIMIA occupent 12 colonnes natives HA.
+      grid_options:{columns:12,rows:1}
     };
     if(e.entity_id.startsWith("light."))
       x.features=[{type:"light-brightness"}];
@@ -309,6 +307,20 @@
       grid_options:{...native.grid_options}
     };
   };
+  // La version précédente utilisait 6 colonnes pour les lumières,
+  // volets, climatisations, enceintes, etc. Migrer ces cartes inchangées.
+  const previousTile=(e,usage="autre")=>{
+    const x=tile(e,"",usage);
+    const domain=e.entity_id.split(".")[0];
+    x.grid_options={columns:["switch","sensor","binary_sensor"].includes(domain)
+      ?12:6,rows:1};
+    return x;
+  };
+  const previousSafeTile=(e,usage="autre")=>{
+    const native=previousTile(e,usage);
+    return {type:SAFE_TILE_TYPE,entity:e.entity_id,card:native,
+      grid_options:{...native.grid_options}};
+  };
   const oldTapTile=e=>{
     const x=tile(e,"","autre");
     x.grid_options={columns:6,rows:1};
@@ -323,6 +335,22 @@
     type: "heading", heading: label, icon, heading_style: "subtitle",
     grid_options: { columns: "full", rows: 1 }
   });
+  // En Sécurité, ne jamais créer de carte "Area" : même sans
+  // "features", ses commandes peuvent évoluer avec HA. Simple titre natif.
+  const securityRoomTitle=area=>({
+    type:"heading",
+    heading:area.name,
+    icon:"mdi:shield-home-outline",
+    heading_style:"subtitle",
+    grid_options:{columns:"full",rows:1}
+  });
+  const isSecurityRoomTitle=card=>
+    card?.type==="heading" &&
+    card.icon==="mdi:shield-home-outline" &&
+    card.heading_style==="subtitle" &&
+    card.grid_options?.columns==="full" &&
+    card.grid_options?.rows===1 &&
+    typeof card.heading==="string";
   const roomCard = (area,path="") => ({
     type: "area",
     area: area.area_id,
@@ -341,14 +369,17 @@
   const sectionWithHeader = (view, name) => (view.sections || [])
     .find(s => s.type === "grid" && Array.isArray(s.cards) &&
       s.cards.some(c => c.type === "heading" && c.heading === name));
-  const sectionForRoom = (view, areaId) => (view.sections || [])
+  const sectionForRoom = (view, area) => (view.sections || [])
     .find(s => s.type === "grid" && Array.isArray(s.cards) &&
-      s.cards.some(c => c.type === "area" && c.area === areaId));
-  // Carte de pièce sur toute la section, commandes natives en dessous (2 tuiles/ligne).
+      s.cards.some(c=>view.path==="securite"
+        ?isSecurityRoomTitle(c)&&c.heading===area.name
+        :c.type==="area"&&c.area===area.area_id));
+  // Une section reste native HA, avec en Sécurité un simple titre textuel.
   const createRoomSection = (area, view) => ({
     type: "grid",
     column_span: Math.min(Number(view.max_columns) || 3, 3),
-    cards: [roomCard(area,view.path)]
+    cards: [view.path==="securite"
+      ?securityRoomTitle(area):roomCard(area,view.path)]
   });
   const countCards = cfg => (cfg.views || []).reduce((n, v) =>
     n + allCards(v).length, 0);
@@ -412,9 +443,11 @@
     if(typeof card?.entity!=="string")return false;
     const e={entity_id:card.entity};
     const variants=card.type===SAFE_TILE_TYPE
-      ?[safeTile(e),safeTile(e,"","clim")]
+      ?[safeTile(e),safeTile(e,"","clim"),
+        previousSafeTile(e),previousSafeTile(e,"clim")]
       :card.type==="tile"
-        ?[legacyTile(e),oldTapTile(e),tile(e),tile(e,"","clim")]
+        ?[legacyTile(e),oldTapTile(e),tile(e),tile(e,"","clim"),
+          previousTile(e),previousTile(e,"clim")]
         :[];
     return variants.some(candidate=>
       JSON.stringify(card)===JSON.stringify(safeClone(candidate)));
@@ -436,8 +469,11 @@
     card.grid_options?.columns==="full" &&
     card.grid_options?.rows===1 &&
     (!areaName || card.heading===areaName);
-  const managedRoom = section => {
-    if (section?.type!=="grid" || !Array.isArray(section.cards)) return null;
+  const managedRoom = (section,path) => {
+    if(section?.type!=="grid"||!Array.isArray(section.cards))return null;
+    if(path==="securite")
+      return section.cards.find(c=>c?.type==="area"&&typeof c.area==="string") ||
+        section.cards.find(isSecurityRoomTitle) || null;
     return section.cards.find(isGeneratedRoomCard) || null;
   };
   const expectedDomain = (path,e,hass,devices,labels) => {
@@ -1139,7 +1175,7 @@
         }
 
         // Répartition par pièce dans les vrais onglets, jamais dans Accueil.
-        // Chaque salle occupe toute la largeur; les tuiles 6/12 se placent dessous.
+        // Chaque section occupe toute la largeur; tuiles natives 12/12 dessous.
         const targets=["pieces",...CATEGORIES.map(x=>x[0]),
           ...(vmap.has("eau")?["eau"]:[])];
         const areaIds=new Set(orderedAreas.map(a=>a.area_id));
@@ -1152,17 +1188,18 @@
           ]));
           const kept=[];
           for(const section of view.sections || []) {
-            const areaCard=managedRoom(section);
+            const areaCard=managedRoom(section,path);
             if(!areaCard) { kept.push(section); continue; }
-            const areaId=areaCard.area;
-            const alive=areaIds.has(areaId);
+            const areaId=areaCard.type==="area"?areaCard.area:
+              orderedAreas.find(a=>a.name===areaCard.heading)?.area_id;
+            const alive=!!areaId&&areaIds.has(areaId);
             const entitiesWanted=new Set((desired.get(areaId)||[]).map(e=>e.entity_id));
             if(!alive) {
               // Pièce supprimée : retirer ses éléments standard uniquement.
               const before=section.cards.length;
               section.cards=section.cards.filter(c=>
-                !isGeneratedRoomCard(c) && !isGeneratedTile(c) &&
-                !isGeneratedRoomHeading(c));
+                c!==areaCard && !isGeneratedTile(c) &&
+                !isGeneratedRoomHeading(c) && !isSecurityRoomTitle(c));
               removed+=before-section.cards.length;
               if(section.cards.length)kept.push(section);
               continue;
@@ -1171,15 +1208,18 @@
             if(path!=="pieces" && entitiesWanted.size===0) {
               const before=section.cards.length;
               section.cards=section.cards.filter(c=>
-                !isGeneratedRoomCard(c) && !isGeneratedTile(c) &&
-                !isGeneratedRoomHeading(c,names.get(areaId)));
+                c!==areaCard && !isGeneratedTile(c) &&
+                !isGeneratedRoomHeading(c,names.get(areaId)) &&
+                !isSecurityRoomTitle(c));
               removed+=before-section.cards.length;
               if(section.cards.length)kept.push(section);
               continue;
             }
-            // Garder la carte Area native, sans commandes générales qui
-            // toucheraient aussi les prises dans Sécurité/Climatisation/Eau.
-            const wantedArea=roomCard({area_id:areaId},path);
+            // Sécurité = titre texte seulement. Les autres rubriques
+            // conservent leurs cartes Area natives.
+            const wantedArea=path==="securite"
+              ?securityRoomTitle(orderedAreas.find(a=>a.area_id===areaId))
+              :roomCard({area_id:areaId},path);
             if(JSON.stringify(areaCard)!==JSON.stringify(wantedArea)){
               section.cards[section.cards.indexOf(areaCard)]=wantedArea;
               modified++;
@@ -1221,7 +1261,7 @@
           for(const area of orderedAreas) {
             const selected=desired.get(area.area_id)||[];
             if(path!=="pieces" && !selected.length)continue;
-            let section=sectionForRoom(view,area.area_id);
+            let section=sectionForRoom(view,area);
             if(!section) {
               section=createRoomSection(area,view);
               view.sections.push(section);
