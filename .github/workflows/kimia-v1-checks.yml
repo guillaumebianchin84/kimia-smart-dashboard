@@ -16,6 +16,7 @@ on:
       - feat/kimia-v17-maquette-areas-acl-20261026
       - feat/kimia-usages-prises-et-cartes-20261108
       - fix/kimia-appareils-indisponibles-20261108
+      - fix/kimia-securite-titre-tuiles-12-20261108
   workflow_dispatch:
 jobs:
   check:
