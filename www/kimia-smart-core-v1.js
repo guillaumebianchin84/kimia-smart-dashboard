@@ -335,8 +335,8 @@
     type: "heading", heading: label, icon, heading_style: "subtitle",
     grid_options: { columns: "full", rows: 1 }
   });
-  // En Sécurité, ne jamais créer de carte "Area" : même sans
-  // "features", ses commandes peuvent évoluer avec HA. Simple titre natif.
+  // Ancien correctif Sécurité : le titre natif remplaçait la carte Area.
+  // Le reconnaître UNIQUEMENT pour restaurer l'esthétique d'origine.
   const securityRoomTitle=area=>({
     type:"heading",
     heading:area.name,
@@ -351,17 +351,26 @@
     card.grid_options?.rows===1 &&
     Object.keys(card).length===4 &&
     typeof card.heading==="string";
-  const roomCard = (area,path="") => ({
+  // Carte native Area identique dans TOUTES les rubriques : icône,
+  // intitulé, fond et largeur conservés. Une zone ne commande plus
+  // les prises/lumières/volets par accident.
+  // 2 lignes natives HA compensent l'absence de la rangée de boutons.
+  const roomCard = area => ({
     type: "area",
     area: area.area_id,
     display_type: "compact",
-    // Le contrôle général de pièce n'a rien à faire sur Sécurité,
-    // Eau ou Climatisation : il pourrait piloter des prises non concernées.
-    features: ["securite","eau","climatisation"].includes(path)
-      ? []:[{type:"area-controls"}],
+    features: [],
     features_position: "bottom",
-    grid_options: { columns: 12, rows: "auto" },
+    grid_options: { columns: 12, rows: 2 },
     tap_action: { action: "navigate", navigation_path: "/kimia-next/pieces" }
+  });
+  // Formats KIMIA précédents, identifiés strictement pour migrer
+  // le bouton général "area-controls" sans modifier les cartes utilisateur.
+  const previousRoomCard = (area,path="") => ({
+    ...roomCard(area),
+    features:["securite","eau","climatisation"].includes(path)
+      ?[]:[{type:"area-controls"}],
+    grid_options:{columns:12,rows:"auto"}
   });
   const allCards = view =>
     (view.sections || []).flatMap(s => Array.isArray(s.cards) ? s.cards : [])
@@ -370,16 +379,13 @@
     .find(s => s.type === "grid" && Array.isArray(s.cards) &&
       s.cards.some(c => c.type === "heading" && c.heading === name));
   const sectionForRoom = (view, area) => (view.sections || [])
-    .find(s => s.type === "grid" && Array.isArray(s.cards) &&
-      s.cards.some(c=>view.path==="securite"
-        ?isSecurityRoomTitle(c)&&c.heading===area.name
-        :c.type==="area"&&c.area===area.area_id));
-  // Une section reste native HA, avec en Sécurité un simple titre textuel.
+    .find(s => s.type==="grid" && Array.isArray(s.cards) &&
+      s.cards.some(c=>c.type==="area"&&c.area===area.area_id));
+  // Même carte Pièce native partout : y compris en Sécurité.
   const createRoomSection = (area, view) => ({
-    type: "grid",
-    column_span: Math.min(Number(view.max_columns) || 3, 3),
-    cards: [view.path==="securite"
-      ?securityRoomTitle(area):roomCard(area,view.path)]
+    type:"grid",
+    column_span:Math.min(Number(view.max_columns)||3,3),
+    cards:[roomCard(area)]
   });
   const countCards = cfg => (cfg.views || []).reduce((n, v) =>
     n + allCards(v).length, 0);
@@ -455,13 +461,14 @@
   // Une carte Pièce n'est gérée par KIMIA que si toutes ses options sont intactes.
   // Les variantes personnalisées doivent rester sous contrôle de l'habitant.
   const isGeneratedRoomCard = card => {
-    if(card?.type !== "area" || typeof card.area !== "string") return false;
-    return ["","securite","climatisation"].some(path=>{
-      const now=roomCard({area_id:card.area},path);
-      const old={...now,grid_options:{columns:6,rows:"auto"}};
-      return JSON.stringify(card)===JSON.stringify(now) ||
-        JSON.stringify(card)===JSON.stringify(old);
-    });
+    if(card?.type!=="area"||typeof card.area!=="string")return false;
+    const area={area_id:card.area};
+    const variants=[roomCard(area)];
+    for(const path of ["","securite","eau","climatisation"]){
+      const old=previousRoomCard(area,path);
+      variants.push(old,{...old,grid_options:{columns:6,rows:"auto"}});
+    }
+    return variants.some(v=>JSON.stringify(card)===JSON.stringify(v));
   };
   const isGeneratedRoomHeading = (card, areaName) =>
     card?.type==="heading" && card.heading_style==="subtitle" &&
@@ -471,10 +478,9 @@
     (!areaName || card.heading===areaName);
   const managedRoom = (section,path) => {
     if(section?.type!=="grid"||!Array.isArray(section.cards))return null;
-    if(path==="securite")
-      return section.cards.find(c=>c?.type==="area"&&typeof c.area==="string") ||
-        section.cards.find(isSecurityRoomTitle) || null;
-    return section.cards.find(isGeneratedRoomCard) || null;
+    // Conserve la migration du correctif précédent (heading en Sécurité).
+    return section.cards.find(isGeneratedRoomCard) ||
+      (path==="securite"?section.cards.find(isSecurityRoomTitle):null);
   };
   const expectedDomain = (path,e,hass,devices,labels) => {
     const domain=e.entity_id.split(".")[0];
@@ -1215,11 +1221,9 @@
               if(section.cards.length)kept.push(section);
               continue;
             }
-            // Sécurité = titre texte seulement. Les autres rubriques
-            // conservent leurs cartes Area natives.
-            const wantedArea=path==="securite"
-              ?securityRoomTitle(orderedAreas.find(a=>a.area_id===areaId))
-              :roomCard({area_id:areaId},path);
+            // Restaurer partout la même carte Area native, sans commandes.
+            // Conserve la silhouette d'origine et remplace l'ancien titre Sécurité.
+            const wantedArea=roomCard({area_id:areaId});
             if(JSON.stringify(areaCard)!==JSON.stringify(wantedArea)){
               section.cards[section.cards.indexOf(areaCard)]=wantedArea;
               modified++;
