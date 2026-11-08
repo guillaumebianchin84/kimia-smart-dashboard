@@ -1,4 +1,4 @@
-/* KIMIA Smart — Zigbee ZHA, v0.2.
+/* KIMIA Smart — Zigbee ZHA, v0.3.
  * Appairage via action officielle zha.permit (60 s), aperçu des appareils,
  * renommage et affectation à une vraie pièce du registre Home Assistant.
  * ZHA + coordinateur requis ; aucun appairage automatique au chargement.
@@ -134,8 +134,14 @@
       this._message("Erreur : "+(error?.message||error?.code||String(error)),true);
     }
     _zhaDevicesFromRegistry() {
-      return this._devices.filter(d=>Array.isArray(d.identifiers)&&
-        d.identifiers.some(pair=>Array.isArray(pair)&&pair[0]==="zha"));
+      // Le coordinateur pilote le réseau : il n'est ni à nommer ni à affecter.
+      const coordinatorIeees=new Set(this._zigbee
+        .filter(node=>node.active_coordinator===true)
+        .map(node=>String(node.ieee||"").toLowerCase()));
+      return this._devices.filter(d=>
+        Array.isArray(d.identifiers) &&
+        d.identifiers.some(pair=>Array.isArray(pair)&&pair[0]==="zha") &&
+        !coordinatorIeees.has(this._ieee(d)));
     }
     _sortDevices(devices) {
       return [...devices].sort((a,b)=>
@@ -182,32 +188,48 @@
       const div=this._el("devices");
       div.replaceChildren();
       const list=this._sortDevices(this._zhaDevicesFromRegistry());
+      const scanning=Date.now()<this._endTime;
       if(!list.length) {
         const p=document.createElement("p");
         p.className="hint";
-        p.textContent="Aucun appareil ZHA enregistré.";
+        p.textContent="Aucun appareil à configurer. Le coordinateur Zigbee n'est pas affiché.";
         div.appendChild(p);
       }
-      for(const d of list) {
-        const item=document.createElement("div");
-        item.className="device";
-        const button=document.createElement("button");
-        button.type="button";
-        button.className="secondary";
-        const name=d.name_by_user||d.name||d.model||"Appareil Zigbee";
-        const area=this._areas.find(a=>a.area_id===d.area_id);
-        button.textContent=(this._newIds.has(d.id)?"NOUVEAU · ":"")+name+" · "+(area?.name||"Sans pièce");
-        button.addEventListener("click",()=>{
-          if(this._selectedId!==d.id)this._cancelRemove();
-          this._selectedId=d.id;
-          this._renderDevices();
-        });
-        item.appendChild(button);
-        div.appendChild(item);
+      // Les appareils déjà associés sont visibles pour les réglages, mais ne
+      // sont jamais présentés comme des résultats d'une nouvelle recherche.
+      const groups=[
+        ["Nouveaux appareils",list.filter(d=>this._newIds.has(d.id)),true],
+        ["Déjà connectés",list.filter(d=>!this._newIds.has(d.id)),false]
+      ];
+      for(const [heading,devices,isNew] of groups) {
+        if(!devices.length)continue;
+        const title=document.createElement("h3");
+        title.textContent=heading;
+        div.appendChild(title);
+        for(const d of devices) {
+          const item=document.createElement("div");
+          item.className="device";
+          const button=document.createElement("button");
+          button.type="button";
+          button.className="secondary";
+          button.disabled=scanning;
+          const name=d.name_by_user||d.name||d.model||"Appareil Zigbee";
+          const area=this._areas.find(a=>a.area_id===d.area_id);
+          button.textContent=(isNew?"NOUVEAU":"Déjà connecté")+" · "+name+
+            " · "+(area?.name||"Sans pièce");
+          button.addEventListener("click",()=>{
+            if(Date.now()<this._endTime)return;
+            if(this._selectedId!==d.id)this._cancelRemove();
+            this._selectedId=d.id;
+            this._renderDevices();
+          });
+          item.appendChild(button);
+          div.appendChild(item);
+        }
       }
-      const current=this._devices.find(d=>d.id===this._selectedId);
-      this._el("setup").hidden=!current||!list.some(d=>d.id===current.id);
-      if(!current){this._cancelRemove();return;}
+      const current=list.find(d=>d.id===this._selectedId);
+      this._el("setup").hidden=scanning||!current;
+      if(scanning||!current){this._cancelRemove();return;}
       const ieee=this._ieee(current);
       const node=this._zigbee.find(n=>String(n.ieee).toLowerCase()===ieee);
       const allowed=Boolean(this._zhaAvailable&&node&&node.active_coordinator===false);
@@ -284,6 +306,12 @@
       const remain=Math.max(0,Math.ceil((this._endTime-Date.now())/1000));
       const scanning=remain>0;
       this._el("permit").disabled=this._busy||!this._zhaAvailable||scanning;
+      // Ne jamais pouvoir renommer, déplacer ou retirer pendant l'association.
+      this._el("device-name").disabled=this._busy||scanning;
+      this._el("device-area").disabled=this._busy||scanning;
+      this._el("save").disabled=this._busy||scanning;
+      this._el("remove-start").disabled=this._busy||scanning;
+      this._el("remove-confirm").disabled=this._busy||scanning;
       this._el("scan-state").textContent=scanning?
         "Association ouverte : "+remain+" s restantes. "+this._newIds.size+" nouvel appareil(s) détecté(s)."
         :this._endTime?"Recherche terminée. Actualisez si nécessaire.":"Aucune recherche en cours.";
@@ -292,18 +320,23 @@
       if(!this._zhaAvailable||this._busy||Date.now()<this._endTime)return;
       this._beforeScan=new Set(this._zhaDevicesFromRegistry().map(d=>d.id));
       this._newIds.clear();
+      this._selectedId="";
+      this._cancelRemove();
       this._lock(true);
       try {
         // Action officielle Home Assistant, durée bornée à 60 secondes.
         await this._hass.callService("zha","permit",{duration:60});
         this._endTime=Date.now()+60000;
+        this._renderDevices();
         this._message("Recherche Zigbee démarrée. Passez maintenant l'appareil en mode appairage.");
         this._stopClock();
         this._clock=setInterval(()=>{
           this._updateScanUI();
           if(!this.isConnected){this._stopClock();return;}
-          if(Date.now()>this._endTime+15000){this._stopClock();return;}
           if(!this._busy)void this._refresh();
+          // Une dernière actualisation à 60 s, puis plus d'actualisation
+          // automatique susceptible d'écraser le nom en cours de saisie.
+          if(Date.now()>=this._endTime)this._stopClock();
         },5000);
       } catch(error) {
         this._error(error);
@@ -313,7 +346,7 @@
     }
     async _saveDevice(event) {
       event.preventDefault();
-      if(this._busy||!this._selectedId)return;
+      if(this._busy||Date.now()<this._endTime||!this._selectedId)return;
       const d=this._devices.find(x=>x.id===this._selectedId);
       if(!d)return;
       const name=this._el("device-name").value.trim();
@@ -333,6 +366,7 @@
           name_by_user:name,
           area_id:area
         });
+        this._newIds.delete(d.id);
         this._message("Appareil enregistré : "+name+".");
         if (window.KimiaSmartCore) {
           try { await window.KimiaSmartCore.sync(this._hass); }

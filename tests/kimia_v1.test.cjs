@@ -16,6 +16,8 @@ const entities=[
  {entity_id:"light.lampe",device_id:"d1"},
  {entity_id:"media_player.enceinte",device_id:"d1"},
  {entity_id:"switch.prise",device_id:"d2"},
+ {entity_id:"switch.prise_led_reseau",device_id:"d2",entity_category:"config",original_name:"LED réseau"},
+ {entity_id:"switch.prise_led_reseau_bis",device_id:"d2",original_name:"LED réseau"},
  {entity_id:"cover.volet",device_id:"d2"},
  {entity_id:"climate.clim",device_id:"d2"},
  {entity_id:"sensor.batterie",device_id:"d1"},
@@ -121,12 +123,28 @@ async function main(){
  assert(roomSection("pieces","cuisine"));
  assert(!roomSection("musique","cuisine"),"Ne pas créer une rubrique vide");
  assert(!JSON.stringify(config).includes("light.desactivee"));
+ assert(!JSON.stringify(config).includes("switch.prise_led_reseau"),
+  "Les réglages LED réseau ne doivent pas créer de faux boutons de prise");
+ const prise=roomSection("prises","cuisine").cards.find(c=>c.entity==="switch.prise");
+ assert.equal(prise.tap_action.action,"toggle","La prise bascule directement au toucher");
+ assert.equal(prise.hold_action.action,"more-info","La fiche reste disponible par appui long");
 
  const saves=saveCount;
  const again=await window.KimiaSmartCore.sync(hass);
  assert.equal(again.added,0);
  assert.equal(again.removed,0);
  assert.equal(saveCount,saves,"Synchronisation idempotente");
+
+ // Ancienne tuile KIMIA générée sans action directe : migration ciblée.
+ delete prise.tap_action;
+ delete prise.hold_action;
+ const migrated=await window.KimiaSmartCore.sync(hass);
+ assert(migrated.modified>=1,"Une ancienne tuile de prise est migrée");
+ assert.equal(roomSection("prises","cuisine").cards.find(c=>
+  c.entity==="switch.prise").tap_action.action,"toggle");
+ const settled=saveCount;
+ await window.KimiaSmartCore.sync(hass);
+ assert.equal(saveCount,settled,"La migration reste idempotente");
 
  // Ajouter un nouvel appareil : carte dans son onglet, sans toucher à Accueil.
  entities.push({entity_id:"light.liseuse",device_id:"d1"});

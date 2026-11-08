@@ -24,6 +24,19 @@
   const entityName = (entity, hass) =>
     hass.states?.[entity.entity_id]?.attributes?.friendly_name ||
     entity.name || entity.original_name || entity.entity_id;
+  // Les réglages du matériel (ex. "LED réseau") ne sont pas des commandes
+  // d'équipement à proposer à l'habitant. Ils restent dans Home Assistant.
+  const isClientEntity = (e,hass) => {
+    const category=e.entity_category ||
+      hass.states?.[e.entity_id]?.attributes?.entity_category;
+    if(category==="config"||category==="diagnostic")return false;
+    if(e.entity_id.startsWith("switch.")) {
+      const label=[e.original_name,e.name,entityName(e,hass)].filter(Boolean).join(" ");
+      if(/(?:led|voyant)\s*(?:de\s*)?(?:réseau|network|status)/i.test(label))
+        return false;
+    }
+    return true;
+  };
   const tile = e => {
     const x = {
       type: "tile",
@@ -34,6 +47,17 @@
     // Ne jamais appliquer de fonctions incompatibles aux entités.
     if (e.entity_id.startsWith("light.")) x.features = [{ type: "light-brightness" }];
     if (e.entity_id.startsWith("cover.")) x.features = [{ type: "cover-open-close" }];
+    if (e.entity_id.startsWith("switch.")) {
+      // Un appui actionne la vraie prise; appui long = fiche détaillée.
+      x.tap_action = { action: "toggle" };
+      x.hold_action = { action: "more-info" };
+    }
+    return x;
+  };
+  const legacyTile = e => {
+    const x=tile(e);
+    delete x.tap_action;
+    delete x.hold_action;
     return x;
   };
   const heading = (label, icon = "mdi:home-outline") => ({
@@ -119,9 +143,13 @@
 
   // Ne retirer que les tuiles à la forme strictement identique à celles
   // produites par KIMIA. Une tuile personnalisée ne doit pas être effacée.
-  const isGeneratedTile = card =>
+  const isLegacyGeneratedTile = card =>
     card?.type === "tile" && typeof card.entity === "string" &&
-    JSON.stringify(card) === JSON.stringify(safeClone(tile({entity_id:card.entity})));
+    JSON.stringify(card) === JSON.stringify(safeClone(legacyTile({entity_id:card.entity})));
+  const isGeneratedTile = card =>
+    isLegacyGeneratedTile(card) ||
+    (card?.type === "tile" && typeof card.entity === "string" &&
+     JSON.stringify(card) === JSON.stringify(safeClone(tile({entity_id:card.entity}))));
   // Une carte Pièce n'est gérée par KIMIA que si toutes ses options sont intactes.
   // Les variantes personnalisées doivent rester sous contrôle de l'habitant.
   const isGeneratedRoomCard = card => {
@@ -736,7 +764,8 @@
         const byArea = new Map(orderedAreas.map(a => [a.area_id, []]));
         for (const e of entities) {
           if (!e.entity_id || e.disabled_by || e.hidden_by ||
-              !SUPPORTED.has(e.entity_id.split(".")[0])) continue;
+              !SUPPORTED.has(e.entity_id.split(".")[0]) ||
+              !isClientEntity(e,hass)) continue;
           const area = getArea(e, mapDevices);
           if (!byArea.has(area)) continue;
           byArea.get(area).push(e);
@@ -843,6 +872,15 @@
             section.cards=section.cards.filter(c=>
               !isGeneratedTile(c) || entitiesWanted.has(c.entity));
             removed+=tileCount-section.cards.length;
+            // Migrer uniquement nos anciennes tuiles de prise intactes.
+            // Une tuile modifiée par un habitant n'est jamais réécrite.
+            for(let i=0;i<section.cards.length;i++){
+              const card=section.cards[i];
+              if(card?.entity?.startsWith("switch.") && isLegacyGeneratedTile(card)){
+                section.cards[i]=tile({entity_id:card.entity});
+                modified++;
+              }
+            }
             kept.push(section);
           }
           view.sections=kept;

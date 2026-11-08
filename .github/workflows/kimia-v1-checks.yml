@@ -43,6 +43,7 @@ jobs:
           node --check www/kimia-routine-engine-v16.js
           node --check www/kimia-routine-editor-v16-card.js
           node tests/kimia_v1.test.cjs
+          node tests/kimia_zigbee_v1.test.cjs
           node tests/kimia_v14.test.cjs
           node tests/kimia_v15_admin.test.cjs
           node tests/kimia_v15_profiles.test.cjs
