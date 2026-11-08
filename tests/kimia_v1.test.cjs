@@ -145,8 +145,10 @@ async function main(){
  assert(!JSON.stringify(config).includes("switch.prise_led_reseau"),
   "Les réglages LED réseau ne doivent pas créer de faux boutons de prise");
  const prise=roomSection("prises","cuisine").cards.find(c=>c.entity==="switch.prise");
- assert.equal(prise.tap_action.action,"toggle","La prise bascule directement au toucher");
- assert.equal(prise.hold_action.action,"more-info","La fiche reste disponible par appui long");
+ assert.equal(prise.type,"custom:kimia-safe-tile-v1-card");
+ assert.equal(prise.card.type,"tile","La vraie tuile HA est conservée");
+ assert.equal(prise.card.tap_action.action,"toggle","La prise bascule directement au toucher");
+ assert.equal(prise.card.hold_action.action,"more-info","La fiche reste disponible par appui long");
  assert.equal(prise.grid_options.columns,12,"Une seule prise par ligne native");
 
  // Une prise classée Éclairage figure dans Lumières ET Prises.
@@ -157,12 +159,12 @@ async function main(){
  const climate=roomSection("climatisation","salon");
  assert(climate.cards.some(c=>c.entity==="switch.ventilateur"));
  const climatePlug=climate.cards.find(c=>c.entity==="switch.clim_prise");
- assert.equal(climatePlug.tap_action.action,"more-info",
+ assert.equal(climatePlug.card.tap_action.action,"more-info",
   "Éviter une coupure secteur de clim en un seul toucher");
- assert.equal(climatePlug.icon_tap_action.action,"more-info");
+ assert.equal(climatePlug.card.icon_tap_action.action,"more-info");
  assert(roomSection("prises","salon").cards.some(c=>c.entity==="switch.clim_prise"));
  assert.equal(roomSection("prises","salon").cards.find(c=>
-  c.entity==="switch.clim_prise").tap_action.action,"more-info");
+  c.entity==="switch.clim_prise").card.tap_action.action,"more-info");
 
  // Création conditionnelle de l'onglet Eau pour un surpresseur.
  assert(view("eau"),"Onglet Eau créé dès qu'un surpresseur est déclaré");
@@ -185,16 +187,15 @@ async function main(){
  assert.equal(again.removed,0);
  assert.equal(saveCount,saves,"Synchronisation idempotente");
 
- // Simuler une tuile réellement héritée de la première version KIMIA.
- const legacyPrise=roomSection("prises","cuisine").cards.find(c=>
-  c.entity==="switch.prise");
- legacyPrise.grid_options={columns:6,rows:1};
- delete legacyPrise.tap_action;
- delete legacyPrise.hold_action;
+ // Simuler une ancienne tuile native de KIMIA avant le wrapper.
+ const cuisineCards=roomSection("prises","cuisine").cards;
+ const oldIdx=cuisineCards.findIndex(c=>c.entity==="switch.prise");
+ cuisineCards[oldIdx]={type:"tile",entity:"switch.prise",
+  name:undefined,grid_options:{columns:6,rows:1}};
  const migrated=await window.KimiaSmartCore.sync(hass);
  assert(migrated.modified>=1,"Une ancienne tuile de prise est migrée");
  assert.equal(roomSection("prises","cuisine").cards.find(c=>
-  c.entity==="switch.prise").tap_action.action,"toggle");
+  c.entity==="switch.prise").card.tap_action.action,"toggle");
  const settled=saveCount;
  await window.KimiaSmartCore.sync(hass);
  assert.equal(saveCount,settled,"La migration reste idempotente");
@@ -214,11 +215,11 @@ async function main(){
 
  // Préserver les tuiles modifiées par l'utilisateur.
  const custom=roomSection("lumieres","salon").cards.find(c=>c.entity==="light.lampe");
- custom.name="Lampe personnalisée";
+ custom.card.name="Lampe personnalisée";
  devices.find(d=>d.id==="d1").area_id=null;
  await window.KimiaSmartCore.sync(hass);
  assert(cards(view("lumieres")).some(c=>
-  c.entity==="light.lampe"&&c.name==="Lampe personnalisée"),
+  c.entity==="light.lampe"&&c.card?.name==="Lampe personnalisée"),
   "Une tuile personnalisée doit être préservée même si la section change");
 
  // Supprimer Cuisine, puis Salon : aucune pièce orpheline.
@@ -228,7 +229,7 @@ async function main(){
  await window.KimiaSmartCore.sync(hass);
  assert(!cards(view("pieces")).some(c=>c.type==="area"),
   "Une pièce supprimée ne subsiste pas");
- assert(cards(view("lumieres")).some(c=>c.name==="Lampe personnalisée"),
+ assert(cards(view("lumieres")).some(c=>c.card?.name==="Lampe personnalisée"),
   "La personnalisation reste intacte après suppression de pièce");
  await assert.rejects(window.KimiaSmartCore.sync({...hass,user:{is_admin:false}}),/administrateur/);
  console.log("KIMIA V1.3 OK : accueil réservé, titres de vues, salles 12/12, tuiles, déplacements, suppressions et préservation.");
