@@ -194,7 +194,8 @@ async function main(){
   assert.equal(area.features.length,0,"Aucune commande de pièce sur "+page);
   assert.equal(area.grid_options.columns,12,"Largeur native 12 sur "+page);
   assert.equal(area.grid_options.rows,2,"Hauteur native de l'ancien cadre conservée sur "+page);
-  assert.equal(area.tap_action.action,"navigate","Navigation du cadre conservée sur "+page);
+  assert.equal(area.tap_action.action,"none","Aucun clic sur la carte Pièce dans "+page);
+  assert.equal(area.features.length,0,"Aucune commande générale dans "+page);
  }
  for(const page of ["pieces","lumieres","volets","climatisation","prises","musique","securite","eau"]){
   for(const card of cards(view(page)).filter(c=>c.type==="custom:kimia-safe-tile-v1-card")){
@@ -217,6 +218,18 @@ async function main(){
  assert(noControl.modified>=1,"Ancien bouton de pièce retiré dans Sécurité");
  assert.equal(roomSection("securite","salon").cards[0].type,"area");
  assert.equal(roomSection("securite","salon").cards[0].features.length,0);
+ assert.equal(roomSection("securite","salon").cards[0].grid_options.rows,2);
+ assert.equal(roomSection("securite","salon").cards[0].tap_action.action,"none");
+ 
+ // L'ancienne version avec même cadre, mais clic de navigation, doit
+ // devenir NON cliquable sans altérer son gabarit.
+ const oldClickable={...roomSection("securite","salon").cards[0],
+  tap_action:{action:"navigate",navigation_path:"/kimia-next/pieces"}};
+ roomSection("securite","salon").cards[0]=oldClickable;
+ const migratedClick=await window.KimiaSmartCore.sync(hass);
+ assert(migratedClick.modified>=1,"L'ancien clic est supprimé");
+ assert.equal(roomSection("securite","salon").cards[0].tap_action.action,"none");
+ assert.equal(roomSection("securite","salon").cards[0].display_type,"compact");
  assert.equal(roomSection("securite","salon").cards[0].grid_options.rows,2);
  
  const prisesArea=roomSection("prises","salon").cards;

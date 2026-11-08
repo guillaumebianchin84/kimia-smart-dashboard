@@ -362,12 +362,16 @@
     features: [],
     features_position: "bottom",
     grid_options: { columns: 12, rows: 2 },
-    tap_action: { action: "navigate", navigation_path: "/kimia-next/pieces" }
+    tap_action: { action: "none" }
   });
-  // Formats KIMIA précédents, identifiés strictement pour migrer
-  // le bouton général "area-controls" sans modifier les cartes utilisateur.
-  const previousRoomCard = (area,path="") => ({
+  // Reconnaître strictement les versions publiées avec un clic de navigation,
+  // pour les migrer vers une carte non interactive sans toucher à son apparence.
+  const oldNavigableRoomCard=area=>({
     ...roomCard(area),
+    tap_action:{action:"navigate",navigation_path:"/kimia-next/pieces"}
+  });
+  const previousRoomCard = (area,path="") => ({
+    ...oldNavigableRoomCard(area),
     features:["securite","eau","climatisation"].includes(path)
       ?[]:[{type:"area-controls"}],
     grid_options:{columns:12,rows:"auto"}
@@ -463,7 +467,7 @@
   const isGeneratedRoomCard = card => {
     if(card?.type!=="area"||typeof card.area!=="string")return false;
     const area={area_id:card.area};
-    const variants=[roomCard(area)];
+    const variants=[roomCard(area),oldNavigableRoomCard(area)];
     for(const path of ["","securite","eau","climatisation"]){
       const old=previousRoomCard(area,path);
       variants.push(old,{...old,grid_options:{columns:6,rows:"auto"}});
