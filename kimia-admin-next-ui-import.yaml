@@ -278,34 +278,7 @@ views:
       - type: grid
         column_span: 2
         cards:
-          - type: heading
-            heading: Mes habitudes
-            heading_style: title
-            icon: mdi:lightning-bolt
-          - type: markdown
-            content: >-
-              Associez les boutons Au lit, Départ, Retour, Réveil et les ambiances à vos routines, sans manipuler de codes.
-
-      - type: grid
-        column_span: 2
-        cards:
-          - type: custom:kimia-routine-editor-v16-card
+          - type: custom:kimia-studio-v2-admin-card
             grid_options:
               columns: full
               rows: auto
-      - type: grid
-        column_span: 2
-        cards:
-          - type: custom:kimia-scenarios-v1-card
-            grid_options:
-              columns: full
-              rows: auto
-      - type: grid
-        cards:
-          - type: shortcut
-            label: Tester sur mon Accueil
-            icon: mdi:gesture-tap-button
-            color: teal
-            tap_action:
-              action: navigate
-              navigation_path: /kimia-next/accueil
