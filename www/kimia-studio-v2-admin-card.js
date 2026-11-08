@@ -195,7 +195,7 @@ class Studio extends HTMLElement{
   this._preset=key;this._editing=null;this._draft=H().create(p[1]);this._draft.alias=p[2].includes(" libre")?"":p[2];
   if(p[1]==="automation")this._draft.triggers=[H().trigger(key==="evening"?"sun":key==="energy"?"numeric_state":"time")];
   this._selected=new Set();this._area="*";this._query="";this._step=1;
-  this._addHomeOnSave=p[1]==="script";this._appearanceOpen=false;this._icon=key==="night"?"mdi:weather-night":key==="departure"?"mdi:door-open":key==="arrival"?"mdi:home-outline":key==="morning"?"mdi:weather-sunny":"mdi:home-outline";
+  this._addHomeOnSave=p[1]==="script";this._appearanceOpen=false;this._icon=p[1]==="automation"?"mdi:robot-outline":key==="night"?"mdi:weather-night":key==="departure"?"mdi:door-open":key==="arrival"?"mdi:home-outline":"mdi:home-outline";
   this._color=key==="night"?"purple":key==="departure"?"amber":key==="arrival"?"green":"blue";this._notice="";this._draw();
  }
  _wizard(){
@@ -216,10 +216,9 @@ class Studio extends HTMLElement{
    this._B("Annuler","home","small")+'</div>'+
    '<div class="editor-title"><span class="routine-avatar" style="--avatar-color:'+shade+'">'+this._I(icon)+'</span>'+
    '<div style="flex:1"><label class="fieldlabel">Nom de la routine<input id="draft-name" maxlength="70" type="text" placeholder="Ex. Bonne nuit" value="'+e(d.alias)+'" /></label></div></div>'+
-   '<details class="simple-section" '+(this._appearanceOpen?"open":"")+'><summary><strong>Personnaliser l’icône et la couleur</strong> <span class="section-badge">Facultatif</span></summary>'+
+   (d.kind==="script"?'<details class="simple-section" '+(this._appearanceOpen?"open":"")+'><summary><strong>Personnaliser l’icône et la couleur</strong> <span class="section-badge">Facultatif</span></summary>'+
    '<div class="section-title">Choisir une icône</div><div class="icon-picker">'+picker+'</div>'+
-   (d.kind==="script"?'<div class="section-title">Couleur du bouton d’accueil</div><div class="color-picker">'+colors+'</div>':"")+
-   '</details>'+
+   '<div class="section-title">Couleur du bouton d’accueil</div><div class="color-picker">'+colors+'</div></details>':"")+
    '<div class="simple-section"><h3>SI · Quand ?</h3>'+this._conditionsStep()+'</div>'+
    '<div class="simple-section"><h3>ALORS · Que fait la maison ?</h3>'+this._actionsStep()+'</div>'+
    (d.kind==="script"?'<div class="simple-section"><label style="display:flex;align-items:center;gap:12px;cursor:pointer">'+
@@ -801,7 +800,7 @@ class Studio extends HTMLElement{
   const editing=this._editing;
   const id=editing?.id||(d.kind==="script"?"ks_":"kimia_")+H().slug(d.alias)+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,6);
   let payload;
-  try{payload=H().serialize(d,id);if(validIcon(this._icon))payload.icon=this._icon;}
+  try{payload=H().serialize(d,id);if(d.kind==="script"&&validIcon(this._icon))payload.icon=this._icon;}
   catch(err){return this._msg("Configuration incomplète : "+(err?.message||err),true);}
   const url="config/"+d.kind+"/config/"+encodeURIComponent(id);
   this._busy=true;this._notice="";this._draw();
