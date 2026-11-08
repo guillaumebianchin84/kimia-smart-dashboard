@@ -21,6 +21,7 @@ on:
       - fix/kimia-carte-piece-aucun-clic-20261108
       - fix/kimia-routines-suppression-directe-20261108
       - feat/kimia-studio-v2-fusion-routines-20261108
+      - feat/kimia-routines-simple-if-button-20261108
   workflow_dispatch:
 jobs:
   check:
@@ -60,6 +61,7 @@ jobs:
           node tests/kimia_v15_review.test.cjs
           node tests/kimia_v16_routines.test.cjs
           node tests/kimia_studio_v2_fusion.test.cjs
+          node tests/kimia_studio_v2_simple_if.test.cjs
           node tests/kimia_home_shortcuts.test.cjs
           node tests/kimia_inventory_v1.test.cjs
           node tests/kimia_header_toggle_v1.test.cjs
