@@ -34,6 +34,7 @@ const hass={user:{is_admin:true},states:{},callWS:async request=>{
   case "config/area_registry/list":
   case "config/device_registry/list":
   case "config/entity_registry/list":return [];
+  case "config/label_registry/list":return [];
   case "lovelace/config":return clone(cfg);
   case "lovelace/config/save":
    assert.equal(request.url_path,"kimia-next");cfg=clone(request.config);writes++;return {};

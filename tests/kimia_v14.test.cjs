@@ -17,6 +17,7 @@ const hass={user:{is_admin:true},states:{"todo.shopping_list":{state:"0"}},callW
   case "config/area_registry/list":return [];
   case "config/device_registry/list":return [];
   case "config/entity_registry/list":return [];
+  case "config/label_registry/list":return [];
   case "lovelace/config":return clone(cfg);
   case "lovelace/config/save":
    assert.equal(r.url_path,"kimia-next");cfg=clone(r.config);writes++;return {};

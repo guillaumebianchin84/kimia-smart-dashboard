@@ -14,6 +14,7 @@ on:
       - fix/kimia-v162-admin-header-20261026
       - fix/kimia-v163-themes-cartes-natives-20261026
       - feat/kimia-v17-maquette-areas-acl-20261026
+      - feat/kimia-usages-prises-et-cartes-20261108
   workflow_dispatch:
 jobs:
   check:

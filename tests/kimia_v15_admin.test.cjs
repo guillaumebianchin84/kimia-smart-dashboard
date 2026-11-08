@@ -28,6 +28,7 @@ const hass={user:{is_admin:true},states:{},callWS:async q=>{
   case "config/area_registry/list":
   case "config/device_registry/list":
   case "config/entity_registry/list":return [];
+  case "config/label_registry/list":return [];
   case "config/auth/list":return [{id:"user_parent",name:"Parent",is_active:true}];
   case "lovelace/config":
    return clone(q.url_path==="kimia-next"?c:a);

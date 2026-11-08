@@ -11,13 +11,31 @@ vm.runInNewContext(source,{window,CustomEvent});
 
 const clone=x=>JSON.parse(JSON.stringify(x));
 const rooms=[{area_id:"salon",name:"Salon"},{area_id:"cuisine",name:"Cuisine"}];
-const devices=[{id:"d1",area_id:"salon"},{id:"d2",area_id:"cuisine"}];
+const devices=[
+ {id:"d1",area_id:"salon"},
+ {id:"d2",area_id:"cuisine"},
+ {id:"d3",area_id:"salon",labels:["kimia_lampe"]},
+ {id:"d4",area_id:"salon",labels:["kimia_surpresseur"]},
+ {id:"d5",area_id:"salon",labels:["kimia_clim"]},
+ {id:"d6",area_id:"salon",labels:["kimia_ventilateur"]}
+];
+const labels=[
+ {label_id:"kimia_lampe",name:"KIMIA · usage · Lampe"},
+ {label_id:"kimia_surpresseur",name:"KIMIA · usage · Surpresseur"},
+ {label_id:"kimia_clim",name:"KIMIA · usage · Climatisation"},
+ {label_id:"kimia_ventilateur",name:"KIMIA · usage · Ventilateur"}
+];
 const entities=[
  {entity_id:"light.lampe",device_id:"d1"},
  {entity_id:"media_player.enceinte",device_id:"d1"},
  {entity_id:"switch.prise",device_id:"d2"},
  {entity_id:"switch.prise_led_reseau",device_id:"d2",entity_category:"config",original_name:"LED réseau"},
  {entity_id:"switch.prise_led_reseau_bis",device_id:"d2",original_name:"LED réseau"},
+ {entity_id:"switch.lampe_sur_prise",device_id:"d3"},
+ {entity_id:"switch.pompe_eau",device_id:"d4"},
+ {entity_id:"switch.clim_prise",device_id:"d5"},
+ {entity_id:"switch.ventilateur",device_id:"d6"},
+ {entity_id:"binary_sensor.presence_salon",device_id:"d1"},
  {entity_id:"cover.volet",device_id:"d2"},
  {entity_id:"climate.clim",device_id:"d2"},
  {entity_id:"sensor.batterie",device_id:"d1"},
@@ -73,13 +91,14 @@ for (const path of ["pieces","musique"]) {
 let config=clone(original),saveCount=0,lastPath=null;
 const hass={
  user:{is_admin:true},
- states:{},
+ states:{"binary_sensor.presence_salon":{state:"on",attributes:{device_class:"motion"}}},
  callWS:async request=>{
   switch(request.type){
    case "lovelace/dashboards/list":return [{url_path:"kimia-next",mode:"storage"}];
    case "config/area_registry/list":return clone(rooms);
    case "config/device_registry/list":return clone(devices);
    case "config/entity_registry/list":return clone(entities);
+   case "config/label_registry/list":return clone(labels);
    case "lovelace/config":return clone(config);
    case "lovelace/config/save":
     lastPath=request.url_path;saveCount++;config=clone(request.config);return {};
@@ -128,6 +147,37 @@ async function main(){
  const prise=roomSection("prises","cuisine").cards.find(c=>c.entity==="switch.prise");
  assert.equal(prise.tap_action.action,"toggle","La prise bascule directement au toucher");
  assert.equal(prise.hold_action.action,"more-info","La fiche reste disponible par appui long");
+ assert.equal(prise.grid_options.columns,12,"Une seule prise par ligne native");
+
+ // Une prise classée Éclairage figure dans Lumières ET Prises.
+ assert(roomSection("lumieres","salon").cards.some(c=>c.entity==="switch.lampe_sur_prise"));
+ assert(roomSection("prises","salon").cards.some(c=>c.entity==="switch.lampe_sur_prise"));
+
+ // Ventilateur et alimentation de clim dans Climatisation ET Prises.
+ const climate=roomSection("climatisation","salon");
+ assert(climate.cards.some(c=>c.entity==="switch.ventilateur"));
+ const climatePlug=climate.cards.find(c=>c.entity==="switch.clim_prise");
+ assert.equal(climatePlug.tap_action.action,"more-info",
+  "Éviter une coupure secteur de clim en un seul toucher");
+ assert.equal(climatePlug.icon_tap_action.action,"more-info");
+ assert(roomSection("prises","salon").cards.some(c=>c.entity==="switch.clim_prise"));
+ assert.equal(roomSection("prises","salon").cards.find(c=>
+  c.entity==="switch.clim_prise").tap_action.action,"more-info");
+
+ // Création conditionnelle de l'onglet Eau pour un surpresseur.
+ assert(view("eau"),"Onglet Eau créé dès qu'un surpresseur est déclaré");
+ assert(roomSection("eau","salon").cards.some(c=>c.entity==="switch.pompe_eau"));
+ assert(roomSection("prises","salon").cards.some(c=>c.entity==="switch.pompe_eau"));
+ assert(cards(view("eau")).some(c=>c.type==="custom:navbar-card"));
+ assert(cards(view("prises")).some(c=>c.routes?.some(r=>r.url==="/kimia-next/eau")));
+
+ // Sécurité n'a plus de commande collective pour tous les appareils.
+ const security=roomSection("securite","salon");
+ const securityArea=security.cards.find(c=>c.type==="area");
+ assert.equal(securityArea.features.length,0);
+ assert.equal(security.cards.find(c=>
+  c.entity==="binary_sensor.presence_salon").grid_options.columns,12);
+ assert.equal(roomSection("climatisation","salon").cards[0].features.length,0);
 
  const saves=saveCount;
  const again=await window.KimiaSmartCore.sync(hass);
@@ -135,9 +185,12 @@ async function main(){
  assert.equal(again.removed,0);
  assert.equal(saveCount,saves,"Synchronisation idempotente");
 
- // Ancienne tuile KIMIA générée sans action directe : migration ciblée.
- delete prise.tap_action;
- delete prise.hold_action;
+ // Simuler une tuile réellement héritée de la première version KIMIA.
+ const legacyPrise=roomSection("prises","cuisine").cards.find(c=>
+  c.entity==="switch.prise");
+ legacyPrise.grid_options={columns:6,rows:1};
+ delete legacyPrise.tap_action;
+ delete legacyPrise.hold_action;
  const migrated=await window.KimiaSmartCore.sync(hass);
  assert(migrated.modified>=1,"Une ancienne tuile de prise est migrée");
  assert.equal(roomSection("prises","cuisine").cards.find(c=>

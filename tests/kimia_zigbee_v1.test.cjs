@@ -89,17 +89,58 @@ async function main(){
   assert.equal(card._el("setup").hidden,false,"Formulaire réouvert après scan");
   assert.equal(card._el("save").disabled,false,"Enregistrement déverrouillé");
 
-  let update=null;
-  card._hass={callWS:async message=>{update=message;}};
-  card._refresh=async()=>{};
+  // Une prise présente un choix d'utilisation, pas le détecteur de présence.
+  card._entities=[{entity_id:"switch.prise_salon",device_id:"prise",original_name:"Prise"}];
+  card._labels=[{label_id:"autre_label",name:"Étiquette personnelle"}];
+  card._devices.find(d=>d.id==="prise").labels=["autre_label"];
   card._selectedId="prise";
+  card._renderDevices();
+  assert.equal(card._el("usage-field").hidden,false,"Usage proposé pour une vraie prise");
+  card._selectedId="presence";
+  card._renderDevices();
+  assert.equal(card._el("usage-field").hidden,true,"Usage absent du capteur");
+  card._selectedId="prise";
+  card._renderDevices();
+
+  const labels=[...card._labels];
+  let update=null,createCount=0;
+  card._hass={callWS:async message=>{
+    switch(message.type) {
+      case "config/device_registry/list":return card._devices;
+      case "config/label_registry/list":return labels;
+      case "config/label_registry/create": {
+        createCount++;
+        const item={label_id:"kimia_lampe",name:message.name};
+        labels.push(item);
+        return item;
+      }
+      case "config/device_registry/update":
+        update=message;
+        card._devices.find(d=>d.id===message.device_id).labels=[...message.labels];
+        return {};
+      default:throw Error("Commande inattendue : "+message.type);
+    }
+  }};
+  card._refresh=async()=>{};
   card._el("device-name").value="Prise salon";
   card._el("device-area").value="salon";
+  card._el("device-usage").value="lampe";
   await card._saveDevice({preventDefault(){}});
   assert.equal(update.type,"config/device_registry/update");
   assert.equal(update.name_by_user,"Prise salon");
   assert.equal(update.area_id,"salon");
+  assert(update.labels.includes("autre_label"),"Conserver étiquettes non-KIMIA");
+  assert(update.labels.includes("kimia_lampe"),"Usage Lampe enregistré");
+  assert.equal(createCount,1,"Label usage créé seulement au premier besoin");
   assert.equal(card._newIds.has("prise"),false,"Appareil enregistré déplacé dans Déjà connectés");
+
+  // Réaffecter la même prise à Autre ne détruit pas les autres étiquettes.
+  card._labels=labels;
+  card._el("device-usage").value="autre";
+  await card._saveDevice({preventDefault(){}});
+  // Ramener l'Array issu du contexte vm vers le contexte du test Node.
+  assert.deepEqual(Array.from(update.labels),["autre_label"],
+    "Seul le label KIMIA a été retiré");
   console.log("KIMIA Zigbee : coordinateur exclu, groupes, verrouillage et enregistrement OK");
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

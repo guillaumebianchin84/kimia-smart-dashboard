@@ -43,6 +43,7 @@ const hass={user:{is_admin:true,id:"admin"},
    case "config/area_registry/list":return clone(areas);
    case "config/device_registry/list":return clone(devices);
    case "config/entity_registry/list":return clone(entities);
+   case "config/label_registry/list":return [];
    case "config/auth/list":return clone(accounts);
    case "lovelace/config":return clone(q.url_path==="kimia-next"?client:admin);
    case "lovelace/config/save":
