@@ -212,7 +212,7 @@ async function main(){
  assert(fromHeading.modified>=1,"Ancien titre Sécurité restauré en carte Area");
  assert.equal(roomSection("securite","salon").cards[0].type,"area");
  assert.equal(roomSection("securite","salon").cards[0].features.length,0);
- securityCards[0]=clone(existingArea);
+ roomSection("securite","salon").cards[0]=clone(existingArea);
  const noControl=await window.KimiaSmartCore.sync(hass);
  assert(noControl.modified>=1,"Ancien bouton de pièce retiré dans Sécurité");
  assert.equal(roomSection("securite","salon").cards[0].type,"area");
