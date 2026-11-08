@@ -6,6 +6,13 @@
 (() => {
   "use strict";
   const TAG="kimia-zigbee-manager-v1-card";
+  // Noms strictement partagés avec le moteur KIMIA (labels natifs Home Assistant).
+  const USE_LABELS={
+    lampe:"KIMIA · usage · Lampe",
+    surpresseur:"KIMIA · usage · Surpresseur",
+    clim:"KIMIA · usage · Climatisation",
+    ventilateur:"KIMIA · usage · Ventilateur"
+  };
   if(customElements.get(TAG))return;
 
   class KimiaZigbeeManagerCard extends HTMLElement {
@@ -18,6 +25,8 @@
       this._devices=[];
       this._areas=[];
       this._zigbee=[];
+      this._entities=[];
+      this._labels=[];
       this._selectedId="";
       this._beforeScan=new Set();
       this._newIds=new Set();
@@ -94,6 +103,15 @@
         '<form id="setup-form" class="fields">',
         '<label>Nom de l’appareil<input id="device-name" maxlength="80" required placeholder="Prise TV, Lampe salon…"></label>',
         '<label>Pièce<select id="device-area"></select></label>',
+        '<label id="usage-field" hidden>Utilisation de la prise',
+        '<select id="device-usage">',
+        '<option value="autre">Autre appareil (Prises uniquement)</option>',
+        '<option value="lampe">Lampe / éclairage (+ Lumières)</option>',
+        '<option value="surpresseur">Surpresseur (+ Eau)</option>',
+        '<option value="clim">Climatisation (+ Climatisation)</option>',
+        '<option value="ventilateur">Ventilateur (+ Climatisation)</option>',
+        '</select></label>',
+        '<p id="usage-info" class="hint" hidden></p>',
         '<button type="submit" id="save">Enregistrer</button></form>',
         '<p class="hint">Vous pouvez créer les pièces dans l’onglet précédent.</p>',
         '<button id="remove-start" type="button" class="danger" hidden>Supprimer cet appareil Zigbee</button>',
@@ -109,6 +127,7 @@
       this._el("refresh").addEventListener("click",()=>void this._refresh());
       this._el("permit").addEventListener("click",()=>void this._permit());
       this._el("setup-form").addEventListener("submit",e=>void this._saveDevice(e));
+      this._el("device-usage").addEventListener("change",()=>this._usageHint());
       this._el("remove-start").addEventListener("click",()=>this._prepareRemove());
       this._el("remove-cancel").addEventListener("click",()=>this._cancelRemove());
       this._el("remove-confirm").addEventListener("click",()=>void this._removeDevice());
@@ -143,6 +162,32 @@
         d.identifiers.some(pair=>Array.isArray(pair)&&pair[0]==="zha") &&
         !coordinatorIeees.has(this._ieee(d)));
     }
+    _isControllablePlug(deviceId) {
+      return this._entities.some(e=>
+        e.device_id===deviceId && e.entity_id?.startsWith("switch.") &&
+        !e.disabled_by && !e.hidden_by &&
+        e.entity_category!=="config" && e.entity_category!=="diagnostic" &&
+        !/(?:led|voyant)\\s*(?:de\\s*)?(?:réseau|network|status)/i.test(
+          [e.name,e.original_name].filter(Boolean).join(" ")));
+    }
+    _deviceUsage(device) {
+      const ids=new Set(Array.isArray(device?.labels)?device.labels:[]);
+      for(const [usage,name] of Object.entries(USE_LABELS)) {
+        if(this._labels.some(label=>label.name===name&&ids.has(label.label_id)))
+          return usage;
+      }
+      return "autre";
+    }
+    _usageHint() {
+      const type=this._el("device-usage").value;
+      const hint=this._el("usage-info");
+      hint.hidden=!["clim","surpresseur"].includes(type);
+      hint.textContent=type==="clim"
+        ?"Attention : une prise ne commande que l'alimentation électrique, jamais la température. Une coupure secteur peut endommager une climatisation. KIMIA désactive le basculement direct de cette prise."
+        :type==="surpresseur"
+          ?"Vérifiez que la prise, le câblage et la protection sont adaptés au courant de démarrage du moteur. Utilisez un contacteur adapté si nécessaire."
+          :"";
+    }
     _sortDevices(devices) {
       return [...devices].sort((a,b)=>
         String(a.name_by_user||a.name||a.model||a.id).localeCompare(
@@ -152,12 +197,16 @@
       if(this._busy||!this._hass)return;
       this._lock(true);
       try {
-        const [devices,areas]=await Promise.all([
+        const [devices,areas,entities,labels]=await Promise.all([
           this._hass.callWS({type:"config/device_registry/list"}),
-          this._hass.callWS({type:"config/area_registry/list"})
+          this._hass.callWS({type:"config/area_registry/list"}),
+          this._hass.callWS({type:"config/entity_registry/list"}),
+          this._hass.callWS({type:"config/label_registry/list"})
         ]);
         this._devices=devices;
         this._areas=areas;
+        this._entities=entities;
+        this._labels=labels;
         try {
           this._zigbee=await this._hass.callWS({type:"zha/devices"});
           this._zhaAvailable=true;
@@ -230,6 +279,10 @@
       const current=list.find(d=>d.id===this._selectedId);
       this._el("setup").hidden=scanning||!current;
       if(scanning||!current){this._cancelRemove();return;}
+      const isPlug=this._isControllablePlug(current.id);
+      this._el("usage-field").hidden=!isPlug;
+      this._el("device-usage").value=isPlug?this._deviceUsage(current):"autre";
+      this._usageHint();
       const ieee=this._ieee(current);
       const node=this._zigbee.find(n=>String(n.ieee).toLowerCase()===ieee);
       const allowed=Boolean(this._zhaAvailable&&node&&node.active_coordinator===false);
@@ -309,6 +362,7 @@
       // Ne jamais pouvoir renommer, déplacer ou retirer pendant l'association.
       this._el("device-name").disabled=this._busy||scanning;
       this._el("device-area").disabled=this._busy||scanning;
+      this._el("device-usage").disabled=this._busy||scanning;
       this._el("save").disabled=this._busy||scanning;
       this._el("remove-start").disabled=this._busy||scanning;
       this._el("remove-confirm").disabled=this._busy||scanning;
@@ -352,6 +406,10 @@
       const name=this._el("device-name").value.trim();
       const area=this._el("device-area").value||null;
       if(!name)return;
+      const selectedUsage=this._isControllablePlug(d.id)
+        ?this._el("device-usage").value:"autre";
+      if(!["autre",...Object.keys(USE_LABELS)].includes(selectedUsage))
+        return this._message("Utilisation inconnue : enregistrement interrompu.",true);
       const oldArea=d.area_id||null;
       if(oldArea&&oldArea!==area) {
         const oldName=this._areas.find(a=>a.area_id===oldArea)?.name||"sa pièce actuelle";
@@ -360,11 +418,45 @@
       }
       this._lock(true);
       try {
+        // Lire les labels les plus récents pour préserver TOUTES les
+        // étiquettes tierces lorsque KIMIA modifie une seule utilisation.
+        const registered=await this._hass.callWS({type:"config/device_registry/list"});
+        const fresh=registered.find(device=>device.id===d.id);
+        if(!fresh)throw new Error("L'appareil a disparu du registre.");
+        let labels=await this._hass.callWS({type:"config/label_registry/list"});
+        let wanted=null;
+        if(selectedUsage!=="autre") {
+          const usageName=USE_LABELS[selectedUsage];
+          wanted=labels.find(label=>label.name===usageName)?.label_id;
+          if(!wanted) {
+            // Crée le label seulement lors du premier usage de cette catégorie.
+            try {
+              const created=await this._hass.callWS({
+                type:"config/label_registry/create",
+                name:usageName,
+                description:"Classement KIMIA Smart des prises connectées"
+              });
+              wanted=created.label_id;
+            } catch(error) {
+              // Un autre administrateur peut avoir créé le label en même temps.
+              labels=await this._hass.callWS({type:"config/label_registry/list"});
+              wanted=labels.find(label=>label.name===usageName)?.label_id;
+              if(!wanted)throw error;
+            }
+          }
+        }
+        labels=await this._hass.callWS({type:"config/label_registry/list"});
+        const ours=new Set(labels.filter(label=>
+          Object.values(USE_LABELS).includes(label.name)).map(label=>label.label_id));
+        const keep=(Array.isArray(fresh.labels)?fresh.labels:[])
+          .filter(id=>!ours.has(id));
+        if(wanted)keep.push(wanted);
         await this._hass.callWS({
           type:"config/device_registry/update",
           device_id:d.id,
           name_by_user:name,
-          area_id:area
+          area_id:area,
+          labels:[...new Set(keep)]
         });
         this._newIds.delete(d.id);
         this._message("Appareil enregistré : "+name+".");
