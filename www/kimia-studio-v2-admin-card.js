@@ -83,8 +83,8 @@ class Studio extends HTMLElement{
   super();this.attachShadow({mode:"open"});this._hass=null;this._page="library";this._tab="all";this._q="";this._filter="all";
   this._step=0;this._preset="blank-script";this._draft=null;this._editing=null;this._selected=new Set();
   this._reg={areas:[],entities:[],devices:[]};this._loaded=false;this._area="*";this._query="";
-  this._busy=false;this._notice="";this._error=false;this._advanced=null;
-  this._habits=null;this._deletedIds=new Set();
+  this._busy=false;this._notice="";this._error=false;
+  this._deletedIds=new Set();
   this._homeSlots=[null,null,null,null];this._homeBaseline=null;
   this._homeLoading=false;this._needsMerge=false;this._checkedMerge=false;
   this._addHomeOnSave=false;this._icon="mdi:home-outline";this._color="purple";this._homeLooks={};this._homeReady=false;this._appearanceOpen=false;
@@ -103,8 +103,6 @@ class Studio extends HTMLElement{
   if(h?.user?.is_admin&&!this._loaded){this._loaded=true;void this._load();}
   if(h?.user?.is_admin&&!this._homeReady){this._homeReady=true;this._homeLoading=true;void this._loadHomeSlots();}
   if(h?.user?.is_admin&&!this._checkedMerge){this._checkedMerge=true;void this._inspectMerge();}
-  if(this._advanced)this._advanced.hass=h;
-  if(this._habits)this._habits.hass=h;
   // Le frontend HA met à jour hass très souvent : ne pas interrompre une
   // recherche en cours en recréant tous les boutons/champs à chaque capteur.
   const nextDigest=this._page==="library"?
@@ -238,46 +236,6 @@ class Studio extends HTMLElement{
    '<div class="options" style="margin-top:12px">'+PRESETS.filter(p=>!p[0].startsWith("blank-")).map(p=>
     option(p[0],p[4],e(p[2]),e(p[3]))).join("")+'</div></details>';
  }
- _equipmentStep(){
-  const devices=this._devices(),listed=devices.filter(x=>(this._area==="*"||x.area===this._area)&&
-   (x.name.toLowerCase().includes(this._query.toLowerCase())||x.id.includes(this._query.toLowerCase())));
-  const areaNames=new Map(this._reg.areas.map(a=>[a.area_id,a.name]));
-  const used=[...new Set(devices.map(x=>x.area))];
-  return '<p class="help">On utilise les pièces Home Assistant du client, jamais les coordonnées de son plan. Tu peux sélectionner plusieurs équipements.</p>'+
-   '<div class="fields"><label class="fieldlabel">Nom de la routine<input id="draft-name" type="text" maxlength="70" placeholder="Ex. Bonne nuit" value="'+e(this._draft.alias)+'"/></label>'+
-   '<label class="fieldlabel">Description facultative<input id="draft-desc" type="text" maxlength="240" value="'+e(this._draft.description)+'"/></label></div>'+
-   '<div class="section-title">'+this._I("mdi:home-search-outline")+' Choisir les équipements <span class="chip" id="selected-count">'+this._selected.size+' sélectionné(s)</span></div>'+
-   '<div class="device-tools"><select id="area-filter"><option value="*">Toutes les pièces</option>'+
-   used.map(a=>'<option value="'+e(a)+'" '+(this._area===a?"selected":"")+'>'+e(areaNames.get(a)||"Sans pièce")+'</option>').join("")+'</select>'+
-   '<input id="device-search" type="text" placeholder="Rechercher un appareil…" value="'+e(this._query)+'"/></div>'+
-   '<div class="devices" id="device-results">'+this._deviceResults(listed)+'</div>'+
-   '<p class="help">Les appareils nécessitant des actions particulières peuvent être configurés dans l’éditeur avancé.</p>';
- }
- _deviceResults(items){
-  if(!items.length)return '<div class="empty">Aucun appareil compatible ici.</div>';
-  return items.map(x=>'<label class="choice '+(this._selected.has(x.id)?"selected":"")+'">'+
-   '<input type="checkbox" data-entity="'+e(x.id)+'" '+(this._selected.has(x.id)?"checked":"")+'/>'+
-   this._I(ICONS[x.domain]||"mdi:flash")+'<span style="min-width:0"><b>'+e(x.name)+'</b>'+
-   '<small>'+e(x.room)+' · '+e(DOMAINS[x.domain]||x.domain)+'</small></span></label>').join("");
- }
- _syncActions(){
-  // Impératif pour l'édition : conserver l'ordre des commandes et pauses.
-  // Ne jamais déplacer une attente au bout de la séquence !
-  const ops=H().OPERATIONS,known=new Set(),next=[];
-  for(const action of this._draft.actions){
-   if(action.type!=="call"){next.push(action);continue;}
-   if(this._selected.has(action.entity)&&!known.has(action.entity)){
-    next.push(action);known.add(action.entity);
-   }
-  }
-  for(const id of this._selected){
-   if(known.has(id))continue;
-   const x=H().action("call");x.entity=id;x.operation=defaultOp(id.split(".")[0],this._preset,ops);
-   x.value=x.operation==="set_temperature"?"20":x.operation==="set_cover_position"?"50":x.operation==="volume_set"?"0.5":"";
-   next.push(x);
-  }
-  this._draft.actions=next;
- }
  _entityOptions(current){
   return '<option value="">Choisir un appareil</option>'+
    Object.entries(this._hass.states||{}).sort((a,b)=>String(a[1]?.attributes?.friendly_name||a[0]).localeCompare(String(b[1]?.attributes?.friendly_name||b[0]),"fr"))
@@ -339,20 +297,6 @@ class Studio extends HTMLElement{
    '<div style="margin-top:12px">'+d.conditions.map((x,i)=>this._conditionBlock(x,i,false)).join("")+
    this._B(this._I("mdi:plus")+' Ajouter une condition',"add-condition","small")+'</div></details>';
  }
- _review(){
-  const d=this._draft,names=new Map(this._devices().map(x=>[x.id,x.name]));
-  return '<h2>'+e(d.alias)+'</h2><p class="help">Aucune action ne sera exécutée pendant la sauvegarde.</p>'+
-   '<div class="summary"><div class="summary-item">'+this._I(ICONS[d.kind])+
-   '<div><strong>'+(d.kind==="script"?"Scénario":"Automatisation")+'</strong><div class="sub">'+e(d.description||"Sans description")+'</div></div></div>'+
-   '<div class="summary-item">'+this._I("mdi:calendar-check")+
-   '<div><strong>'+(d.kind==="script"?"Démarrage : appui sur un bouton"+(this._addHomeOnSave?" · Ajout à l’accueil demandé":" · Sans bouton sur l’accueil"):
-    d.triggers.length+" événement(s) de déclenchement")+' · '+d.conditions.length+' condition(s)</strong></div></div>'+
-   d.actions.map((x,i)=>'<div class="summary-item">'+this._I("mdi:check")+
-    '<div><strong>'+(i+1)+'. '+e(x.type==="call"?(names.get(x.entity)||x.entity)+" → "+x.operation:
-     x.type==="delay"?"Attendre "+x.seconds+" secondes":"Attendre un capteur")+'</strong></div></div>').join("")+
-   '</div><div class="note">KIMIA enregistre une véritable routine Home Assistant. Les autres automatisations et scripts sont intacts.</div>';
- }
-
  _adminMergePlan(config){
   if(!Array.isArray(config?.views))throw Error("Dashboard administrateur introuvable.");
   const views=config.views;
@@ -550,25 +494,14 @@ class Studio extends HTMLElement{
   if(x.id==="studio-search"){this._q=x.value;const out=this.shadowRoot.getElementById("studio-results");if(out)out.innerHTML=this._results();}
   else if(x.id==="draft-name"){this._draft.alias=x.value;}
   else if(x.id==="draft-desc"){this._draft.description=x.value;}
-  else if(x.id==="device-search"){
-   this._query=x.value;const out=this.shadowRoot.getElementById("device-results");
-   if(out)out.innerHTML=this._deviceResults(this._devices().filter(y=>(this._area==="*"||y.area===this._area)&&
-    (y.name.toLowerCase().includes(this._query.toLowerCase())||y.id.includes(this._query.toLowerCase()))));
-  }
  }
  _change(ev){
   const x=ev.target,d=x.dataset;
-  if(x.id==="studio-filter"){this._filter=x.value;this._draw();return;}
   if(x.id==="add-home-on-save"){this._addHomeOnSave=x.checked;return;}
   if(x.dataset.slot!==undefined){
    const slot=Number(x.dataset.slot);
    if(slot>=0&&slot<4)this._homeSlots[slot]=x.value||null;
    return;
-  }
-  if(x.id==="area-filter"){this._area=x.value;this._draw();return;}
-  if(d.entity){if(x.checked)this._selected.add(d.entity);else this._selected.delete(d.entity);
-   x.closest(".choice")?.classList.toggle("selected",x.checked);
-   const counter=this.shadowRoot.getElementById("selected-count");if(counter)counter.textContent=this._selected.size+" sélectionné(s)";return;
   }
   if(d.actionField){
    const action=this._draft?.actions[Number(d.index)];if(!action)return;
@@ -589,14 +522,10 @@ class Studio extends HTMLElement{
  _click(ev){
   const b=ev.target.closest("[data-act]");if(!b||!this._admin()||this._busy)return;
   const a=b.dataset.act,i=Number(b.dataset.index);
-  if(a==="home"){this._page="library";this._advanced=null;this._notice="";this._draw();}
+  if(a==="home"){this._page="library";this._notice="";this._draw();}
   else if(a==="new")this._new();
-  else if(a==="new-script")this._presetStart("blank-script");
-  else if(a==="new-automation")this._presetStart("blank-automation");
   else if(a==="habits"){this._page="habits";this._notice="";this._homeLoading=true;
    this._draw();void this._loadHomeSlots();}
-  else if(a==="tab"){this._tab=b.dataset.value;this._draw();}
-  else if(a==="refresh")this._msg("Liste actualisée depuis Home Assistant.");
   else if(a==="mode-expert"){
    const edit=this._editing;
    window.location.assign(edit?"/config/"+edit.kind+"/edit/"+encodeURIComponent(edit.id):"/config/automation/dashboard");
@@ -614,8 +543,6 @@ class Studio extends HTMLElement{
    this._draft.actions.push(action);this._selected.add(id);this._draw();
   }
   else if(a==="preset")this._presetStart(b.dataset.value);
-  else if(a==="prev"){this._step=Math.max(0,this._step-1);this._notice="";this._draw();}
-  else if(a==="next")this._next();
   else if(a==="save")void this._save();
   else if(a==="run")void this._run(b.dataset.id);
   else if(a==="toggle")void this._toggle(b.dataset.id);
@@ -638,19 +565,6 @@ class Studio extends HTMLElement{
   else if(a==="remove-trigger"){this._draft.triggers.splice(i,1);this._draw();}
   else if(a==="add-condition"){this._draft.conditions.push(H().condition("state"));this._draw();}
   else if(a==="remove-condition"){this._draft.conditions.splice(i,1);this._draw();}
- }
- _next(){
-  if(this._step===0)return this._msg("Choisis un modèle pour commencer.");
-  if(this._step===1){
-   if(!this._draft.alias.trim()||this._draft.alias.trim().length<3)return this._msg("Donne un nom d’au moins trois caractères.",true);
-   this._syncActions();
-  }
-  if(this._step===2&&!this._draft.actions.length)return this._msg("Ajoute un équipement ou une action.",true);
-  if(this._step===3){
-   try{H().serialize(this._draft,"kimia_validation");}
-   catch(err){return this._msg("À compléter : "+(err.message||err),true);}
-  }
-  this._step=Math.min(this._step+1,4);this._notice="";this._draw();
  }
  async _edit(id){
   const record=this._all().find(x=>x.id===id);if(!record)return;
