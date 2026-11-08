@@ -317,3 +317,8 @@ Il y a quelques **éléments de diagnostic / démonstration** qui ne sont pas n�
 - Comparer les valeurs du BME280 avec des instruments fiables placés au même endroit (loin de l'échauffement de l'ESP32 et de l'amplificateur), après stabilisation thermique ; éviter d'enfermer le BME280 avec des sources de chaleur sans circulation d'air.
 - Une correction de chaque mesure peut se faire avec un filtre ESPHome `offset` ou une calibration linéaire si l'écart est établi. Ne pas appliquer de filtre dans la version figée sans mesures de référence.
 - Pour la pression, distinguer la **pression absolue au capteur** de la pression météorologique ramenée au niveau de la mer ; un écart avec la météo ne prouve pas une mauvaise calibration.
+
+
+### Ajustement de la V16 validée — fréquence BME280 à 60 s (08/11/2026)
+
+À la demande explicite de l'utilisateur, le fichier **`16_slide_mesures_bme280_valide_fige.yaml` lui-même** a été mis à jour : `sensor.bme280_i2c.update_interval` passe de **10 s à 60 s** ; pour éviter l'ancienne fausse alerte avant la première mesure, l'intervalle de diagnostic passe de **15 s à 90 s**. **Aucun changement** apporté au visage, à la présentation des mesures, aux animations, au tactile, à la veille ou au câblage. Le fichier V16 expérimental original reste disponible avec ses fréquences d'origine ; l'historique Git permet aussi de retrouver l'ancienne version validée (avant cet ajustement). **Cette modification n'a pas encore été reflasher/testée sur le matériel** : prévoir l'attente d'environ 60 s avant la première mesure après un démarrage.
