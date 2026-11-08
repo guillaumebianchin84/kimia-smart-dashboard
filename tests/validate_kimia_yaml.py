@@ -64,8 +64,11 @@ assert any(c.get("type") == "custom:kimia-room-manager-v1-card"
            for c in cards(admin_views["pieces"]))
 assert any(c.get("type") == "custom:kimia-zigbee-manager-v1-card"
            for c in cards(admin_views["appareils"]))
-assert any(c.get("type") == "custom:kimia-scenarios-v1-card"
-           for c in cards(admin_views["scenarios"]))
+assert sum(c.get("type") == "custom:kimia-studio-v2-admin-card"
+           for c in cards(admin_views["scenarios"])) == 1, "Studio V2 est l'unique atelier Routines"
+assert not any(c.get("type") in ("custom:kimia-scenarios-v1-card",
+                                 "custom:kimia-routine-editor-v16-card")
+               for c in cards(admin_views["scenarios"])), "Pas de doublon des ateliers"
 assert any(c.get("type") == "custom:kimia-setup-v1-card"
            for c in cards(admin_views["demarrer"]))
 # Deux nouveaux onglets natifs ; la source esthétique V1.3 reste inchangée.
@@ -85,7 +88,7 @@ for slug,v in views.items():
         assert len(matches)==1, (slug,extra_path)
         assert "kimia_onglet_"+extra_path in matches[0]["hidden"]
 assert any(c.get("type")=="custom:kimia-services-v14-card" for c in cards(admin_views["apparence"]))
-assert any(c.get("type")=="custom:kimia-routine-editor-v16-card" for c in cards(admin_views["scenarios"]))
+assert sum(c.get("type")=="custom:kimia-studio-v2-admin-card" for c in cards(admin_views["scenarios"])) == 1
 nav_helpers=yaml.safe_load(Path("packages/kimia_admin_navigation.yaml").read_text(encoding="utf-8"))
 assert "kimia_onglet_pieces" in nav_helpers["input_boolean"]
 assert any(c.get("entity")=="input_boolean.kimia_onglet_pieces" for c in cards(admin_views["apparence"]))
