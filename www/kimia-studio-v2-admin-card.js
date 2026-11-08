@@ -454,16 +454,22 @@ class Studio extends HTMLElement{
    .map(c=>c.tap_action.target.entity_id);
   return [...candidates,null,null,null,null].slice(0,4);
  }
+ _homeLooksFromConfig(config){
+  const target=this._homeSection(config);
+  const looks=target.custom?target.cards[target.index]?.looks:null;
+  return looks&&typeof looks==="object"&&!Array.isArray(looks)?clone(looks):{};
+ }
  _isOldHomeShortcut(c){
   return c?.type==="shortcut" &&
    ["Au lit","Départ","Retour","Réveil"].includes(c.label) &&
    c.tap_action?.perform_action==="script.turn_on" &&
    /^script\.[a-z0-9_]+$/.test(c.tap_action?.target?.entity_id||"");
  }
- _applyHomeSlots(config,slots){
+ _applyHomeSlots(config,slots,looks){
   const target=this._homeSection(config);
+  const appearance=looks||this._homeLooksFromConfig(config);
   const newCard={type:"custom:kimia-home-scenarios-v1-card",
-   grid_options:{columns:12,rows:"auto"},slots:[...slots]};
+   grid_options:{columns:12,rows:"auto"},slots:[...slots],looks:clone(appearance)};
   if(target.custom){
    target.cards[target.index]=newCard;
   }else{
@@ -477,34 +483,17 @@ class Studio extends HTMLElement{
  }
  _habitsPage(){
   const scripts=this._all().filter(r=>r.kind==="script"&&!protectedRoutine(r));
-  const helperSupported=HABIT_HELPERS.some(id=>this._hass?.states?.[id]);
-  const choices=(selected)=>'<option value="">Aucun scénario</option>'+
-   scripts.map(r=>'<option value="'+e(r.id)+'"'+(selected===r.id?' selected':'')+
-    '>'+e(r.name)+'</option>').join("");
-  const rows=[0,1,2,3].map(i=>'<div class="block"><div class="blocktop">'+
-   '<strong>Position '+(i+1)+'</strong><div class="actions">'+
-   this._B("↑","swap-home","small",'data-index="'+i+'" data-direction="-1" '+(i===0?'disabled':''))+
-   this._B("↓","swap-home","small",'data-index="'+i+'" data-direction="1" '+(i===3?'disabled':''))+
-   '</div></div><label class="fieldlabel">Scénario affiché sur Accueil'+
-   '<select data-slot="'+i+'" '+(this._homeLoading?'disabled':'')+'>'+
-   choices(this._homeSlots[i])+'</select></label></div>').join("");
+  const choices=(selected)=>'<option value="">Aucun bouton</option>'+
+   scripts.map(r=>'<option value="'+e(r.id)+'"'+(selected===r.id?' selected':'')+'>'+e(r.name)+'</option>').join("");
+  const rows=[0,1,2,3].map(i=>'<div class="block"><div class="blocktop"><strong>Position '+(i+1)+'</strong>'+
+   '<div class="subtle-actions">'+this._B("↑","swap-home","small",'data-index="'+i+'" data-direction="-1" '+(i===0?"disabled":""))+
+   this._B("↓","swap-home","small",'data-index="'+i+'" data-direction="1" '+(i===3?"disabled":""))+'</div></div>'+
+   '<select data-slot="'+i+'" '+(this._homeLoading?'disabled':'')+'>'+choices(this._homeSlots[i])+'</select></div>').join("");
   return '<div class="main">'+this._notification()+
-   '<div class="nav"><h2>Mes raccourcis Accueil</h2></div>'+
-   '<p class="help">Choisis jusqu’à quatre scénarios et leur ordre. Un emplacement vide ne crée aucun bouton. Les scripts Home Assistant ne sont jamais modifiés.</p>'+
-   (this._homeLoading?'<p class="note">Chargement de la configuration de l’accueil…</p>':'')+
-   '<div class="cards">'+rows+'</div>'+
-   '<div class="footer">'+this._B("Retour à Mes routines","home")+
-   this._B(this._I("mdi:content-save")+" Enregistrer sur l’accueil",
-    "save-home","primary",(this._homeLoading||this._busy?'disabled':''))+'</div>'+
-   (helperSupported?'<div class="section-line"></div><h3>Autres raccourcis KIMIA</h3>'+
-    '<p class="help">Anciens boutons et ambiances disponibles si les helpers KIMIA sont installés.</p>'+
-    '<div id="studio-habits-legacy" class="habit-host"></div>':'')+'</div>';
- }
- _mountHabits(){
-  const host=this.shadowRoot.getElementById("studio-habits-legacy");
-  if(!host||!customElements.get("kimia-scenarios-v1-card"))return;
-  const card=document.createElement("kimia-scenarios-v1-card");
-  card.setConfig?.({});card.hass=this._hass;host.append(card);this._habits=card;
+   '<div class="nav"><h2>Organiser les boutons de l’accueil</h2></div>'+
+   '<p class="help">Tu peux en afficher quatre au maximum. Enlever un bouton ne supprime jamais sa routine.</p>'+
+   '<div class="cards">'+rows+'</div><div class="footer">'+this._B("Retour","home")+
+   this._B("Enregistrer l’accueil","save-home","primary",(this._homeLoading||this._busy?'disabled':''))+'</div></div>';
  }
  async _loadHomeSlots(){
   const h=this._hass;
@@ -517,15 +506,16 @@ class Studio extends HTMLElement{
     .map(r=>r.id));
    this._homeSlots=this._homeSlotsFromConfig(config)
     .map(id=>id&&available.has(id)?id:null);
-   this._homeBaseline=canon(config);
-   this._notice="";this._error=false;
+   this._homeLooks=this._homeLooksFromConfig(config);
+   this._homeBaseline=canon(config);this._homeReady=true;
+   this._error=false;
   }catch(err){
    this._homeBaseline=null;
    this._notice="Configuration Accueil inaccessible : "+(err?.message||err);
    this._error=true;
   }finally{
    this._homeLoading=false;
-   if(this._page==="habits")this._draw();
+   if(this._page==="habits"||this._page==="library")this._draw();
   }
  }
  async _saveHomeSlots(){
@@ -548,7 +538,8 @@ class Studio extends HTMLElement{
    const next=clone(config);
    this._applyHomeSlots(next,slots);
    await h.callWS({type:"lovelace/config/save",url_path:"kimia-next",config:next});
-   this._homeBaseline=canon(next);
+   this._homeBaseline=canon(next);this._homeSlots=slots;
+   this._homeLooks=this._homeLooksFromConfig(next);
    this._notice="Accueil mis à jour. Recharge la page Accueil sur les autres appareils.";
    this._error=false;
   }catch(err){
