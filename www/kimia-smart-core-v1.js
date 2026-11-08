@@ -64,6 +64,7 @@
         this._config=JSON.parse(JSON.stringify(config.card));
         this._request++;
         this._signature="";
+        this._loading=false;
         this._child=null;
         this._frame.replaceChildren();
         this._update();
