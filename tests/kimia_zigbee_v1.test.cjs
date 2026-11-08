@@ -138,7 +138,9 @@ async function main(){
   card._labels=labels;
   card._el("device-usage").value="autre";
   await card._saveDevice({preventDefault(){}});
-  assert.deepEqual(update.labels,["autre_label"],"Seul le label KIMIA a été retiré");
+  // Ramener l'Array issu du contexte vm vers le contexte du test Node.
+  assert.deepEqual(Array.from(update.labels),["autre_label"],
+    "Seul le label KIMIA a été retiré");
   console.log("KIMIA Zigbee : coordinateur exclu, groupes, verrouillage et enregistrement OK");
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});
