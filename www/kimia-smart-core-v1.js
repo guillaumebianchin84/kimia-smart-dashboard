@@ -8,6 +8,225 @@
   "use strict";
   if (window.KimiaSmartCore) return;
   const DASHBOARD = "kimia-next";
+  const SAFE_TILE_TYPE="custom:kimia-safe-tile-v1-card";
+  // Encapsule exclusivement la carte Tile native Home Assistant.
+  // L'instance reçoit les mises à jour HA en direct, sans toucher au réseau
+  // Zigbee, à hass global ou à la configuration des autres cartes.
+  if(typeof customElements!=="undefined" &&
+     typeof HTMLElement!=="undefined" &&
+     !customElements.get("kimia-safe-tile-v1-card")) {
+    let cardHelpersPromise=null;
+    const helpers=()=>{
+      if(typeof window.loadCardHelpers!=="function")
+        return Promise.reject(Error("Cartes natives Home Assistant indisponibles"));
+      if(!cardHelpersPromise)cardHelpersPromise=window.loadCardHelpers()
+        .catch(error=>{cardHelpersPromise=null;throw error;});
+      return cardHelpersPromise;
+    };
+    class KimiaSafeTile extends HTMLElement {
+      constructor(){
+        super();
+        this.attachShadow({mode:"open"});
+        this._config=null;this._hass=null;this._child=null;
+        this._mode="";this._signature="";this._loading=false;this._request=0;
+        this._commandFailed=false;this._previousState=null;this._seenName="";
+        const style=document.createElement("style");
+        style.textContent=[
+          ":host{display:block}",
+          ".notice{font-size:12px;color:var(--secondary-text-color);padding:5px 8px}",
+          ".notice[hidden]{display:none}",
+          ".notice.error{color:var(--error-color,#c62828)}",
+          ".retry{font:inherit;font-size:12px;color:var(--primary-color);background:none;",
+          "border:0;text-decoration:underline;cursor:pointer;margin-left:7px}",
+          ".missing{padding:14px;min-height:42px;box-sizing:border-box}",
+          ".missing strong{display:block;font-size:14px;overflow-wrap:anywhere}"
+        ].join("\n");
+        this._frame=document.createElement("div");
+        this._notice=document.createElement("div");
+        this._notice.className="notice";
+        this._notice.setAttribute("aria-live","polite");
+        this._notice.hidden=true;
+        this._message=document.createElement("span");
+        this._retry=document.createElement("button");
+        this._retry.type="button";this._retry.className="retry";
+        this._retry.textContent="Réessayer";this._retry.hidden=true;
+        this._retry.addEventListener("click",()=>{
+          this._commandFailed=false;this._update();
+        });
+        this._notice.append(this._message,this._retry);
+        this.shadowRoot.append(style,this._frame,this._notice);
+      }
+      setConfig(config){
+        if(config?.card?.type!=="tile" ||
+           typeof config.card.entity!=="string" ||
+           (config.entity&&config.entity!==config.card.entity))
+          throw Error("KIMIA : tuile native et entité requises");
+        this._config=JSON.parse(JSON.stringify(config.card));
+        this._request++;
+        this._signature="";
+        this._child=null;
+        this._frame.replaceChildren();
+        this._update();
+      }
+      set hass(hass){
+        const current=hass?.states?.[this._config?.entity];
+        const newState=current?.state||null;
+        if(current?.attributes?.friendly_name)
+          this._seenName=current.attributes.friendly_name;
+        // Réautoriser après changement d'état (reconnexion incluse).
+        if(this._commandFailed &&
+           this._previousState!==null && newState!==this._previousState)
+          this._commandFailed=false;
+        this._previousState=newState;
+        this._hass=hass;
+        this._update();
+      }
+      connectedCallback(){this._update();}
+      getCardSize(){return this._child?.getCardSize?.()||2;}
+      getGridOptions(){
+        return this._config?.grid_options||{columns:12,rows:1};
+      }
+      _status(message,failed=false,retry=false){
+        this._notice.hidden=!message;
+        this._notice.className="notice"+(failed?" error":"");
+        this._message.textContent=message||"";
+        this._retry.hidden=!retry;
+      }
+      _modeForState(){
+        const obj=this._hass?.states?.[this._config?.entity];
+        if(!this._hass)return "pending";
+        if(!obj)return "missing";
+        if(obj.state==="unknown"||obj.state==="unavailable")return "offline";
+        return this._commandFailed?"failed":"online";
+      }
+      _cardConfig(mode){
+        const cfg=JSON.parse(JSON.stringify(this._config));
+        if(mode!=="online") {
+          for(const action of ["tap_action","hold_action","double_tap_action",
+            "icon_tap_action","icon_hold_action","icon_double_tap_action"])
+            cfg[action]={action:"none"};
+          delete cfg.features;
+        }
+        return cfg;
+      }
+      _isOurTarget(data,target){
+        const id=this._config?.entity;
+        const matches=value=>value===id ||
+          (Array.isArray(value)&&value.includes(id));
+        return matches(data?.entity_id)||matches(target?.entity_id);
+      }
+      _safeHass(){
+        const source=this._hass,instance=this;
+        if(!source||typeof source.callService!=="function")return source;
+        const local=Object.create(source);
+        local.callService=(domain,service,data,target)=>{
+          if(!instance._isOurTarget(data,target))
+            return source.callService(domain,service,data,target);
+          if(instance._modeForState()!=="online"){
+            instance._status("Commande désactivée : appareil indisponible.",true,
+              instance._commandFailed);
+            return Promise.resolve();
+          }
+          // Capture locale : un timeout Zigbee ou réseau n'endommage pas les
+          // autres widgets et l'usager voit que la commande n'a pas abouti.
+          try {
+            return Promise.resolve(source.callService(domain,service,data,target))
+              .catch(error=>{
+                instance._commandFailed=true;
+                instance._status("Commande impossible. Vérifiez l'appareil.",true,true);
+                instance._update();
+              });
+          }catch(error){
+            instance._commandFailed=true;
+            instance._status("Commande impossible. Vérifiez l'appareil.",true,true);
+            instance._update();
+            return Promise.resolve();
+          }
+        };
+        return local;
+      }
+      _loadNative(){
+        if(this._child||this._loading||!this._config)return;
+        this._loading=true;
+        const request=++this._request;
+        void helpers().then(helper=>{
+          if(request!==this._request)return;
+          if(typeof helper?.createCardElement!=="function")
+            throw Error("Création de tuile native indisponible");
+          this._child=helper.createCardElement(this._cardConfig("online"));
+          this._loading=false;
+          this._signature="";
+          this._frame.replaceChildren(this._child);
+          this._update();
+        }).catch(error=>{
+          if(request!==this._request)return;
+          this._loading=false;
+          this._status("Tuile indisponible : "+(error?.message||error),true);
+        });
+      }
+      _update(){
+        if(!this._config)return;
+        const mode=this._modeForState();
+        if(mode==="pending")return;
+        if(mode==="missing"){
+          if(this._mode!=="missing"){
+            const card=document.createElement("ha-card");
+            const label=document.createElement("div");
+            label.className="missing";
+            const title=document.createElement("strong");
+            title.textContent=this._seenName||this._config.name||
+              this._config.entity;
+            const desc=document.createElement("span");
+            desc.textContent="Appareil absent de Home Assistant";
+            label.append(title,desc);
+            card.appendChild(label);
+            this._frame.replaceChildren(card);
+            this._mode="missing";
+          }
+          this._status("Indisponible · aucune commande possible.");
+          return;
+        }
+        if(!this._child){
+          this._mode=mode;
+          this._loadNative();
+          return;
+        }
+        // En retour d'une entité absente, la même carte native est recréée
+        // sans laisser une erreur d'une autre carte casser le dashboard.
+        if(this._mode==="missing"){
+          this._frame.replaceChildren(this._child);
+          this._signature="";
+        }
+        this._mode=mode;
+        const cfg=this._cardConfig(mode);
+        const signature=JSON.stringify(cfg);
+        if(signature!==this._signature){
+          try {
+            this._child.setConfig(cfg);
+            this._signature=signature;
+          }catch(error){
+            this._status("Erreur isolée sur cette carte : "+(error?.message||error),true);
+            return;
+          }
+        }
+        try {this._child.hass=this._safeHass();}
+        catch(error){
+          this._status("Erreur d'affichage sur cet appareil.",true);
+          return;
+        }
+        if(mode==="online")this._status("");
+        else if(mode==="failed")this._status(
+          "Commande impossible. Vérifiez l'appareil.",true,true);
+        else this._status("Indisponible · commandes désactivées.");
+      }
+    }
+    customElements.define("kimia-safe-tile-v1-card",KimiaSafeTile);
+    window.customCards=window.customCards||[];
+    if(!window.customCards.some(c=>c.type==="kimia-safe-tile-v1-card"))
+      window.customCards.push({type:"kimia-safe-tile-v1-card",
+        name:"KIMIA · Tuile protégée",description:
+        "Carte native Home Assistant, commandes bloquées si l'appareil est indisponible."});
+  }
   const PRODUCT = "KIMIA Smart";
   const CATEGORIES = [
     ["lumieres", ["light"]],
