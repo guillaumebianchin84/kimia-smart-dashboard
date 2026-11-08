@@ -240,7 +240,7 @@
     class KimiaHomeScenarios extends HTMLElement {
       constructor(){
         super();this.attachShadow({mode:"open"});
-        this._slots=[];this._hass=null;this._cards=[];this._signature="";
+        this._slots=[];this._looks={};this._hass=null;this._cards=[];this._signature="";
         this._token=0;
         const style=document.createElement("style");
         style.textContent=":host{display:block}.scenarios{display:grid;grid-template-columns:1fr;gap:8px}.empty{font-size:13px;color:var(--secondary-text-color);padding:10px}.error{font-size:12px;color:var(--error-color);padding:8px}";
@@ -253,6 +253,15 @@
           throw Error("KIMIA accueil : quatre emplacements maximum");
         this._slots=[...config.slots, null,null,null,null].slice(0,4)
           .map(v=>typeof v==="string"&&/^script\.[a-z0-9_]+$/.test(v)?v:null);
+        this._looks={};
+        if(config.looks&&typeof config.looks==="object"&&!Array.isArray(config.looks)){
+          for(const [id,look] of Object.entries(config.looks)){
+            if(!/^script\.[a-z0-9_]+$/.test(id)||!look||typeof look!=="object")continue;
+            const icon=typeof look.icon==="string"&&/^mdi:[a-z0-9_-]+$/.test(look.icon)?look.icon:null;
+            const color=["purple","green","blue","amber","red","teal"].includes(look.color)?look.color:null;
+            if(icon||color)this._looks[id]={icon,color};
+          }
+        }
         this._signature="";this._update();
       }
       set hass(hass){this._hass=hass;this._update();}
@@ -264,8 +273,9 @@
           const entity=this._hass.states?.[id];
           const unavailable=!entity||["unknown","unavailable"].includes(entity.state);
           const label=entity?.attributes?.friendly_name||id.replace(/^script\./,"").replace(/_/g," ");
-          return {id,label,icon:entity?.attributes?.icon||"mdi:play-circle-outline",
-            color:["purple","green","blue","amber"][index],unavailable};
+          const look=this._looks[id]||{};
+          return {id,label,icon:look.icon||entity?.attributes?.icon||"mdi:play-circle-outline",
+            color:look.color||["purple","green","blue","amber"][index],unavailable};
         });
         const signature=JSON.stringify(visible);
         if(signature===this._signature){

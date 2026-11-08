@@ -13,6 +13,10 @@ const canon=v=>JSON.stringify(v,(_,x)=>x&&typeof x==='object'&&!Array.isArray(x)
  Object.fromEntries(Object.entries(x).sort(([a],[b])=>a.localeCompare(b))):x);
 const DOMAINS={light:"Lumières",switch:"Prises",input_boolean:"Options",cover:"Volets",climate:"Chauffage / clim",fan:"Ventilation",media_player:"Musique",scene:"Scènes",script:"Scénarios"};
 const ICONS={light:"mdi:lightbulb-outline",switch:"mdi:power-socket-eu",input_boolean:"mdi:toggle-switch-outline",cover:"mdi:window-shutter",climate:"mdi:thermostat",fan:"mdi:fan",media_player:"mdi:music",scene:"mdi:palette-outline",script:"mdi:play-box-multiple-outline",automation:"mdi:robot-outline"};
+const ROUTINE_ICONS=[["mdi:weather-night","Nuit"],["mdi:home-outline","Maison"],["mdi:door-open","Départ"],["mdi:weather-sunny","Réveil"],["mdi:movie-open","Cinéma"],["mdi:music","Musique"],["mdi:lightbulb-group-outline","Lumières"],["mdi:shield-home-outline","Sécurité"],["mdi:power","Énergie"],["mdi:play-box-multiple-outline","Scénario"],["mdi:robot-outline","Automatisation"]];
+const ROUTINE_COLORS={purple:"#9680DF",green:"#44A58D",blue:"#65A4E8",amber:"#E1A04D",red:"#D66B70",teal:"#25A6AE"};
+const validIcon=v=>ROUTINE_ICONS.some(([icon])=>icon===v);
+const validColor=v=>Object.prototype.hasOwnProperty.call(ROUTINE_COLORS,v);
 const PRESETS=[
  ["blank-script","script","Scénario libre","Créer des actions sur mesure","mdi:play-circle-outline"],
  ["night","script","Bonne nuit","Éteindre, fermer et se reposer","mdi:weather-night"],
@@ -38,6 +42,7 @@ const CSS=[
 ".wizard-top{display:flex;align-items:center;justify-content:space-between;gap:9px}.wizard-top h2{margin:0;font-size:22px;letter-spacing:-.4px}.progress{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:17px 0 13px}.progress i{height:5px;background:var(--divider-color,#dfe7ed);border-radius:8px}.progress i.done{background:#0d9b91}.step-label{font-size:11px;color:var(--secondary-text-color);font-weight:900;letter-spacing:1.1px;margin-bottom:9px}.option{display:flex;align-items:center;text-align:left;gap:12px;min-height:106px}.option:hover,.choice:hover{border-color:var(--primary-color,#11a99c)}.option b,.choice b{display:block;font-size:14px;color:var(--primary-text-color)}.option small,.choice small{display:block;font-size:11px;color:var(--secondary-text-color);line-height:1.4;margin-top:4px}",
 "label.fieldlabel{display:flex;flex-direction:column;gap:6px;color:var(--secondary-text-color);font-size:12px;font-weight:750;min-width:0}label.fieldlabel input,label.fieldlabel select{font-size:13px;color:var(--primary-text-color)}.section-title{display:flex;align-items:center;gap:7px;font-weight:850;margin:19px 0 12px}.section-title ha-icon{color:var(--primary-color)}.device-tools{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap}.device-tools select{max-width:250px}.device-tools input{flex:1;min-width:170px}.devices{max-height:335px;overflow:auto;padding:3px}.choice{display:flex;align-items:center;gap:9px;min-height:64px;cursor:pointer;padding:9px}.choice.selected{background:color-mix(in srgb,var(--primary-color,#11998e) 7%,var(--card-background-color));border-color:var(--primary-color)}.choice input{width:18px;height:18px;accent-color:var(--primary-color)}.choice ha-icon{color:var(--primary-color);flex:none}",
 ".block{margin:11px 0}.blocktop{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}.blocktop strong{font-size:14px}.blocktop .actions .btn{flex:initial}.footer{border-top:1px solid var(--divider-color,#dce5e9);margin-top:19px;padding-top:16px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.note{border-left:3px solid var(--primary-color,#0da699);padding:11px 13px;background:var(--secondary-background-color,#f2f8f8);border-radius:4px 11px 11px 4px;font-size:12px;line-height:1.5;margin:14px 0}.feedback{border:1px solid var(--primary-color,#169c91);border-radius:11px;padding:11px 13px;margin:0 0 13px;font-size:13px;font-weight:650;white-space:pre-wrap}.feedback.error{border-color:var(--error-color,#be3535);color:var(--error-color,#be3535)}.summary{display:grid;gap:9px}.summary-item{border:1px solid var(--divider-color,#dce5e9);border-radius:11px;padding:12px;display:flex;align-items:center;gap:10px}.summary-item ha-icon{color:var(--primary-color)}",
+".routines-list{display:grid;gap:10px}.routine-simple{display:flex;align-items:center;gap:14px;border:1px solid var(--divider-color);border-radius:15px;padding:14px;background:var(--card-background-color);min-width:0}.routine-avatar{width:52px;height:52px;border-radius:15px;flex:none;display:grid;place-items:center;background:color-mix(in srgb,var(--avatar-color) 17%,var(--card-background-color))}.routine-avatar ha-icon{color:var(--avatar-color);--mdc-icon-size:29px}.routine-info{flex:1;min-width:0}.routine-controls{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.simple-section{border:1px solid var(--divider-color);padding:16px;border-radius:16px;margin-top:15px}.simple-section h3{margin:0 0 10px}.icon-picker,.color-picker{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px}.icon-choice{width:45px;height:45px;display:grid;place-items:center;border-radius:12px;color:var(--primary-text-color);background:var(--secondary-background-color);border:2px solid transparent}.icon-choice ha-icon{--mdc-icon-size:25px}.icon-choice[aria-pressed=true],.color-choice[aria-pressed=true]{border-color:var(--primary-color);outline:2px solid var(--primary-color);outline-offset:2px}.color-choice{width:32px;height:32px;border:2px solid transparent;border-radius:50%;background:var(--choice-color)}.editor-title{display:flex;align-items:center;gap:13px;margin:0 0 14px}.editor-title .routine-avatar{width:61px;height:61px}.compact-actions{display:flex;gap:9px;align-items:center;margin:12px 0}.compact-actions select{flex:1}.subtle-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.quick-start{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.quick-start .option{min-height:118px}details summary{cursor:pointer}.section-badge{font-size:11px;color:var(--secondary-text-color)}",
 "@media(max-width:750px){.hero{padding:22px}.main{padding:14px}.cards,.options,.devices,.fields,.quick-actions{grid-template-columns:1fr}.stats{gap:5px}.stat{padding:10px;flex-direction:column;text-align:center;gap:5px}.stat strong{font-size:21px}.stat small{font-size:10px}.option{min-height:90px}.hero h1{font-size:27px}.btn{padding:9px}.tab{padding:8px}}"
 ].join("\n");
 const areaFor=(reg,devices)=>reg?.area_id||devices?.find(d=>d.id===reg?.device_id)?.area_id||"";
@@ -78,11 +83,11 @@ class Studio extends HTMLElement{
   super();this.attachShadow({mode:"open"});this._hass=null;this._page="library";this._tab="all";this._q="";this._filter="all";
   this._step=0;this._preset="blank-script";this._draft=null;this._editing=null;this._selected=new Set();
   this._reg={areas:[],entities:[],devices:[]};this._loaded=false;this._area="*";this._query="";
-  this._busy=false;this._notice="";this._error=false;this._advanced=null;
-  this._habits=null;this._deletedIds=new Set();
+  this._busy=false;this._notice="";this._error=false;
+  this._deletedIds=new Set();
   this._homeSlots=[null,null,null,null];this._homeBaseline=null;
-  this._homeLoading=false;this._needsMerge=false;this._checkedMerge=false;
-  this._addHomeOnSave=false;
+  this._homeLoading=false;
+  this._addHomeOnSave=false;this._icon="mdi:home-outline";this._color="purple";this._homeLooks={};this._homeReady=false;this._appearanceOpen=false;
   this.shadowRoot.addEventListener("click",ev=>this._click(ev));
   this.shadowRoot.addEventListener("change",ev=>this._change(ev));
   this.shadowRoot.addEventListener("input",ev=>this._input(ev));
@@ -93,12 +98,10 @@ class Studio extends HTMLElement{
   const oldUser=this._hass?.user?.id;
   const oldDigest=oldUser&&this._page==="library"?
    JSON.stringify(routineCatalog(this._hass?.states).map(x=>[x.id,x.name,x.state,x.own])):"";
-  if(oldUser!==h?.user?.id){this._loaded=false;this._reg={areas:[],entities:[],devices:[]};}
+  if(oldUser!==h?.user?.id){this._loaded=false;this._homeReady=false;this._reg={areas:[],entities:[],devices:[]};}
   this._hass=h;
   if(h?.user?.is_admin&&!this._loaded){this._loaded=true;void this._load();}
-  if(h?.user?.is_admin&&!this._checkedMerge){this._checkedMerge=true;void this._inspectMerge();}
-  if(this._advanced)this._advanced.hass=h;
-  if(this._habits)this._habits.hass=h;
+  if(h?.user?.is_admin&&!this._homeReady){this._homeReady=true;this._homeLoading=true;void this._loadHomeSlots();}
   // Le frontend HA met à jour hass très souvent : ne pas interrompre une
   // recherche en cours en recréant tous les boutons/champs à chaque capteur.
   const nextDigest=this._page==="library"?
@@ -136,13 +139,9 @@ class Studio extends HTMLElement{
   const content=!this._hass?'<div class="main">Chargement…</div>':
    denied?'<div class="main"><div class="empty"><b>Réservé à l’administrateur</b>Tu dois utiliser un compte Home Assistant administrateur.</div></div>':
    noEngine?'<div class="main"><div class="feedback error">Charge la ressource kimia-routine-engine-v16.js avant Studio V2.</div></div>':
-   this._page==="wizard"?this._wizard():this._page==="advanced"?this._advancedPage():
-   this._page==="habits"?this._habitsPage():this._library();
+   this._page==="wizard"?this._wizard():this._page==="habits"?this._habitsPage():this._library();
   this.shadowRoot.innerHTML='<style>'+CSS+'</style><ha-card>'+this._header()+content+'</ha-card>';
-  if(this._page==="advanced")this._mountAdvanced();
-  else this._advanced=null;
-  if(this._page==="habits")this._mountHabits();
-  else this._habits=null;
+
  }
  _header(){
   return '<div class="hero"><div class="hero-top"><span class="brand">'+this._I("mdi:creation")+
@@ -153,132 +152,87 @@ class Studio extends HTMLElement{
  }
  _library(){
   const list=this._all();
-  const tabs=[["all","Tout voir"],["script","Scénarios"],["automation","Automatisations"]];
-  const cta=(act,icon,title,detail)=>'<button type="button" class="quick" data-act="'+act+'">'+
-   this._I(icon)+'<span><strong>'+title+'</strong><small>'+detail+'</small></span></button>';
   return '<div class="main">'+this._notification()+
-   '<div class="quick-actions">'+
-   cta("new","mdi:plus-circle-outline","Créer une routine",
-     "Choisis comment elle démarre, puis ce que fait la maison.")+
-   cta("habits","mdi:gesture-tap-button","Mes boutons d’accueil",
-     "Choisir les quatre routines accessibles d’un appui.")+'</div>'+
-   '<div class="nav"><h3>Mes scénarios et automatisations <span class="chip">'+list.length+'</span></h3>'+
-   '<div class="nav-links">'+
-    this._B(this._I("mdi:home-automation")+" Mes habitudes","habits","small")+
-    this._B(this._I("mdi:tune-vertical")+" Atelier avancé","advanced","small")+
-    (this._needsMerge?this._B(this._I("mdi:merge")+" Réunir les deux pages",
-       "merge-admin","small primary"):"")+
-   '</div></div>'+
-   '<div class="tabs" role="tablist">'+tabs.map(([id,label])=>
-    '<button class="tab" role="tab" type="button" aria-selected="'+(this._tab===id)+
-    '" data-act="tab" data-value="'+id+'">'+label+'</button>').join("")+'</div>'+
-   '<div class="tools" style="margin-top:14px"><input id="studio-search" type="text" aria-label="Rechercher une routine" placeholder="Rechercher une routine…" value="'+e(this._q)+'"/>'+
-   '<select id="studio-filter" aria-label="Filtrer l’état"><option value="all">Tous les états</option>'+
-   '<option value="on"'+(this._filter==="on"?" selected":"")+'>Actives</option>'+
-   '<option value="off"'+(this._filter==="off"?" selected":"")+'>Désactivées</option></select>'+
-   this._B(this._I("mdi:refresh")+" Actualiser","refresh","small")+'</div>'+
-   '<div class="cards" id="studio-results">'+this._results()+'</div>'+
-   '<p class="help" style="margin-top:17px">Les routines existantes dans Home Assistant sont conservées. Les routines techniques internes ne peuvent pas être supprimées depuis Studio.</p></div>';
+   '<div class="nav"><div><h2 style="margin:0">À la maison <span class="chip">'+list.length+'</span></h2>'+
+   '<p class="help" style="margin:6px 0 0">Crée une routine et retrouve-la ici, avec ses boutons d’accueil.</p></div>'+
+   '<div class="nav-links">'+this._B(this._I("mdi:plus")+' Créer une routine',"new","primary")+
+   this._B(this._I("mdi:home-edit-outline")+' Organiser l’accueil',"habits","small")+
+   this._B(this._I("mdi:open-in-new")+' Mode expert',"mode-expert","small")+'</div></div>'+
+   '<div class="tools"><input id="studio-search" type="text" placeholder="Rechercher une routine…" aria-label="Rechercher une routine" value="'+e(this._q)+'"/></div>'+
+   '<div class="routines-list" id="studio-results">'+this._results()+'</div></div>';
  }
-  _results(){
+ _results(){
   const query=this._q.trim().toLowerCase();
-  const items=this._all().filter(r=>(this._tab==="all"||r.kind===this._tab)&&
-   (this._filter==="all"||r.kind==="script"||r.state===this._filter)&&
-   (!query||r.name.toLowerCase().includes(query)||r.id.includes(query)));
-  if(!items.length)return '<div class="empty">'+this._I("mdi:playlist-remove")+
-   '<b>Aucune routine trouvée</b>Crée une routine ou modifie les filtres.</div>';
+  const items=this._all().filter(r=>!query||r.name.toLowerCase().includes(query)||r.id.includes(query));
+  if(!items.length)return '<div class="empty"><b>Aucune routine trouvée</b>'+
+   (query?"Essaie un autre nom.":"Crée ta première routine avec le bouton ci-dessus.")+'</div>';
   return items.map(r=>{
-   const auto=r.kind==="automation",on=r.state==="on";
-   const deletable=r.own&&!protectedRoutine(r);
-   return '<div class="routine"><div class="rtop"><span class="r-icon">'+this._I(ICONS[r.kind])+'</span>'+
-    '<div style="min-width:0"><div class="rname">'+e(r.name)+'</div><div class="sub">'+
-    (auto?"Automatisation":"Scénario")+' · '+(r.own?"KIMIA":"Home Assistant")+'</div></div></div>'+
-    '<div><span class="chip"><span class="dot '+(auto&&!on?"off":"")+'"></span>'+
-    (auto?(on?"Active":"Désactivée"):"À lancer")+'</span></div>'+
-    '<div class="actions">'+(auto?
-      this._B(this._I(on?"mdi:pause-circle-outline":"mdi:power")+
-        (on?" Désactiver":" Activer"),"toggle","small",'data-id="'+e(r.id)+'"'):
-      this._B(this._I("mdi:play")+" Lancer","run","small primary",'data-id="'+e(r.id)+'"'))+
-    this._B(this._I("mdi:pencil-outline")+" Modifier","edit","small",'data-id="'+e(r.id)+'"')+
-    (deletable?this._B(this._I("mdi:trash-can-outline")+" Supprimer",
-      "delete","small danger",'data-id="'+e(r.id)+'"'):"")+
-    '</div></div>';
+   const auto=r.kind==="automation",on=r.state==="on",deletable=r.own&&!protectedRoutine(r);
+   const onHome=!auto&&this._homeSlots.includes(r.id);
+   const icon=this._hass?.states?.[r.id]?.attributes?.icon||ICONS[r.kind];
+   const color=this._homeLooks?.[r.id]?.color||"purple";
+   const shade=ROUTINE_COLORS[color]||ROUTINE_COLORS.purple;
+   return '<article class="routine-simple"><span class="routine-avatar" style="--avatar-color:'+shade+'">'+this._I(icon)+'</span>'+
+    '<div class="routine-info"><div class="rname">'+e(r.name)+'</div><div class="sub">'+
+    (auto?(on?"Automatique · Active":"Automatique · Désactivée"):"Manuelle · "+(onHome?"Sur l’accueil":"Pas sur l’accueil"))+
+    '</div></div><div class="routine-controls">'+
+    (!auto&&!protectedRoutine(r)?this._B(this._I(onHome?"mdi:home-check":"mdi:home-plus-outline")+
+     (onHome?" Retirer de l’accueil":" Sur l’accueil"),"toggle-home","small",'data-id="'+e(r.id)+'" '+((!this._homeReady||this._homeLoading)?'disabled':"")):"")+
+    (auto?this._B(on?"Désactiver":"Activer","toggle","small",'data-id="'+e(r.id)+'"'):
+     this._B(this._I("mdi:play")+' Lancer',"run","small",'data-id="'+e(r.id)+'"'))+
+    this._B(this._I("mdi:pencil")+' Modifier',"edit","small",'data-id="'+e(r.id)+'"')+
+    (deletable?this._B(this._I("mdi:trash-can-outline"),"delete","small danger",'data-id="'+e(r.id)+'" title="Supprimer"'):"")+
+    '</div></article>';
   }).join("");
  }
-  _new(){this._page="wizard";this._step=0;this._notice="";this._draft=null;this._editing=null;this._draw();}
+ _new(){this._page="wizard";this._step=0;this._notice="";this._draft=null;this._editing=null;this._draw();}
  _presetStart(key){
   const p=PRESETS.find(x=>x[0]===key)||PRESETS[0];
   this._preset=key;this._editing=null;this._draft=H().create(p[1]);this._draft.alias=p[2].includes(" libre")?"":p[2];
   if(p[1]==="automation")this._draft.triggers=[H().trigger(key==="evening"?"sun":key==="energy"?"numeric_state":"time")];
   this._selected=new Set();this._area="*";this._query="";this._step=1;
-  this._addHomeOnSave=p[1]==="script";this._notice="";this._draw();
+  this._addHomeOnSave=p[1]==="script";this._appearanceOpen=false;this._icon=p[1]==="automation"?"mdi:robot-outline":key==="night"?"mdi:weather-night":key==="departure"?"mdi:door-open":key==="arrival"?"mdi:home-outline":"mdi:home-outline";
+  this._color=key==="night"?"purple":key==="departure"?"amber":key==="arrival"?"green":"blue";this._notice="";this._draw();
  }
  _wizard(){
-  const labels=["Démarrage","Appareils","Actions","Si / Quand","Terminer"];
-  const main=this._step===0?this._choose():this._step===1?this._equipmentStep():this._step===2?this._actionsStep():this._step===3?this._conditionsStep():this._review();
-  return '<div class="main"><div class="wizard-top"><h2>'+(this._editing?"Modifier la routine":"Nouvelle routine")+'</h2>'+this._B("Fermer","home","small")+'</div>'+
-   '<div class="progress">'+labels.map((_,i)=>'<i class="'+(i<=this._step?"done":"")+'"></i>').join("")+'</div>'+
-   '<div class="step-label">ÉTAPE '+(this._step+1)+' / 5 · '+labels[this._step].toUpperCase()+'</div>'+
-   this._notification()+main+
-   '<div class="footer">'+this._B(this._I("mdi:arrow-left")+" Retour",this._step===0?"home":"prev")+
-   '<div class="actions">'+this._B(this._I("mdi:code-braces")+" Expert","advanced")+
-   (this._step===4?this._B(this._I("mdi:content-save-check-outline")+' Enregistrer dans HA',"save","primary",this._busy?"disabled":""):
-     this._B("Continuer "+this._I("mdi:arrow-right"),"next","primary"))+'</div></div></div>';
+  if(!this._draft)return '<div class="main">'+this._notification()+
+   '<div class="nav"><h2>Créer une routine</h2>'+this._B("Annuler","home","small")+'</div>'+
+   this._choose()+'</div>';
+  const d=this._draft,icon=validIcon(this._icon)?this._icon:"mdi:home-outline";
+  const shade=ROUTINE_COLORS[this._color]||ROUTINE_COLORS.purple;
+  const picker=ROUTINE_ICONS.map(([value,label])=>
+   '<button type="button" class="icon-choice" data-act="set-icon" data-value="'+value+
+   '" title="'+e(label)+'" aria-label="'+e(label)+'" aria-pressed="'+(icon===value)+'">'+this._I(value)+'</button>').join("");
+  const colors=Object.entries(ROUTINE_COLORS).map(([name,hex])=>
+   '<button type="button" class="color-choice" data-act="set-color" data-value="'+name+
+   '" style="--choice-color:'+hex+'" title="'+name+'" aria-label="Couleur '+name+
+   '" aria-pressed="'+(this._color===name)+'"></button>').join("");
+  return '<div class="main">'+this._notification()+
+   '<div class="nav"><h2 style="margin:0">'+(this._editing?"Modifier la routine":"Nouvelle routine")+'</h2>'+
+   this._B("Annuler","home","small")+'</div>'+
+   '<div class="editor-title"><span class="routine-avatar" style="--avatar-color:'+shade+'">'+this._I(icon)+'</span>'+
+   '<div style="flex:1"><label class="fieldlabel">Nom de la routine<input id="draft-name" maxlength="70" type="text" placeholder="Ex. Bonne nuit" value="'+e(d.alias)+'" /></label></div></div>'+
+   (d.kind==="script"?'<details class="simple-section" '+(this._appearanceOpen?"open":"")+'><summary><strong>Personnaliser l’icône et la couleur</strong> <span class="section-badge">Facultatif</span></summary>'+
+   '<div class="section-title">Choisir une icône</div><div class="icon-picker">'+picker+'</div>'+
+   '<div class="section-title">Couleur du bouton d’accueil</div><div class="color-picker">'+colors+'</div></details>':"")+
+   '<div class="simple-section"><h3>SI · Quand ?</h3>'+this._conditionsStep()+'</div>'+
+   '<div class="simple-section"><h3>ALORS · Que fait la maison ?</h3>'+this._actionsStep()+'</div>'+
+   (d.kind==="script"?'<div class="simple-section"><label style="display:flex;align-items:center;gap:12px;cursor:pointer">'+
+    '<input id="add-home-on-save" type="checkbox" style="width:21px;height:21px;min-height:0" '+(this._addHomeOnSave?"checked":"")+' />'+
+    '<span><strong>Afficher sur l’accueil</strong><br><small class="help">Tu peux le retirer quand tu veux sans supprimer la routine. Quatre boutons maximum.</small></span></label></div>':"")+
+   '<div class="footer">'+this._B(this._I("mdi:open-in-new")+' Mode expert (Home Assistant)',"mode-expert","small")+
+   this._B(this._I("mdi:content-save")+' Enregistrer',"save","primary",this._busy?"disabled":"")+
+   '</div></div>';
  }
  _choose(){
-  const card=(key,icon,title,detail)=>'<button class="option" data-act="preset" data-value="'+key+'" type="button">'+
-   '<span class="o-icon">'+this._I(icon)+'</span><span><b>'+title+'</b><small>'+detail+'</small></span></button>';
-  return '<h3>SI… comment démarre la routine ?</h3>'+
-   '<p class="help">Choisis simplement ce qui doit la lancer. Tu décideras ensuite des appareils et des actions.</p>'+
-   '<div class="options">'+
-   card("blank-script","mdi:gesture-tap-button","J’appuie sur un bouton",
-    "Un geste sur l’accueil KIMIA : Bonne nuit, Départ, Retour…")+
-   card("blank-automation","mdi:clock-outline","La maison réagit toute seule",
-    "À une heure, au soleil, ou quand un capteur change.")+'</div>'+
-   '<details style="margin-top:20px"><summary style="cursor:pointer;font-weight:800;padding:10px 0">'+
-   this._I("mdi:lightbulb-on-outline")+' Partir d’un exemple (facultatif)</summary>'+
+  const option=(key,icon,title,help)=>'<button class="option" data-act="preset" data-value="'+key+'" type="button">'+
+   '<span class="o-icon">'+this._I(icon)+'</span><span><b>'+title+'</b><small>'+help+'</small></span></button>';
+  return '<p class="help">Comment veux-tu lancer cette routine ?</p><div class="quick-start">'+
+   option("blank-script","mdi:gesture-tap-button","J’appuie sur un bouton","Depuis l’accueil de KIMIA.")+
+   option("blank-automation","mdi:clock-outline","La maison agit toute seule","À une heure ou quand quelque chose se produit.")+
+   '</div><details style="margin-top:18px"><summary>Voir quelques exemples</summary>'+
    '<div class="options" style="margin-top:12px">'+PRESETS.filter(p=>!p[0].startsWith("blank-")).map(p=>
-    card(p[0],p[4],e(p[2]),e(p[3]))).join("")+'</div></details>';
- }
- _equipmentStep(){
-  const devices=this._devices(),listed=devices.filter(x=>(this._area==="*"||x.area===this._area)&&
-   (x.name.toLowerCase().includes(this._query.toLowerCase())||x.id.includes(this._query.toLowerCase())));
-  const areaNames=new Map(this._reg.areas.map(a=>[a.area_id,a.name]));
-  const used=[...new Set(devices.map(x=>x.area))];
-  return '<p class="help">On utilise les pièces Home Assistant du client, jamais les coordonnées de son plan. Tu peux sélectionner plusieurs équipements.</p>'+
-   '<div class="fields"><label class="fieldlabel">Nom de la routine<input id="draft-name" type="text" maxlength="70" placeholder="Ex. Bonne nuit" value="'+e(this._draft.alias)+'"/></label>'+
-   '<label class="fieldlabel">Description facultative<input id="draft-desc" type="text" maxlength="240" value="'+e(this._draft.description)+'"/></label></div>'+
-   '<div class="section-title">'+this._I("mdi:home-search-outline")+' Choisir les équipements <span class="chip" id="selected-count">'+this._selected.size+' sélectionné(s)</span></div>'+
-   '<div class="device-tools"><select id="area-filter"><option value="*">Toutes les pièces</option>'+
-   used.map(a=>'<option value="'+e(a)+'" '+(this._area===a?"selected":"")+'>'+e(areaNames.get(a)||"Sans pièce")+'</option>').join("")+'</select>'+
-   '<input id="device-search" type="text" placeholder="Rechercher un appareil…" value="'+e(this._query)+'"/></div>'+
-   '<div class="devices" id="device-results">'+this._deviceResults(listed)+'</div>'+
-   '<p class="help">Les appareils nécessitant des actions particulières peuvent être configurés dans l’éditeur avancé.</p>';
- }
- _deviceResults(items){
-  if(!items.length)return '<div class="empty">Aucun appareil compatible ici.</div>';
-  return items.map(x=>'<label class="choice '+(this._selected.has(x.id)?"selected":"")+'">'+
-   '<input type="checkbox" data-entity="'+e(x.id)+'" '+(this._selected.has(x.id)?"checked":"")+'/>'+
-   this._I(ICONS[x.domain]||"mdi:flash")+'<span style="min-width:0"><b>'+e(x.name)+'</b>'+
-   '<small>'+e(x.room)+' · '+e(DOMAINS[x.domain]||x.domain)+'</small></span></label>').join("");
- }
- _syncActions(){
-  // Impératif pour l'édition : conserver l'ordre des commandes et pauses.
-  // Ne jamais déplacer une attente au bout de la séquence !
-  const ops=H().OPERATIONS,known=new Set(),next=[];
-  for(const action of this._draft.actions){
-   if(action.type!=="call"){next.push(action);continue;}
-   if(this._selected.has(action.entity)&&!known.has(action.entity)){
-    next.push(action);known.add(action.entity);
-   }
-  }
-  for(const id of this._selected){
-   if(known.has(id))continue;
-   const x=H().action("call");x.entity=id;x.operation=defaultOp(id.split(".")[0],this._preset,ops);
-   x.value=x.operation==="set_temperature"?"20":x.operation==="set_cover_position"?"50":x.operation==="volume_set"?"0.5":"";
-   next.push(x);
-  }
-  this._draft.actions=next;
+    option(p[0],p[4],e(p[2]),e(p[3]))).join("")+'</div></details>';
  }
  _entityOptions(current){
   return '<option value="">Choisir un appareil</option>'+
@@ -287,26 +241,30 @@ class Studio extends HTMLElement{
  }
  _actionsStep(){
   const ops=H().OPERATIONS,names=new Map(this._devices().map(x=>[x.id,x.name]));
-  return '<p class="help">Les commandes seront exécutées dans cet ordre. Le déplacement fonctionne aussi sur tablette avec les flèches.</p>'+
-  (this._draft.actions.length?this._draft.actions.map((x,i)=>
-   '<div class="block"><div class="blocktop"><strong>Action '+(i+1)+' · '+e(x.type==="call"?(names.get(x.entity)||x.entity):x.type==="delay"?"Attente":"Attendre un capteur")+'</strong>'+
-   '<div class="actions">'+this._B(this._I("mdi:arrow-up"),"move","small",'data-index="'+i+'" data-direction="-1" '+(i===0?"disabled":""))+
-    this._B(this._I("mdi:arrow-down"),"move","small",'data-index="'+i+'" data-direction="1" '+(i===this._draft.actions.length-1?"disabled":""))+
-    this._B(this._I("mdi:trash-can-outline"),"del-action","small danger",'data-index="'+i+'"')+'</div></div>'+
-   (x.type==="call"?'<div class="fields"><label class="fieldlabel">Équipement<input type="text" value="'+e(names.get(x.entity)||x.entity)+'" disabled /></label>'+
+  const devices=this._devices();
+  const options=devices.map(x=>'<option value="'+e(x.id)+'">'+e(x.room+" · "+x.name)+'</option>').join("");
+  const rows=(this._draft.actions||[]).map((x,i)=>
+    '<div class="block"><div class="blocktop"><strong>'+(i+1)+'. '+e(x.type==="call"?(names.get(x.entity)||x.entity):x.type==="delay"?"Pause":"Attendre un capteur")+'</strong>'+
+    '<div class="subtle-actions">'+this._B("↑","move","small",'data-index="'+i+'" data-direction="-1" '+(i===0?"disabled":""))+
+    this._B("↓","move","small",'data-index="'+i+'" data-direction="1" '+(i===this._draft.actions.length-1?"disabled":""))+
+    this._B(this._I("mdi:close"),"del-action","small danger",'data-index="'+i+'" title="Retirer cette action"')+'</div></div>'+
+    (x.type==="call"?'<div class="fields"><label class="fieldlabel">Appareil<input type="text" value="'+e(names.get(x.entity)||x.entity)+'" disabled /></label>'+
     '<label class="fieldlabel">Action<select data-action-field="operation" data-index="'+i+'">'+(ops[x.entity.split(".")[0]]||[]).map(([op,label])=>
     '<option value="'+e(op)+'" '+(op===x.operation?"selected":"")+'>'+e(label)+'</option>').join("")+'</select></label></div>'+
-    (["set_temperature","set_cover_position","volume_set"].includes(x.operation)?'<label class="fieldlabel" style="margin-top:10px">Valeur ('+
-    (x.operation==="set_temperature"?"°C":x.operation==="set_cover_position"?"%":"0 à 1")+
-    ')<input type="number" step="any" data-action-field="value" data-index="'+i+'" value="'+e(x.value)+'"/></label>':""):
-    x.type==="delay"?'<label class="fieldlabel">Durée en secondes<input type="number" data-action-field="seconds" data-index="'+i+'" min="1" value="'+e(x.seconds)+'"/></label>':
+    (["set_temperature","set_cover_position","volume_set"].includes(x.operation)?'<label class="fieldlabel">Valeur '+
+    (x.operation==="set_temperature"?"(°C)":x.operation==="set_cover_position"?"(%)":"(0 à 1)")+
+    '<input type="number" step="any" data-action-field="value" data-index="'+i+'" value="'+e(x.value)+'"/></label>':""):
+    x.type==="delay"?'<label class="fieldlabel">Durée en secondes<input type="number" min="1" data-action-field="seconds" data-index="'+i+'" value="'+e(x.seconds)+'"/></label>':
     '<div class="fields"><label class="fieldlabel">Capteur<select data-action-field="entity" data-index="'+i+'">'+this._entityOptions(x.entity)+'</select></label>'+
     '<label class="fieldlabel">État attendu<input type="text" data-action-field="to" data-index="'+i+'" value="'+e(x.to)+'"/></label>'+
-    '<label class="fieldlabel">Limite (secondes)<input type="number" data-action-field="timeout" data-index="'+i+'" value="'+e(x.timeout)+'"/></label></div>')+
-   '</div>').join(""):'<div class="empty"><b>Aucune action</b>Reviens choisir des appareils ou ajoute une attente.</div>')+
-   '<div class="actions">'+this._B(this._I("mdi:timer-outline")+" Ajouter une pause","add-delay")+
-   this._B(this._I("mdi:progress-clock")+" Attendre un capteur","add-wait")+'</div>'+
-   '<div class="note">Les branches SI / ALORS / SINON, boucles, répétitions, groupes ET / OU et paramètres experts sont disponibles dans l’atelier avancé. Aucun bloc complexe n’est simplifié automatiquement.</div>';
+    '<label class="fieldlabel">Délai maximum (secondes)<input type="number" data-action-field="timeout" data-index="'+i+'" value="'+e(x.timeout)+'"/></label></div>')+
+    '</div>').join("");
+  return (rows||'<p class="help">Choisis un appareil pour commencer.</p>')+
+   '<div class="compact-actions"><select id="quick-action-entity" aria-label="Choisir un appareil"><option value="">Choisir un appareil…</option>'+options+'</select>'+
+   this._B(this._I("mdi:plus")+' Ajouter',"quick-action","primary",devices.length?"":"disabled")+'</div>'+
+   '<details><summary>Ajouter une pause ou attendre un capteur</summary><div class="subtle-actions" style="margin-top:10px">'+
+   this._B("Ajouter une pause","add-delay","small")+this._B("Attendre un capteur","add-wait","small")+
+   '</div></details>';
  }
  _conditionBlock(x,i,isTrigger){
   const prefix=isTrigger?"trigger":"condition",dataAttr='data-'+prefix+'-field',types=isTrigger?
@@ -329,109 +287,13 @@ class Studio extends HTMLElement{
  }
  _conditionsStep(){
   const d=this._draft,auto=d.kind==="automation";
-  return (auto?'<div class="section-title">'+this._I("mdi:play-circle-outline")+
-    ' SI · Quel événement déclenche la routine ?</div>'+
-    '<p class="help">Exemples : à 7 h, au coucher du soleil, ou quand un détecteur passe à « on ». Un seul événement suffit pour démarrer.</p>'+
+  return (auto?'<p class="help">La maison démarre la routine quand cet événement se produit.</p>'+
     d.triggers.map((x,i)=>this._conditionBlock(x,i,true)).join("")+
-    this._B(this._I("mdi:plus")+" Ajouter un autre événement (OU)","add-trigger"):
-    '<div class="section-title">'+this._I("mdi:gesture-tap-button")+
-    ' SI · J’appuie sur un bouton</div>'+
-    '<div class="block"><strong>Déclenchement manuel</strong>'+
-    '<p class="help">Cette routine se lance par un bouton dans KIMIA, ou par « Lancer » dans Mes routines. Aucun capteur ni horaire nécessaire.</p>'+
-    '<label style="display:flex;align-items:center;gap:10px;margin-top:14px;cursor:pointer">'+
-    '<input id="add-home-on-save" type="checkbox" style="width:20px;height:20px;min-height:0" '+
-    (this._addHomeOnSave?"checked":"")+' />'+
-    '<span><strong>Ajouter un bouton sur l’accueil KIMIA</strong><br>'+
-    '<small class="help">Utilise la première des quatre places libres. Ne remplace jamais un bouton existant.</small></span></label></div>')+
-   '<details '+(d.conditions.length?'open':'')+' style="margin-top:20px">'+
-   '<summary class="section-title" style="cursor:pointer">'+this._I("mdi:filter-check-outline")+
-   ' SEULEMENT SI · Ajouter une condition (facultatif)</summary>'+
-   '<p class="help">Exemple : seulement si quelqu’un est à la maison. Si la condition est fausse, les actions ne se lancent pas.</p>'+
-   d.conditions.map((x,i)=>this._conditionBlock(x,i,false)).join("")+
-   this._B(this._I("mdi:plus")+" Ajouter une condition","add-condition")+
-   '<p class="help">Pour les conditions ET / OU, les boucles ou des boutons physiques Zigbee, utilise l’atelier avancé ou l’éditeur Home Assistant.</p></details>';
- }
- _review(){
-  const d=this._draft,names=new Map(this._devices().map(x=>[x.id,x.name]));
-  return '<h2>'+e(d.alias)+'</h2><p class="help">Aucune action ne sera exécutée pendant la sauvegarde.</p>'+
-   '<div class="summary"><div class="summary-item">'+this._I(ICONS[d.kind])+
-   '<div><strong>'+(d.kind==="script"?"Scénario":"Automatisation")+'</strong><div class="sub">'+e(d.description||"Sans description")+'</div></div></div>'+
-   '<div class="summary-item">'+this._I("mdi:calendar-check")+
-   '<div><strong>'+(d.kind==="script"?"Démarrage : appui sur un bouton"+(this._addHomeOnSave?" · Ajout à l’accueil demandé":" · Sans bouton sur l’accueil"):
-    d.triggers.length+" événement(s) de déclenchement")+' · '+d.conditions.length+' condition(s)</strong></div></div>'+
-   d.actions.map((x,i)=>'<div class="summary-item">'+this._I("mdi:check")+
-    '<div><strong>'+(i+1)+'. '+e(x.type==="call"?(names.get(x.entity)||x.entity)+" → "+x.operation:
-     x.type==="delay"?"Attendre "+x.seconds+" secondes":"Attendre un capteur")+'</strong></div></div>').join("")+
-   '</div><div class="note">KIMIA enregistre une véritable routine Home Assistant. Les autres automatisations et scripts sont intacts.</div>';
- }
-
- _adminMergePlan(config){
-  if(!Array.isArray(config?.views))throw Error("Dashboard administrateur introuvable.");
-  const views=config.views;
-  const old=views.find(v=>v.path==="scenarios");
-  if(!old)throw Error("Vue Scénarios d'origine introuvable. Fusion annulée.");
-  const duplicate=views.find(v=>v.path==="studio-v2");
-  const nestedCards=view=>(view?.sections||[]).flatMap(section=>
-   (section?.cards||[]).flatMap(card=>
-    [card,...(Array.isArray(card?.cards)?card.cards:[])]));
-  const oldCards=nestedCards(old),studioCards=nestedCards(duplicate);
-  const studioType="custom:kimia-studio-v2-admin-card";
-  const legacy=new Set([
-   "heading","markdown","shortcut","custom:kimia-routine-editor-v16-card",
-   "custom:kimia-scenarios-v1-card","custom:kimia-studio-v2-admin-card"
-  ]);
-  const studioAllowed=new Set([
-   "heading","markdown","custom:kimia-studio-v2-admin-card",
-   "custom:navbar-card","custom:button-card"
-  ]);
-  if(oldCards.some(card=>!legacy.has(card.type)))
-   throw Error("Scénarios contient des cartes personnalisées. Fusion manuelle nécessaire.");
-  if(duplicate&&studioCards.some(card=>!studioAllowed.has(card.type)))
-   throw Error("Studio V2 contient des cartes personnalisées. Fusion automatique refusée.");
-  if(duplicate&&!studioCards.some(card=>card.type===studioType))
-   throw Error("Ancienne vue Studio V2 inattendue : fusion manuelle nécessaire.");
-  const hasOld=oldCards.some(card=>card.type!=="heading"&&card.type!=="markdown"&&card.type!==studioType);
-  if(!hasOld&&!duplicate&&oldCards.filter(card=>card.type===studioType).length===1)
-   return null;
-  const next=clone(config),dest=next.views.find(v=>v.path==="scenarios");
-  dest.title="Mes routines";dest.type="sections";dest.max_columns=2;
-  dest.sections=[{type:"grid",column_span:2,
-   cards:[{type:studioType,grid_options:{columns:"full",rows:"auto"}}]}];
-  if(duplicate)next.views=next.views.filter(v=>v.path!=="studio-v2");
-  return next;
- }
- async _inspectMerge(){
-  const h=this._hass;
-  try{
-   const config=await h.callWS({type:"lovelace/config",url_path:"kimia-admin-next"});
-   if(h!==this._hass)return;
-   this._needsMerge=!!this._adminMergePlan(config);
-   if(this._page==="library")this._draw();
-  }catch{
-   this._needsMerge=false;
-  }
- }
- async _mergeAdminPages(){
-  if(!this._admin()||this._busy)return;
-  const h=this._hass;this._busy=true;
-  try{
-   const before=await h.callWS({type:"lovelace/config",url_path:"kimia-admin-next"});
-   const next=this._adminMergePlan(before);
-   if(!next){this._needsMerge=false;this._notice="Les pages sont déjà réunies.";return;}
-   if(!window.confirm("Remplacer l'ancien atelier Scénarios par « Mes routines » "+
-    "et retirer la page Studio V2 en double ? Sauvegarde le dashboard avant de confirmer."))return;
-   const latest=await h.callWS({type:"lovelace/config",url_path:"kimia-admin-next"});
-   if(canon(before)!==canon(latest))
-    throw Error("Le dashboard administrateur a changé. Recharge avant de fusionner.");
-   await h.callWS({type:"lovelace/config/save",
-    url_path:"kimia-admin-next",config:next});
-   this._needsMerge=false;this._notice="Les deux pages sont réunies.";
-   this._error=false;
-   window.location?.assign?.("/kimia-admin-next/scenarios");
-  }catch(err){
-   this._notice="Fusion impossible : "+(err?.message||err);
-   this._error=true;
-  }finally{this._busy=false;this._draw();}
+    this._B(this._I("mdi:plus")+' Un autre déclencheur (OU)',"add-trigger","small"):
+    '<p class="help"><strong>Appui sur un bouton KIMIA.</strong> La routine se lance seulement quand tu appuies. Aucun horaire nécessaire.</p>')+
+   '<details '+(d.conditions.length?"open":"")+' style="margin-top:18px"><summary><strong>Seulement si…</strong> <span class="section-badge">Conditions facultatives</span></summary>'+
+   '<div style="margin-top:12px">'+d.conditions.map((x,i)=>this._conditionBlock(x,i,false)).join("")+
+   this._B(this._I("mdi:plus")+' Ajouter une condition',"add-condition","small")+'</div></details>';
  }
  _homeSection(config){
   const view=config?.views?.find(v=>v.path==="accueil");
@@ -464,16 +326,22 @@ class Studio extends HTMLElement{
    .map(c=>c.tap_action.target.entity_id);
   return [...candidates,null,null,null,null].slice(0,4);
  }
+ _homeLooksFromConfig(config){
+  const target=this._homeSection(config);
+  const looks=target.custom?target.cards[target.index]?.looks:null;
+  return looks&&typeof looks==="object"&&!Array.isArray(looks)?clone(looks):{};
+ }
  _isOldHomeShortcut(c){
   return c?.type==="shortcut" &&
    ["Au lit","Départ","Retour","Réveil"].includes(c.label) &&
    c.tap_action?.perform_action==="script.turn_on" &&
    /^script\.[a-z0-9_]+$/.test(c.tap_action?.target?.entity_id||"");
  }
- _applyHomeSlots(config,slots){
+ _applyHomeSlots(config,slots,looks){
   const target=this._homeSection(config);
+  const appearance=looks||this._homeLooksFromConfig(config);
   const newCard={type:"custom:kimia-home-scenarios-v1-card",
-   grid_options:{columns:12,rows:"auto"},slots:[...slots]};
+   grid_options:{columns:12,rows:"auto"},slots:[...slots],looks:clone(appearance)};
   if(target.custom){
    target.cards[target.index]=newCard;
   }else{
@@ -487,34 +355,17 @@ class Studio extends HTMLElement{
  }
  _habitsPage(){
   const scripts=this._all().filter(r=>r.kind==="script"&&!protectedRoutine(r));
-  const helperSupported=HABIT_HELPERS.some(id=>this._hass?.states?.[id]);
-  const choices=(selected)=>'<option value="">Aucun scénario</option>'+
-   scripts.map(r=>'<option value="'+e(r.id)+'"'+(selected===r.id?' selected':'')+
-    '>'+e(r.name)+'</option>').join("");
-  const rows=[0,1,2,3].map(i=>'<div class="block"><div class="blocktop">'+
-   '<strong>Position '+(i+1)+'</strong><div class="actions">'+
-   this._B("↑","swap-home","small",'data-index="'+i+'" data-direction="-1" '+(i===0?'disabled':''))+
-   this._B("↓","swap-home","small",'data-index="'+i+'" data-direction="1" '+(i===3?'disabled':''))+
-   '</div></div><label class="fieldlabel">Scénario affiché sur Accueil'+
-   '<select data-slot="'+i+'" '+(this._homeLoading?'disabled':'')+'>'+
-   choices(this._homeSlots[i])+'</select></label></div>').join("");
+  const choices=(selected)=>'<option value="">Aucun bouton</option>'+
+   scripts.map(r=>'<option value="'+e(r.id)+'"'+(selected===r.id?' selected':'')+'>'+e(r.name)+'</option>').join("");
+  const rows=[0,1,2,3].map(i=>'<div class="block"><div class="blocktop"><strong>Position '+(i+1)+'</strong>'+
+   '<div class="subtle-actions">'+this._B("↑","swap-home","small",'data-index="'+i+'" data-direction="-1" '+(i===0?"disabled":""))+
+   this._B("↓","swap-home","small",'data-index="'+i+'" data-direction="1" '+(i===3?"disabled":""))+'</div></div>'+
+   '<select data-slot="'+i+'" '+(this._homeLoading?'disabled':'')+'>'+choices(this._homeSlots[i])+'</select></div>').join("");
   return '<div class="main">'+this._notification()+
-   '<div class="nav"><h2>Mes raccourcis Accueil</h2></div>'+
-   '<p class="help">Choisis jusqu’à quatre scénarios et leur ordre. Un emplacement vide ne crée aucun bouton. Les scripts Home Assistant ne sont jamais modifiés.</p>'+
-   (this._homeLoading?'<p class="note">Chargement de la configuration de l’accueil…</p>':'')+
-   '<div class="cards">'+rows+'</div>'+
-   '<div class="footer">'+this._B("Retour à Mes routines","home")+
-   this._B(this._I("mdi:content-save")+" Enregistrer sur l’accueil",
-    "save-home","primary",(this._homeLoading||this._busy?'disabled':''))+'</div>'+
-   (helperSupported?'<div class="section-line"></div><h3>Autres raccourcis KIMIA</h3>'+
-    '<p class="help">Anciens boutons et ambiances disponibles si les helpers KIMIA sont installés.</p>'+
-    '<div id="studio-habits-legacy" class="habit-host"></div>':'')+'</div>';
- }
- _mountHabits(){
-  const host=this.shadowRoot.getElementById("studio-habits-legacy");
-  if(!host||!customElements.get("kimia-scenarios-v1-card"))return;
-  const card=document.createElement("kimia-scenarios-v1-card");
-  card.setConfig?.({});card.hass=this._hass;host.append(card);this._habits=card;
+   '<div class="nav"><h2>Organiser les boutons de l’accueil</h2></div>'+
+   '<p class="help">Tu peux en afficher quatre au maximum. Enlever un bouton ne supprime jamais sa routine.</p>'+
+   '<div class="cards">'+rows+'</div><div class="footer">'+this._B("Retour","home")+
+   this._B("Enregistrer l’accueil","save-home","primary",(this._homeLoading||this._busy?'disabled':''))+'</div></div>';
  }
  async _loadHomeSlots(){
   const h=this._hass;
@@ -527,15 +378,16 @@ class Studio extends HTMLElement{
     .map(r=>r.id));
    this._homeSlots=this._homeSlotsFromConfig(config)
     .map(id=>id&&available.has(id)?id:null);
-   this._homeBaseline=canon(config);
-   this._notice="";this._error=false;
+   this._homeLooks=this._homeLooksFromConfig(config);
+   this._homeBaseline=canon(config);this._homeReady=true;
+   this._error=false;
   }catch(err){
    this._homeBaseline=null;
    this._notice="Configuration Accueil inaccessible : "+(err?.message||err);
    this._error=true;
   }finally{
    this._homeLoading=false;
-   if(this._page==="habits")this._draw();
+   if(this._page==="habits"||this._page==="library")this._draw();
   }
  }
  async _saveHomeSlots(){
@@ -558,7 +410,8 @@ class Studio extends HTMLElement{
    const next=clone(config);
    this._applyHomeSlots(next,slots);
    await h.callWS({type:"lovelace/config/save",url_path:"kimia-next",config:next});
-   this._homeBaseline=canon(next);
+   this._homeBaseline=canon(next);this._homeSlots=slots;
+   this._homeLooks=this._homeLooksFromConfig(next);
    this._notice="Accueil mis à jour. Recharge la page Accueil sur les autres appareils.";
    this._error=false;
   }catch(err){
@@ -566,43 +419,19 @@ class Studio extends HTMLElement{
    this._error=true;
   }finally{this._busy=false;this._draw();}
  }
- _advancedPage(){
-  return '<div class="main">'+this._notification()+
-   '<div class="nav"><h2>Atelier avancé</h2>'+this._B("Retour","home")+'</div>'+
-   '<div class="note">Blocs conditionnels, répétitions, attentes, déclencheurs et actions avancées de KIMIA V1.6. Si un script HA contient des paramètres non représentables sans perte, utilise l’éditeur natif.</div>'+
-   '<div id="studio-advanced"></div></div>';
- }
- _mountAdvanced(){
-  const host=this.shadowRoot.getElementById("studio-advanced");
-  if(!host)return;
-  if(!customElements.get("kimia-routine-editor-v16-card")){host.textContent="La ressource kimia-routine-editor-v16-card.js manque. Charge-la avant Studio V2.";return;}
-  const card=document.createElement("kimia-routine-editor-v16-card");
-  card.setConfig?.({});card.hass=this._hass;host.append(card);this._advanced=card;
- }
  _input(ev){
   const x=ev.target;
   if(x.id==="studio-search"){this._q=x.value;const out=this.shadowRoot.getElementById("studio-results");if(out)out.innerHTML=this._results();}
   else if(x.id==="draft-name"){this._draft.alias=x.value;}
   else if(x.id==="draft-desc"){this._draft.description=x.value;}
-  else if(x.id==="device-search"){
-   this._query=x.value;const out=this.shadowRoot.getElementById("device-results");
-   if(out)out.innerHTML=this._deviceResults(this._devices().filter(y=>(this._area==="*"||y.area===this._area)&&
-    (y.name.toLowerCase().includes(this._query.toLowerCase())||y.id.includes(this._query.toLowerCase()))));
-  }
  }
  _change(ev){
   const x=ev.target,d=x.dataset;
-  if(x.id==="studio-filter"){this._filter=x.value;this._draw();return;}
   if(x.id==="add-home-on-save"){this._addHomeOnSave=x.checked;return;}
   if(x.dataset.slot!==undefined){
    const slot=Number(x.dataset.slot);
    if(slot>=0&&slot<4)this._homeSlots[slot]=x.value||null;
    return;
-  }
-  if(x.id==="area-filter"){this._area=x.value;this._draw();return;}
-  if(d.entity){if(x.checked)this._selected.add(d.entity);else this._selected.delete(d.entity);
-   x.closest(".choice")?.classList.toggle("selected",x.checked);
-   const counter=this.shadowRoot.getElementById("selected-count");if(counter)counter.textContent=this._selected.size+" sélectionné(s)";return;
   }
   if(d.actionField){
    const action=this._draft?.actions[Number(d.index)];if(!action)return;
@@ -623,25 +452,33 @@ class Studio extends HTMLElement{
  _click(ev){
   const b=ev.target.closest("[data-act]");if(!b||!this._admin()||this._busy)return;
   const a=b.dataset.act,i=Number(b.dataset.index);
-  if(a==="home"){this._page="library";this._advanced=null;this._notice="";this._draw();}
+  if(a==="home"){this._page="library";this._notice="";this._draw();}
   else if(a==="new")this._new();
-  else if(a==="new-script")this._presetStart("blank-script");
-  else if(a==="new-automation")this._presetStart("blank-automation");
   else if(a==="habits"){this._page="habits";this._notice="";this._homeLoading=true;
    this._draw();void this._loadHomeSlots();}
-  else if(a==="tab"){this._tab=b.dataset.value;this._draw();}
-  else if(a==="refresh")this._msg("Liste actualisée depuis Home Assistant.");
-  else if(a==="advanced"){this._page="advanced";this._draw();}
+  else if(a==="mode-expert"){
+   const edit=this._editing;
+   window.location.assign(edit?"/config/"+edit.kind+"/edit/"+encodeURIComponent(edit.id):"/config/automation/dashboard");
+  }
+  else if(a==="set-icon"){if(validIcon(b.dataset.value)){this._icon=b.dataset.value;this._appearanceOpen=true;this._draw();}}
+  else if(a==="set-color"){if(validColor(b.dataset.value)){this._color=b.dataset.value;this._appearanceOpen=true;this._draw();}}
+  else if(a==="toggle-home")void this._toggleHome(b.dataset.id);
+  else if(a==="quick-action"){
+   const id=this.shadowRoot.getElementById("quick-action-entity")?.value;
+   if(!id||!this._devices().some(x=>x.id===id))return this._msg("Choisis un appareil compatible.",true);
+   if(this._draft.actions.some(x=>x.type==="call"&&x.entity===id))return this._msg("Cet appareil a déjà une action. Modifie-la plutôt que l’ajouter en double.",true);
+   const action=H().action("call");action.entity=id;
+   action.operation=defaultOp(id.split(".")[0],this._preset,H().OPERATIONS);
+   action.value=action.operation==="set_temperature"?"20":action.operation==="set_cover_position"?"50":action.operation==="volume_set"?"0.5":"";
+   this._draft.actions.push(action);this._selected.add(id);this._draw();
+  }
   else if(a==="preset")this._presetStart(b.dataset.value);
-  else if(a==="prev"){this._step=Math.max(0,this._step-1);this._notice="";this._draw();}
-  else if(a==="next")this._next();
   else if(a==="save")void this._save();
   else if(a==="run")void this._run(b.dataset.id);
   else if(a==="toggle")void this._toggle(b.dataset.id);
   else if(a==="edit")this._edit(b.dataset.id);
   else if(a==="delete")void this._deleteRoutine(b.dataset.id);
   else if(a==="save-home")void this._saveHomeSlots();
-  else if(a==="merge-admin")void this._mergeAdminPages();
   else if(a==="swap-home"){
    const index=Number(b.dataset.index),dir=Number(b.dataset.direction),dest=index+dir;
    if(index>=0&&index<4&&dest>=0&&dest<4){
@@ -651,25 +488,12 @@ class Studio extends HTMLElement{
   }
   else if(a==="add-delay"){this._draft.actions.push(H().action("delay"));this._draw();}
   else if(a==="add-wait"){this._draft.actions.push(H().action("wait_state"));this._draw();}
-  else if(a==="del-action"){this._draft.actions.splice(i,1);this._draw();}
+  else if(a==="del-action"){const old=this._draft.actions[i];this._draft.actions.splice(i,1);if(old?.entity)this._selected.delete(old.entity);this._draw();}
   else if(a==="move"){const to=i+Number(b.dataset.direction),list=this._draft.actions;if(to>=0&&to<list.length){[list[i],list[to]]=[list[to],list[i]];this._draw();}}
   else if(a==="add-trigger"){this._draft.triggers.push(H().trigger("time"));this._draw();}
   else if(a==="remove-trigger"){this._draft.triggers.splice(i,1);this._draw();}
   else if(a==="add-condition"){this._draft.conditions.push(H().condition("state"));this._draw();}
   else if(a==="remove-condition"){this._draft.conditions.splice(i,1);this._draw();}
- }
- _next(){
-  if(this._step===0)return this._msg("Choisis un modèle pour commencer.");
-  if(this._step===1){
-   if(!this._draft.alias.trim()||this._draft.alias.trim().length<3)return this._msg("Donne un nom d’au moins trois caractères.",true);
-   this._syncActions();
-  }
-  if(this._step===2&&!this._draft.actions.length)return this._msg("Ajoute un équipement ou une action.",true);
-  if(this._step===3){
-   try{H().serialize(this._draft,"kimia_validation");}
-   catch(err){return this._msg("À compléter : "+(err.message||err),true);}
-  }
-  this._step=Math.min(this._step+1,4);this._notice="";this._draw();
  }
  async _edit(id){
   const record=this._all().find(x=>x.id===id);if(!record)return;
@@ -684,7 +508,12 @@ class Studio extends HTMLElement{
    // Ne jamais ouvrir un éditeur guidé qui modifierait silencieusement
    // des champs HA non maîtrisés (icône, options supplémentaires, etc.).
    // Pour ces routines, utiliser l'éditeur natif ou l'atelier avancé.
-   if(canon(H().serialize(draft,record.configId))!==canon(raw)){
+   const roundtrip=H().serialize(draft,record.configId);
+   if(raw.icon!==undefined){
+    if(!validIcon(raw.icon)){window.location.assign(native);return;}
+    roundtrip.icon=raw.icon;
+   }
+   if(canon(roundtrip)!==canon(raw)){
     window.location.assign(native);return;
    }
    const common=["call","delay","wait_state"];
@@ -697,18 +526,18 @@ class Studio extends HTMLElement{
      draft.triggers.some(x=>!["state","numeric_state","time","sun"].includes(x.type))||
      targets.length!==new Set(targets).size||
      targets.some(entity=>!this._devices().some(d=>d.id===entity))){
-    this._page="advanced";
-    this._notice="Routine avancée : garde son éditeur complet pour éviter toute perte de commandes ou d'ordre.";
-    return;
+    window.location.assign(native);return;
    }
    this._editing={kind:record.kind,id:record.configId,baseline:clone(raw)};
-   this._draft=draft;this._selected=new Set(targets);this._preset="blank-script";
+   this._draft=draft;this._selected=new Set(targets);this._preset=record.kind==="script"?"blank-script":"blank-automation";
    this._step=1;this._area="*";this._query="";this._page="wizard";
-   this._addHomeOnSave=false;
+   this._icon=validIcon(raw.icon)?raw.icon:"mdi:home-outline";
+   this._color=validColor(this._homeLooks[record.id]?.color)?this._homeLooks[record.id].color:"purple";
+   this._addHomeOnSave=this._homeSlots.includes(record.id);this._appearanceOpen=false;
    this._notice="Routine chargée sans modification. Tu peux la personnaliser avant d'enregistrer.";
   }catch(err){
-   this._page="advanced";
-   this._notice="Édition guidée indisponible : "+(err?.message||err)+". Utilise l’atelier avancé ou l’éditeur HA.";
+   this._notice="Édition simplifiée indisponible : "+(err?.message||err)+". Ouverture dans Home Assistant.";
+   window.location.assign(native);
   }finally{this._busy=false;this._draw();}
  }
  async _deleteRoutine(id){
@@ -755,23 +584,58 @@ class Studio extends HTMLElement{
   catch(err){this._msg("Commande impossible : "+(err?.message||err),true);}
   finally{this._busy=false;this._draw();}
  }
- async _addHomeShortcutForScript(scriptId){
-  const h=this._hass,entityId="script."+scriptId;
-  if(!/^script\.(?:ks_|kimia_)[a-z0-9_]+$/.test(entityId))
-   throw Error("Identifiant de scénario inattendu.");
+ async _setHomeShortcutForScript(entityId,show,appearance){
+  if(!/^script\.[a-z0-9_]+$/.test(entityId))
+   throw Error("Identifiant de scénario invalide.");
+  const h=this._hass;
   const before=await h.callWS({type:"lovelace/config",url_path:"kimia-next"});
-  const slots=this._homeSlotsFromConfig(before);
-  if(slots.includes(entityId))return "Déjà présent sur l’accueil.";
-  const free=slots.indexOf(null);
-  if(free<0)return "Les 4 places d’accueil sont occupées : choisis un emplacement dans Mes habitudes.";
-  slots[free]=entityId;
+  const slots=this._homeSlotsFromConfig(before),looks=this._homeLooksFromConfig(before);
+  const existing=slots.indexOf(entityId);
+  let message="";
+  if(show){
+   if(existing<0){
+    const free=slots.indexOf(null);
+    if(free<0)return "Les 4 places d’accueil sont occupées : retire un bouton dans « Organiser l’accueil ».";
+    slots[free]=entityId;
+    message="Bouton ajouté à l’accueil (position "+(free+1)+").";
+   }else message="Bouton conservé sur l’accueil.";
+   const icon=appearance?.icon, color=appearance?.color;
+   const current=looks[entityId]||{};
+   looks[entityId]={
+    icon:validIcon(icon)?icon:validIcon(current.icon)?current.icon:
+     (this._hass?.states?.[entityId]?.attributes?.icon||"mdi:home-outline"),
+    color:validColor(color)?color:validColor(current.color)?current.color:"purple"
+   };
+  }else{
+   if(existing<0)return "Ce bouton n’est déjà plus sur l’accueil.";
+   slots[existing]=null;
+   message="Bouton retiré de l’accueil. La routine est conservée.";
+  }
+  const next=clone(before);this._applyHomeSlots(next,slots,looks);
+  if(canon(next)===canon(before))return message;
   const latest=await h.callWS({type:"lovelace/config",url_path:"kimia-next"});
   if(canon(latest)!==canon(before))
-   throw Error("L’accueil a changé depuis la lecture. Ajoute le bouton dans Mes habitudes.");
-  const next=clone(before);
-  this._applyHomeSlots(next,slots);
+   throw Error("L’accueil a été modifié ailleurs. Actualise la page avant de réessayer.");
   await h.callWS({type:"lovelace/config/save",url_path:"kimia-next",config:next});
-  return "Bouton ajouté à l’accueil (position "+(free+1)+").";
+  this._homeSlots=slots;this._homeLooks=looks;this._homeBaseline=canon(next);
+  return message;
+ }
+ async _addHomeShortcutForScript(scriptId){
+  if(!/^(?:ks_|kimia_)[a-z0-9_]+$/.test(scriptId))
+   throw Error("Identifiant de scénario KIMIA inattendu.");
+  return this._setHomeShortcutForScript("script."+scriptId,true);
+ }
+ async _toggleHome(id){
+  if(this._busy||this._homeLoading||!this._admin())return;
+  const record=this._all().find(r=>r.id===id&&r.kind==="script");
+  if(!record||protectedRoutine(record))return this._msg("Ce scénario n’est pas sélectionnable.",true);
+  const show=!this._homeSlots.includes(id);
+  this._busy=true;this._draw();
+  try{
+   const notice=await this._setHomeShortcutForScript(id,show);
+   this._notice=notice;this._error=false;
+  }catch(err){this._notice="Accueil non modifié : "+(err?.message||err);this._error=true;}
+  finally{this._busy=false;this._draw();}
  }
  async _save(){
   if(!this._admin()||this._busy||!this._draft)return;
@@ -779,7 +643,8 @@ class Studio extends HTMLElement{
   const editing=this._editing;
   const id=editing?.id||(d.kind==="script"?"ks_":"kimia_")+H().slug(d.alias)+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,6);
   let payload;
-  try{payload=H().serialize(d,id);}catch(err){return this._msg("Configuration incomplète : "+(err?.message||err),true);}
+  try{payload=H().serialize(d,id);if(d.kind==="script"&&validIcon(this._icon))payload.icon=this._icon;}
+  catch(err){return this._msg("Configuration incomplète : "+(err?.message||err),true);}
   const url="config/"+d.kind+"/config/"+encodeURIComponent(id);
   this._busy=true;this._notice="";this._draw();
   try{
@@ -794,11 +659,13 @@ class Studio extends HTMLElement{
    }
    await this._hass.callApi("POST",url,payload);
    let homeNotice="";
-   if(d.kind==="script"&&this._addHomeOnSave){
-    try{homeNotice=await this._addHomeShortcutForScript(id);}
-    catch(homeError){homeNotice="Scénario enregistré, mais bouton Accueil non ajouté : "+(homeError?.message||homeError);}
+   if(d.kind==="script"){
+    try{
+     if(this._addHomeOnSave||this._homeSlots.includes("script."+id))
+      homeNotice=await this._setHomeShortcutForScript("script."+id,this._addHomeOnSave,{icon:this._icon,color:this._color});
+    }catch(homeError){homeNotice="Scénario enregistré, mais accueil non modifié : "+(homeError?.message||homeError);}
    }
-   this._page="library";this._tab=d.kind;this._editing=null;this._addHomeOnSave=false;
+   this._page="library";this._tab=d.kind;this._editing=null;this._addHomeOnSave=false;this._appearanceOpen=false;
    this._notice="« "+d.alias+" » "+(editing?"mise à jour":"créée")+" dans Home Assistant sans exécution."+
     (homeNotice?"\n"+homeNotice:"");
    this._error=false;

@@ -39,7 +39,7 @@ function mock(initial){
  const card=Object.assign(Object.create(Card.prototype),{
   _hass:hass,_busy:false,_notice:"",_error:false,_page:"library",_tab:"all",
   _deletedIds:new Set(),_addHomeOnSave:false,_editing:null,
-  _I:()=>"",_B:()=>"",_devices:()=>[],_notification:()=>"",
+  _I:()=>"",_B:label=>label,_devices:()=>[],_notification:()=>"",
   _draw(){},_msg(msg,err){this._notice=msg;this._error=err;}
  });
  return {card,reads:()=>reads,writes:()=>homeWrites,saves:()=>saves,config:()=>config,
@@ -48,12 +48,16 @@ function mock(initial){
 (async()=>{
  const s=mock([null,null,null,null]);
  assert.match(s.card._choose(),/J’appuie sur un bouton/);
- assert.match(s.card._choose(),/La maison réagit toute seule/);
+ assert.match(s.card._choose(),/La maison agit toute seule/);
  s.card._presetStart("blank-script");
  assert.equal(s.card._draft.kind,"script");
  assert.equal(s.card._addHomeOnSave,true);
- assert.match(s.card._conditionsStep(),/SI · J’appuie sur un bouton/);
- assert.match(s.card._conditionsStep(),/Ajouter un bouton sur l’accueil KIMIA/);
+ assert.match(s.card._conditionsStep(),/Appui sur un bouton KIMIA/);
+ assert.match(s.card._wizard(),/Afficher sur l’accueil/);
+ assert.match(s.card._wizard(),/ALORS · Que fait la maison/);
+ assert.match(s.card._wizard(),/Personnaliser l’icône et la couleur/);
+ assert.match(s.card._wizard(),/Mode expert/);
+ assert.doesNotMatch(s.card._wizard(),/ÉTAPE 1 \/ 5/);
  s.card._change({target:{id:"add-home-on-save",checked:false,dataset:{}}});
  assert.equal(s.card._addHomeOnSave,false);
  s.card._change({target:{id:"add-home-on-save",checked:true,dataset:{}}});
@@ -63,18 +67,27 @@ function mock(initial){
  s.card._draft.actions[0].operation="turn_off";
  await s.card._save();
  assert.equal(s.saves().length,1,"Routine réellement enregistrée");
+ assert.equal(s.saves()[0].payload.icon,"mdi:home-outline","Icône personnalisable stockée dans le script");
  assert.equal(s.writes(),1,"Un seul ajout sur l’accueil");
  const id=s.saves()[0].url.split("/").at(-1);
  const target=s.card._homeSection(s.config());
  assert.equal(target.cards[target.index].slots[0],"script."+id);
  assert.equal(s.config().views[1].sections[0].cards[0].content,"À conserver");
+ assert.equal(target.cards[target.index].looks["script."+id].color,"blue");
+ assert.equal(target.cards[target.index].looks["script."+id].icon,"mdi:home-outline");
  assert.match(s.card._notice,/Bouton ajouté à l’accueil/);
  const name=s.card._draft.alias;
  assert.equal(name,"Bonne nuit");
  // Réenregistrement du même bouton : idempotent et aucun doublon.
  const same=await s.card._addHomeShortcutForScript(id);
- assert.match(same,/Déjà présent/);
+ assert.match(same,/Bouton conservé/);
  assert.equal(s.writes(),1);
+ const removed=await s.card._setHomeShortcutForScript("script."+id,false);
+ assert.match(removed,/Bouton retiré/);
+ assert.equal(s.writes(),2,"Suppression du bouton sans suppression du script");
+ assert.equal(s.saves().length,1);
+ assert.equal(s.card._homeSlots[0],null);
+ assert.equal(s.config().views[1].sections[0].cards[0].content,"À conserver");
  // Pas de place disponible : aucun bouton existant écrasé.
  const full=mock(["script.a","script.b","script.c","script.d"]);
  const result=await full.card._addHomeShortcutForScript("ks_autre");
@@ -83,7 +96,7 @@ function mock(initial){
  // Changement concurrent du dashboard : refus d'écrire.
  const race=mock([null,null,null,null]);
  race.setConflict(true);
- await assert.rejects(race.card._addHomeShortcutForScript("ks_test"),/changé/);
+ await assert.rejects(race.card._addHomeShortcutForScript("ks_test"),/modifié/);
  assert.equal(race.writes(),0);
  // Le scénario est sauvegardé même si le dashboard Accueil ne peut pas être modifié.
  const blocked=mock(["script.a","script.b","script.c","script.d"]);
@@ -99,7 +112,7 @@ function mock(initial){
  automatic.card._presetStart("blank-automation");
  assert.equal(automatic.card._draft.kind,"automation");
  assert.equal(automatic.card._addHomeOnSave,false);
- assert.match(automatic.card._conditionsStep(),/Quel événement déclenche/);
+ assert.match(automatic.card._conditionsStep(),/quand cet événement/);
  assert.doesNotMatch(automatic.card._conditionsStep(),/Ajouter un bouton sur l’accueil/);
  console.log("Studio KIMIA : SI manuel, actions, sauvegarde, limite 4, conflit et automatisations OK");
 })().catch(e=>{console.error(e);process.exitCode=1;});
