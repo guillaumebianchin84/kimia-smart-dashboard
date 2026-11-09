@@ -1,5 +1,17 @@
 # KIMIA Voice — assistant domotique de table
 
+## Version actuelle — V6 (9 novembre 2026)
+
+**Référence mécanique à utiliser : [KIMIA Voice V6 — coque monobloc avec caisson acoustique cylindrique interne](./v6/README_V6.md).**
+
+- Dimensions extérieures : **124,7 × 126,3 × 113 mm**, pieds inclus ; triangle-galet très arrondi, façade plane courte.
+- **Coque extérieure continue** avec couronne XVF3800 intégrée ; dessus sous plexiglas Ø106 × 1,5 mm, sans vis apparente.
+- **Caisson acoustique Ø88 × 72 mm entièrement intérieur**, haut-parleur orienté vers la table, pieds de 10 mm.
+- Écran Waveshare rond visible Ø45,68 mm encastré à l'avant ; montage et fixations accessibles par-dessous.
+- [Voir le modèle V6 assemblé](./v6/00_KIMIA_V6_MONOBLOC_ASSEMBLAGE.stl) · [Voir la vue éclatée](./v6/00_KIMIA_V6_MONOBLOC_VUE_ECLATEE.stl) · [Consulter le plan de montage](./v6/MONTAGE_MONOBLOC_V6.md).
+
+**Statut : prototype CAO, dimensions de conception validées ; montage physique, clips et acoustique non encore validés.** Les sections V1–V5 ci-dessous sont conservées pour l'historique et ne représentent pas la version à utiliser.
+
 Projet matériel de **KIMIA Smart by PROMAINT** : assistant vocal de qualité, basé sur **Seeed ReSpeaker XVF3800 + XIAO ESP32-S3**, avec écran circulaire en façade, capteurs environnementaux et haut-parleur dirigé vers le bas.
 
 ## Statut
