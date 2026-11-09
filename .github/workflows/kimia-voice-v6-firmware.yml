@@ -1,0 +1,72 @@
+name: KIMIA Voice V6 - validate firmware without flashing
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "firmware/kimia-voice-v6/**"
+      - ".github/workflows/kimia-voice-v6-firmware.yml"
+  pull_request:
+    paths:
+      - "firmware/kimia-voice-v6/**"
+      - ".github/workflows/kimia-voice-v6-firmware.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kimia-firmware-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  config-check:
+    name: Static pin checks and ESPHome schema
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install validation tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "PyYAML>=6.0,<7" "esphome==2026.10.2"
+      - name: Verify historic REV B pinout and listening-only scope
+        run: python firmware/kimia-voice-v6/tests/check_rev_b.py
+      - name: Write ephemeral CI-only secrets (not committed)
+        working-directory: firmware/kimia-voice-v6
+        run: |
+          python - <<'PY'
+          import base64, os
+          from pathlib import Path
+          api = base64.b64encode(os.urandom(32)).decode()
+          Path("secrets.yaml").write_text(
+              'wifi_ssid: "CI_OFFLINE"\n'
+              'wifi_password: "CI_does_not_connect_123"\n'
+              'fallback_password: "CI_fallback_12345"\n'
+              f'api_key: "{api}"\n'
+              'ota_password: "CI_OTA_NOT_FOR_DEVICE"\n'
+          )
+          PY
+      - name: Validate ESPHome core + BME280 + XVF listening config
+        working-directory: firmware/kimia-voice-v6
+        run: esphome config kimia-voice-proto.yaml
+      - name: Validate optional LVGL ST77916/CST816S configuration (no hardware)
+        working-directory: firmware/kimia-voice-v6
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          base=Path("kimia-voice-proto.yaml").read_text()
+          old="  # face_experimentale: !include packages/04_ecran_visage_experimental.yaml"
+          new="  face_experimentale: !include packages/04_ecran_visage_experimental.yaml"
+          assert old in base
+          Path("kimia-voice-with-screen.yaml").write_text(base.replace(old,new))
+          PY
+          esphome config kimia-voice-with-screen.yaml
+      - name: Confirm no secrets in git
+        run: |
+          if git ls-files | grep -E '(^|/)secrets[.]yaml$'; then
+            echo "Real secrets accidentally tracked" >&2
+            exit 1
+          fi

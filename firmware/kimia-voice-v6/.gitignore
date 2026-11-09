@@ -1,0 +1,8 @@
+# Never commit real device credentials or ESPHome build products.
+secrets.yaml
+.esphome/
+.pioenvs/
+.piolibdeps/
+*.bin
+*.elf
+*.map

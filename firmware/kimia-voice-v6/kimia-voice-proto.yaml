@@ -1,0 +1,9 @@
+# KIMIA Voice V6 — prototype : microphone + Ok Nabu + BME280.
+# IMPORTANT: NE PAS FLASHER tant que le XIAO du XVF n'est pas isolé.
+# Ecran et visage LVGL : module séparé, activé APRES essai de l'audio.
+packages:
+  core: !include packages/01_core.yaml
+  environment: !include packages/02_bme280.yaml
+  voice_listening: !include packages/03_xvf_ecoute_seule.yaml
+  # Ecran reçu et initialisation ST77916 confirmée :
+  # face_experimentale: !include packages/04_ecran_visage_experimental.yaml

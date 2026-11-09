@@ -1,0 +1,121 @@
+# KIMIA — écran rond Waveshare 1.85", ST77916 QSPI 360x360, CST816S.
+# EXPERIMENTAL : ne pas inclure dans kimia-voice-proto.yaml tant que
+# l'initialisation ST77916 et le niveau d'alimentation ne sont pas testés.
+# Le preset ESP-VOCAT a la même puce ST77916, PAS le même panneau :
+# teintes, rotation et séquence d'init peuvent nécessiter un réglage.
+# Conserver impérativement les GPIO REV B.
+spi:
+  - id: kimia_display_qspi
+    type: quad
+    interface: spi2
+    clk_pin: GPIO10
+    data_pins: [GPIO11, GPIO12, GPIO13, GPIO14]
+
+display:
+  - platform: mipi_spi
+    id: kimia_display
+    model: ESP-VOCAT
+    spi_id: kimia_display_qspi
+    bus_mode: quad
+    cs_pin: GPIO15
+    reset_pin: GPIO16
+    dimensions:
+      width: 360
+      height: 360
+    data_rate: 20MHz
+    color_order: rgb
+    auto_clear_enabled: false
+
+output:
+  - platform: ledc
+    id: kimia_backlight_pwm
+    pin: GPIO17
+
+light:
+  - platform: monochromatic
+    id: kimia_backlight
+    name: "KIMIA luminosité écran"
+    output: kimia_backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: cst816
+    id: kimia_touch
+    i2c_id: kimia_i2c
+    interrupt_pin: GPIO21
+    reset_pin: GPIO18
+    skip_probe: true
+    display: kimia_display
+
+# Premier visage sans image pré-calculée : deux yeux arrondis + bouche + état.
+# Pas d'IA à bord, les états viennent du pipeline HA.
+lvgl:
+  displays: [kimia_display]
+  touchscreens: [kimia_touch]
+  pages:
+    - id: kimia_face
+      bg_color: 0x090B13
+      widgets:
+        - obj:
+            id: kimia_eye_left
+            x: 79
+            y: 107
+            width: 75
+            height: 85
+            radius: 38
+            border_width: 0
+            bg_color: 0x5CE1E6
+            shadow_width: 0
+        - obj:
+            id: kimia_eye_right
+            x: 206
+            y: 107
+            width: 75
+            height: 85
+            radius: 38
+            border_width: 0
+            bg_color: 0x5CE1E6
+            shadow_width: 0
+        - obj:
+            id: kimia_mouth
+            x: 153
+            y: 238
+            width: 54
+            height: 12
+            radius: 6
+            bg_color: 0xB8E9F2
+            border_width: 0
+        - label:
+            id: kimia_status_label
+            align: BOTTOM_MID
+            y: -28
+            text: "Initialisation"
+            text_color: 0xDCEEF1
+
+script:
+  - id: kimia_blink
+    mode: restart
+    then:
+      - lvgl.widget.update:
+          id: [kimia_eye_left, kimia_eye_right]
+          height: 8
+          y: 146
+      - delay: 130ms
+      - lvgl.widget.update:
+          id: [kimia_eye_left, kimia_eye_right]
+          height: 85
+          y: 107
+
+interval:
+  - interval: 5s
+    then:
+      - script.execute: kimia_blink
+  - interval: 1s
+    then:
+      - lvgl.label.update:
+          id: kimia_status_label
+          text: !lambda |-
+            if (id(kimia_voice_state).has_state()) {
+              return id(kimia_voice_state).state.c_str();
+            }
+            return "Initialisation";

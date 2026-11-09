@@ -1,0 +1,76 @@
+name: KIMIA Voice V6 - validate CAD and export STL STEP
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "hardware/kimia-voice/v6/**"
+      - ".github/workflows/kimia-voice-v6-cad.yml"
+  pull_request:
+    paths:
+      - "hardware/kimia-voice/v6/**"
+      - ".github/workflows/kimia-voice-v6-cad.yml"
+
+# Avoid outdated simultaneous builds competing to update the preview STL.
+concurrency:
+  group: kimia-voice-v6-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-cad:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install geometry dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "cadquery>=2.4,<3" "shapely>=2,<3"
+      - name: Compile base CAD and complete internal mounts
+        run: |
+          python -m py_compile hardware/kimia-voice/v6/generer_kimia_v6.py
+          python -m py_compile hardware/kimia-voice/v6/generer_fixations_v6.py
+          python hardware/kimia-voice/v6/generer_kimia_v6.py
+          python hardware/kimia-voice/v6/generer_fixations_v6.py
+          python hardware/kimia-voice/v6/auditer_assemblage_v6.py
+          python hardware/kimia-voice/v6/generer_vue_3_pieces_v6.py
+          python hardware/kimia-voice/v6/generer_comparatif_couronne_v6.py
+          python hardware/kimia-voice/v6/generer_coque_monobloc_v6.py
+      - name: Publish V6 printable STL and STEP
+        uses: actions/upload-artifact@v4
+        with:
+          name: KIMIA-Voice-V6-CAD
+          path: |
+            hardware/kimia-voice/v6/*.stl
+            hardware/kimia-voice/v6/*.step
+          if-no-files-found: error
+          retention-days: 30
+      - name: Add interactive 3D preview to GitHub branch
+        if: github.event_name == 'push' && github.ref_name == 'feature/kimia-voice-v6-caisson-cylindrique'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            hardware/kimia-voice/v6/00_KIMIA_VOICE_V6_GITHUB.stl \
+            hardware/kimia-voice/v6/00_KIMIA_V6_3_PIECES_VUE_ECLATEE.stl \
+            hardware/kimia-voice/v6/00_KIMIA_V6_4_PIECES_VUE_ECLATEE.stl \
+            hardware/kimia-voice/v6/00_KIMIA_V6_ETUDE_COQUE_COURONNE_INTEGREES.stl \
+            hardware/kimia-voice/v6/00_KIMIA_V6_MONOBLOC_ASSEMBLAGE.stl \
+            hardware/kimia-voice/v6/00_KIMIA_V6_MONOBLOC_VUE_ECLATEE.stl \
+            hardware/kimia-voice/v6/01_coque_blanche_monobloc_V6.stl \
+            hardware/kimia-voice/v6/02_socle_bas_V6.stl \
+            hardware/kimia-voice/v6/03_caisson_cylindrique_V6.stl \
+            hardware/kimia-voice/v6/04_couronne_XVF_avec_logements_clips.stl \
+            hardware/kimia-voice/v6/01_socle_HP_vers_le_bas.stl \
+            hardware/kimia-voice/v6/02_caisson_cylindrique_avec_ancrages.stl \
+            hardware/kimia-voice/v6/03_coque_blanche_continue_ecran.stl
+          if ! git diff --cached --quiet; then
+            git commit -m "Add KIMIA Voice V6 preview STL for GitHub 3D viewer"
+            git push origin HEAD:feature/kimia-voice-v6-caisson-cylindrique
+          fi
