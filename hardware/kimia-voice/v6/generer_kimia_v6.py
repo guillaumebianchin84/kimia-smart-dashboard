@@ -214,10 +214,10 @@ def plexi():
 # transforme local_y en -Z. Ainsi y_local=-21 pour la vis haute.
 SCREEN_M2_MOUNTS=((0.0,-21.0),(-14.85,14.85),(14.85,14.85))
 SCREEN_BRACKET_OFFSET_Y=16.2  # depuis la face externe vers l'interieur
-SCREEN_NOMINAL_INSET=0.75      # verre affleurant/en retrait (a mesurer)
+SCREEN_NOMINAL_INSET=0.65      # vitrage 0.70 mm sur feuillure de 1.35 mm
 SCREEN_OVERALL_DEPTH=9.10     # cote du dessin officiel, a verifier au banc
 SCREEN_SPACER_LENGTH=(SCREEN_BRACKET_OFFSET_Y-
-                      SCREEN_NOMINAL_INSET-SCREEN_OVERALL_DEPTH)  # 6.35 mm
+                      SCREEN_NOMINAL_INSET-SCREEN_OVERALL_DEPTH)  # 6.45 mm
 
 def retainer_ecran():
     """Anneau ARRIERE 3 x M2 pour Waveshare; insertion de l'ecran par l'avant.
