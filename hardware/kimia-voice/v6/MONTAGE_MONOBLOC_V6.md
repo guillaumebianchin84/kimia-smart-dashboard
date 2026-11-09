@@ -9,7 +9,7 @@
 3. **Socle inférieur** : ouvert au passage de l'onde sonore Ø61 et des quatre fixations HP Ø74 PCD. Il reste amovible, vissé uniquement par-dessous à la coque.
 4. **Plexiglas supérieur** : élément **non imprimé**, collé dans la feuillure en toute dernière opération, sur une bande annulaire de **1,5 mm de large**, avec ~0,30 mm de réserve verticale pour la colle.
 
-Les clips XVF3800, la bague écran, le berceau ESP32 et le porte-BME280 restent des petites pièces amovibles.
+Les clips XVF3800, la bague écran, le berceau ESP32 et le porte-BME280 restent des petites pièces amovibles. La bague actuelle se fixe sur les **trois points M2 du vrai écran** et conserve les **deux appuis M2 de coque**.
 
 ## Pourquoi le montage par-dessous fonctionne
 
@@ -21,7 +21,7 @@ Les trois longues colonnes M3 et les poches d'inserts de l'ancienne **couronne s
 
 1. Poser la coque monobloc sur le côté ou retournée avec une protection pour la finition.
 2. **Depuis le dessous**, faire passer le XVF3800 dans la coque et le clipser sur le siège supérieur (clips 30°, 150°, 280°). Vérifier micros, connecteurs, antenne, LED et maintien du circuit, sans forcer.
-3. Installer l'écran rond et sa bague arrière, puis le BME280 et le câblage. Prévoir un accès réel aux connecteurs pour la maintenance.
+3. Introduire l'écran rond Waveshare Ø55 **depuis l'extérieur**, dans la feuillure Ø60 (retrait nominal du verre 0,65 mm). Installer **depuis l'intérieur** la nouvelle bague 3-M2 et ses deux vis de fixation à la coque, puis trois vis M2 dans les inserts de l'écran. Contrôler les trois entraxes (top +21, bas ±14,85/-14,85), les colonnettes de 6,45 mm à ajuster sur le matériel, la nappe et les connecteurs. Installer ensuite le BME280.
 4. Installer le PCB ESP32-S3 sur son berceau au-dessus du caisson ; effectuer les branchements et contrôler le dégagement sous le XVF.
 5. Installer les inserts M3 de la coque et les écrous captifs du HP dans le socle. Monter le haut-parleur sur le socle avec son joint, membrane vers le bas.
 6. Conserver un **mou de câble suffisant pour poser le caisson sur le côté** sans tirer sur les bornes du HP ; maintenir cette réserve à l'écart du cône, des clips et des vis. Acheminer les fils par la traversée du caisson et **étancher ce passage**.
@@ -39,4 +39,4 @@ Les trois longues colonnes M3 et les poches d'inserts de l'ancienne **couronne s
 
 Le modèle historique à couronne séparée reste conservé dans les sources **comme sauvegarde**, mais n'est plus l'architecture à privilégier.
 
-**Attention :** la CAO et le passage nominal Ø100 sont contrôlés virtuellement, pas physiquement. L'épaisseur du vrai XVF, les connecteurs, la tenue PETG des clips, l'écran, le boîtier réel du HP et l'étanchéité nécessitent toujours des mesures et des essais à blanc. La PR reste brouillon.
+**Attention :** la CAO et le passage nominal Ø100 sont contrôlés virtuellement, pas physiquement. L'épaisseur du vrai XVF, les connecteurs, la tenue PETG des clips, l'écran, le boîtier réel du HP et l'étanchéité nécessitent toujours des mesures et des essais à blanc. La PR historique n°12 est fusionnée dans main ; la géométrie reste un prototype à éprouver physiquement.
