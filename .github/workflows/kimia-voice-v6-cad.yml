@@ -52,7 +52,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
       - name: Add interactive 3D preview to GitHub branch
-        if: github.event_name == 'push' && github.ref_name == 'feature/kimia-voice-v6-caisson-cylindrique'
+        if: github.event_name == 'push' && github.ref_name == 'feature/kimia-v6-ecran-3m2-exterieur'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -69,8 +69,11 @@ jobs:
             hardware/kimia-voice/v6/04_couronne_XVF_avec_logements_clips.stl \
             hardware/kimia-voice/v6/01_socle_HP_vers_le_bas.stl \
             hardware/kimia-voice/v6/02_caisson_cylindrique_avec_ancrages.stl \
-            hardware/kimia-voice/v6/03_coque_blanche_continue_ecran.stl
+            hardware/kimia-voice/v6/03_coque_blanche_continue_ecran.stl \
+            hardware/kimia-voice/v6/05_support_arriere_ecran.stl \
+            hardware/kimia-voice/v6/10_bague_ecran_en_position.stl \
+            hardware/kimia-voice/v6/06_bague_facade_optionnelle.stl
           if ! git diff --cached --quiet; then
             git commit -m "Add KIMIA Voice V6 preview STL for GitHub 3D viewer"
-            git push origin HEAD:feature/kimia-voice-v6-caisson-cylindrique
+            git push origin HEAD:feature/kimia-v6-ecran-3m2-exterieur
           fi

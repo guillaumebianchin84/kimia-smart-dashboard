@@ -95,6 +95,17 @@ def test_and_export():
     # Scan its straight translation through the open bottom of the housing.
     traveling=cyl.union(fx.support_esp32_amovible()).val()
     front_screen=fx.support_ecran_assemble().val()
+    assert front_screen.isValid()
+    # Verre Ø55 pose de l'exterieur dans la feuillure Ø60.
+    # Le plan constructeur donne 0.70 mm de verre; recule de 0.65 mm.
+    lcd_glass=v6.axis_y_cylinder(
+        27.5,0.70,0,v6.FRONT_Y+v6.SCREEN_NOMINAL_INSET,v6.SCREEN_Z).val()
+    assert lcd_glass.intersect(s.val()).Volume()<.02, (
+        'glass cannot be inserted from the outside')
+    assert len(v6.SCREEN_M2_MOUNTS)==3
+    assert abs(v6.SCREEN_NOMINAL_INSET+0.70-1.35)<.001
+    assert front_screen.intersect(s.val()).Volume()<.02, (
+        'three-point LCD retainer hits monobloc shell')
     bme=fx.porte_bme280_sur_fentes_existantes().val()
     for shift in (-75.,-60.,-45.,-30.,-20.,-10.,-5.,0.):
         item=traveling.translate((0,0,shift))

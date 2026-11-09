@@ -26,11 +26,20 @@
 - **Gabarit provisoire seulement : PCB 57 × 28 × 1,6 mm**, à corriger au pied à coulisse pour la carte ESP32-S3 N16R8 réellement achetée. Ni sa profondeur de connecteurs ni la présence du XIAO déjà monté sur le XVF ne sont vérifiées. Ne jamais forcer la carte dans le berceau.
 - Hauteur restante indicative au-dessus du plateau : ~13 mm avant le bas de la couronne du dessus, **sans déduire l'encombrement réel de l'arrière du XVF3800**. Valider en montage à blanc ; si collision, déplacer uniquement le plateau ou choisir une orientation différente, sans modifier la coque extérieure.
 
-## Écran rond Waveshare
+## Écran rond Waveshare 1,85 pouce — montage EXTÉRIEUR, 3 vis M2 (révision du 09/11/2026)
 
-- Gabarit conservé : PCB Ø55, diamètre utile Ø45,68 mm.
-- La bague arrière existante se place en position d'assemblage, avec les deux appuis M2 x±33 de la façade. **L'audit mesure 0,2 mm entre la bague et les appuis** : ce jeu nominal devra être repris au serrage, sans déformer l'écran. L'écran n'est pas encore réellement « serré » dans le modèle : il faut mesurer sa profondeur, puis dimensionner une cale compressible/entretoise à l'arrière du PCB.
-- Un joint/cale souple et sa compression devront être choisis après réception de l'écran pour ne pas endommager l'afficheur ni coincer sa nappe ou son connecteur. La bague est démontable, par l'intérieur.
+**Référence officielle :** [Waveshare 1.85inch Touch LCD Module — dimensions](https://docs.waveshare.com/1.85inch_Touch_LCD_Module#dimensions). L'écran est introduit **par l'avant**. Le Ø55 mm s'assoit dans la feuillure existante Ø60 mm, de profondeur utile 1,35 mm. L'épaulement autour de l'ouverture Ø47,4 mm empêche la vitre de passer vers l'intérieur. Le dégagement arrière de Ø56,6 mm demeure inchangé.
+
+- Verre Ø55 mm, épaisseur indiquée 0,70 mm ; retrait nominal **0,65 mm** sous la façade, à vérifier avec l'écran réel et éventuellement un joint mince.
+- Trois inserts filetés **M2** du module, coordonnées nominales dans le plan de l'écran (x, z), centre (0, 0) : **(0, +21,00), (-14,85, -14,85), (+14,85, -14,85) mm**. Entraxe entre les deux inserts inférieurs : **29,70 mm**. Ces inserts traversent l'ouverture Ø47,4 ; vérifier la place des composants proches.
+- Le **nouvel anneau arrière** est toujours retenu sur les **deux appuis intérieurs M2 x=±33 mm** de la coque, mais possède désormais **trois bras/colonnettes** avec trous de passage Ø2,4 mm alignés sur les inserts Waveshare. Les vis M2 sont introduites depuis l'intérieur, via les trois colonnettes, et vissées dans le module. Un lamage reçoit chaque tête.
+- Longueur CAO des colonnettes : **6,45 mm** entre l'anneau et les inserts, calculée avec profondeur totale **9,10 mm** (dessin constructeur) et retrait du verre **0,65 mm**. C'est une **hypothèse de montage**, pas une mesure du module dans sa position finale. Ajuster après pose à blanc : aucune traction sur le verre ni sur le circuit imprimé.
+- Passage de nappe conservé par une encoche au bas de l'anneau ; maintenir la flex et le câble GH 15 broches libres, sans pincement.
+- Bague de finition extérieure optionnelle adaptée à **Ø55,4 mm intérieur**, pour ne plus masquer la vitre. Elle est une pièce indépendante, à tester avant collage définitif.
+
+**Ordre de montage :** introduire l'écran par l'extérieur ; le caler légèrement en retrait ; depuis le dessous ouvert de la coque, installer l'anneau et ses 2 vis de fixation ; engager les 3 vis M2 vers les entretoises du Waveshare, serrer sans effort ; contrôler l'affleurement, la nappe et l'accès à la maintenance. Ne jamais forcer pour compenser une longueur de colonnette incorrecte.
+
+**Contrôles avant la première impression intégrale :** réaliser d'abord une impression du support 3-M2 seul, confronter à l'écran physique les trois entraxes, les diamètres de vis, les hauteurs de colonnettes, le diamètre réel du verre et les connecteurs. Vérifier le passage de ce support à côté du caisson Ø88 mm.
 
 ## BME280 et câblage
 

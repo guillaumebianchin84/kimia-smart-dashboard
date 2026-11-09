@@ -1,5 +1,12 @@
 # KIMIA Voice V6 — coque continue et caisson cylindrique interne
 
+## Révision de préparation à l'impression — écran 3 × M2 (09/11/2026)
+
+**Référence actuelle :** la **coque monobloc V6** et son **caisson cylindrique interne**. L'écran Waveshare Ø55 est désormais conçu pour entrer par l'extérieur, légèrement en retrait dans la feuillure existante Ø60, et être fixé depuis l'intérieur par les **trois inserts M2** du module, au moyen de l'anneau de retenue imprimé. Les deux bossages M2 de coque servent uniquement à fixer cet anneau. Voir [plan de montage](./PLAN_MONTAGE_V6.md) et [procédure monobloc](./MONTAGE_MONOBLOC_V6.md).
+
+**Dimensions extérieures inchangées : 124,7 × 126,3 × 113 mm.** L'anneau 3-M2 et sa version STEP/STL sont générés par `generer_kimia_v6.py` / `generer_fixations_v6.py`. La dimension des colonnettes est calculée d'après la documentation officielle Waveshare, mais **nécessite une impression test et un essai sur le vrai écran** avant l'impression complète. Le fichier GitHub est un prototype de validation mécanique, pas encore une série de fabrication validée.
+
+
 ## Décision retenue — coque monobloc (03/11/2026)
 
 Après étude du montage depuis le dessous, la **couronne XVF3800 est intégrée directement à la coque blanche**. Le caisson est positionné en dernier, avec une boucle de service sur le fil du haut-parleur pour le poser sur le côté pendant le raccordement. Les fixations de la couronne séparée sont supprimées et deux bossages intérieurs du socle sont légèrement déplacés pour laisser passer le PCB XVF Ø100 pendant l'assemblage. **La forme extérieure et les dimensions restent strictement les mêmes.**
@@ -62,7 +69,7 @@ Les encombrements des connecteurs/XIAO et des cartes auxiliaires (ESP32-S3, BME2
 - [**Générateur CadQuery des fixations internes**](./generer_fixations_v6.py), conçu comme un complément à la V6 de référence.
 - XVF3800 sans trous de fixation : 3 clips plastiques amovibles sous la couronne, enclenchés dans des poches borgnes non visibles depuis le dessus.
 - ESP32-S3 : berceau à glissières fixé par 4 plots clipsés **sur** le toit du cylindre, sans ouverture de la chambre acoustique.
-- Écran : bague arrière existante réellement installée dans l'assemblage 3D sur les 2 appuis M2.
+- Écran : bague arrière 3 × M2 (positions documentées par Waveshare) ; les 2 appuis M2 de coque continuent de porter la bague ; montage écran par l'extérieur.
 - Capteur BME280 : porte-capteur sur les fentes latérales existantes, sans nouveau perçage extérieur.
 - Câbles : 2 boucles d'attache internes et passage HP à étanchéifier.
 - Plexiglas Ø106 × 1,5 mm collé : bande périphérique prévue **1,5 mm radial** sur la feuillure déjà en place, réserve de colle ~0,30 mm en hauteur ; aucune vis visible.
