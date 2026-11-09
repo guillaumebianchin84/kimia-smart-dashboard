@@ -248,7 +248,9 @@ def retainer_ecran():
     return s
 
 def front_trim():
-    s=cylinder(29.7,1.1).cut(cylinder(23.7,1.4,z=-.1))
+    # Bague cosmetique OPTIONNELLE : laisse passer la vitre Ø55 depuis
+    # l'exterieur (jeu diametral .4). L'ancien trou Ø47.4 la bloquait.
+    s=cylinder(29.7,1.1).cut(cylinder(27.7,1.4,z=-.1))
     return s
 
 def assembled():
