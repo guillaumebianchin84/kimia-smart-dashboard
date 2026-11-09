@@ -154,6 +154,10 @@ def caisson():
 
 def corps():
     s=shell(BODY_Z,BODY_TOP-BODY_Z)
+    # La vitre Ø55 rentre de l'exterieur dans la feuillure Ø60 x 1.45.
+    # L'epaulement Ø47.4 retient sa peripherie; les 3 M2 sont a R=21,
+    # donc les entretoises traversent l'ouverture Ø47.4.
+    # L'etancheite et le jeu reel restent a verifier au montage.
     s=s.cut(axis_y_cylinder(23.7,15,0,FRONT_Y-1,SCREEN_Z))
     s=s.cut(axis_y_cylinder(30.0,1.45,0,FRONT_Y-.1,SCREEN_Z))
     s=s.cut(axis_y_cylinder(28.3,9.4,0,FRONT_Y+2.1,SCREEN_Z))
@@ -203,11 +207,44 @@ def plexi():
             s=s.cut(cylinder(1.6,1.9,44*math.cos(ang),44*math.sin(ang),-.2))
     return s.translate((0,TOP_CENTER_Y,0))
 
+# Plan mecanique officiel Waveshare 1.85" (SKU 35079):
+# Vue ARRIERE : une fixation M2 a +21 mm de hauteur, deux a
+# x=+-14.85 mm / hauteur=-14.85 mm (entraxe inferieur 29.70 mm).
+# Le support est modele a plat XY ; la rotation -90 deg autour de X
+# transforme local_y en -Z. Ainsi y_local=-21 pour la vis haute.
+SCREEN_M2_MOUNTS=((0.0,-21.0),(-14.85,14.85),(14.85,14.85))
+SCREEN_BRACKET_OFFSET_Y=16.2  # depuis la face externe vers l'interieur
+SCREEN_NOMINAL_INSET=0.75      # verre affleurant/en retrait (a mesurer)
+SCREEN_OVERALL_DEPTH=9.10     # cote du dessin officiel, a verifier au banc
+SCREEN_SPACER_LENGTH=(SCREEN_BRACKET_OFFSET_Y-
+                      SCREEN_NOMINAL_INSET-SCREEN_OVERALL_DEPTH)  # 6.35 mm
+
 def retainer_ecran():
-    s=cylinder(35.5,3.0)
-    s=s.cut(cylinder(25,3.3,z=-.1))
-    for x in (-33,33):s=s.cut(cylinder(1.6,3.3,x,0,-.1))
-    s=s.cut(cq.Workplane('XY').box(16,13,4).translate((0,-30,1.5)))
+    """Anneau ARRIERE 3 x M2 pour Waveshare; insertion de l'ecran par l'avant.
+
+    L'anneau est fixe aux DEUX bossages internes existants x=+-33 mm.
+    Trois entretoises cylindriques integralement imprimees touchent les
+    trois inserts M2 Waveshare; trois vis M2 sont introduites de l'interieur.
+    Les entretoises et leur longueur sont a verifier sur le module reel.
+    Aucun changement de la silhouette ni de la feuillure de facade.
+    """
+    # Anneau decoupe pour laisser circuler la nappe centrale vers le bas.
+    s=cylinder(35.5,3.0).cut(cylinder(15.0,3.4,z=-.2))
+    s=s.cut(cq.Workplane('XY').box(14.0,28.0,3.6)
+            .translate((0,28.0,1.5)))
+    # Les deux appuis M2 d'origine servent uniquement a fixer l'anneau
+    # a la coque, et plus a serrer directement la dalle.
+    for x in (-33.0,33.0):
+        s=s.cut(cylinder(1.30,3.4,x,0,-.2))
+    # Entretoises avant vers les 3 inserts arriere M2 du module.
+    assert SCREEN_SPACER_LENGTH>0
+    for x,y in SCREEN_M2_MOUNTS:
+        s=s.union(cylinder(3.7,SCREEN_SPACER_LENGTH,x,y,
+                           -SCREEN_SPACER_LENGTH))
+        # Passage vis M2, puis lamage discret de la tete cote interieur.
+        s=s.cut(cylinder(1.20,SCREEN_SPACER_LENGTH+3.4,x,y,
+                         -SCREEN_SPACER_LENGTH-.2))
+        s=s.cut(cylinder(2.20,1.2,x,y,1.9))
     return s
 
 def front_trim():
