@@ -456,7 +456,10 @@
   });
   // Ancienne carte de pièce KIMIA, dimensions 12x2 imposées.
   const oldSizedRoomCard=area=>({
-    ...roomCard(area),grid_options:{columns:12,rows:2}
+    type:"area",area:area.area_id,display_type:"compact",
+    features:[],features_position:"bottom",
+    grid_options:{columns:12,rows:2},
+    tap_action:{action:"none"}
   });
   // Reconnaître strictement les versions publiées avec un clic de navigation,
   // pour les migrer vers une carte non interactive sans toucher à son apparence.
