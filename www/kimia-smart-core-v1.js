@@ -1365,80 +1365,6 @@
         const water=ensureWaterView(next,hasPump);
         const vmap=new Map(next.views.map(v=>[v.path,v]));
         let added=water.added,removed=0,modified=water.modified;
-        // Scènes IA natives : cartouche gauche et dix vraies cartes Tile
-        // de 6x1 dans une pile verticale à droite, sans cartes personnalisées.
-        const lightsView=vmap.get("lumieres");
-        const sceneList=Object.values(hass.states||{}).filter(st=>
-          st.entity_id?.startsWith("scene.") &&
-          /^kimia_ambiance_\d{2}$/.test(st.attributes?.id||""))
-          .sort((a,b)=>String(a.attributes.id).localeCompare(String(b.attributes.id)))
-          .slice(0,10);
-        const sceneTiles=sceneList.map(st=>({
-          type:"tile",entity:st.entity_id,
-          tap_action:{action:"perform-action",perform_action:"scene.turn_on",
-            target:{entity_id:st.entity_id}},
-          icon_tap_action:{action:"perform-action",perform_action:"scene.turn_on",
-            target:{entity_id:st.entity_id}}
-        }));
-        const sceneHeading=()=>({
-          type:"button",name:"Scènes lumineuses",icon:"mdi:palette-outline",
-          show_name:true,show_icon:true,show_state:false,
-          tap_action:{action:"none"},hold_action:{action:"none"}
-        });
-        const sceneSection=()=>({
-          type:"grid",column_span:Math.min(Number(lightsView?.max_columns)||3,3),
-          // Le titre et les 10 tuiles remplissent chacun une colonne HA
-          // native (12 unités), sans largeur imposée aux tuiles.
-          cards:[
-            {type:"vertical-stack",cards:[sceneHeading()]},
-            {type:"vertical-stack",cards:sceneTiles}
-          ]
-        });
-        const isGeneratedSceneTile=card=>
-          card?.type==="tile" && typeof card.entity==="string" &&
-          JSON.stringify(card)===JSON.stringify({
-            type:"tile",entity:card.entity,
-            tap_action:{action:"perform-action",perform_action:"scene.turn_on",
-              target:{entity_id:card.entity}},
-            icon_tap_action:{action:"perform-action",perform_action:"scene.turn_on",
-              target:{entity_id:card.entity}}
-          });
-        const legacyScenes=section=>section?.cards?.length===1 &&
-          section.cards[0]?.type==="custom:kimia-ai-scenes-shortcuts-card" &&
-          section.cards[0]?.grid_options?.columns===12;
-        const oldGridScenes=section=>section?.cards?.length===2 &&
-          JSON.stringify(section.cards[0])===JSON.stringify(sceneHeading()) &&
-          section.cards[1]?.type==="grid" &&
-          section.cards[1].columns===2 &&
-          (section.cards[1].cards||[]).every(isGeneratedSceneTile);
-        const nativeScenes=section=>section?.cards?.length===2 &&
-          section.cards[0]?.type==="vertical-stack" &&
-          section.cards[0].cards?.length===1 &&
-          JSON.stringify(section.cards[0].cards[0])===JSON.stringify(sceneHeading()) &&
-          section.cards[1]?.type==="vertical-stack" &&
-          (section.cards[1].cards||[]).every(isGeneratedSceneTile);
-        if(lightsView?.sections) {
-          const oldIndex=lightsView.sections.findIndex(legacyScenes);
-          const newIndex=lightsView.sections.findIndex(s=>nativeScenes(s)||oldGridScenes(s));
-          const wanted=sceneList.length?sceneSection():null;
-          if(oldIndex>=0){
-            lightsView.sections.splice(oldIndex,1);
-            removed++;
-          }
-          if(newIndex>=0){
-            const n=lightsView.sections.findIndex(s=>nativeScenes(s)||oldGridScenes(s));
-            if(!wanted){
-              lightsView.sections.splice(n,1);removed+=2;
-            }else if(JSON.stringify(lightsView.sections[n])!==JSON.stringify(wanted)){
-              lightsView.sections[n]=wanted;modified++;
-            }
-          }else if(wanted) {
-            const bannerIndex=lightsView.sections.findIndex(section=>
-              (section.cards||[]).some(isKimiaBrand));
-            lightsView.sections.splice(bannerIndex<0?0:bannerIndex+1,0,wanted);
-            added+=2;
-          }
-        }
         // Le bandeau de marque doit refléter le TITRE de l'onglet, pas "Ma maison"
         // partout. L'Accueil conserve "Ma maison".
         for (const view of next.views) {
@@ -1577,6 +1503,93 @@
                 plugUsage(mapDevices.get(e.device_id),labels)));
               existing.add(e.entity_id);
               added++;
+            }
+          }
+        }
+        // Scènes IA : cartouche à gauche, vraie pile verticale Tile HA à droite.
+        const lightsView=vmap.get("lumieres");
+        const sceneList=Object.values(hass.states||{}).filter(st=>
+          st.entity_id?.startsWith("scene.") &&
+          /^kimia_ambiance_\d{2}$/.test(st.attributes?.id||""))
+          .sort((a,b)=>String(a.attributes.id).localeCompare(String(b.attributes.id)))
+          .slice(0,10);
+        const sceneIcon=st=>{
+          const title=String(st.attributes?.friendly_name||st.entity_id)
+            .normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+          const icons=[
+            ["detente","mdi:weather-sunset"],["cinema","mdi:movie-open"],
+            ["lecture","mdi:book-open-variant"],["romance","mdi:heart"],
+            ["concentration","mdi:brain"],["soiree","mdi:party-popper"],
+            ["nuit","mdi:weather-night"],["reveil","mdi:weather-sunset-up"],
+            ["tropicale","mdi:palm-tree"],["douceur","mdi:weather-cloudy"]
+          ];
+          return icons.find(([name])=>title.includes(name))?.[1]||"mdi:palette";
+        };
+        const sceneTile=st=>({
+          type:"tile",entity:st.entity_id,icon:sceneIcon(st),
+          tap_action:{action:"perform-action",perform_action:"scene.turn_on",
+            target:{entity_id:st.entity_id}},
+          icon_tap_action:{action:"perform-action",perform_action:"scene.turn_on",
+            target:{entity_id:st.entity_id}}
+        });
+        const sceneTiles=sceneList.map(sceneTile);
+        // Sans area valide, le titre est un bouton natif non interactif.
+        const sceneHeading=()=>({
+          type:"button",name:"Scènes lumineuses",icon:"mdi:palette",
+          show_name:true,show_icon:true,show_state:false,
+          tap_action:{action:"none"},hold_action:{action:"none"},
+          grid_options:{columns:12,rows:2}
+        });
+        const sceneSection=()=>({
+          type:"grid",column_span:Math.min(Number(lightsView?.max_columns)||3,3),
+          cards:[sceneHeading(),{type:"vertical-stack",cards:sceneTiles}]
+        });
+        const isSceneAction=card=>
+          card?.type==="tile" && card.entity?.startsWith("scene.") &&
+          card.tap_action?.perform_action==="scene.turn_on" &&
+          card.tap_action?.target?.entity_id===card.entity &&
+          card.icon_tap_action?.perform_action==="scene.turn_on" &&
+          card.icon_tap_action?.target?.entity_id===card.entity;
+        const legacyScenes=section=>section?.cards?.length===1 &&
+          section.cards[0]?.type==="custom:kimia-ai-scenes-shortcuts-card";
+        const generatedScenes=section=>section?.cards?.length===2 &&
+          ((section.cards[0]?.type==="button" &&
+              section.cards[0].name==="Scènes lumineuses") ||
+           (section.cards[0]?.type==="vertical-stack" &&
+              section.cards[0].cards?.[0]?.name==="Scènes lumineuses")) &&
+          section.cards[1]?.cards?.every(isSceneAction);
+        const manualScenes=section=>section?.cards?.length===2 &&
+          section.cards[0]?.type==="area" &&
+          /sc[eè]nes lumineus/i.test(section.cards[0].name||"") &&
+          section.cards[1]?.type==="vertical-stack" &&
+          section.cards[1].cards?.some(isSceneAction);
+        if(lightsView?.sections){
+          const manual=lightsView.sections.find(manualScenes);
+          if(manual){
+            for(const card of manual.cards[1].cards){
+              const st=sceneList.find(x=>x.entity_id===card.entity);
+              if(st && !card.icon){card.icon=sceneIcon(st);modified++;}
+            }
+            for(let i=lightsView.sections.length-1;i>=0;i--){
+              const sec=lightsView.sections[i];
+              if(sec!==manual && (legacyScenes(sec)||generatedScenes(sec))){
+                removed+=sec.cards.length;lightsView.sections.splice(i,1);
+              }
+            }
+          }else{
+            const old=lightsView.sections.filter(sec=>
+              legacyScenes(sec)||generatedScenes(sec));
+            for(const sec of old){
+              lightsView.sections.splice(lightsView.sections.indexOf(sec),1);
+              removed+=sec.cards.length;
+            }
+            if(sceneList.length){
+              const lastRoom=lightsView.sections.reduce((n,sec,i)=>
+                managedRoom(sec,"lumieres")?i:n,-1);
+              const nav=lightsView.sections.findIndex(sec=>
+                (sec.cards||[]).some(c=>c.type==="custom:navbar-card"));
+              const at=lastRoom>=0?lastRoom+1:nav>=0?nav:lightsView.sections.length;
+              lightsView.sections.splice(at,0,sceneSection());added+=2;
             }
           }
         }
