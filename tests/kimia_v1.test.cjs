@@ -271,10 +271,10 @@ async function main(){
  // Migration d'une ancienne carte 6 colonnes gérée par KIMIA.
  const musicCards=roomSection("musique","salon").cards;
  const mediaIndex=musicCards.findIndex(c=>cardEntity(c)==="media_player.enceinte");
- const oldMedia=nativeCard(musicCards[mediaIndex]);
  musicCards[mediaIndex]={type:"custom:kimia-safe-tile-v1-card",
    entity:"media_player.enceinte",
-   card:{...oldMedia,grid_options:{columns:6,rows:1}},
+   card:{type:"tile",entity:"media_player.enceinte",name:undefined,
+     grid_options:{columns:6,rows:1}},
    grid_options:{columns:6,rows:1}};
  const resized=await window.KimiaSmartCore.sync(hass);
  assert(resized.modified>=1,"Ancienne tuile musique 6 colonnes migrée");
