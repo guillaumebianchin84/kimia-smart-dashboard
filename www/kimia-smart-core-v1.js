@@ -366,10 +366,18 @@
       entity:e.entity_id,
       name:undefined,
       // Toutes les tuiles gérées par KIMIA occupent 12 colonnes natives HA.
-      grid_options:{columns:12,rows:1}
+      grid_options:{columns:12,rows:e.entity_id.startsWith("light.")?"auto":1}
     };
-    if(e.entity_id.startsWith("light."))
-      x.features=[{type:"light-brightness"}];
+    if(e.entity_id.startsWith("light.")) {
+      // Capacités natives HA : contrôle luminosité, teinte/saturation, blanc chaud/froid.
+      // HA masque les fonctions non prises en charge par l'entité.
+      x.features=[
+        {type:"light-brightness"},
+        {type:"light-color",controls:"hue_saturation"},
+        {type:"light-color-temp"}
+      ];
+      x.tap_action={action:"more-info"};
+    }
     if(e.entity_id.startsWith("cover."))
       x.features=[{type:"cover-open-close"}];
     if(switchEntity) {
@@ -535,15 +543,32 @@
   const isLegacyGeneratedTile = card =>
     card?.type === "tile" && typeof card.entity === "string" &&
     JSON.stringify(card) === JSON.stringify(safeClone(legacyTile({entity_id:card.entity})));
+  // Reconnaître les anciennes cartes RGB limitées à la luminosité
+  // afin de les faire évoluer sans doublons ni suppression des personnalisations.
+  const previousBrightnessTile=(e,columns=12)=>{
+    const x=tile(e);
+    if(!e.entity_id.startsWith("light."))return x;
+    x.features=[{type:"light-brightness"}];
+    x.grid_options={columns,rows:1};
+    delete x.tap_action;
+    return x;
+  };
+  const previousBrightnessSafeTile=(e,columns=12)=>{
+    const native=previousBrightnessTile(e,columns);
+    return {type:SAFE_TILE_TYPE,entity:e.entity_id,card:native,
+      grid_options:{...native.grid_options}};
+  };
   const isGeneratedTile = card => {
     if(typeof card?.entity!=="string")return false;
     const e={entity_id:card.entity};
     const variants=card.type===SAFE_TILE_TYPE
       ?[safeTile(e),safeTile(e,"","clim"),
-        previousSafeTile(e),previousSafeTile(e,"clim")]
+        previousSafeTile(e),previousSafeTile(e,"clim"),
+        previousBrightnessSafeTile(e),previousBrightnessSafeTile(e,6)]
       :card.type==="tile"
         ?[legacyTile(e),oldTapTile(e),tile(e),tile(e,"","clim"),
-          previousTile(e),previousTile(e,"clim")]
+          previousTile(e),previousTile(e,"clim"),
+          previousBrightnessTile(e),previousBrightnessTile(e,6)]
         :[];
     return variants.some(candidate=>
       JSON.stringify(card)===JSON.stringify(safeClone(candidate)));
