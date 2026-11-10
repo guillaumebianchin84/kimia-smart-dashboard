@@ -628,7 +628,8 @@
   const isGeneratedRoomCard = card => {
     if(card?.type!=="area"||typeof card.area!=="string")return false;
     const area={area_id:card.area};
-    const variants=[roomCard(area),oldSizedRoomCard(area),oldNavigableRoomCard(area)];
+    const variants=[roomCard(area),oldSizedRoomCard(area),oldNavigableRoomCard(area),
+      {...roomCard(area),tap_action:{action:"navigate",navigation_path:"/kimia-next/pieces"}}];
     for(const path of ["","securite","eau","climatisation"]){
       const old=previousRoomCard(area,path);
       variants.push(old,{...old,grid_options:{columns:6,rows:"auto"}});
