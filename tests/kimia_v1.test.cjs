@@ -223,6 +223,7 @@ async function main(){
   const area=room.cards[0];
   assert.equal(area.type,"area","Cadre Area natif sur "+page);
   assert.equal(area.display_type,"compact","Style compact conservé sur "+page);
+  assert.equal(area.vertical,true,"Nom de pièce centré avec disposition native");
   assert.equal(area.features.length,0,"Aucune commande de pièce sur "+page);
   assert.equal(area.grid_options.columns,12);assert.equal(area.grid_options.rows,2);
   assert.equal(area.tap_action.action,"none","Aucun clic sur la carte Pièce dans "+page);
@@ -296,11 +297,12 @@ async function main(){
  ]};
  scenesView.sections[scenesView.sections.indexOf(generated)]=manualSceneSection;
  const sceneMigration=await window.KimiaSmartCore.sync(hass);
- assert(sceneMigration.modified>=1,"Icônes ajoutées au montage manuel");
- assert(scenesView!==null);
+ assert(sceneMigration.modified>=1,"Ancien cartouche area corrigé");
  const foundManual=view("lumieres").sections.find(sec=>
-   sec.cards?.[0]?.name==="Scenes lumineuse");
- assert(foundManual,"Section scenes de l'utilisateur conservée");
+   sec.cards?.[0]?.name==="Scènes lumineuses");
+ assert(foundManual,"Cartouche scènes conservé avec bouton natif");
+ assert.equal(foundManual.cards[0].type,"button","Fausse zone remplacée par un bouton");
+ assert.equal(foundManual.cards[0].tap_action.action,"none");
  assert.equal(foundManual.cards[1].cards.length,10);
  assert(foundManual.cards[1].cards.every(card=>card.icon?.startsWith("mdi:")),
   "Chaque scène reçoit une icône native MDI");
@@ -358,6 +360,25 @@ async function main(){
   "Une pièce supprimée ne subsiste pas");
  assert(cards(view("lumieres")).some(c=>nativeCard(c)?.name==="Lampe personnalisée"),
   "La personnalisation reste intacte après suppression de pièce");
+ // Toutes les scènes supprimées : KIMIA doit retirer le cartouche ET les boutons.
+ const sceneOnly=Object.entries(hass.states).filter(([id])=>id.startsWith("scene."));
+ const noScenes=Object.fromEntries(Object.entries(hass.states)
+   .filter(([id])=>!id.startsWith("scene.")));
+ hass.states=noScenes;
+ await window.KimiaSmartCore.sync(hass);
+ assert.equal(view("lumieres").sections.filter(sec=>
+   sec.cards?.some(card=>card.name==="Scènes lumineuses")).length,0,
+   "Toutes les cartes scènes disparaissent quand aucune scène IA n'existe");
+ // Une scène recréée : les deux cartes natives réapparaissent sans doublon.
+ hass.states={...noScenes,[sceneOnly[0][0]]:sceneOnly[0][1]};
+ await window.KimiaSmartCore.sync(hass);
+ const restored=view("lumieres").sections.filter(sec=>
+   sec.cards?.[0]?.name==="Scènes lumineuses");
+ assert.equal(restored.length,1);
+ assert.equal(restored[0].cards[1].cards.length,1,"Une seule scène restante visible");
+ const saveIdempotent=saveCount;
+ await window.KimiaSmartCore.sync(hass);
+ assert.equal(saveCount,saveIdempotent,"La scène unique n'entraîne pas de doublon");
  await assert.rejects(window.KimiaSmartCore.sync({...hass,user:{is_admin:false}}),/administrateur/);
  console.log("KIMIA 2026: tuiles natives 12/12, icônes MDI, 10 scènes, migrations et personnalisation vérifiées.");
 }
