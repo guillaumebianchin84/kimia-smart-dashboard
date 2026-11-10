@@ -363,7 +363,11 @@
   const tileIcon=(e,usage="autre")=>{
     const id=e.entity_id||"";
     const kind=id.split(".")[0];
-    const deviceClass=e.device_class||e.attributes?.device_class||"";
+    const deviceClass=e.device_class||e.attributes?.device_class||
+      (/snzb_06p|presence|motion|mouvement/i.test(id)?"motion":
+       /contact|door|porte/i.test(id)?"door":
+       /humidity|humidite|hygrometrie/i.test(id)?"humidity":
+       /temperature|temp_/i.test(id)?"temperature":"");
     if(usage==="clim"||kind==="climate")return "mdi:air-conditioner";
     if(usage==="ventilateur"||kind==="fan")return "mdi:fan";
     if(usage==="surpresseur")return "mdi:water-pump";
@@ -652,28 +656,37 @@
     return {type:SAFE_TILE_TYPE,entity:e.entity_id,card:native,
       grid_options:{...native.grid_options}};
   };
-  const isGeneratedTile = card => {
+  // Conserver la reconnaissance stricte des cartes KIMIA déjà générées,
+  // quel que soit l'usage attribué à une prise (lampe, clim, ventilateur...).
+  // Une carte modifiée manuellement ne correspondra plus à sa signature.
+  const isGeneratedTile=card=>{
     const id=generatedEntity(card);
     if(!id)return false;
     const e={entity_id:id};
-    const variants=card.type==="vertical-stack"
-      ?[safeTile(e),safeTile(e,"","clim"),
-        oldUnsizedStack(e),oldUnsizedStack(e,"","clim")]
-      :card.type===SAFE_TILE_TYPE
-      ?[safeTile(e),safeTile(e,"","clim"),
-        previousWideSafeTile(e),previousWideSafeTile(e,"clim"),
-        previousSafeTile(e),previousSafeTile(e,"clim"),
-        previousCompactLightSafeTile(e),
+    const usages=["autre","lampe","clim","ventilateur","surpresseur"];
+    const candidates=[];
+    for(const usage of usages){
+      if(card.type==="vertical-stack"){
+        candidates.push(safeTile(e,"",usage),oldUnsizedStack(e,"",usage));
+      }else if(card.type===SAFE_TILE_TYPE){
+        candidates.push(previousWideSafeTile(e,usage),
+          previousSafeTile(e,usage));
+      }else if(card.type==="tile"){
+        candidates.push(tile(e,"",usage),previousWideTile(e,"",usage),
+          previousTile(e,usage));
+      }
+    }
+    if(card.type===SAFE_TILE_TYPE){
+      candidates.push(previousCompactLightSafeTile(e),
         previousExpandedLightSafeTile(e),
-        previousBrightnessSafeTile(e),previousBrightnessSafeTile(e,6)]
-      :card.type==="tile"
-        ?[legacyTile(e),oldTapTile(e),tile(e),tile(e,"","clim"),
-          previousWideTile(e),previousWideTile(e,"","clim"),
-          previousTile(e),previousTile(e,"clim"),
-          previousExpandedLightTile(e),
-          previousBrightnessTile(e),previousBrightnessTile(e,6)]
-        :[];
-    return variants.filter(Boolean).some(candidate=>
+        previousBrightnessSafeTile(e),
+        previousBrightnessSafeTile(e,6));
+    }else if(card.type==="tile"){
+      candidates.push(legacyTile(e),oldTapTile(e),
+        previousExpandedLightTile(e),
+        previousBrightnessTile(e),previousBrightnessTile(e,6));
+    }
+    return candidates.filter(Boolean).some(candidate=>
       JSON.stringify(card)===JSON.stringify(safeClone(candidate)));
   };
   // Une carte Pièce n'est gérée par KIMIA que si toutes ses options sont intactes.
