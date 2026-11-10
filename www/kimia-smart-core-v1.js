@@ -1298,7 +1298,7 @@
         const lightsView=vmap.get("lumieres");
         const sceneList=Object.values(hass.states||{}).filter(st=>
           st.entity_id?.startsWith("scene.") &&
-          /^kimia_ambiance_\\d{2}$/.test(st.attributes?.id||""))
+          /^kimia_ambiance_\d{2}$/.test(st.attributes?.id||""))
           .sort((a,b)=>String(a.attributes.id).localeCompare(String(b.attributes.id)))
           .slice(0,10);
         const sceneTiles=sceneList.map(st=>({
