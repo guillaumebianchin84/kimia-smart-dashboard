@@ -359,49 +359,96 @@
     }
     return true;
   };
-  const tile = (e,path="",usage="autre") => {
-    const switchEntity=e.entity_id.startsWith("switch.");
-    const x={
-      type:"tile",
-      entity:e.entity_id,
-      name:undefined,
-      // Aucun grid_options : Home Assistant determine lui-meme la taille.
-    };
-    if(e.entity_id.startsWith("light.")) {
-      // Une ligne par lampe : icône ON/OFF, curseur de luminosité,
-      // toucher le nom/la carte ouvre la roue chromatique native HA.
-      x.features=[{type:"light-brightness"}];
+  // Icônes natives MDI par fonction de l'équipement, sans carte custom.
+  const tileIcon=(e,usage="autre")=>{
+    const id=e.entity_id||"";
+    const kind=id.split(".")[0];
+    const deviceClass=e.device_class||e.attributes?.device_class||"";
+    if(usage==="clim"||kind==="climate")return "mdi:air-conditioner";
+    if(usage==="ventilateur"||kind==="fan")return "mdi:fan";
+    if(usage==="surpresseur")return "mdi:water-pump";
+    if(usage==="lampe"&&kind==="switch")return "mdi:floor-lamp";
+    if(kind==="switch")return "mdi:power-socket-eu";
+    if(kind==="light")return "mdi:lightbulb-variant";
+    if(kind==="cover")return "mdi:window-shutter";
+    if(kind==="media_player")return "mdi:speaker";
+    if(kind==="camera")return "mdi:cctv";
+    if(kind==="binary_sensor"){
+      const icons={motion:"mdi:motion-sensor",occupancy:"mdi:motion-sensor",
+        door:"mdi:door-closed",window:"mdi:window-closed",
+        moisture:"mdi:water-alert",smoke:"mdi:smoke-detector",
+        safety:"mdi:shield-check",presence:"mdi:motion-sensor"};
+      return icons[deviceClass]||"mdi:shield-check-outline";
+    }
+    if(kind==="sensor"){
+      const icons={temperature:"mdi:thermometer",humidity:"mdi:water-percent",
+        battery:"mdi:battery",power:"mdi:flash",energy:"mdi:lightning-bolt"};
+      return icons[deviceClass]||"mdi:gauge";
+    }
+    return "mdi:devices";
+  };
+  // Modele HA retenu : vraie carte Tile native 12 colonnes.
+  const tile=(e,path="",usage="autre")=>{
+    const id=e.entity_id,kind=id.split(".")[0];
+    const x={type:"tile",entity:id,
+      grid_options:{columns:12,rows:kind==="light"?2:1},
+      icon:tileIcon(e,usage)};
+    if(kind==="light"){
+      // Identique aux deux ampoules corrigées dans le YAML utilisateur.
+      x.features=[{type:"light-color"}];
+      x.features_position="bottom";
       x.tap_action={action:"more-info"};
       x.icon_tap_action={action:"toggle"};
-    }
-    if(e.entity_id.startsWith("cover."))
+    }else if(kind==="cover"){
       x.features=[{type:"cover-open-close"}];
-    if(switchEntity) {
-      if(usage==="clim") {
-        // Ne jamais couper une climatisation par simple toucher accidentel.
+    }else if(kind==="switch"){
+      if(usage==="clim"){
         x.tap_action={action:"more-info"};
         x.icon_tap_action={action:"more-info"};
-      } else {
+      }else{
         x.tap_action={action:"toggle"};
       }
       x.hold_action={action:"more-info"};
     }
     return x;
   };
-  // Le conteneur vertical-stack est NATIF HA : il remplit la largeur
-  // standard de 12 colonnes sans imposer grid_options aux tuiles.
-  const safeTile=(e,path="",usage="autre")=>({
-    type:"vertical-stack",
-    cards:[tile(e,path,usage)]
-  });
+  // Conserver les piles natives des capteurs comme dans l'onglet Sécurité
+  // fourni; les autres tuiles restent directement dans la grille Sections.
+  const safeTile=(e,path="",usage="autre")=>
+    e.entity_id.startsWith("binary_sensor.")
+      ?{type:"vertical-stack",cards:[tile(e,path,usage)]}
+      :tile(e,path,usage);
   const generatedEntity=card=>
     typeof card?.entity==="string"?card.entity:
     card?.type==="vertical-stack"&&card.cards?.length===1&&
-    typeof card.cards[0]?.entity==="string" ? card.cards[0].entity:null;
+    typeof card.cards[0]?.entity==="string"?card.cards[0].entity:null;
+  // Reproduit les cartes historiques KIMIA pour les reconnaître à la migration
+  // sans écraser une carte modifiée manuellement.
+  const oldCoreTile=(e,path="",usage="autre")=>{
+    const id=e.entity_id;
+    const x={type:"tile",entity:id,name:undefined};
+    if(id.startsWith("light.")){
+      x.features=[{type:"light-brightness"}];
+      x.tap_action={action:"more-info"};
+      x.icon_tap_action={action:"toggle"};
+    }
+    if(id.startsWith("cover."))x.features=[{type:"cover-open-close"}];
+    if(id.startsWith("switch.")){
+      if(usage==="clim"){
+        x.tap_action={action:"more-info"};
+        x.icon_tap_action={action:"more-info"};
+      }else{x.tap_action={action:"toggle"};}
+      x.hold_action={action:"more-info"};
+    }
+    return x;
+  };
+  const oldUnsizedStack=(e,path="",usage="autre")=>({
+    type:"vertical-stack",cards:[oldCoreTile(e,path,usage)]
+  });
   // La version précédente utilisait 6 colonnes pour les lumières,
   // volets, climatisations, enceintes, etc. Migrer ces cartes inchangées.
   const previousTile=(e,usage="autre")=>{
-    const x=tile(e,"",usage);
+    const x=oldCoreTile(e,"",usage);
     const domain=e.entity_id.split(".")[0];
     x.grid_options={columns:["switch","sensor","binary_sensor"].includes(domain)
       ?12:6,rows:1};
@@ -413,7 +460,7 @@
       grid_options:{...native.grid_options}};
   };
   const oldTapTile=e=>{
-    const x=tile(e,"","autre");
+    const x=oldCoreTile(e,"","autre");
     x.grid_options={columns:6,rows:1};
     return x;
   };
@@ -447,12 +494,14 @@
   // les prises/lumières/volets par accident.
   // 2 lignes natives HA compensent l'absence de la rangée de boutons.
   const roomCard = area => ({
-    type: "area",
-    area: area.area_id,
-    display_type: "compact",
-    features: [],
-    features_position: "bottom",
-    tap_action: { action: "none" }
+    type: "area",area:area.area_id,display_type:"compact",
+    features:[],features_position:"bottom",
+    tap_action:{action:"none"},
+    grid_options:{columns:12,rows:2}
+  });
+  const oldUnsizedRoomCard=area=>({
+    type:"area",area:area.area_id,display_type:"compact",
+    features:[],features_position:"bottom",tap_action:{action:"none"}
   });
   // Ancienne carte de pièce KIMIA, dimensions 12x2 imposées.
   const oldSizedRoomCard=area=>({
@@ -549,7 +598,7 @@
   // Ancienne carte d'équipement 12x1 (prises, volets, clim, capteurs).
   // Garder l'ancienne signature exacte pour migrer sans écraser les cartes personnalisées.
   const previousWideTile=(e,path="",usage="autre")=>{
-    const x=tile(e,path,usage);
+    const x=oldCoreTile(e,path,usage);
     x.grid_options={columns:12,rows:1};
     return x;
   };
@@ -562,14 +611,14 @@
   // "safe" KIMIA, largeur forcée à 12. Reconnaissance stricte pour migration.
   const previousCompactLightSafeTile=e=>{
     if(!e.entity_id.startsWith("light."))return null;
-    const native=tile(e);native.grid_options={columns:12,rows:1};
+    const native=oldCoreTile(e);native.grid_options={columns:12,rows:1};
     return {type:SAFE_TILE_TYPE,entity:e.entity_id,card:native,
       grid_options:{...native.grid_options}};
   };
   // Migrer les tuiles KIMIA RGB déployées avec les 3 bandes de couleur
   // vers une seule bande compacte. Ne jamais modifier une carte personnalisée.
   const previousExpandedLightTile=e=>{
-    const x=tile(e);
+    const x=oldCoreTile(e);
     if(!e.entity_id.startsWith("light."))return x;
     x.grid_options={columns:12,rows:"auto"};
     x.features=[
@@ -587,7 +636,7 @@
   };
   // Reconnaître les cartes plus anciennes limitées à la luminosité.
   const previousBrightnessTile=(e,columns=12)=>{
-    const x=tile(e);
+    const x=oldCoreTile(e);
     if(!e.entity_id.startsWith("light."))return x;
     x.features=[{type:"light-brightness"}];
     x.grid_options={columns,rows:1};
@@ -605,7 +654,8 @@
     if(!id)return false;
     const e={entity_id:id};
     const variants=card.type==="vertical-stack"
-      ?[safeTile(e),safeTile(e,"","clim")]
+      ?[safeTile(e),safeTile(e,"","clim"),
+        oldUnsizedStack(e),oldUnsizedStack(e,"","clim")]
       :card.type===SAFE_TILE_TYPE
       ?[safeTile(e),safeTile(e,"","clim"),
         previousWideSafeTile(e),previousWideSafeTile(e,"clim"),
@@ -628,8 +678,9 @@
   const isGeneratedRoomCard = card => {
     if(card?.type!=="area"||typeof card.area!=="string")return false;
     const area={area_id:card.area};
-    const variants=[roomCard(area),oldSizedRoomCard(area),oldNavigableRoomCard(area),
-      {...roomCard(area),tap_action:{action:"navigate",navigation_path:"/kimia-next/pieces"}}];
+    const variants=[roomCard(area),oldUnsizedRoomCard(area),
+      oldSizedRoomCard(area),oldNavigableRoomCard(area),
+      {...oldUnsizedRoomCard(area),tap_action:{action:"navigate",navigation_path:"/kimia-next/pieces"}}];
     for(const path of ["","securite","eau","climatisation"]){
       const old=previousRoomCard(area,path);
       variants.push(old,{...old,grid_options:{columns:6,rows:"auto"}});
