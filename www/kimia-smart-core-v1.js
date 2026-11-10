@@ -1303,6 +1303,7 @@
           .slice(0,10);
         const sceneTiles=sceneList.map(st=>({
           type:"tile",entity:st.entity_id,
+          grid_options:{columns:6,rows:1},
           tap_action:{action:"perform-action",perform_action:"scene.turn_on",
             target:{entity_id:st.entity_id}},
           icon_tap_action:{action:"perform-action",perform_action:"scene.turn_on",
@@ -1317,7 +1318,7 @@
         const sceneSection=()=>({
           type:"grid",column_span:Math.min(Number(lightsView?.max_columns)||3,3),
           cards:[sceneHeading(),{
-            type:"vertical-stack",cards:sceneTiles,
+            type:"grid",columns:2,square:false,cards:sceneTiles,
             grid_options:{columns:12,rows:"auto"}
           }]
         });
@@ -1325,6 +1326,7 @@
           card?.type==="tile" && typeof card.entity==="string" &&
           JSON.stringify(card)===JSON.stringify({
             type:"tile",entity:card.entity,
+            grid_options:{columns:6,rows:1},
             tap_action:{action:"perform-action",perform_action:"scene.turn_on",
               target:{entity_id:card.entity}},
             icon_tap_action:{action:"perform-action",perform_action:"scene.turn_on",
@@ -1335,7 +1337,8 @@
           section.cards[0]?.grid_options?.columns===12;
         const nativeScenes=section=>section?.cards?.length===2 &&
           JSON.stringify(section.cards[0])===JSON.stringify(sceneHeading()) &&
-          section.cards[1]?.type==="vertical-stack" &&
+          section.cards[1]?.type==="grid" &&
+          section.cards[1].columns===2 &&
           section.cards[1].grid_options?.columns===12 &&
           (section.cards[1].cards||[]).every(isGeneratedSceneTile);
         if(lightsView?.sections) {
