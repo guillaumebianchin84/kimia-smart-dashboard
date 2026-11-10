@@ -120,6 +120,9 @@ const hass={
  }
 };
 const cards=v=>(v.sections||[]).flatMap(s=>s.cards||[]);
+const nativeCard=c=>c?.type==="vertical-stack"&&c.cards?.length===1?c.cards[0]:c;
+const cardEntity=c=>nativeCard(c)?.entity;
+const getCard=(path,area,id)=>roomSection(path,area).cards.find(c=>cardEntity(c)===id);
 const view=path=>config.views.find(v=>v.path===path);
 const roomSection=(path,area)=>view(path).sections.find(s=>
  s.cards?.some(c=>c.type==="area"&&c.area===area));
@@ -149,59 +152,64 @@ async function main(){
  assert(music,"Enceinte dans Salon/Musique");
  assert.equal(music.column_span,3,"Pièce sur toute largeur");
  assert.equal(music.cards[0].type,"area");
- assert.equal(music.cards[0].grid_options.columns,12,"La carte Area occupe 12/12");
+ assert.equal(music.cards[0].grid_options,undefined,"Carte Area sans dimension imposée");
  assert.equal(music.cards.filter(c=>c.type==="heading").length,0,"Pas de titre redondant");
- assert.equal(music.cards.find(c=>c.entity==="media_player.enceinte").grid_options.columns,12,
-  "Toutes les tuiles KIMIA, y compris musique, sont larges de 12 colonnes");
+ const musicTile=getCard("musique","salon","media_player.enceinte");
+ assert.equal(musicTile.type,"vertical-stack");
+ assert.equal(musicTile.grid_options,undefined);
+ assert.equal(nativeCard(musicTile).grid_options,undefined);
  assert(roomSection("pieces","salon"));
  assert(roomSection("pieces","cuisine"));
  assert(!roomSection("musique","cuisine"),"Ne pas créer une rubrique vide");
  assert(!JSON.stringify(config).includes("light.desactivee"));
  assert(!JSON.stringify(config).includes("switch.prise_led_reseau"),
   "Les réglages LED réseau ne doivent pas créer de faux boutons de prise");
- const prise=roomSection("prises","cuisine").cards.find(c=>c.entity==="switch.prise");
- assert.equal(prise.type,"custom:kimia-safe-tile-v1-card");
- assert.equal(prise.card.type,"tile","La vraie tuile HA est conservée");
- assert.equal(prise.card.tap_action.action,"toggle","La prise bascule directement au toucher");
- assert.equal(prise.card.hold_action.action,"more-info","La fiche reste disponible par appui long");
- assert.equal(prise.grid_options.columns,12,"Une seule prise par ligne native");
- const lamp=roomSection("lumieres","salon").cards.find(c=>c.entity==="light.lampe");
- assert.equal(lamp.type,"tile","Ampoule = vraie Tile HA");
- assert.equal(lamp.grid_options.columns,6,"Lampe : 6 colonnes conseillées HA");
- assert.equal(lamp.grid_options.rows,1);
- assert.equal(lamp.tap_action.action,"more-info");
- assert.equal(lamp.icon_tap_action.action,"toggle");
- assert.equal(lamp.features[0].type,"light-brightness");
- const sceneSec=view("lumieres").sections.find(sec=>sec.cards?.[0]?.name==="Scènes lumineuses");
+ const prise=roomSection("prises","cuisine").cards.find(c=>cardEntity(c)==="switch.prise");
+ assert.equal(prise.type,"vertical-stack");
+ assert.equal(nativeCard(prise).type,"tile");
+ assert.equal(nativeCard(prise).tap_action.action,"toggle");
+ assert.equal(nativeCard(prise).hold_action.action,"more-info");
+ assert.equal(prise.grid_options,undefined);
+ assert.equal(nativeCard(prise).grid_options,undefined);
+ const lamp=roomSection("lumieres","salon").cards.find(c=>cardEntity(c)==="light.lampe");
+ assert.equal(lamp.type,"vertical-stack");
+ assert.equal(nativeCard(lamp).type,"tile");
+ assert.equal(lamp.grid_options,undefined);
+ assert.equal(nativeCard(lamp).grid_options,undefined);
+ assert.equal(nativeCard(lamp).tap_action.action,"more-info");
+ assert.equal(nativeCard(lamp).icon_tap_action.action,"toggle");
+ assert.equal(nativeCard(lamp).features[0].type,"light-brightness");
+ const sceneSec=view("lumieres").sections.find(sec=>
+   sec.cards?.[0]?.type==="vertical-stack"&&
+   sec.cards[0].cards?.[0]?.name==="Scènes lumineuses");
  assert(sceneSec,"Cartouche Scènes lumineuses visible");
- assert.equal(sceneSec.cards[0].type,"button");
- assert.equal(sceneSec.cards[1].type,"grid");
- assert.equal(sceneSec.cards[1].columns,2,"Deux scènes HA 6x1 par ligne");
+ assert.equal(sceneSec.cards[0].type,"vertical-stack");
+ assert.equal(sceneSec.cards[0].cards[0].type,"button");
+ assert.equal(sceneSec.cards[1].type,"vertical-stack");
  assert.equal(sceneSec.cards[1].cards.length,10);
  assert(sceneSec.cards[1].cards.every(c=>c.type==="tile"&&
-   c.grid_options.columns===6&&c.grid_options.rows===1&&
-   c.tap_action.perform_action==="scene.turn_on"));
+   c.grid_options===undefined&&c.tap_action.perform_action==="scene.turn_on"));
  assert(!cards(view("lumieres")).some(c=>c.type==="custom:kimia-ai-scenes-shortcuts-card"));
 
  // Une prise classée Éclairage figure dans Lumières ET Prises.
- assert(roomSection("lumieres","salon").cards.some(c=>c.entity==="switch.lampe_sur_prise"));
- assert(roomSection("prises","salon").cards.some(c=>c.entity==="switch.lampe_sur_prise"));
+ assert(roomSection("lumieres","salon").cards.some(c=>cardEntity(c)==="switch.lampe_sur_prise"));
+ assert(roomSection("prises","salon").cards.some(c=>cardEntity(c)==="switch.lampe_sur_prise"));
 
  // Ventilateur et alimentation de clim dans Climatisation ET Prises.
  const climate=roomSection("climatisation","salon");
- assert(climate.cards.some(c=>c.entity==="switch.ventilateur"));
- const climatePlug=climate.cards.find(c=>c.entity==="switch.clim_prise");
- assert.equal(climatePlug.card.tap_action.action,"more-info",
+ assert(climate.cards.some(c=>cardEntity(c)==="switch.ventilateur"));
+ const climatePlug=climate.cards.find(c=>cardEntity(c)==="switch.clim_prise");
+ assert.equal(nativeCard(climatePlug).tap_action.action,"more-info",
   "Éviter une coupure secteur de clim en un seul toucher");
- assert.equal(climatePlug.card.icon_tap_action.action,"more-info");
- assert(roomSection("prises","salon").cards.some(c=>c.entity==="switch.clim_prise"));
+ assert.equal(nativeCard(climatePlug).icon_tap_action.action,"more-info");
+ assert(roomSection("prises","salon").cards.some(c=>cardEntity(c)==="switch.clim_prise"));
  assert.equal(roomSection("prises","salon").cards.find(c=>
-  c.entity==="switch.clim_prise").card.tap_action.action,"more-info");
+  cardEntity(c)==="switch.clim_prise")?.cards?.[0]?.tap_action.action,"more-info");
 
  // Création conditionnelle de l'onglet Eau pour un surpresseur.
  assert(view("eau"),"Onglet Eau créé dès qu'un surpresseur est déclaré");
- assert(roomSection("eau","salon").cards.some(c=>c.entity==="switch.pompe_eau"));
- assert(roomSection("prises","salon").cards.some(c=>c.entity==="switch.pompe_eau"));
+ assert(roomSection("eau","salon").cards.some(c=>cardEntity(c)==="switch.pompe_eau"));
+ assert(roomSection("prises","salon").cards.some(c=>cardEntity(c)==="switch.pompe_eau"));
  assert(cards(view("eau")).some(c=>c.type==="custom:navbar-card"));
  assert(cards(view("prises")).some(c=>c.routes?.some(r=>r.url==="/kimia-next/eau")));
 
@@ -214,7 +222,7 @@ async function main(){
  assert.equal(security.cards.filter(c=>c.type==="heading").length,0,
   "Pas de titre texte à la place du cadre Salon");
  assert.equal(security.cards.find(c=>
-  c.entity==="binary_sensor.presence_salon").grid_options.columns,12);
+  cardEntity(c)==="binary_sensor.presence_salon").grid_options,undefined);
  for(const page of ["pieces","lumieres","volets","climatisation","prises","musique","securite","eau"]){
   const room=roomSection(page,"salon");
   if(!room)continue;
@@ -222,15 +230,15 @@ async function main(){
   assert.equal(area.type,"area","Cadre Area natif sur "+page);
   assert.equal(area.display_type,"compact","Style compact conservé sur "+page);
   assert.equal(area.features.length,0,"Aucune commande de pièce sur "+page);
-  assert.equal(area.grid_options.columns,12,"Largeur native 12 sur "+page);
-  assert.equal(area.grid_options.rows,2,"Hauteur native de l'ancien cadre conservée sur "+page);
+  assert.equal(area.grid_options,undefined,"Aucun dimensionnement Area forcé sur "+page);
   assert.equal(area.tap_action.action,"none","Aucun clic sur la carte Pièce dans "+page);
   assert.equal(area.features.length,0,"Aucune commande générale dans "+page);
  }
  for(const page of ["pieces","lumieres","volets","climatisation","prises","musique","securite","eau"]){
-  for(const card of cards(view(page)).filter(c=>c.type==="custom:kimia-safe-tile-v1-card")){
-   assert.equal(card.grid_options.columns,12,"Largeur 12 pour "+page+" / "+card.entity);
-   assert.equal(card.card.grid_options.columns,12,"Largeur native 12 pour "+page);
+  for(const card of cards(view(page)).filter(c=>c.type==="vertical-stack"&&
+    c.cards?.length===1&&c.cards[0].type==="tile")){
+   assert.equal(card.grid_options,undefined,"Pile native sans taille imposée");
+   assert.equal(card.cards[0].grid_options,undefined,"Tuile native sans taille imposée");
   }
  }
 
@@ -248,7 +256,7 @@ async function main(){
  assert(noControl.modified>=1,"Ancien bouton de pièce retiré dans Sécurité");
  assert.equal(roomSection("securite","salon").cards[0].type,"area");
  assert.equal(roomSection("securite","salon").cards[0].features.length,0);
- assert.equal(roomSection("securite","salon").cards[0].grid_options.rows,2);
+ assert.equal(roomSection("securite","salon").cards[0].grid_options,undefined);
  assert.equal(roomSection("securite","salon").cards[0].tap_action.action,"none");
  
  // L'ancienne version avec même cadre, mais clic de navigation, doit
@@ -260,7 +268,7 @@ async function main(){
  assert(migratedClick.modified>=1,"L'ancien clic est supprimé");
  assert.equal(roomSection("securite","salon").cards[0].tap_action.action,"none");
  assert.equal(roomSection("securite","salon").cards[0].display_type,"compact");
- assert.equal(roomSection("securite","salon").cards[0].grid_options.rows,2);
+ assert.equal(roomSection("securite","salon").cards[0].grid_options,undefined);
  
  const prisesArea=roomSection("prises","salon").cards;
  prisesArea[0]=clone(existingArea);
@@ -270,13 +278,15 @@ async function main(){
 
  // Migration d'une ancienne carte 6 colonnes gérée par KIMIA.
  const musicCards=roomSection("musique","salon").cards;
- const mediaIndex=musicCards.findIndex(c=>c.entity==="media_player.enceinte");
- musicCards[mediaIndex].grid_options.columns=6;
- musicCards[mediaIndex].card.grid_options.columns=6;
+ const mediaIndex=musicCards.findIndex(c=>cardEntity(c)==="media_player.enceinte");
+ const oldMedia=nativeCard(musicCards[mediaIndex]);
+ musicCards[mediaIndex]={type:"custom:kimia-safe-tile-v1-card",
+   entity:"media_player.enceinte",
+   card:{...oldMedia,grid_options:{columns:6,rows:1}},
+   grid_options:{columns:6,rows:1}};
  const resized=await window.KimiaSmartCore.sync(hass);
- assert(resized.modified>=1,"Ancienne tuile musique 6 colonnes agrandie");
- assert.equal(roomSection("musique","salon").cards.find(c=>
-   c.entity==="media_player.enceinte").grid_options.columns,12);
+ assert(resized.modified>=1,"Ancienne tuile musique 6 colonnes migrée");
+ assert.equal(getCard("musique","salon","media_player.enceinte").type,"vertical-stack");
  
  const saves=saveCount;
  const again=await window.KimiaSmartCore.sync(hass);
@@ -286,13 +296,13 @@ async function main(){
 
  // Simuler une ancienne tuile native de KIMIA avant le wrapper.
  const cuisineCards=roomSection("prises","cuisine").cards;
- const oldIdx=cuisineCards.findIndex(c=>c.entity==="switch.prise");
+ const oldIdx=cuisineCards.findIndex(c=>cardEntity(c)==="switch.prise");
  cuisineCards[oldIdx]={type:"tile",entity:"switch.prise",
   name:undefined,grid_options:{columns:6,rows:1}};
  const migrated=await window.KimiaSmartCore.sync(hass);
  assert(migrated.modified>=1,"Une ancienne tuile de prise est migrée");
  assert.equal(roomSection("prises","cuisine").cards.find(c=>
-  c.entity==="switch.prise").card.tap_action.action,"toggle");
+  cardEntity(c)==="switch.prise")?.cards?.[0]?.tap_action.action,"toggle");
  const settled=saveCount;
  await window.KimiaSmartCore.sync(hass);
  assert.equal(saveCount,settled,"La migration reste idempotente");
@@ -301,22 +311,22 @@ async function main(){
  entities.push({entity_id:"light.liseuse",device_id:"d1"});
  const newer=await window.KimiaSmartCore.sync(hass);
  assert(newer.added>=2);
- assert.equal(cards(view("accueil")).some(c=>c.entity==="light.liseuse"),false);
- assert(roomSection("lumieres","salon").cards.some(c=>c.entity==="light.liseuse"));
+ assert.equal(cards(view("accueil")).some(c=>cardEntity(c)==="light.liseuse"),false);
+ assert(roomSection("lumieres","salon").cards.some(c=>cardEntity(c)==="light.liseuse"));
 
  // Déplacement d'une prise de cuisine vers salon.
  devices.find(d=>d.id==="d2").area_id="salon";
  await window.KimiaSmartCore.sync(hass);
  assert(!roomSection("prises","cuisine"),"Section auto vide éliminée");
- assert(roomSection("prises","salon").cards.some(c=>c.entity==="switch.prise"));
+ assert(roomSection("prises","salon").cards.some(c=>cardEntity(c)==="switch.prise"));
 
  // Préserver les tuiles modifiées par l'utilisateur.
- const custom=roomSection("lumieres","salon").cards.find(c=>c.entity==="light.lampe");
- custom.name="Lampe personnalisée";
+ const custom=roomSection("lumieres","salon").cards.find(c=>cardEntity(c)==="light.lampe");
+ custom.cards[0].name="Lampe personnalisée";
  devices.find(d=>d.id==="d1").area_id=null;
  await window.KimiaSmartCore.sync(hass);
  assert(cards(view("lumieres")).some(c=>
-  c.entity==="light.lampe"&&c.name==="Lampe personnalisée"),
+  cardEntity(c)==="light.lampe"&&nativeCard(c)?.name==="Lampe personnalisée"),
   "Une tuile personnalisée doit être préservée même si la section change");
 
  // Supprimer Cuisine, puis Salon : aucune pièce orpheline.
@@ -326,7 +336,7 @@ async function main(){
  await window.KimiaSmartCore.sync(hass);
  assert(!cards(view("pieces")).some(c=>c.type==="area"),
   "Une pièce supprimée ne subsiste pas");
- assert(cards(view("lumieres")).some(c=>c.name==="Lampe personnalisée"),
+ assert(cards(view("lumieres")).some(c=>nativeCard(c)?.name==="Lampe personnalisée"),
   "La personnalisation reste intacte après suppression de pièce");
  await assert.rejects(window.KimiaSmartCore.sync({...hass,user:{is_admin:false}}),/administrateur/);
  console.log("KIMIA V1.3 OK : accueil réservé, titres de vues, salles 12/12, tuiles, déplacements, suppressions et préservation.");
