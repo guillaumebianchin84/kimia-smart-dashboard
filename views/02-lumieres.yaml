@@ -1,0 +1,41 @@
+title: Lumières
+path: lumieres
+icon: mdi:lightbulb-group
+type: sections
+theme: KIMIA Smart
+max_columns: 3
+sections:
+  - type: grid
+    cards:
+      - type: heading
+        heading: Pièces de vie
+        icon: mdi:sofa
+      - type: tile
+        entity: input_boolean.kimia_lumiere_salon
+        name: Salon (démo)
+      - type: tile
+        entity: input_boolean.kimia_lumiere_cuisine
+        name: Cuisine (démo)
+  - type: grid
+    cards:
+      - type: heading
+        heading: Chambres
+        icon: mdi:bed-outline
+      - type: tile
+        entity: input_boolean.kimia_lumiere_chambre
+        name: Chambre (démo)
+      - type: markdown
+        content: >-
+          Après installation, les interrupteurs de démonstration seront remplacés
+          par les vraies entités d'éclairage et leurs commandes de variation.
+  - type: grid
+    cards:
+      - type: heading
+        heading: Commandes générales
+        icon: mdi:lightbulb-multiple-off-outline
+      - type: button
+        name: Tout éteindre
+        icon: mdi:lightbulb-group-off
+        tap_action:
+          action: perform-action
+          perform_action: script.kimia_lumieres_eteindre

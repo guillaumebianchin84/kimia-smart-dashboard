@@ -1,0 +1,131 @@
+# Uniquement pour la VM de démonstration. Aucun équipement réel n'est piloté.
+input_text:
+  kimia_brief:
+    name: KIMIA - Mot du jour
+    max: 255
+    initial: "Bienvenue chez vous. Votre maison reste pilotable même sans connexion Internet."
+  kimia_actu_1:
+    name: KIMIA - Actualité 1
+    max: 255
+  kimia_actu_2:
+    name: KIMIA - Actualité 2
+    max: 255
+  kimia_actu_3:
+    name: KIMIA - Actualité 3
+    max: 255
+input_boolean:
+  kimia_mode_absence:
+    name: KIMIA - Mode absence (démo)
+    icon: mdi:home-export-outline
+  kimia_lumiere_salon:
+    name: KIMIA - Lumière salon (démo)
+    icon: mdi:lightbulb
+  kimia_lumiere_cuisine:
+    name: KIMIA - Lumière cuisine (démo)
+    icon: mdi:lightbulb
+  kimia_lumiere_chambre:
+    name: KIMIA - Lumière chambre (démo)
+    icon: mdi:lightbulb
+  kimia_volet_salon_ouvert:
+    name: KIMIA - Volet salon ouvert (démo)
+    icon: mdi:window-shutter
+  kimia_volet_cuisine_ouvert:
+    name: KIMIA - Volet cuisine ouvert (démo)
+    icon: mdi:window-shutter
+  kimia_volet_chambre_ouvert:
+    name: KIMIA - Volet chambre ouvert (démo)
+    icon: mdi:window-shutter
+  kimia_porte_ouverte:
+    name: KIMIA - Porte ouverte (démo)
+    icon: mdi:door
+  kimia_fenetre_ouverte:
+    name: KIMIA - Fenêtre ouverte (démo)
+    icon: mdi:window-open
+  kimia_mouvement_detecte:
+    name: KIMIA - Mouvement (démo)
+    icon: mdi:motion-sensor
+input_number:
+  kimia_consigne_salon:
+    name: KIMIA - Consigne salon (démo)
+    min: 16
+    max: 30
+    step: 0.5
+    initial: 24
+    unit_of_measurement: °C
+    mode: slider
+  kimia_consigne_chambre:
+    name: KIMIA - Consigne chambre (démo)
+    min: 16
+    max: 30
+    step: 0.5
+    initial: 25
+    unit_of_measurement: °C
+    mode: slider
+script:
+  kimia_bonjour:
+    alias: KIMIA - Bonjour (démo)
+    sequence:
+      - action: persistent_notification.create
+        data:
+          title: KIMIA Smart
+          message: Scénario Bonjour déclenché (simulation).
+  kimia_depart:
+    alias: KIMIA - Départ (démo)
+    sequence:
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.kimia_mode_absence
+  kimia_retour:
+    alias: KIMIA - Retour (démo)
+    sequence:
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.kimia_mode_absence
+  kimia_detente:
+    alias: KIMIA - Détente (démo)
+    sequence:
+      - action: persistent_notification.create
+        data:
+          title: KIMIA Smart
+          message: Scénario Détente déclenché (simulation).
+  kimia_bonne_nuit:
+    alias: KIMIA - Bonne nuit (démo)
+    sequence:
+      - action: persistent_notification.create
+        data:
+          title: KIMIA Smart
+          message: Scénario Bonne nuit déclenché (simulation).
+  kimia_lumieres_eteindre:
+    alias: KIMIA - Tout éteindre (démo)
+    sequence:
+      - action: input_boolean.turn_off
+        target:
+          entity_id:
+            - input_boolean.kimia_lumiere_salon
+            - input_boolean.kimia_lumiere_cuisine
+            - input_boolean.kimia_lumiere_chambre
+  kimia_volets_ouvrir:
+    alias: KIMIA - Ouvrir tous les volets (démo)
+    sequence:
+      - action: input_boolean.turn_on
+        target:
+          entity_id:
+            - input_boolean.kimia_volet_salon_ouvert
+            - input_boolean.kimia_volet_cuisine_ouvert
+            - input_boolean.kimia_volet_chambre_ouvert
+  kimia_volets_fermer:
+    alias: KIMIA - Fermer tous les volets (démo)
+    sequence:
+      - action: input_boolean.turn_off
+        target:
+          entity_id:
+            - input_boolean.kimia_volet_salon_ouvert
+            - input_boolean.kimia_volet_cuisine_ouvert
+            - input_boolean.kimia_volet_chambre_ouvert
+  kimia_reveil_musical:
+    alias: KIMIA - Réveil musical (simulation)
+    sequence:
+      - action: persistent_notification.create
+        data:
+          title: KIMIA Smart
+          message: Simulation : lecture MP3 via Google Cast non encore configurée.

@@ -1,0 +1,55 @@
+title: Paramètres
+path: parametres
+icon: mdi:cog
+type: sections
+theme: KIMIA Smart
+max_columns: 2
+sections:
+  - type: grid
+    cards:
+      - type: heading
+        heading: Réseau local
+        icon: mdi:router-wireless
+      - type: markdown
+        content: >-
+          **Exemple de plan réseau KIMIA Smart**
+
+          - Routeur : 192.168.60.1
+          - Home Assistant : 192.168.60.10
+          - SMLIGHT Zigbee : 192.168.60.11
+          - Pont Matter : 192.168.60.12
+
+          Ces valeurs devront être validées pour chaque maison.
+      - type: button
+        name: Interface du routeur (réseau local)
+        icon: mdi:router-network
+        tap_action:
+          action: url
+          url_path: http://192.168.60.1
+      - type: markdown
+        content: >-
+          Ce bouton ouvre l'administration du routeur.
+          Il ne modifie **pas directement** le réseau WISP depuis HA.
+  - type: grid
+    cards:
+      - type: heading
+        heading: Maintenance et accès distant
+        icon: mdi:shield-lock
+      - type: markdown
+        content: >-
+          **Accès client :** sous-domaine et tunnel Cloudflare propres à chaque
+          installation.
+
+          **Accès technique :** sécurisé, indépendant et révocable.
+
+          Aucun identifiant ni secret ne doit apparaître dans ce dashboard
+          ou être publié sur GitHub.
+      - type: heading
+        heading: À propos
+        icon: mdi:information-outline
+      - type: markdown
+        content: >-
+          **KIMIA Smart by PROMAINT — prototype v0.1**
+
+          Tableau de bord Home Assistant créé avec des cartes natives,
+          sans dépendance HACS obligatoire.

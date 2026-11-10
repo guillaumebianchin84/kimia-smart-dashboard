@@ -1,0 +1,53 @@
+title: Musique
+path: musique
+icon: mdi:music
+type: sections
+theme: KIMIA Smart
+max_columns: 3
+sections:
+  - type: grid
+    cards:
+      - type: heading
+        heading: Enceintes Google
+        icon: mdi:cast-audio
+      - type: markdown
+        content: >-
+          **Diffusion par Google Cast**
+
+          Une fois les enceintes connectées, cette zone affichera leurs
+          lecteurs Home Assistant, le volume et les commandes de lecture.
+      # Exemple, à activer après intégration Cast :
+      # - type: media-control
+      #   entity: media_player.google_salon
+  - type: grid
+    cards:
+      - type: heading
+        heading: Bibliothèque MP3 locale
+        icon: mdi:folder-music
+      - type: markdown
+        content: >-
+          Les clients pourront ajouter leurs morceaux dans des dossiers :
+          **Réveil doux**, **Louanges**, **Musique gabonaise**,
+          **Ambiance soirée**.
+
+          Le stockage et l'enchaînement des fichiers seront configurés
+          et testés séparément.
+      - type: button
+        name: Réveil musical (simulation)
+        icon: mdi:alarm
+        tap_action:
+          action: perform-action
+          perform_action: script.kimia_reveil_musical
+  - type: grid
+    cards:
+      - type: heading
+        heading: Autres écoutes
+        icon: mdi:bluetooth-audio
+      - type: markdown
+        content: >-
+          **Cast :** musique locale envoyée à l'enceinte via le réseau Wi-Fi.
+
+          **Bluetooth :** le client diffuse les sons directement depuis son téléphone.
+
+          Le comportement Cast après une session Bluetooth doit être validé
+          sur les enceintes retenues.

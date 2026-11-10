@@ -1,0 +1,59 @@
+# Option facultative : actualités RSS dans l'accueil KIMIA Smart.
+# À installer uniquement si Feedreader est configuré dans Home Assistant.
+# Pas de LLM, API payante ni module HACS.
+#
+# Installer le fichier dans /config/packages/kimia_rss.yaml.
+# Dans Paramètres > Appareils et services, ajouter Feedreader et l'URL du
+# flux RSS choisi pour chaque client. Le journal reprend les trois dernières
+# entrées diffusées par les flux Feedreader de CETTE instance.
+#
+# Note : les titres sont affichés sans validation éditoriale et sans résumé IA.
+# Ne pas inclure de secrets ou de données personnelles dans les flux.
+automation:
+  - id: kimia_journal_rss_maj
+    alias: KIMIA - Journal RSS (3 derniers titres)
+    description: Actualiser les 3 titres de l'accueil lorsqu'un flux Feedreader publie.
+    mode: queued
+    max: 10
+    triggers:
+      - trigger: event
+        event_type: feedreader
+    conditions:
+      - condition: template
+        value_template: >-
+          {{ trigger.event.data.title is defined
+             and (trigger.event.data.title | string | trim | length) > 0 }}
+    actions:
+      - variables:
+          nouveau: >-
+            {{ (trigger.event.data.title | string | regex_replace('\s+', ' ') | trim)[:240] }}
+          ancien_1: "{{ states('input_text.kimia_actu_1') }}"
+          ancien_2: "{{ states('input_text.kimia_actu_2') }}"
+      - condition: template
+        value_template: "{{ nouveau != ancien_1 }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.kimia_actu_3
+        data:
+          value: >-
+            {{ ancien_2 if ancien_2 not in ['unknown','unavailable','none'] else '' }}
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.kimia_actu_2
+        data:
+          value: >-
+            {{ ancien_1 if ancien_1 not in ['unknown','unavailable','none'] else '' }}
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.kimia_actu_1
+        data:
+          value: "{{ nouveau }}"
+      # Extrait de la description du flux, sans résumé IA.
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.kimia_brief
+        data:
+          value: >-
+            {% set description = trigger.event.data.description | default('', true) | string %}
+            {% set nettoye = description | regex_replace('<[^>]*>', ' ') | regex_replace('\s+', ' ') | trim %}
+            {{ nettoye[:245] if nettoye else 'Sélectionnez un titre pour en savoir plus dans votre journal.' }}
