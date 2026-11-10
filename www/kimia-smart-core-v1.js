@@ -366,17 +366,14 @@
       entity:e.entity_id,
       name:undefined,
       // Toutes les tuiles gérées par KIMIA occupent 12 colonnes natives HA.
-      grid_options:{columns:12,rows:e.entity_id.startsWith("light.")?"auto":1}
+      grid_options:{columns:12,rows:1}
     };
     if(e.entity_id.startsWith("light.")) {
-      // Capacités natives HA : contrôle luminosité, teinte/saturation, blanc chaud/froid.
-      // HA masque les fonctions non prises en charge par l'entité.
-      x.features=[
-        {type:"light-brightness"},
-        {type:"light-color",controls:"hue_saturation"},
-        {type:"light-color-temp"}
-      ];
+      // Une ligne par lampe : icône ON/OFF, curseur de luminosité,
+      // toucher le nom/la carte ouvre la roue chromatique native HA.
+      x.features=[{type:"light-brightness"}];
       x.tap_action={action:"more-info"};
+      x.icon_tap_action={action:"toggle"};
     }
     if(e.entity_id.startsWith("cover."))
       x.features=[{type:"cover-open-close"}];
@@ -543,14 +540,33 @@
   const isLegacyGeneratedTile = card =>
     card?.type === "tile" && typeof card.entity === "string" &&
     JSON.stringify(card) === JSON.stringify(safeClone(legacyTile({entity_id:card.entity})));
-  // Reconnaître les anciennes cartes RGB limitées à la luminosité
-  // afin de les faire évoluer sans doublons ni suppression des personnalisations.
+  // Migrer les tuiles KIMIA RGB déployées avec les 3 bandes de couleur
+  // vers une seule bande compacte. Ne jamais modifier une carte personnalisée.
+  const previousExpandedLightTile=e=>{
+    const x=tile(e);
+    if(!e.entity_id.startsWith("light."))return x;
+    x.grid_options={columns:12,rows:"auto"};
+    x.features=[
+      {type:"light-brightness"},
+      {type:"light-color",controls:"hue_saturation"},
+      {type:"light-color-temp"}
+    ];
+    delete x.icon_tap_action;
+    return x;
+  };
+  const previousExpandedLightSafeTile=e=>{
+    const native=previousExpandedLightTile(e);
+    return {type:SAFE_TILE_TYPE,entity:e.entity_id,card:native,
+      grid_options:{...native.grid_options}};
+  };
+  // Reconnaître les cartes plus anciennes limitées à la luminosité.
   const previousBrightnessTile=(e,columns=12)=>{
     const x=tile(e);
     if(!e.entity_id.startsWith("light."))return x;
     x.features=[{type:"light-brightness"}];
     x.grid_options={columns,rows:1};
     delete x.tap_action;
+    delete x.icon_tap_action;
     return x;
   };
   const previousBrightnessSafeTile=(e,columns=12)=>{
@@ -564,10 +580,12 @@
     const variants=card.type===SAFE_TILE_TYPE
       ?[safeTile(e),safeTile(e,"","clim"),
         previousSafeTile(e),previousSafeTile(e,"clim"),
+        previousExpandedLightSafeTile(e),
         previousBrightnessSafeTile(e),previousBrightnessSafeTile(e,6)]
       :card.type==="tile"
         ?[legacyTile(e),oldTapTile(e),tile(e),tile(e,"","clim"),
           previousTile(e),previousTile(e,"clim"),
+          previousExpandedLightTile(e),
           previousBrightnessTile(e),previousBrightnessTile(e,6)]
         :[];
     return variants.some(candidate=>
