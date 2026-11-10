@@ -923,6 +923,15 @@
     const appearance=next.views.find(v=>v.path==="apparence");
     const scenarios=next.views.find(v=>v.path==="scenarios");
     let added=0;
+    // Generateur Gemini : ajout non destructif dans la page Scenarios.
+    const aiSettingsCard="custom:kimia-ai-scenes-settings-card";
+    if(scenarios?.sections &&
+       !hasCard(scenarios,c=>c.type===aiSettingsCard)){
+      scenarios.sections.push({type:"grid",column_span:2,cards:[
+        {type:aiSettingsCard,grid_options:{columns:"full",rows:"auto"}}
+      ]});
+      added++;
+    }
     if(appearance?.sections) {
       const rubriques=appearance.sections.find(s=>Array.isArray(s.cards)&&
         s.cards.some(c=>c.type==="heading"&&c.heading==="Mes rubriques"));
@@ -1272,6 +1281,18 @@
         const water=ensureWaterView(next,hasPump);
         const vmap=new Map(next.views.map(v=>[v.path,v]));
         let added=water.added,removed=0,modified=water.modified;
+        // Dix scenes fixes dans Lumières, en tête et sans doubler les boutons.
+        const lightsView=vmap.get("lumieres");
+        const shortcuts="custom:kimia-ai-scenes-shortcuts-card";
+        if(lightsView?.sections && !allCards(lightsView).some(c=>c.type===shortcuts)){
+          const bannerIndex=lightsView.sections.findIndex(section=>
+            (section.cards||[]).some(isKimiaBrand));
+          lightsView.sections.splice(bannerIndex<0?0:bannerIndex+1,0,{
+            type:"grid",column_span:Math.min(Number(lightsView.max_columns)||3,3),
+            cards:[{type:shortcuts,grid_options:{columns:12,rows:"auto"}}]
+          });
+          added++;
+        }
         // Le bandeau de marque doit refléter le TITRE de l'onglet, pas "Ma maison"
         // partout. L'Accueil conserve "Ma maison".
         for (const view of next.views) {
