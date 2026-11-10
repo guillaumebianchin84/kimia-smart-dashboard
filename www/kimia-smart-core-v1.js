@@ -1579,17 +1579,30 @@
           }else{
             const old=lightsView.sections.filter(sec=>
               legacyScenes(sec)||generatedScenes(sec));
+            const first=old.shift();
             for(const sec of old){
               lightsView.sections.splice(lightsView.sections.indexOf(sec),1);
               removed+=sec.cards.length;
             }
-            if(sceneList.length){
+            const wanted=sceneList.length?sceneSection():null;
+            if(first){
+              const pos=lightsView.sections.indexOf(first);
+              if(!wanted){
+                removed+=first.cards.length;lightsView.sections.splice(pos,1);
+              }else if(JSON.stringify(first)!==JSON.stringify(wanted)){
+                if(first.cards.length===wanted.cards.length)modified++;
+                else{
+                  removed+=first.cards.length;added+=wanted.cards.length;
+                }
+                lightsView.sections[pos]=wanted;
+              }
+            }else if(wanted){
               const lastRoom=lightsView.sections.reduce((n,sec,i)=>
                 managedRoom(sec,"lumieres")?i:n,-1);
               const nav=lightsView.sections.findIndex(sec=>
                 (sec.cards||[]).some(c=>c.type==="custom:navbar-card"));
               const at=lastRoom>=0?lastRoom+1:nav>=0?nav:lightsView.sections.length;
-              lightsView.sections.splice(at,0,sceneSection());added+=2;
+              lightsView.sections.splice(at,0,wanted);added+=2;
             }
           }
         }
