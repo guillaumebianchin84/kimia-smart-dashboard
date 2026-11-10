@@ -143,7 +143,25 @@ class Generator extends HTMLElement {
         saved++;
       }
       await this._hass.callService("scene","reload",{});
-      this.say("10 scènes enregistrées ! Ouvre Lumières et expose les nouvelles scènes à Assist pour Gemini.");
+      // Exposition limitée aux 10 scenes KIMIA, uniquement dans Assist (Gemini).
+      let exposureNote="";
+      try {
+        const current=await this._hass.callWS({type:"get_states"});
+        const known=new Set(scenes.map(x=>x.id));
+        const ids=(Array.isArray(current)?current:[]).filter(item=>
+          item.entity_id?.startsWith("scene.")&&known.has(item.attributes?.id))
+          .map(item=>item.entity_id);
+        if(ids.length===COUNT) {
+          await this._hass.callWS({type:"homeassistant/expose_entity",
+            assistants:["conversation"],entity_ids:ids,should_expose:true});
+          exposureNote=" Elles sont aussi exposees a Assist / Gemini.";
+        } else {
+          exposureNote=" Vérifie l'exposition des scenes dans Paramètres → Assistants vocaux.";
+        }
+      }catch(error){
+        exposureNote=" Scenes enregistrees ; exposition Assist a verifier : "+err(error);
+      }
+      this.say("10 scenes permanentes enregistrees ! Ouvre Lumières."+exposureNote);
     }catch(error){this.say("Échec"+(saved?" après "+saved+" scènes enregistrées":"")+" : "+err(error),true);}
     finally{this.busy=false;this.button.disabled=false;}
   }
