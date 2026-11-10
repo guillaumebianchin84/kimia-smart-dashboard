@@ -388,16 +388,16 @@
     }
     return x;
   };
-  const safeTile=(e,path="",usage="autre")=>{
-    const native=tile(e,path,usage);
-    // Les lampes sont de vraies tuiles natives HA, sans wrapper custom.
-    if(e.entity_id.startsWith("light."))return native;
-    return {
-      type:SAFE_TILE_TYPE,
-      entity:e.entity_id,
-      card:native
-    };
-  };
+  // Le conteneur vertical-stack est NATIF HA : il remplit la largeur
+  // standard de 12 colonnes sans imposer grid_options aux tuiles.
+  const safeTile=(e,path="",usage="autre")=>({
+    type:"vertical-stack",
+    cards:[tile(e,path,usage)]
+  });
+  const generatedEntity=card=>
+    typeof card?.entity==="string"?card.entity:
+    card?.type==="vertical-stack"&&card.cards?.length===1&&
+    typeof card.cards[0]?.entity==="string" ? card.cards[0].entity:null;
   // La version précédente utilisait 6 colonnes pour les lumières,
   // volets, climatisations, enceintes, etc. Migrer ces cartes inchangées.
   const previousTile=(e,usage="autre")=>{
@@ -598,9 +598,12 @@
       grid_options:{...native.grid_options}};
   };
   const isGeneratedTile = card => {
-    if(typeof card?.entity!=="string")return false;
-    const e={entity_id:card.entity};
-    const variants=card.type===SAFE_TILE_TYPE
+    const id=generatedEntity(card);
+    if(!id)return false;
+    const e={entity_id:id};
+    const variants=card.type==="vertical-stack"
+      ?[safeTile(e),safeTile(e,"","clim")]
+      :card.type===SAFE_TILE_TYPE
       ?[safeTile(e),safeTile(e,"","clim"),
         previousWideSafeTile(e),previousWideSafeTile(e,"clim"),
         previousSafeTile(e),previousSafeTile(e,"clim"),
@@ -1329,9 +1332,12 @@
         });
         const sceneSection=()=>({
           type:"grid",column_span:Math.min(Number(lightsView?.max_columns)||3,3),
-          cards:[sceneHeading(),{
-            type:"grid",columns:2,square:false,cards:sceneTiles
-          }]
+          // Le titre et les 10 tuiles remplissent chacun une colonne HA
+          // native (12 unités), sans largeur imposée aux tuiles.
+          cards:[
+            {type:"vertical-stack",cards:[sceneHeading()]},
+            {type:"vertical-stack",cards:sceneTiles}
+          ]
         });
         const isGeneratedSceneTile=card=>
           card?.type==="tile" && typeof card.entity==="string" &&
@@ -1345,21 +1351,27 @@
         const legacyScenes=section=>section?.cards?.length===1 &&
           section.cards[0]?.type==="custom:kimia-ai-scenes-shortcuts-card" &&
           section.cards[0]?.grid_options?.columns===12;
-        const nativeScenes=section=>section?.cards?.length===2 &&
+        const oldGridScenes=section=>section?.cards?.length===2 &&
           JSON.stringify(section.cards[0])===JSON.stringify(sceneHeading()) &&
           section.cards[1]?.type==="grid" &&
           section.cards[1].columns===2 &&
           (section.cards[1].cards||[]).every(isGeneratedSceneTile);
+        const nativeScenes=section=>section?.cards?.length===2 &&
+          section.cards[0]?.type==="vertical-stack" &&
+          section.cards[0].cards?.length===1 &&
+          JSON.stringify(section.cards[0].cards[0])===JSON.stringify(sceneHeading()) &&
+          section.cards[1]?.type==="vertical-stack" &&
+          (section.cards[1].cards||[]).every(isGeneratedSceneTile);
         if(lightsView?.sections) {
           const oldIndex=lightsView.sections.findIndex(legacyScenes);
-          const newIndex=lightsView.sections.findIndex(nativeScenes);
+          const newIndex=lightsView.sections.findIndex(s=>nativeScenes(s)||oldGridScenes(s));
           const wanted=sceneList.length?sceneSection():null;
           if(oldIndex>=0){
             lightsView.sections.splice(oldIndex,1);
             removed++;
           }
           if(newIndex>=0){
-            const n=lightsView.sections.findIndex(nativeScenes);
+            const n=lightsView.sections.findIndex(s=>nativeScenes(s)||oldGridScenes(s));
             if(!wanted){
               lightsView.sections.splice(n,1);removed+=2;
             }else if(JSON.stringify(lightsView.sections[n])!==JSON.stringify(wanted)){
@@ -1472,14 +1484,15 @@
             // si elles portent toujours exactement la configuration auto.
             const tileCount=section.cards.length;
             section.cards=section.cards.filter(c=>
-              !isGeneratedTile(c) || entitiesWanted.has(c.entity));
+              !isGeneratedTile(c) || entitiesWanted.has(generatedEntity(c)));
             removed+=tileCount-section.cards.length;
             // Migrer seulement les cartes KIMIA intactes vers la taille adaptée.
             // Les tuiles personnalisées restent strictement inchangées.
             for(let i=0;i<section.cards.length;i++){
               const card=section.cards[i];
-              if(!isGeneratedTile(card)||!entitiesWanted.has(card.entity))continue;
-              const registry=entities.find(e=>e.entity_id===card.entity);
+              const id=generatedEntity(card);
+              if(!isGeneratedTile(card)||!entitiesWanted.has(id))continue;
+              const registry=entities.find(e=>e.entity_id===id);
               if(!registry)continue;
               const use=plugUsage(mapDevices.get(registry.device_id),labels);
               const expected=safeTile(registry,path,use);
@@ -1493,8 +1506,7 @@
           view.sections=kept;
           // Ajouts après nettoyage : pas de doublon, même après déplacement.
           const existing=new Set(allCards(view)
-            .filter(c=>c.type==="tile"||c.type===SAFE_TILE_TYPE)
-            .map(c=>c.entity));
+            .map(generatedEntity).filter(Boolean));
           for(const area of orderedAreas) {
             const selected=desired.get(area.area_id)||[];
             if(path!=="pieces" && !selected.length)continue;
