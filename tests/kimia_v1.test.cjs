@@ -64,6 +64,11 @@ const makeView=([path,title])=>({
  ]
 });
 const original={title:"KIMIA Smart",views:paths.map(makeView)};
+// Legacy ambiance shortcuts must migrate to native HA cards.
+original.views.find(v=>v.path==="lumieres").sections.splice(1,0,{
+ type:"grid",cards:[{type:"custom:kimia-ai-scenes-shortcuts-card",
+  grid_options:{columns:12,rows:"auto"}}]
+});
 original.views.find(v=>v.path==="accueil").sections[1].cards.push(
  {type:"custom:maquette-card",id:"maquette-reference"},
  {type:"custom:clock-weather-card",entity:"weather.libreville"},
@@ -91,7 +96,15 @@ for (const path of ["pieces","musique"]) {
 let config=clone(original),saveCount=0,lastPath=null;
 const hass={
  user:{is_admin:true},
- states:{"binary_sensor.presence_salon":{state:"on",attributes:{device_class:"motion"}}},
+ states:{
+  "binary_sensor.presence_salon":{state:"on",attributes:{device_class:"motion"}},
+  ...Object.fromEntries(Array.from({length:10},(_,i)=>[
+   "scene.kimia_test_"+(i+1),
+   {entity_id:"scene.kimia_test_"+(i+1),state:"scening",attributes:{
+     id:"kimia_ambiance_"+String(i+1).padStart(2,"0"),friendly_name:"KIMIA · Ambiance "+(i+1)
+   }}
+  ]))
+ },
  callWS:async request=>{
   switch(request.type){
    case "lovelace/dashboards/list":return [{url_path:"kimia-next",mode:"storage"}];
@@ -152,6 +165,21 @@ async function main(){
  assert.equal(prise.card.tap_action.action,"toggle","La prise bascule directement au toucher");
  assert.equal(prise.card.hold_action.action,"more-info","La fiche reste disponible par appui long");
  assert.equal(prise.grid_options.columns,12,"Une seule prise par ligne native");
+ const lamp=roomSection("lumieres","salon").cards.find(c=>c.entity==="light.lampe");
+ assert.equal(lamp.type,"tile","Ampoule = vraie Tile HA");
+ assert.equal(lamp.grid_options.columns,6,"Lampe : 6 colonnes conseillées HA");
+ assert.equal(lamp.grid_options.rows,1);
+ assert.equal(lamp.tap_action.action,"more-info");
+ assert.equal(lamp.icon_tap_action.action,"toggle");
+ assert.equal(lamp.features[0].type,"light-brightness");
+ const sceneSec=view("lumieres").sections.find(sec=>sec.cards?.[0]?.name==="Scènes lumineuses");
+ assert(sceneSec,"Cartouche Scènes lumineuses visible");
+ assert.equal(sceneSec.cards[0].type,"button");
+ assert.equal(sceneSec.cards[1].type,"vertical-stack");
+ assert.equal(sceneSec.cards[1].cards.length,10);
+ assert(sceneSec.cards[1].cards.every(c=>c.type==="tile"&&
+   c.tap_action.perform_action==="scene.turn_on"));
+ assert(!cards(view("lumieres")).some(c=>c.type==="custom:kimia-ai-scenes-shortcuts-card"));
 
  // Une prise classée Éclairage figure dans Lumières ET Prises.
  assert(roomSection("lumieres","salon").cards.some(c=>c.entity==="switch.lampe_sur_prise"));
@@ -282,11 +310,11 @@ async function main(){
 
  // Préserver les tuiles modifiées par l'utilisateur.
  const custom=roomSection("lumieres","salon").cards.find(c=>c.entity==="light.lampe");
- custom.card.name="Lampe personnalisée";
+ custom.name="Lampe personnalisée";
  devices.find(d=>d.id==="d1").area_id=null;
  await window.KimiaSmartCore.sync(hass);
  assert(cards(view("lumieres")).some(c=>
-  c.entity==="light.lampe"&&c.card?.name==="Lampe personnalisée"),
+  c.entity==="light.lampe"&&c.name==="Lampe personnalisée"),
   "Une tuile personnalisée doit être préservée même si la section change");
 
  // Supprimer Cuisine, puis Salon : aucune pièce orpheline.
@@ -296,7 +324,7 @@ async function main(){
  await window.KimiaSmartCore.sync(hass);
  assert(!cards(view("pieces")).some(c=>c.type==="area"),
   "Une pièce supprimée ne subsiste pas");
- assert(cards(view("lumieres")).some(c=>c.card?.name==="Lampe personnalisée"),
+ assert(cards(view("lumieres")).some(c=>c.name==="Lampe personnalisée"),
   "La personnalisation reste intacte après suppression de pièce");
  await assert.rejects(window.KimiaSmartCore.sync({...hass,user:{is_admin:false}}),/administrateur/);
  console.log("KIMIA V1.3 OK : accueil réservé, titres de vues, salles 12/12, tuiles, déplacements, suppressions et préservation.");
