@@ -133,7 +133,11 @@ class Generator extends HTMLElement {
       for(const scene of scenes){
         let existing;
         try{existing=await this._hass.callApi("GET","config/scene/config/"+scene.id);}
-        catch(error){if(error?.status!==404&&!String(error).includes("404"))throw error;}
+        catch(error){
+          const notFound=error?.status===404||error?.code===404||
+            error?.code==="not_found"||/404|not found/i.test(err(error));
+          if(!notFound)throw error;
+        }
         if(existing&&!String(existing.name||"").startsWith("KIMIA · "))
           throw Error("Identifiant déjà utilisé par une scène non-KIMIA : "+scene.id);
       }
