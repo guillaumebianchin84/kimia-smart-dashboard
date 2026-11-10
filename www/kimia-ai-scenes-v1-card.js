@@ -2,7 +2,7 @@
 (() => {
 "use strict";
 const PREFIX="kimia_ambiance_", COUNT=10;
-const htmlStyle="<style>:host{display:block;color:var(--primary-text-color)}ha-card{padding:17px;border-radius:17px}h3{margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}.bulbs{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:8px}.bulb{padding:10px;border:1px solid var(--divider-color);border-radius:10px}textarea{display:block;box-sizing:border-box;width:100%;min-height:85px;margin:8px 0 12px;border:1px solid var(--divider-color);border-radius:8px;padding:10px;color:var(--primary-text-color);background:var(--card-background-color);font:inherit}button{cursor:pointer;border:1px solid var(--divider-color);border-radius:10px;padding:12px;color:var(--primary-text-color);background:var(--secondary-background-color);font:inherit}button:disabled{opacity:.5;cursor:wait}button.primary{background:var(--primary-color);color:white}.hint{color:var(--secondary-text-color);font-size:12px;line-height:1.5}.status{white-space:pre-wrap;margin:10px 0 0;font-size:13px}.error{color:var(--error-color,#c33)}</style>";
+const htmlStyle="<style>:host{display:block;color:var(--primary-text-color)}ha-card{padding:17px;border-radius:17px}h3{margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}.bulbs{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:8px}.bulb{padding:10px;border:1px solid var(--divider-color);border-radius:10px}select{display:block;box-sizing:border-box;width:100%;padding:10px;margin:8px 0;border:1px solid var(--divider-color);border-radius:8px;background:var(--card-background-color);color:var(--primary-text-color)}textarea{display:block;box-sizing:border-box;width:100%;min-height:85px;margin:8px 0 12px;border:1px solid var(--divider-color);border-radius:8px;padding:10px;color:var(--primary-text-color);background:var(--card-background-color);font:inherit}button{cursor:pointer;border:1px solid var(--divider-color);border-radius:10px;padding:12px;color:var(--primary-text-color);background:var(--secondary-background-color);font:inherit}button:disabled{opacity:.5;cursor:wait}button.primary{background:var(--primary-color);color:white}.hint{color:var(--secondary-text-color);font-size:12px;line-height:1.5}.status{white-space:pre-wrap;margin:10px 0 0;font-size:13px}.error{color:var(--error-color,#c33)}</style>";
 const idAt=i=>PREFIX+String(i+1).padStart(2,"0");
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,Number(x)||a));
 const err=e=>e&&e.message?e.message:String(e);
@@ -75,7 +75,7 @@ class Generator extends HTMLElement {
     if(this.built||!this._hass)return;
     this.built=true;
     const root=this.shadowRoot;
-    root.innerHTML=htmlStyle+"<ha-card><h3>✨ Mes 10 scènes lumineuses IA</h3><p class='hint'>Choisis les ampoules concernées. Gemini créera 10 ambiances fixes, enregistrées dans Home Assistant.</p><div class='bulbs'></div><p>Ambiances souhaitées :</p><textarea></textarea><button class='primary'>Générer et enregistrer 10 scènes</button><p class='hint'>Régénérer remplace les 10 scènes IA KIMIA. La génération nécessite Internet ; les scènes fonctionnent ensuite hors ligne.</p><p class='status' role='status'></p></ha-card>";
+    root.innerHTML=htmlStyle+"<ha-card><h3>✨ Mes 10 scènes lumineuses IA</h3><p class='hint'>Choisis les ampoules concernées. Gemini créera 10 ambiances fixes, enregistrées dans Home Assistant.</p><div class='bulbs'></div><p>Modèle IA :</p><select aria-label='Modèle Gemini'></select><p>Ambiances souhaitées :</p><textarea></textarea><button class='primary'>Générer et enregistrer 10 scènes</button><p class='hint'>Régénérer remplace les 10 scènes IA KIMIA. La génération nécessite Internet ; les scènes fonctionnent ensuite hors ligne.</p><p class='status' role='status'></p></ha-card>";
     const list=root.querySelector(".bulbs");
     const lights=Object.values(this._hass.states||{}).filter(eligible).sort((a,b)=>String(a.attributes?.friendly_name||a.entity_id).localeCompare(String(b.attributes?.friendly_name||b.entity_id),"fr"));
     for(const s of lights){
@@ -86,11 +86,23 @@ class Generator extends HTMLElement {
       label.append(checkbox,t);list.append(label);
     }
     if(!lights.length)list.textContent="Aucune ampoule disponible.";
+    this.aiSelect=root.querySelector("select");
+    const tasks=Object.values(this._hass.states||{}).filter(state=>
+      state.entity_id?.startsWith("ai_task.")&&state.state!=="unavailable");
+    for(const t of tasks){
+      const option=document.createElement("option");
+      option.value=t.entity_id;option.textContent=t.attributes?.friendly_name||t.entity_id;
+      this.aiSelect.append(option);
+    }
+    const gemini=tasks.find(t=>/gemini|google/i.test((t.attributes?.friendly_name||"")+" "+t.entity_id));
+    if(gemini)this.aiSelect.value=gemini.entity_id;
+    this.aiSelect.disabled=!tasks.length;
     this.field=root.querySelector("textarea");this.field.value=this.prompt;
     this.field.addEventListener("input",()=>this.prompt=this.field.value);
     this.button=root.querySelector("button");
     this.status=root.querySelector(".status");
-    this.button.disabled=this._hass.user?.is_admin!==true;
+    this.button.disabled=this._hass.user?.is_admin!==true||!tasks.length;
+    if(!tasks.length)this.say("Aucune entité AI Task détectée. Active l'entité AI Task de Google Gemini dans Home Assistant avant la génération.",true);
     this.button.addEventListener("click",()=>this.generate());
   }
   say(msg,bad=false){this.status.textContent=msg;this.status.className="status"+(bad?" error":"");}
@@ -113,7 +125,7 @@ class Generator extends HTMLElement {
         "Choisis off booléen, brightness_pct entier entre 1 et 100, mode color ou white, couleur #RRGGBB et kelvin 2000 à 6500.",
         "Pour les ampoules sans couleur, privilégie white. Ne crée aucune animation ou programmation. Noms simples, uniques, prononçables."
       ].join("\n");
-      const result=await this._hass.callApi("POST","services/ai_task/generate_data?return_response",{task_name:"KIMIA ambiances lumineuses",instructions});
+      const result=await this._hass.callApi("POST","services/ai_task/generate_data?return_response",{task_name:"KIMIA ambiances lumineuses",instructions,entity_id:this.aiSelect.value});
       const response=result?.service_response?.data;
       if(response==null)throw Error("Aucune réponse AI Task. Vérifie que Gemini fournit une entité AI Task et qu'elle est sélectionnée par défaut.");
       const scenes=validate(response,selected);
