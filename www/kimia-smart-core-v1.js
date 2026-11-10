@@ -503,8 +503,16 @@
   const roomCard = area => ({
     type: "area",area:area.area_id,display_type:"compact",
     features:[],features_position:"bottom",
+    vertical:true,
     tap_action:{action:"none"},
     grid_options:{columns:12,rows:2}
+  });
+  // Signature de la carte avant centrage vertical : permet la migration
+  // des pièces existantes sans doublon.
+  const previousHorizontalRoomCard=area=>({
+    type:"area",area:area.area_id,display_type:"compact",
+    features:[],features_position:"bottom",
+    tap_action:{action:"none"},grid_options:{columns:12,rows:2}
   });
   const oldUnsizedRoomCard=area=>({
     type:"area",area:area.area_id,display_type:"compact",
@@ -694,8 +702,8 @@
   const isGeneratedRoomCard = card => {
     if(card?.type!=="area"||typeof card.area!=="string")return false;
     const area={area_id:card.area};
-    const variants=[roomCard(area),oldUnsizedRoomCard(area),
-      oldSizedRoomCard(area),oldNavigableRoomCard(area),
+    const variants=[roomCard(area),previousHorizontalRoomCard(area),
+      oldUnsizedRoomCard(area),oldSizedRoomCard(area),oldNavigableRoomCard(area),
       {...roomCard(area),tap_action:{action:"navigate",navigation_path:"/kimia-next/pieces"}},
       {...oldUnsizedRoomCard(area),tap_action:{action:"navigate",navigation_path:"/kimia-next/pieces"}}];
     for(const path of ["","securite","eau","climatisation"]){
@@ -1579,48 +1587,41 @@
           section.cards[0]?.type==="area" &&
           /sc[eè]nes lumineus/i.test(section.cards[0].name||"") &&
           section.cards[1]?.type==="vertical-stack" &&
-          section.cards[1].cards?.some(isSceneAction);
+          section.cards[1].cards?.every(isSceneAction);
+        // Réconcilie les scènes lorsque la liste change (suppression partielle
+        // ou totale), tout en préservant les autres sections et cartes client.
         if(lightsView?.sections){
-          const manual=lightsView.sections.find(manualScenes);
-          if(manual){
-            for(const card of manual.cards[1].cards){
-              const st=sceneList.find(x=>x.entity_id===card.entity);
-              if(st && !card.icon){card.icon=sceneIcon(st);modified++;}
+          const owned=lightsView.sections.filter(section=>
+            legacyScenes(section)||generatedScenes(section)||manualScenes(section));
+          const desired=sceneList.length?sceneSection():null;
+          if(!desired){
+            // Aucune scène KIMIA : le titre ET les boutons disparaissent.
+            for(const section of owned){
+              lightsView.sections.splice(lightsView.sections.indexOf(section),1);
+              removed+=section.cards.length;
             }
-            for(let i=lightsView.sections.length-1;i>=0;i--){
-              const sec=lightsView.sections[i];
-              if(sec!==manual && (legacyScenes(sec)||generatedScenes(sec))){
-                removed+=sec.cards.length;lightsView.sections.splice(i,1);
+          }else if(owned.length){
+            // Remplace le faux "area" (qui provoquait l'erreur HA) par
+            // un bouton natif inactif, avec l'icône palette centrée.
+            const first=owned[0];
+            if(JSON.stringify(first)!==JSON.stringify(desired)){
+              if(first.cards.length===desired.cards.length)modified++;
+              else{
+                removed+=first.cards.length;added+=desired.cards.length;
               }
+              lightsView.sections[lightsView.sections.indexOf(first)]=desired;
+            }
+            for(const duplicate of owned.slice(1)){
+              lightsView.sections.splice(lightsView.sections.indexOf(duplicate),1);
+              removed+=duplicate.cards.length;
             }
           }else{
-            const old=lightsView.sections.filter(sec=>
-              legacyScenes(sec)||generatedScenes(sec));
-            const first=old.shift();
-            for(const sec of old){
-              lightsView.sections.splice(lightsView.sections.indexOf(sec),1);
-              removed+=sec.cards.length;
-            }
-            const wanted=sceneList.length?sceneSection():null;
-            if(first){
-              const pos=lightsView.sections.indexOf(first);
-              if(!wanted){
-                removed+=first.cards.length;lightsView.sections.splice(pos,1);
-              }else if(JSON.stringify(first)!==JSON.stringify(wanted)){
-                if(first.cards.length===wanted.cards.length)modified++;
-                else{
-                  removed+=first.cards.length;added+=wanted.cards.length;
-                }
-                lightsView.sections[pos]=wanted;
-              }
-            }else if(wanted){
-              const lastRoom=lightsView.sections.reduce((n,sec,i)=>
-                managedRoom(sec,"lumieres")?i:n,-1);
-              const nav=lightsView.sections.findIndex(sec=>
-                (sec.cards||[]).some(c=>c.type==="custom:navbar-card"));
-              const at=lastRoom>=0?lastRoom+1:nav>=0?nav:lightsView.sections.length;
-              lightsView.sections.splice(at,0,wanted);added+=2;
-            }
+            const lastRoom=lightsView.sections.reduce((n,sec,i)=>
+              managedRoom(sec,"lumieres")?i:n,-1);
+            const nav=lightsView.sections.findIndex(sec=>
+              (sec.cards||[]).some(c=>c.type==="custom:navbar-card"));
+            const at=lastRoom>=0?lastRoom+1:nav>=0?nav:lightsView.sections.length;
+            lightsView.sections.splice(at,0,desired);added+=2;
           }
         }
         // Préférences par utilisateur : les nouveaux comptes voient tout par défaut.
