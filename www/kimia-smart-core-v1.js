@@ -426,7 +426,8 @@
   // sans écraser une carte modifiée manuellement.
   const oldCoreTile=(e,path="",usage="autre")=>{
     const id=e.entity_id;
-    const x={type:"tile",entity:id,name:undefined};
+    const x={type:"tile",entity:id,name:undefined,
+      grid_options:{columns:12,rows:1}};
     if(id.startsWith("light.")){
       x.features=[{type:"light-brightness"}];
       x.tap_action={action:"more-info"};
@@ -442,9 +443,11 @@
     }
     return x;
   };
-  const oldUnsizedStack=(e,path="",usage="autre")=>({
-    type:"vertical-stack",cards:[oldCoreTile(e,path,usage)]
-  });
+  const oldUnsizedStack=(e,path="",usage="autre")=>{
+    const native=oldCoreTile(e,path,usage);
+    delete native.grid_options;
+    return {type:"vertical-stack",cards:[native]};
+  };
   // La version précédente utilisait 6 colonnes pour les lumières,
   // volets, climatisations, enceintes, etc. Migrer ces cartes inchangées.
   const previousTile=(e,usage="autre")=>{
