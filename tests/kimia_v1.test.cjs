@@ -175,9 +175,11 @@ async function main(){
  const sceneSec=view("lumieres").sections.find(sec=>sec.cards?.[0]?.name==="Scènes lumineuses");
  assert(sceneSec,"Cartouche Scènes lumineuses visible");
  assert.equal(sceneSec.cards[0].type,"button");
- assert.equal(sceneSec.cards[1].type,"vertical-stack");
+ assert.equal(sceneSec.cards[1].type,"grid");
+ assert.equal(sceneSec.cards[1].columns,2,"Deux scènes HA 6x1 par ligne");
  assert.equal(sceneSec.cards[1].cards.length,10);
  assert(sceneSec.cards[1].cards.every(c=>c.type==="tile"&&
+   c.grid_options.columns===6&&c.grid_options.rows===1&&
    c.tap_action.perform_action==="scene.turn_on"));
  assert(!cards(view("lumieres")).some(c=>c.type==="custom:kimia-ai-scenes-shortcuts-card"));
 
