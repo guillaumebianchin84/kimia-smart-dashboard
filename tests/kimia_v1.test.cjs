@@ -280,6 +280,34 @@ async function main(){
  assert(resized.modified>=1,"Ancienne tuile musique 6 colonnes migrée");
  assert.equal(getCard("musique","salon","media_player.enceinte").type,"tile");
  
+ // Le montage "Scenes lumineuse" modifié à la main dans HA reste intact.
+ const scenesView=view("lumieres");
+ const generated= scenesView.sections.find(sec=>sec.cards?.[0]?.name==="Scènes lumineuses");
+ const manualSceneTiles=generated.cards[1].cards.map(card=>({
+   type:"tile",entity:card.entity,
+   tap_action:clone(card.tap_action),
+   icon_tap_action:clone(card.icon_tap_action)
+ }));
+ const manualSceneSection={type:"grid",column_span:3,cards:[
+   {type:"area",name:"Scenes lumineuse",display_type:"compact",
+    features:[],features_position:"bottom",grid_options:{columns:12,rows:2},
+    tap_action:{action:"none"}},
+   {type:"vertical-stack",cards:manualSceneTiles}
+ ]};
+ scenesView.sections[scenesView.sections.indexOf(generated)]=manualSceneSection;
+ const sceneMigration=await window.KimiaSmartCore.sync(hass);
+ assert(sceneMigration.modified>=1,"Icônes ajoutées au montage manuel");
+ assert(scenesView!==null);
+ const foundManual=view("lumieres").sections.find(sec=>
+   sec.cards?.[0]?.name==="Scenes lumineuse");
+ assert(foundManual,"Section scenes de l'utilisateur conservée");
+ assert.equal(foundManual.cards[1].cards.length,10);
+ assert(foundManual.cards[1].cards.every(card=>card.icon?.startsWith("mdi:")),
+  "Chaque scène reçoit une icône native MDI");
+ assert.equal(view("lumieres").sections.filter(sec=>
+   sec.cards?.[0]?.name==="Scenes lumineuse"||
+   sec.cards?.[0]?.name==="Scènes lumineuses").length,1,"Pas de doublon scènes");
+ 
  const saves=saveCount;
  const again=await window.KimiaSmartCore.sync(hass);
  assert.equal(again.added,0);
