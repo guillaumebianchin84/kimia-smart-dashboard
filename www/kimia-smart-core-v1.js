@@ -683,6 +683,7 @@
     const area={area_id:card.area};
     const variants=[roomCard(area),oldUnsizedRoomCard(area),
       oldSizedRoomCard(area),oldNavigableRoomCard(area),
+      {...roomCard(area),tap_action:{action:"navigate",navigation_path:"/kimia-next/pieces"}},
       {...oldUnsizedRoomCard(area),tap_action:{action:"navigate",navigation_path:"/kimia-next/pieces"}}];
     for(const path of ["","securite","eau","climatisation"]){
       const old=previousRoomCard(area,path);
