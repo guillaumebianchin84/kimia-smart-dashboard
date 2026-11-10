@@ -5,7 +5,15 @@ const PREFIX="kimia_ambiance_", COUNT=10;
 const htmlStyle="<style>:host{display:block;color:var(--primary-text-color)}ha-card{padding:17px;border-radius:17px}h3{margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}.bulbs{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:8px}.bulb{padding:10px;border:1px solid var(--divider-color);border-radius:10px}select{display:block;box-sizing:border-box;width:100%;padding:10px;margin:8px 0;border:1px solid var(--divider-color);border-radius:8px;background:var(--card-background-color);color:var(--primary-text-color)}textarea{display:block;box-sizing:border-box;width:100%;min-height:85px;margin:8px 0 12px;border:1px solid var(--divider-color);border-radius:8px;padding:10px;color:var(--primary-text-color);background:var(--card-background-color);font:inherit}button{cursor:pointer;border:1px solid var(--divider-color);border-radius:10px;padding:12px;color:var(--primary-text-color);background:var(--secondary-background-color);font:inherit}button:disabled{opacity:.5;cursor:wait}button.primary{background:var(--primary-color);color:white}.hint{color:var(--secondary-text-color);font-size:12px;line-height:1.5}.status{white-space:pre-wrap;margin:10px 0 0;font-size:13px}.error{color:var(--error-color,#c33)}</style>";
 const idAt=i=>PREFIX+String(i+1).padStart(2,"0");
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,Number(x)||a));
-const err=e=>e&&e.message?e.message:String(e);
+// Les erreurs HA peuvent avoir un message objet. Ne jamais afficher [object Object].
+const err=e=>{
+  if(typeof e==="string")return e;
+  if(!e)return "Erreur inconnue";
+  const detail=e.message||e.body?.message||e.response?.message||e;
+  if(typeof detail==="string")return detail;
+  try{return JSON.stringify(detail).slice(0,1500);}
+  catch(_){return String(e?.code||e?.status||"Erreur non sérialisable");}
+};
 const eligible=s=>s&&/^light\.[a-z0-9_]+$/.test(s.entity_id)&&!["unavailable","unknown"].includes(s.state);
 function hexRgb(v) {
   const m=/^#?([0-9a-f]{6})$/i.exec(String(v||""));
@@ -112,6 +120,7 @@ class Generator extends HTMLElement {
     if(!selected.length)return this.say("Sélectionne au moins une ampoule.",true);
     if(typeof this._hass.callApi!=="function")return this.say("API Home Assistant non disponible.",true);
     this.busy=true;this.button.disabled=true;let saved=0;
+    let phase="Appel Gemini";
     try{
       this.say("Gemini prépare les 10 ambiances…");
       const lights=selected.map(s=>({entity_id:s.entity_id,name:s.attributes?.friendly_name||s.entity_id,supported_color_modes:s.attributes?.supported_color_modes||[],min_kelvin:s.attributes?.min_color_temp_kelvin||2000,max_kelvin:s.attributes?.max_color_temp_kelvin||6500}));
@@ -126,9 +135,11 @@ class Generator extends HTMLElement {
         "Pour les ampoules sans couleur, privilégie white. Ne crée aucune animation ou programmation. Noms simples, uniques, prononçables."
       ].join("\n");
       const result=await this._hass.callApi("POST","services/ai_task/generate_data?return_response",{task_name:"KIMIA ambiances lumineuses",instructions,entity_id:this.aiSelect.value});
+      phase="Décodage de la réponse Gemini";
       const response=result?.service_response?.data;
       if(response==null)throw Error("Aucune réponse AI Task. Vérifie que Gemini fournit une entité AI Task et qu'elle est sélectionnée par défaut.");
       const scenes=validate(response,selected);
+      phase="Vérification des scènes existantes";
       // Collision preflight: on ne remplace jamais une scène non-KIMIA.
       for(const scene of scenes){
         let existing;
@@ -143,9 +154,11 @@ class Generator extends HTMLElement {
       }
       this.say("Validation OK. Enregistrement des 10 scènes…");
       for(const scene of scenes){
+        phase="Enregistrement "+scene.id;
         await this._hass.callApi("POST","config/scene/config/"+scene.id,scene);
         saved++;
       }
+      phase="Rechargement des scènes";
       await this._hass.callService("scene","reload",{});
       // Exposition limitée aux 10 scenes KIMIA, uniquement dans Assist (Gemini).
       let exposureNote="";
@@ -166,7 +179,9 @@ class Generator extends HTMLElement {
         exposureNote=" Scenes enregistrees ; exposition Assist a verifier : "+err(error);
       }
       this.say("10 scenes permanentes enregistrees ! Ouvre Lumières."+exposureNote);
-    }catch(error){this.say("Échec"+(saved?" après "+saved+" scènes enregistrées":"")+" : "+err(error),true);}
+    }catch(error){
+      this.say("Échec — "+phase+(saved?" ("+saved+" scène(s) enregistrée(s))":"")+" : "+err(error),true);
+    }
     finally{this.busy=false;this.button.disabled=false;}
   }
 }
