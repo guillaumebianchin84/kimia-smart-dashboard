@@ -2,7 +2,7 @@
 (() => {
 "use strict";
 const PREFIX="kimia_ambiance_", COUNT=10;
-const htmlStyle="<style>:host{display:block;color:var(--primary-text-color)}ha-card{padding:17px;border-radius:17px}h3{margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}.bulbs{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:8px}.bulb{padding:10px;border:1px solid var(--divider-color);border-radius:10px}select{display:block;box-sizing:border-box;width:100%;padding:10px;margin:8px 0;border:1px solid var(--divider-color);border-radius:8px;background:var(--card-background-color);color:var(--primary-text-color)}textarea{display:block;box-sizing:border-box;width:100%;min-height:85px;margin:8px 0 12px;border:1px solid var(--divider-color);border-radius:8px;padding:10px;color:var(--primary-text-color);background:var(--card-background-color);font:inherit}button{cursor:pointer;border:1px solid var(--divider-color);border-radius:10px;padding:12px;color:var(--primary-text-color);background:var(--secondary-background-color);font:inherit}button:disabled{opacity:.5;cursor:wait}button.primary{background:var(--primary-color);color:white}.hint{color:var(--secondary-text-color);font-size:12px;line-height:1.5}.status{white-space:pre-wrap;margin:10px 0 0;font-size:13px}.error{color:var(--error-color,#c33)}</style>";
+const htmlStyle="<style>:host{display:block;color:var(--primary-text-color)}ha-card{padding:17px;border-radius:17px}h3{margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}.bulbs{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:8px}.bulb{padding:10px;border:1px solid var(--divider-color);border-radius:10px}select{display:block;box-sizing:border-box;width:100%;padding:10px;margin:8px 0;border:1px solid var(--divider-color);border-radius:8px;background:var(--card-background-color);color:var(--primary-text-color)}textarea{display:block;box-sizing:border-box;width:100%;min-height:85px;margin:8px 0 12px;border:1px solid var(--divider-color);border-radius:8px;padding:10px;color:var(--primary-text-color);background:var(--card-background-color);font:inherit}button{cursor:pointer;border:1px solid var(--divider-color);border-radius:10px;padding:12px;color:var(--primary-text-color);background:var(--secondary-background-color);font:inherit}button:disabled{opacity:.5;cursor:wait}button.primary{background:var(--primary-color);color:white}.hint{color:var(--secondary-text-color);font-size:12px;line-height:1.5}.status{white-space:pre-wrap;margin:10px 0 0;font-size:13px}.error{color:var(--error-color,#c33)}.scene-manage{margin-top:16px;padding-top:12px;border-top:1px solid var(--divider-color)}.scene-manage h4{margin:0 0 10px}.scene-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:6px 0;border-bottom:1px solid var(--divider-color)}.scene-row span{font-size:13px}.scene-row button{padding:7px 10px;font-size:12px}.danger{color:var(--error-color,#c33);background:transparent}.remove-all{margin-top:12px;font-size:12px}.quiet{font-size:12px;color:var(--secondary-text-color)}</style>";
 const idAt=i=>PREFIX+String(i+1).padStart(2,"0");
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,Number(x)||a));
 // Les erreurs HA peuvent avoir un message objet. Ne jamais afficher [object Object].
@@ -77,13 +77,18 @@ function validate(raw,selected){
 class Generator extends HTMLElement {
   constructor(){super();this.attachShadow({mode:"open"});this.sel=new Set();this.busy=false;this.prompt="Ambiances harmonieuses et variées : détente, cinéma, lecture, romance, concentration, soirée, nuit, réveil, tropicale et douceur.";}
   setConfig(c){this.config=c||{};this.draw();}
-  set hass(h){this._hass=h;if(!this.built)this.draw();}
+  set hass(h){
+    this._hass=h;
+    this._statesOverride=null;
+    if(!this.built)this.draw();
+    else this.renderScenes();
+  }
   connectedCallback(){this.draw();}
   draw(){
     if(this.built||!this._hass)return;
     this.built=true;
     const root=this.shadowRoot;
-    root.innerHTML=htmlStyle+"<ha-card><h3>✨ Mes 10 scènes lumineuses IA</h3><p class='hint'>Choisis les ampoules concernées. Gemini créera 10 ambiances fixes, enregistrées dans Home Assistant.</p><div class='bulbs'></div><p>Modèle IA :</p><select aria-label='Modèle Gemini'></select><p>Ambiances souhaitées :</p><textarea></textarea><button class='primary'>Générer et enregistrer 10 scènes</button><p class='hint'>Régénérer remplace les 10 scènes IA KIMIA. La génération nécessite Internet ; les scènes fonctionnent ensuite hors ligne.</p><p class='status' role='status'></p></ha-card>";
+    root.innerHTML=htmlStyle+"<ha-card><h3>✨ Mes 10 scènes lumineuses IA</h3><p class='hint'>Choisis les ampoules concernées. Gemini créera 10 ambiances fixes, enregistrées dans Home Assistant.</p><div class='bulbs'></div><p>Modèle IA :</p><select aria-label='Modèle Gemini'></select><p>Ambiances souhaitées :</p><textarea></textarea><button class='primary'>Générer et enregistrer 10 scènes</button><p class='hint'>Régénérer remplace les 10 scènes IA KIMIA. La génération nécessite Internet ; les scènes fonctionnent ensuite hors ligne.</p><div class='scene-manage'><h4>Gérer mes scènes KIMIA</h4><div class='existing-scenes'></div><button type='button' class='danger remove-all' hidden>Supprimer toutes les scènes KIMIA</button></div><p class='status' role='status'></p></ha-card>";
     const list=root.querySelector(".bulbs");
     const lights=Object.values(this._hass.states||{}).filter(eligible).sort((a,b)=>String(a.attributes?.friendly_name||a.entity_id).localeCompare(String(b.attributes?.friendly_name||b.entity_id),"fr"));
     for(const s of lights){
@@ -112,6 +117,92 @@ class Generator extends HTMLElement {
     this.button.disabled=this._hass.user?.is_admin!==true||!tasks.length;
     if(!tasks.length)this.say("Aucune entité AI Task détectée. Active l'entité AI Task de Google Gemini dans Home Assistant avant la génération.",true);
     this.button.addEventListener("click",()=>this.generate());
+    this.sceneBox=root.querySelector(".existing-scenes");
+    this.removeAllButton=root.querySelector(".remove-all");
+    this.removeAllButton.addEventListener("click",()=>this.deleteScenes(this.listScenes()));
+    this.renderScenes();
+  }
+  listScenes(){
+    return Object.values(this._statesOverride||this._hass?.states||{}).filter(s=>
+      s.entity_id?.startsWith("scene.")&&
+      /^kimia_ambiance_(0[1-9]|10)$/.test(s.attributes?.id||""))
+      .sort((a,b)=>String(a.attributes.id).localeCompare(String(b.attributes.id)));
+  }
+  renderScenes(){
+    if(!this.sceneBox)return;
+    this.sceneBox.replaceChildren();
+    const scenes=this.listScenes();
+    if(!scenes.length){
+      const p=document.createElement("p");p.className="quiet";
+      p.textContent="Aucune scène lumineuse KIMIA enregistrée.";
+      this.sceneBox.append(p);
+    }
+    for(const scene of scenes){
+      const line=document.createElement("div");line.className="scene-row";
+      const name=document.createElement("span");
+      name.textContent=scene.attributes.friendly_name||scene.entity_id;
+      const button=document.createElement("button");
+      button.type="button";button.className="danger";button.textContent="Supprimer";
+      button.disabled=this.busy||this._hass?.user?.is_admin!==true;
+      button.addEventListener("click",()=>this.deleteScenes([scene]));
+      line.append(name,button);this.sceneBox.append(line);
+    }
+    this.removeAllButton.hidden=!scenes.length;
+    this.removeAllButton.disabled=this.busy||this._hass?.user?.is_admin!==true;
+  }
+  async syncDashboard(){
+    // Recharge les états auprès de HA, pas depuis le cache du navigateur.
+    const live=await this._hass.callWS({type:"get_states"});
+    if(!Array.isArray(live))throw Error("Impossible d'obtenir les scènes actualisées.");
+    const current=Object.fromEntries(live.map(s=>[s.entity_id,s]));
+    this._statesOverride=current;
+    this.renderScenes();
+    if(typeof window.KimiaSmartCore?.sync!=="function")
+      return " Actualise le dashboard client avec « Actualiser ma maison ».";
+    await window.KimiaSmartCore.sync({...this._hass,states:current});
+    return " Tableau de bord Lumières actualisé.";
+  }
+  async deleteScenes(scenes){
+    if(this.busy||this._hass?.user?.is_admin!==true)return;
+    const selected=(scenes||[]).filter(s=>
+      /^kimia_ambiance_(0[1-9]|10)$/.test(s.attributes?.id||""));
+    if(!selected.length)return;
+    const confirmText=selected.length===1
+      ?"Supprimer définitivement la scène « "+(selected[0].attributes?.friendly_name||selected[0].entity_id)+" » ?"
+      :"Supprimer définitivement les "+selected.length+" scènes lumineuses KIMIA ?\nLes scènes Home Assistant non-KIMIA ne seront pas touchées.";
+    if(!window.confirm(confirmText))return;
+    this.busy=true;this.button.disabled=true;this.renderScenes();
+    let deleted=0,phase="Vérification";
+    try{
+      for(const scene of selected){
+        const id=scene.attributes.id;
+        const saved=await this._hass.callApi("GET","config/scene/config/"+encodeURIComponent(id));
+        if(!String(saved?.name||"").startsWith("KIMIA · "))
+          throw Error("Suppression bloquée : la scène "+id+" ne porte pas le préfixe KIMIA.");
+        phase="Suppression de "+id;
+        await this._hass.callApi("DELETE","config/scene/config/"+encodeURIComponent(id));
+        deleted++;
+      }
+      phase="Rechargement";
+      await this._hass.callService("scene","reload",{});
+      phase="Synchronisation du dashboard";
+      let syncNote="";
+      try{syncNote=await this.syncDashboard();}
+      catch(error){syncNote=" Scènes supprimées, mais tableau de bord à actualiser : "+err(error);}
+      this.say(deleted+" scène(s) KIMIA supprimée(s)."+syncNote);
+    }catch(error){
+      if(deleted){
+        try{
+          await this._hass.callService("scene","reload",{});
+          await this.syncDashboard();
+        }catch(_){}
+      }
+      this.say("Échec — "+phase+" après "+deleted+" suppression(s) : "+err(error),true);
+    }finally{
+      this.busy=false;
+      this.button.disabled=this._hass?.user?.is_admin!==true||!this.aiSelect?.value;
+      this.renderScenes();
+    }
   }
   say(msg,bad=false){this.status.textContent=msg;this.status.className="status"+(bad?" error":"");}
   async generate(){
@@ -178,11 +269,17 @@ class Generator extends HTMLElement {
       }catch(error){
         exposureNote=" Scenes enregistrees ; exposition Assist a verifier : "+err(error);
       }
-      this.say("10 scenes permanentes enregistrees ! Ouvre Lumières."+exposureNote);
+      let refreshNote="";
+      try{refreshNote=await this.syncDashboard();}
+      catch(error){refreshNote=" Tableau de bord à actualiser : "+err(error);}
+      this.say("10 scenes permanentes enregistrees ! Ouvre Lumières."+exposureNote+refreshNote);
     }catch(error){
       this.say("Échec — "+phase+(saved?" ("+saved+" scène(s) enregistrée(s))":"")+" : "+err(error),true);
     }
-    finally{this.busy=false;this.button.disabled=false;}
+    finally{
+      this.busy=false;this.button.disabled=this._hass?.user?.is_admin!==true||!this.aiSelect?.value;
+      this.renderScenes();
+    }
   }
 }
 class Launchpad extends HTMLElement{

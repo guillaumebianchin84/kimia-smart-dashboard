@@ -359,49 +359,103 @@
     }
     return true;
   };
-  const tile = (e,path="",usage="autre") => {
-    const switchEntity=e.entity_id.startsWith("switch.");
-    const x={
-      type:"tile",
-      entity:e.entity_id,
-      name:undefined,
-      // Toutes les tuiles gérées par KIMIA occupent 12 colonnes natives HA.
-      grid_options:{columns:12,rows:1}
-    };
-    if(e.entity_id.startsWith("light.")) {
-      // Une ligne par lampe : icône ON/OFF, curseur de luminosité,
-      // toucher le nom/la carte ouvre la roue chromatique native HA.
-      x.features=[{type:"light-brightness"}];
+  // Icônes natives MDI par fonction de l'équipement, sans carte custom.
+  const tileIcon=(e,usage="autre")=>{
+    const id=e.entity_id||"";
+    const kind=id.split(".")[0];
+    const deviceClass=e.device_class||e.attributes?.device_class||
+      (/snzb_06p|presence|motion|mouvement/i.test(id)?"motion":
+       /contact|door|porte/i.test(id)?"door":
+       /humidity|humidite|hygrometrie/i.test(id)?"humidity":
+       /temperature|temp_/i.test(id)?"temperature":"");
+    if(usage==="clim"||kind==="climate")return "mdi:air-conditioner";
+    if(usage==="ventilateur"||kind==="fan")return "mdi:fan";
+    if(usage==="surpresseur")return "mdi:water-pump";
+    if(usage==="lampe"&&kind==="switch")return "mdi:floor-lamp";
+    if(kind==="switch")return "mdi:power-socket-eu";
+    if(kind==="light")return "mdi:lightbulb-variant";
+    if(kind==="cover")return "mdi:window-shutter";
+    if(kind==="media_player")return "mdi:speaker";
+    if(kind==="camera")return "mdi:cctv";
+    if(kind==="binary_sensor"){
+      const icons={motion:"mdi:motion-sensor",occupancy:"mdi:motion-sensor",
+        door:"mdi:door-closed",window:"mdi:window-closed",
+        moisture:"mdi:water-alert",smoke:"mdi:smoke-detector",
+        safety:"mdi:shield-check",presence:"mdi:motion-sensor"};
+      return icons[deviceClass]||"mdi:shield-check-outline";
+    }
+    if(kind==="sensor"){
+      const icons={temperature:"mdi:thermometer",humidity:"mdi:water-percent",
+        battery:"mdi:battery",power:"mdi:flash",energy:"mdi:lightning-bolt"};
+      return icons[deviceClass]||"mdi:gauge";
+    }
+    return "mdi:devices";
+  };
+  // Modele HA retenu : vraie carte Tile native 12 colonnes.
+  const tile=(e,path="",usage="autre")=>{
+    const id=e.entity_id,kind=id.split(".")[0];
+    const x={type:"tile",entity:id,
+      grid_options:{columns:12,rows:kind==="light"?2:1},
+      icon:tileIcon(e,usage)};
+    if(kind==="light"){
+      // Identique aux deux ampoules corrigées dans le YAML utilisateur.
+      x.features=[{type:"light-color"}];
+      x.features_position="bottom";
       x.tap_action={action:"more-info"};
       x.icon_tap_action={action:"toggle"};
-    }
-    if(e.entity_id.startsWith("cover."))
+    }else if(kind==="cover"){
       x.features=[{type:"cover-open-close"}];
-    if(switchEntity) {
-      if(usage==="clim") {
-        // Ne jamais couper une climatisation par simple toucher accidentel.
+    }else if(kind==="switch"){
+      if(usage==="clim"){
         x.tap_action={action:"more-info"};
         x.icon_tap_action={action:"more-info"};
-      } else {
+      }else{
         x.tap_action={action:"toggle"};
       }
       x.hold_action={action:"more-info"};
     }
     return x;
   };
-  const safeTile=(e,path="",usage="autre")=>{
-    const native=tile(e,path,usage);
-    return {
-      type:SAFE_TILE_TYPE,
-      entity:e.entity_id,
-      card:native,
-      grid_options:{...native.grid_options}
-    };
+  // Conserver les piles natives des capteurs comme dans l'onglet Sécurité
+  // fourni; les autres tuiles restent directement dans la grille Sections.
+  const safeTile=(e,path="",usage="autre")=>
+    e.entity_id.startsWith("binary_sensor.")
+      ?{type:"vertical-stack",cards:[tile(e,path,usage)]}
+      :tile(e,path,usage);
+  const generatedEntity=card=>
+    typeof card?.entity==="string"?card.entity:
+    card?.type==="vertical-stack"&&card.cards?.length===1&&
+    typeof card.cards[0]?.entity==="string"?card.cards[0].entity:null;
+  // Reproduit les cartes historiques KIMIA pour les reconnaître à la migration
+  // sans écraser une carte modifiée manuellement.
+  const oldCoreTile=(e,path="",usage="autre")=>{
+    const id=e.entity_id;
+    const x={type:"tile",entity:id,name:undefined,
+      grid_options:{columns:12,rows:1}};
+    if(id.startsWith("light.")){
+      x.features=[{type:"light-brightness"}];
+      x.tap_action={action:"more-info"};
+      x.icon_tap_action={action:"toggle"};
+    }
+    if(id.startsWith("cover."))x.features=[{type:"cover-open-close"}];
+    if(id.startsWith("switch.")){
+      if(usage==="clim"){
+        x.tap_action={action:"more-info"};
+        x.icon_tap_action={action:"more-info"};
+      }else{x.tap_action={action:"toggle"};}
+      x.hold_action={action:"more-info"};
+    }
+    return x;
+  };
+  const oldUnsizedStack=(e,path="",usage="autre")=>{
+    const native=oldCoreTile(e,path,usage);
+    delete native.grid_options;
+    return {type:"vertical-stack",cards:[native]};
   };
   // La version précédente utilisait 6 colonnes pour les lumières,
   // volets, climatisations, enceintes, etc. Migrer ces cartes inchangées.
   const previousTile=(e,usage="autre")=>{
-    const x=tile(e,"",usage);
+    const x=oldCoreTile(e,"",usage);
     const domain=e.entity_id.split(".")[0];
     x.grid_options={columns:["switch","sensor","binary_sensor"].includes(domain)
       ?12:6,rows:1};
@@ -413,7 +467,7 @@
       grid_options:{...native.grid_options}};
   };
   const oldTapTile=e=>{
-    const x=tile(e,"","autre");
+    const x=oldCoreTile(e,"","autre");
     x.grid_options={columns:6,rows:1};
     return x;
   };
@@ -447,18 +501,34 @@
   // les prises/lumières/volets par accident.
   // 2 lignes natives HA compensent l'absence de la rangée de boutons.
   const roomCard = area => ({
-    type: "area",
-    area: area.area_id,
-    display_type: "compact",
-    features: [],
-    features_position: "bottom",
-    grid_options: { columns: 12, rows: 2 },
-    tap_action: { action: "none" }
+    type: "area",area:area.area_id,display_type:"compact",
+    features:[],features_position:"bottom",
+    vertical:true,
+    tap_action:{action:"none"},
+    grid_options:{columns:12,rows:2}
+  });
+  // Signature de la carte avant centrage vertical : permet la migration
+  // des pièces existantes sans doublon.
+  const previousHorizontalRoomCard=area=>({
+    type:"area",area:area.area_id,display_type:"compact",
+    features:[],features_position:"bottom",
+    tap_action:{action:"none"},grid_options:{columns:12,rows:2}
+  });
+  const oldUnsizedRoomCard=area=>({
+    type:"area",area:area.area_id,display_type:"compact",
+    features:[],features_position:"bottom",tap_action:{action:"none"}
+  });
+  // Ancienne carte de pièce KIMIA, dimensions 12x2 imposées.
+  const oldSizedRoomCard=area=>({
+    type:"area",area:area.area_id,display_type:"compact",
+    features:[],features_position:"bottom",
+    grid_options:{columns:12,rows:2},
+    tap_action:{action:"none"}
   });
   // Reconnaître strictement les versions publiées avec un clic de navigation,
   // pour les migrer vers une carte non interactive sans toucher à son apparence.
   const oldNavigableRoomCard=area=>({
-    ...roomCard(area),
+    ...oldSizedRoomCard(area),
     tap_action:{action:"navigate",navigation_path:"/kimia-next/pieces"}
   });
   const previousRoomCard = (area,path="") => ({
@@ -540,10 +610,30 @@
   const isLegacyGeneratedTile = card =>
     card?.type === "tile" && typeof card.entity === "string" &&
     JSON.stringify(card) === JSON.stringify(safeClone(legacyTile({entity_id:card.entity})));
+  // Ancienne carte d'équipement 12x1 (prises, volets, clim, capteurs).
+  // Garder l'ancienne signature exacte pour migrer sans écraser les cartes personnalisées.
+  const previousWideTile=(e,path="",usage="autre")=>{
+    const x=oldCoreTile(e,path,usage);
+    x.grid_options={columns:12,rows:1};
+    return x;
+  };
+  const previousWideSafeTile=(e,usage="autre")=>{
+    const native=previousWideTile(e,"",usage);
+    return {type:SAFE_TILE_TYPE,entity:e.entity_id,card:native,
+      grid_options:{...native.grid_options}};
+  };
+  // Dernière version compacte : Tile native emballée dans une carte
+  // "safe" KIMIA, largeur forcée à 12. Reconnaissance stricte pour migration.
+  const previousCompactLightSafeTile=e=>{
+    if(!e.entity_id.startsWith("light."))return null;
+    const native=oldCoreTile(e);native.grid_options={columns:12,rows:1};
+    return {type:SAFE_TILE_TYPE,entity:e.entity_id,card:native,
+      grid_options:{...native.grid_options}};
+  };
   // Migrer les tuiles KIMIA RGB déployées avec les 3 bandes de couleur
   // vers une seule bande compacte. Ne jamais modifier une carte personnalisée.
   const previousExpandedLightTile=e=>{
-    const x=tile(e);
+    const x=oldCoreTile(e);
     if(!e.entity_id.startsWith("light."))return x;
     x.grid_options={columns:12,rows:"auto"};
     x.features=[
@@ -561,7 +651,7 @@
   };
   // Reconnaître les cartes plus anciennes limitées à la luminosité.
   const previousBrightnessTile=(e,columns=12)=>{
-    const x=tile(e);
+    const x=oldCoreTile(e);
     if(!e.entity_id.startsWith("light."))return x;
     x.features=[{type:"light-brightness"}];
     x.grid_options={columns,rows:1};
@@ -574,21 +664,37 @@
     return {type:SAFE_TILE_TYPE,entity:e.entity_id,card:native,
       grid_options:{...native.grid_options}};
   };
-  const isGeneratedTile = card => {
-    if(typeof card?.entity!=="string")return false;
-    const e={entity_id:card.entity};
-    const variants=card.type===SAFE_TILE_TYPE
-      ?[safeTile(e),safeTile(e,"","clim"),
-        previousSafeTile(e),previousSafeTile(e,"clim"),
+  // Conserver la reconnaissance stricte des cartes KIMIA déjà générées,
+  // quel que soit l'usage attribué à une prise (lampe, clim, ventilateur...).
+  // Une carte modifiée manuellement ne correspondra plus à sa signature.
+  const isGeneratedTile=card=>{
+    const id=generatedEntity(card);
+    if(!id)return false;
+    const e={entity_id:id};
+    const usages=["autre","lampe","clim","ventilateur","surpresseur"];
+    const candidates=[];
+    for(const usage of usages){
+      if(card.type==="vertical-stack"){
+        candidates.push(safeTile(e,"",usage),oldUnsizedStack(e,"",usage));
+      }else if(card.type===SAFE_TILE_TYPE){
+        candidates.push(previousWideSafeTile(e,usage),
+          previousSafeTile(e,usage));
+      }else if(card.type==="tile"){
+        candidates.push(tile(e,"",usage),previousWideTile(e,"",usage),
+          previousTile(e,usage));
+      }
+    }
+    if(card.type===SAFE_TILE_TYPE){
+      candidates.push(previousCompactLightSafeTile(e),
         previousExpandedLightSafeTile(e),
-        previousBrightnessSafeTile(e),previousBrightnessSafeTile(e,6)]
-      :card.type==="tile"
-        ?[legacyTile(e),oldTapTile(e),tile(e),tile(e,"","clim"),
-          previousTile(e),previousTile(e,"clim"),
-          previousExpandedLightTile(e),
-          previousBrightnessTile(e),previousBrightnessTile(e,6)]
-        :[];
-    return variants.some(candidate=>
+        previousBrightnessSafeTile(e),
+        previousBrightnessSafeTile(e,6));
+    }else if(card.type==="tile"){
+      candidates.push(legacyTile(e),oldTapTile(e),
+        previousExpandedLightTile(e),
+        previousBrightnessTile(e),previousBrightnessTile(e,6));
+    }
+    return candidates.filter(Boolean).some(candidate=>
       JSON.stringify(card)===JSON.stringify(safeClone(candidate)));
   };
   // Une carte Pièce n'est gérée par KIMIA que si toutes ses options sont intactes.
@@ -596,7 +702,10 @@
   const isGeneratedRoomCard = card => {
     if(card?.type!=="area"||typeof card.area!=="string")return false;
     const area={area_id:card.area};
-    const variants=[roomCard(area),oldNavigableRoomCard(area)];
+    const variants=[roomCard(area),previousHorizontalRoomCard(area),
+      oldUnsizedRoomCard(area),oldSizedRoomCard(area),oldNavigableRoomCard(area),
+      {...roomCard(area),tap_action:{action:"navigate",navigation_path:"/kimia-next/pieces"}},
+      {...oldUnsizedRoomCard(area),tap_action:{action:"navigate",navigation_path:"/kimia-next/pieces"}}];
     for(const path of ["","securite","eau","climatisation"]){
       const old=previousRoomCard(area,path);
       variants.push(old,{...old,grid_options:{columns:6,rows:"auto"}});
@@ -1281,18 +1390,6 @@
         const water=ensureWaterView(next,hasPump);
         const vmap=new Map(next.views.map(v=>[v.path,v]));
         let added=water.added,removed=0,modified=water.modified;
-        // Dix scenes fixes dans Lumières, en tête et sans doubler les boutons.
-        const lightsView=vmap.get("lumieres");
-        const shortcuts="custom:kimia-ai-scenes-shortcuts-card";
-        if(lightsView?.sections && !allCards(lightsView).some(c=>c.type===shortcuts)){
-          const bannerIndex=lightsView.sections.findIndex(section=>
-            (section.cards||[]).some(isKimiaBrand));
-          lightsView.sections.splice(bannerIndex<0?0:bannerIndex+1,0,{
-            type:"grid",column_span:Math.min(Number(lightsView.max_columns)||3,3),
-            cards:[{type:shortcuts,grid_options:{columns:12,rows:"auto"}}]
-          });
-          added++;
-        }
         // Le bandeau de marque doit refléter le TITRE de l'onglet, pas "Ma maison"
         // partout. L'Accueil conserve "Ma maison".
         for (const view of next.views) {
@@ -1335,7 +1432,7 @@
         }
 
         // Répartition par pièce dans les vrais onglets, jamais dans Accueil.
-        // Chaque section occupe toute la largeur; tuiles natives 12/12 dessous.
+        // Chaque section occupe toute la largeur; les lampes sont en Tile HA 6x1.
         const targets=["pieces",...CATEGORIES.map(x=>x[0]),
           ...(vmap.has("eau")?["eau"]:[])];
         const areaIds=new Set(orderedAreas.map(a=>a.area_id));
@@ -1393,14 +1490,15 @@
             // si elles portent toujours exactement la configuration auto.
             const tileCount=section.cards.length;
             section.cards=section.cards.filter(c=>
-              !isGeneratedTile(c) || entitiesWanted.has(c.entity));
+              !isGeneratedTile(c) || entitiesWanted.has(generatedEntity(c)));
             removed+=tileCount-section.cards.length;
-            // Migrer seulement les cartes KIMIA intactes vers 12 colonnes.
+            // Migrer seulement les cartes KIMIA intactes vers la taille adaptée.
             // Les tuiles personnalisées restent strictement inchangées.
             for(let i=0;i<section.cards.length;i++){
               const card=section.cards[i];
-              if(!isGeneratedTile(card)||!entitiesWanted.has(card.entity))continue;
-              const registry=entities.find(e=>e.entity_id===card.entity);
+              const id=generatedEntity(card);
+              if(!isGeneratedTile(card)||!entitiesWanted.has(id))continue;
+              const registry=entities.find(e=>e.entity_id===id);
               if(!registry)continue;
               const use=plugUsage(mapDevices.get(registry.device_id),labels);
               const expected=safeTile(registry,path,use);
@@ -1414,8 +1512,7 @@
           view.sections=kept;
           // Ajouts après nettoyage : pas de doublon, même après déplacement.
           const existing=new Set(allCards(view)
-            .filter(c=>c.type==="tile"||c.type===SAFE_TILE_TYPE)
-            .map(c=>c.entity));
+            .map(generatedEntity).filter(Boolean));
           for(const area of orderedAreas) {
             const selected=desired.get(area.area_id)||[];
             if(path!=="pieces" && !selected.length)continue;
@@ -1432,6 +1529,99 @@
               existing.add(e.entity_id);
               added++;
             }
+          }
+        }
+        // Scènes IA : cartouche à gauche, vraie pile verticale Tile HA à droite.
+        const lightsView=vmap.get("lumieres");
+        const sceneList=Object.values(hass.states||{}).filter(st=>
+          st.entity_id?.startsWith("scene.") &&
+          /^kimia_ambiance_\d{2}$/.test(st.attributes?.id||""))
+          .sort((a,b)=>String(a.attributes.id).localeCompare(String(b.attributes.id)))
+          .slice(0,10);
+        const sceneIcon=st=>{
+          const title=String(st.attributes?.friendly_name||st.entity_id)
+            .normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+          const icons=[
+            ["detente","mdi:weather-sunset"],["cinema","mdi:movie-open"],
+            ["lecture","mdi:book-open-variant"],["romance","mdi:heart"],
+            ["concentration","mdi:brain"],["soiree","mdi:party-popper"],
+            ["nuit","mdi:weather-night"],["reveil","mdi:weather-sunset-up"],
+            ["tropicale","mdi:palm-tree"],["douceur","mdi:weather-cloudy"]
+          ];
+          return icons.find(([name])=>title.includes(name))?.[1]||"mdi:palette";
+        };
+        const sceneTile=st=>({
+          type:"tile",entity:st.entity_id,icon:sceneIcon(st),
+          tap_action:{action:"perform-action",perform_action:"scene.turn_on",
+            target:{entity_id:st.entity_id}},
+          icon_tap_action:{action:"perform-action",perform_action:"scene.turn_on",
+            target:{entity_id:st.entity_id}}
+        });
+        const sceneTiles=sceneList.map(sceneTile);
+        // Sans area valide, le titre est un bouton natif non interactif.
+        const sceneHeading=()=>({
+          type:"button",name:"Scènes lumineuses",icon:"mdi:palette",
+          show_name:true,show_icon:true,show_state:false,
+          tap_action:{action:"none"},hold_action:{action:"none"},
+          grid_options:{columns:12,rows:2}
+        });
+        const sceneSection=()=>({
+          type:"grid",column_span:Math.min(Number(lightsView?.max_columns)||3,3),
+          cards:[sceneHeading(),{type:"vertical-stack",cards:sceneTiles}]
+        });
+        const isSceneAction=card=>
+          card?.type==="tile" && card.entity?.startsWith("scene.") &&
+          card.tap_action?.perform_action==="scene.turn_on" &&
+          card.tap_action?.target?.entity_id===card.entity &&
+          card.icon_tap_action?.perform_action==="scene.turn_on" &&
+          card.icon_tap_action?.target?.entity_id===card.entity;
+        const legacyScenes=section=>section?.cards?.length===1 &&
+          section.cards[0]?.type==="custom:kimia-ai-scenes-shortcuts-card";
+        const generatedScenes=section=>section?.cards?.length===2 &&
+          ((section.cards[0]?.type==="button" &&
+              section.cards[0].name==="Scènes lumineuses") ||
+           (section.cards[0]?.type==="vertical-stack" &&
+              section.cards[0].cards?.[0]?.name==="Scènes lumineuses")) &&
+          section.cards[1]?.cards?.every(isSceneAction);
+        const manualScenes=section=>section?.cards?.length===2 &&
+          section.cards[0]?.type==="area" &&
+          /sc[eè]nes lumineus/i.test(section.cards[0].name||"") &&
+          section.cards[1]?.type==="vertical-stack" &&
+          section.cards[1].cards?.every(isSceneAction);
+        // Réconcilie les scènes lorsque la liste change (suppression partielle
+        // ou totale), tout en préservant les autres sections et cartes client.
+        if(lightsView?.sections){
+          const owned=lightsView.sections.filter(section=>
+            legacyScenes(section)||generatedScenes(section)||manualScenes(section));
+          const desired=sceneList.length?sceneSection():null;
+          if(!desired){
+            // Aucune scène KIMIA : le titre ET les boutons disparaissent.
+            for(const section of owned){
+              lightsView.sections.splice(lightsView.sections.indexOf(section),1);
+              removed+=section.cards.length;
+            }
+          }else if(owned.length){
+            // Remplace le faux "area" (qui provoquait l'erreur HA) par
+            // un bouton natif inactif, avec l'icône palette centrée.
+            const first=owned[0];
+            if(JSON.stringify(first)!==JSON.stringify(desired)){
+              if(first.cards.length===desired.cards.length)modified++;
+              else{
+                removed+=first.cards.length;added+=desired.cards.length;
+              }
+              lightsView.sections[lightsView.sections.indexOf(first)]=desired;
+            }
+            for(const duplicate of owned.slice(1)){
+              lightsView.sections.splice(lightsView.sections.indexOf(duplicate),1);
+              removed+=duplicate.cards.length;
+            }
+          }else{
+            const lastRoom=lightsView.sections.reduce((n,sec,i)=>
+              managedRoom(sec,"lumieres")?i:n,-1);
+            const nav=lightsView.sections.findIndex(sec=>
+              (sec.cards||[]).some(c=>c.type==="custom:navbar-card"));
+            const at=lastRoom>=0?lastRoom+1:nav>=0?nav:lightsView.sections.length;
+            lightsView.sections.splice(at,0,desired);added+=2;
           }
         }
         // Préférences par utilisateur : les nouveaux comptes voient tout par défaut.
