@@ -365,9 +365,7 @@
       type:"tile",
       entity:e.entity_id,
       name:undefined,
-      // Lumières: largeur recommandée Tile HA (6 colonnes x 1 ligne).
-      // Les autres catégories conservent leurs dimensions actuelles.
-      grid_options:{columns:e.entity_id.startsWith("light.")?6:12,rows:1}
+      // Aucun grid_options : Home Assistant determine lui-meme la taille.
     };
     if(e.entity_id.startsWith("light.")) {
       // Une ligne par lampe : icône ON/OFF, curseur de luminosité,
@@ -397,8 +395,7 @@
     return {
       type:SAFE_TILE_TYPE,
       entity:e.entity_id,
-      card:native,
-      grid_options:{...native.grid_options}
+      card:native
     };
   };
   // La version précédente utilisait 6 colonnes pour les lumières,
@@ -455,13 +452,16 @@
     display_type: "compact",
     features: [],
     features_position: "bottom",
-    grid_options: { columns: 12, rows: 2 },
     tap_action: { action: "none" }
+  });
+  // Ancienne carte de pièce KIMIA, dimensions 12x2 imposées.
+  const oldSizedRoomCard=area=>({
+    ...roomCard(area),grid_options:{columns:12,rows:2}
   });
   // Reconnaître strictement les versions publiées avec un clic de navigation,
   // pour les migrer vers une carte non interactive sans toucher à son apparence.
   const oldNavigableRoomCard=area=>({
-    ...roomCard(area),
+    ...oldSizedRoomCard(area),
     tap_action:{action:"navigate",navigation_path:"/kimia-next/pieces"}
   });
   const previousRoomCard = (area,path="") => ({
@@ -543,6 +543,18 @@
   const isLegacyGeneratedTile = card =>
     card?.type === "tile" && typeof card.entity === "string" &&
     JSON.stringify(card) === JSON.stringify(safeClone(legacyTile({entity_id:card.entity})));
+  // Ancienne carte d'équipement 12x1 (prises, volets, clim, capteurs).
+  // Garder l'ancienne signature exacte pour migrer sans écraser les cartes personnalisées.
+  const previousWideTile=(e,path="",usage="autre")=>{
+    const x=tile(e,path,usage);
+    x.grid_options={columns:12,rows:1};
+    return x;
+  };
+  const previousWideSafeTile=(e,usage="autre")=>{
+    const native=previousWideTile(e,"",usage);
+    return {type:SAFE_TILE_TYPE,entity:e.entity_id,card:native,
+      grid_options:{...native.grid_options}};
+  };
   // Dernière version compacte : Tile native emballée dans une carte
   // "safe" KIMIA, largeur forcée à 12. Reconnaissance stricte pour migration.
   const previousCompactLightSafeTile=e=>{
@@ -590,12 +602,14 @@
     const e={entity_id:card.entity};
     const variants=card.type===SAFE_TILE_TYPE
       ?[safeTile(e),safeTile(e,"","clim"),
+        previousWideSafeTile(e),previousWideSafeTile(e,"clim"),
         previousSafeTile(e),previousSafeTile(e,"clim"),
         previousCompactLightSafeTile(e),
         previousExpandedLightSafeTile(e),
         previousBrightnessSafeTile(e),previousBrightnessSafeTile(e,6)]
       :card.type==="tile"
         ?[legacyTile(e),oldTapTile(e),tile(e),tile(e,"","clim"),
+          previousWideTile(e),previousWideTile(e,"","clim"),
           previousTile(e),previousTile(e,"clim"),
           previousExpandedLightTile(e),
           previousBrightnessTile(e),previousBrightnessTile(e,6)]
@@ -608,7 +622,7 @@
   const isGeneratedRoomCard = card => {
     if(card?.type!=="area"||typeof card.area!=="string")return false;
     const area={area_id:card.area};
-    const variants=[roomCard(area),oldNavigableRoomCard(area)];
+    const variants=[roomCard(area),oldSizedRoomCard(area),oldNavigableRoomCard(area)];
     for(const path of ["","securite","eau","climatisation"]){
       const old=previousRoomCard(area,path);
       variants.push(old,{...old,grid_options:{columns:6,rows:"auto"}});
@@ -1303,7 +1317,6 @@
           .slice(0,10);
         const sceneTiles=sceneList.map(st=>({
           type:"tile",entity:st.entity_id,
-          grid_options:{columns:6,rows:1},
           tap_action:{action:"perform-action",perform_action:"scene.turn_on",
             target:{entity_id:st.entity_id}},
           icon_tap_action:{action:"perform-action",perform_action:"scene.turn_on",
@@ -1312,21 +1325,18 @@
         const sceneHeading=()=>({
           type:"button",name:"Scènes lumineuses",icon:"mdi:palette-outline",
           show_name:true,show_icon:true,show_state:false,
-          tap_action:{action:"none"},hold_action:{action:"none"},
-          grid_options:{columns:12,rows:2}
+          tap_action:{action:"none"},hold_action:{action:"none"}
         });
         const sceneSection=()=>({
           type:"grid",column_span:Math.min(Number(lightsView?.max_columns)||3,3),
           cards:[sceneHeading(),{
-            type:"grid",columns:2,square:false,cards:sceneTiles,
-            grid_options:{columns:12,rows:"auto"}
+            type:"grid",columns:2,square:false,cards:sceneTiles
           }]
         });
         const isGeneratedSceneTile=card=>
           card?.type==="tile" && typeof card.entity==="string" &&
           JSON.stringify(card)===JSON.stringify({
             type:"tile",entity:card.entity,
-            grid_options:{columns:6,rows:1},
             tap_action:{action:"perform-action",perform_action:"scene.turn_on",
               target:{entity_id:card.entity}},
             icon_tap_action:{action:"perform-action",perform_action:"scene.turn_on",
@@ -1339,7 +1349,6 @@
           JSON.stringify(section.cards[0])===JSON.stringify(sceneHeading()) &&
           section.cards[1]?.type==="grid" &&
           section.cards[1].columns===2 &&
-          section.cards[1].grid_options?.columns===12 &&
           (section.cards[1].cards||[]).every(isGeneratedSceneTile);
         if(lightsView?.sections) {
           const oldIndex=lightsView.sections.findIndex(legacyScenes);
