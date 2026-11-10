@@ -33,3 +33,27 @@ Ce document **remplace** la règle précédente « pas de grid_options ». Le YA
 - Simulation du moteur `tests/kimia_v1.test.cjs` **réussie** : tuiles 12 colonnes, icônes MDI, générateur de section de scènes, anciennes cartes migrées, personnalisation préservée et synchro idempotente.
 - Test explicite : le bloc `type: area` « Scenes lumineuse » fourni par l'utilisateur et les dix scènes `vertical-stack` restent présents après synchronisation.
 - **L'aspect final en navigation Home Assistant et l'alignement visuel réel sur l'Odroid restent à confirmer.**
+
+
+## Correctif suivant : centrage des pièces + gestion des scènes IA
+
+- Chaque carte native `area` de pièce passe en `vertical: true`, ce qui place l'icône au-dessus du titre et centre celui-ci, **sans CSS ni plugin tiers**. La taille de police native n'est pas personnalisable avec les options de la carte Area ; une taille plus grande exigerait du CSS/card-mod et n'est volontairement pas imposée ici.
+- Pour « Scènes lumineuses », on abandonne définitivement le faux `type: area` sans `area`. La synchronisation le remplace par un `type: button` natif inactif (palette), déjà validé visuellement.
+- Le **générateur IA** ajoute une rubrique « Gérer mes scènes KIMIA » avec **Supprimer** pour chaque ambiance et un bouton **Supprimer toutes les scènes KIMIA**. Chaque suppression réclame une confirmation.
+- Suppression permanente via `DELETE /api/config/scene/config/<id>` et `scene.reload`, **pas** `scene.delete` (réservé aux scènes temporaires créées par `scene.create`).
+- Seuls les IDs réservés `kimia_ambiance_01` à `kimia_ambiance_10` sont ciblés ; le nom du fichier configuré est revérifié avec le préfixe `KIMIA ·` avant suppression. Toute autre scène Home Assistant reste intacte.
+- Après création/suppression, KIMIA relit les états Home Assistant via WebSocket puis tente une synchronisation automatique du dashboard. Si elle échoue, la carte affiche une instruction pour cliquer sur **Actualiser ma maison**.
+- Si aucune scène KIMIA ne subsiste, **le titre et la pile des scènes disparaissent entièrement** de Lumières. Si une scène réapparaît, ils sont recréés.
+
+### Installation du correctif
+
+**Sauvegarder les deux fichiers et le dashboard `kimia-next` avant l'essai.**
+
+Depuis la branche `feat/kimia-native-scene-light-tiles-20261110`, remplacer :
+
+1. `/config/www/kimia-smart-core-v1.js` → mise à jour de l'URL de ressource existante en `/local/kimia-smart-core-v1.js?v=6`.
+2. `/config/www/kimia-ai-scenes-v1-card.js` → mise à jour de l'URL de ressource existante en `/local/kimia-ai-scenes-v1-card.js?v=3`.
+
+Conserver **Module JavaScript** pour les deux ; ne pas dupliquer les ressources. Faire Ctrl+F5, puis **KIMIA Configuration → Démarrer → Actualiser ma maison**. Vérifier les cartes `area` centrées, les scènes et la suppression des scènes depuis la page de configuration.
+
+**Ces modifications sont des correctifs de code/test et n'ont pas encore été validées visuellement sur l'Odroid réel.** Les tests JavaScript simulés couvrent la migration d'anciennes cartes, les 10 scènes, leur disparition quand la liste est vide, la confirmation de suppression et la protection des scènes externes.
