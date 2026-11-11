@@ -1,5 +1,8 @@
 # KIMIA Routine Reader — DEV uniquement
 
+**État : correctif de compatibilité WebSocket appliqué, non validé en exécution sur Home Assistant 2026.11.1. Ne pas réinstaller sur le DEV tant que la détection du composant n'a pas été diagnostiquée.**
+
+
 Cette petite intégration Home Assistant ajoute la commande WebSocket admin
 `kimia_routine_reader/list`. Elle sert exclusivement à expliquer les
 automatisations et scripts existants dans l'Atelier IA.
@@ -38,3 +41,19 @@ automatisations et scripts existants dans l'Atelier IA.
   une évolution distincte.
 
 Aucune ressource de dashboard client ni carte native n'a été modifiée.
+
+## Diagnostic de l'erreur « Integration not found »
+
+Le composant peut être présent dans `/config/custom_components/kimia_routine_reader`
+sans être détecté par le processus Home Assistant. Ce message indique un échec
+de découverte/chargement, et ne prouve pas à lui seul un problème de syntaxe
+Python. Vérifier le journal complet (pas seulement les lignes filtrées par nom),
+la configuration effectivement chargée et le rechargement du processus Core.
+
+La première version du lecteur utilisait `voluptuous` pour la définition d'une
+commande WebSocket. L'API Home Assistant actuelle utilise `probatio`. Le code
+a été corrigé avec le décorateur de permissions administrateur à la bonne place.
+Cette correction ne démontre pas la résolution du message « Integration not found ».
+
+Si le lecteur n'est pas installé, **laisser la clé `kimia_routine_reader:` absente**
+du `configuration.yaml`. L'Atelier IA continue en mode inventaire/API native.
