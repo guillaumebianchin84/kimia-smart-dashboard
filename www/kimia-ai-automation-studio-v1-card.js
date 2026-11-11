@@ -486,6 +486,15 @@
    const q=question.toLowerCase();
    const matching=all.filter(s=>q.includes(s.entity_id.toLowerCase())||q.includes(String(s.attributes?.friendly_name||"").toLowerCase()));
    const selected=(matching.length?matching:all).slice(0,20);
+   // Optional local YAML reader; does not expose secrets or support writes.
+   let localRecords=[],localErrors={};
+   try{
+    const local=await this._hass.callWS({type:"kimia_routine_reader/list"});
+    localRecords=Array.isArray(local?.routines)?local.routines:[];
+    localErrors=local?.errors||{};
+   }catch(_){
+    localErrors={"reader":"Composant KIMIA non installé ou indisponible"};
+   }
    const results=await Promise.allSettled(selected.map(async s=>{
     const kind=s.entity_id.startsWith("script.")?"script":"automation";
     const id=kind==="script"?s.entity_id.slice(7):String(s.attributes?.id||"");
@@ -496,10 +505,16 @@
      const cfg=await this._hass.callApi("GET","config/"+kind+"/config/"+encodeURIComponent(id));
      if(!cfg||typeof cfg!=="object")throw Error("no config");
      return {...base,source:"configuration Home Assistant",configuration:this.safeRoutineNode(cfg)};
-    }catch(_){return {...base,source:"inventaire",detail:"Configuration inaccessible via API (YAML ou autre source possible)."};}
+    }catch(_){
+     const match=localRecords.find(r=>r.kind===kind&&(
+      (id&&r.id===id)||(String(r.name||"").trim().toLowerCase()===String(base.name).trim().toLowerCase())
+     ));
+     if(match)return {...base,source:"lecture locale "+match.source,configuration:match.config};
+     return {...base,source:"inventaire",detail:"Configuration inaccessible via API et absente des fichiers YAML pris en charge."};
+    }
    }));
    return {queried:true,total:all.length,examined:selected.length,truncated:(matching.length?matching:all).length>selected.length,
-    routines:results.map((r,i)=>r.status==="fulfilled"?r.value:{entity:selected[i].entity_id,detail:"Lecture échouée"})};
+    routines:results.map((r,i)=>r.status==="fulfilled"?r.value:{entity:selected[i].entity_id,detail:"Lecture échouée"}),localYamlStatus:localErrors};
   }
   async ask(){
    if(this.busy||!this.isAdmin())return;
