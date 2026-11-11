@@ -1045,10 +1045,10 @@
           {type:"grid",column_span:2,cards:[
             {type:"heading",heading:"Atelier IA KIMIA",icon:"mdi:creation",heading_style:"title",
               grid_options:{columns:"full",rows:1}},
-            {type:"button",name:"Création manuelle",icon:"mdi:hand-back-right-outline",
-              show_name:true,show_icon:true,show_state:false,
+            {type:"button",name:"Création manuelle",icon:"mdi:arrow-left-circle-outline",
+              show_name:true,show_icon:false,show_state:false,
               tap_action:{action:"navigate",navigation_path:"/kimia-admin-next/scenarios"},
-              grid_options:{columns:12,rows:2}}
+              grid_options:{columns:12,rows:1}}
           ]},
           {type:"grid",column_span:2,cards:[{type:aiAutomationType,
             grid_options:{columns:"full",rows:"auto"}}]},
@@ -1059,6 +1059,24 @@
       const i=scenarios?next.views.indexOf(scenarios)+1:next.views.length;
       next.views.splice(i,0,aiView);added+=4;
     }else if(aiView.sections){
+      // Migration non destructive de l'ancien grand bouton manuel (12x2).
+      // Un bouton modifié par l'utilisateur est laissé tel quel.
+      const legacyManual={type:"button",name:"Création manuelle",icon:"mdi:hand-back-right-outline",
+              show_name:true,show_icon:true,show_state:false,
+              tap_action:{action:"navigate",navigation_path:"/kimia-admin-next/scenarios"},
+              grid_options:{columns:12,rows:2}};
+      const compactManual={type:"button",name:"Création manuelle",icon:"mdi:arrow-left-circle-outline",
+              show_name:true,show_icon:false,show_state:false,
+              tap_action:{action:"navigate",navigation_path:"/kimia-admin-next/scenarios"},
+              grid_options:{columns:12,rows:1}};
+      for(const section of aiView.sections){
+        if(!Array.isArray(section.cards))continue;
+        for(let i=0;i<section.cards.length;i++){
+          if(JSON.stringify(section.cards[i])===JSON.stringify(legacyManual)){
+            section.cards[i]=compactManual;added++;
+          }
+        }
+      }
       for(const type of [aiAutomationType,haHealthType]){
         if(!hasCard(aiView,c=>c.type===type)){
           aiView.sections.push({type:"grid",column_span:2,cards:[
