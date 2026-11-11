@@ -348,6 +348,25 @@ async function main(){
  const adminSaveAfterFirst=adminSaves;
  await window.KimiaSmartCore.sync(hass);
  assert.equal(adminSaves,adminSaveAfterFirst,"Pas d'onglet IA en double dans l'administration");
+ // Le gros bouton 12x2 deja sauvegarde doit devenir compact (12x1).
+ const oldManual=adminConfig.views.find(v=>v.path==="automatisations-ia")
+   .sections.flatMap(sec=>sec.cards||[])
+   .find(c=>c.name==="Création manuelle");
+ oldManual.icon="mdi:hand-back-right-outline";
+ oldManual.show_icon=true;
+ oldManual.grid_options.rows=2;
+ const saveBeforeCompact=adminSaves;
+ await window.KimiaSmartCore.sync(hass);
+ const compactManual=adminConfig.views.find(v=>v.path==="automatisations-ia")
+   .sections.flatMap(sec=>sec.cards||[])
+   .find(c=>c.name==="Création manuelle");
+ assert.equal(compactManual.grid_options.rows,1,"Bouton de navigation reduit sur ancienne installation");
+ assert.equal(compactManual.show_icon,false,"Grosse icone retiree");
+ assert.equal(compactManual.tap_action.navigation_path,"/kimia-admin-next/scenarios");
+ assert.equal(adminSaves,saveBeforeCompact+1,"Migration de taille enregistree");
+ await window.KimiaSmartCore.sync(hass);
+ assert.equal(adminSaves,saveBeforeCompact+1,"Aucun nouvel enregistrement inutile");
+
 
  // Simuler une ancienne tuile native de KIMIA avant le wrapper.
  const cuisineCards=roomSection("prises","cuisine").cards;
