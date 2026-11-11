@@ -93,16 +93,23 @@ async function testDiagnostic(){
     if(method==="GET"&&path==="core/state")return {state:"RUNNING"};
     if(method==="POST"&&path==="config/core/check_config")return {result:"valid"};
     if(method==="GET"&&path==="components")return ["zha"];
+    if(method==="GET"&&path==="error_log")
+      return "2026 ERROR Device offline\n2026 WARNING Zigbee route\n2026 INFO Test";
     throw Error("Unexpected API "+path);
   },
   callWS:async request=>{
     if(request.type==="get_states")return states;
     if(request.type==="config/device_registry/list")return [{id:"d1"}];
+    if(request.type==="config/entity_registry/list")
+      return [{entity_id:"light.cuisine",disabled_by:null},
+        {entity_id:"sensor.disabled",disabled_by:"integration"}];
     throw Error("Unexpected WS: "+request.type);
   }};
  await card.run();
  assert.equal(card.report.hidden,false);
  assert(card.report.textContent.includes("configuration.yaml valide"));
+ assert(card.report.textContent.includes("1 lignes d'erreur"));
+ assert(card.report.textContent.includes("1 désactivées"));
  assert(writes.every(c=>c.startsWith("GET ")||c==="POST config/core/check_config"),
   "Health is read-only aside from the official validation endpoint");
 }
