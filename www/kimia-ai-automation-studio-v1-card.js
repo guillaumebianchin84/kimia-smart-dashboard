@@ -288,7 +288,19 @@
        " désactivées), "+scripts.length+" scripts.");
    }
    if(data.devices)report.push(data.devices.length+" appareils référencés par Home Assistant.");
+   if(data.registry){
+     const disabled=data.registry.filter(e=>e.disabled_by);
+     report.push(data.registry.length+" entités enregistrées ; "+disabled.length+
+       " désactivées volontairement ou par une intégration.");
+   }
    if(data.integrations)report.push(data.integrations.length+" composants chargés (ne garantit pas leur bon fonctionnement).");
+   if(typeof data.log==="string"){
+     const lines=data.log.split(/\r?\n/).slice(-3000);
+     const errors=lines.filter(line=>/\bERROR\b|\bCRITICAL\b/.test(line)).length;
+     const warnings=lines.filter(line=>/\bWARNING\b/.test(line)).length;
+     report.push("Journal de session (maximum 3 000 dernières lignes) : "+
+       errors+" lignes d'erreur, "+warnings+" avertissements. Voir les journaux HA pour le détail.");
+   }
    if(data.errors)report.push(data.errors);
    report.push("Ce diagnostic ne teste ni les piles physiques, ni chaque connexion Zigbee/Wi‑Fi, ni toutes les dépendances des routines.");
    return report.join("\n");
@@ -325,7 +337,9 @@
          ["validation",()=>this._hass.callApi("POST","config/core/check_config",{})],
          ["states",()=>this._hass.callWS({type:"get_states"})],
          ["devices",()=>this._hass.callWS({type:"config/device_registry/list"})],
-         ["integrations",()=>this._hass.callApi("GET","components")]
+         ["registry",()=>this._hass.callWS({type:"config/entity_registry/list"})],
+         ["integrations",()=>this._hass.callApi("GET","components")],
+         ["log",()=>this._hass.callApi("GET","error_log")]
        ];
        const res=await Promise.allSettled(attempts.map(async([name,fn])=>[name,await fn()]));
        res.forEach((item,i)=>{
