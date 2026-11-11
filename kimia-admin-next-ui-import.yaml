@@ -282,3 +282,43 @@ views:
             grid_options:
               columns: full
               rows: auto
+
+  - title: Atelier IA
+    path: atelier-ia
+    icon: mdi:creation
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Atelier IA
+            heading_style: title
+            icon: mdi:creation
+          - type: markdown
+            content: >-
+              Assistant KIMIA : connaissance de la maison et dialogue Gemini.
+              L'analyse est en lecture seule. Les routines ne sont enregistrées
+              qu'après votre validation explicite.
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:kimia-ai-assistant-v2-card
+            grid_options:
+              columns: full
+              rows: auto
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:kimia-ai-automation-studio-v1-card
+            grid_options:
+              columns: full
+              rows: auto
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:kimia-ha-diagnostic-v1-card
+            grid_options:
+              columns: full
+              rows: auto
