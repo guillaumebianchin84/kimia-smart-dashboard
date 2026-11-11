@@ -408,6 +408,11 @@
    const copyAll=document.createElement("button");copyAll.textContent="Copier la conversation";copyAll.type="button";
    copyAll.addEventListener("click",()=>void this.copyText(this.messages.map(x=>(x.role==="user"?"Vous : ":"KIMIA : ")+x.text).join("\n\n")));
    actions.append(copyAll);
+   const readerCheck=document.createElement("button");readerCheck.type="button";readerCheck.textContent="Diagnostic lecteur YAML";
+   readerCheck.addEventListener("click",()=>void this.diagnoseReader());actions.append(readerCheck);
+   this.readerPanel=document.createElement("div");this.readerPanel.setAttribute("aria-live","polite");
+   this.readerPanel.style.cssText="display:none;white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;border:1px solid var(--divider-color);border-radius:10px;background:var(--secondary-background-color);font:12px/1.5 monospace;user-select:text;-webkit-user-select:text";
+   card.append(this.readerPanel);
    this.status=document.createElement("p");this.status.className="muted";this.status.setAttribute("role","status");card.append(this.status);
    const privacy=document.createElement("p");privacy.className="muted";privacy.textContent="Gemini reçoit les noms de pièces, d'appareils et certains états techniques. Aucune clé, journal ni configuration complète. Vérifie les réponses.";card.append(privacy);
    this.say("ai","Bonjour ! Je peux analyser les équipements et les routines. Je ne commande rien.");
@@ -439,6 +444,53 @@
     copy.addEventListener("click",()=>void this.copyText(text));wrap.append(copy);
    }
    this.feed.append(wrap);this.feed.scrollTop=this.feed.scrollHeight;
+  }
+  async diagnoseReader(){
+   if(!this.isAdmin())return;
+   const panel=this.readerPanel;panel.style.display="block";
+   panel.textContent="Diagnostic du lecteur YAML en cours…";
+   const checks=["KIMIA - Initialiser les onglets visibles une seule fois",
+    "KIMIA - Initialiser le bouton Pièces une seule fois",
+    "KIMIA - Appliquer le thème client"];
+   try{
+    const r=await this._hass.callWS({type:"kimia_routine_reader/list"});
+    if(!r||!Array.isArray(r.routines)){
+     panel.textContent="Lecteur joignable, mais réponse inattendue (liste routines absente).";return;
+    }
+    const records=r.routines,bySource={};
+    for(const item of records){
+     const src=String(item.source||"source inconnue");
+     bySource[src]=(bySource[src]||0)+1;
+    }
+    const files=Object.entries(bySource).sort((a,b)=>a[0].localeCompare(b[0]));
+    const errors=r.errors&&typeof r.errors==="object"?Object.entries(r.errors):[];
+    const normalize=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");
+    const tests=checks.map(name=>{
+     const found=records.find(item=>normalize(item.name)===normalize(name));
+     return (found?"OK : ":"ABSENT : ")+name+(found?" ("+found.source+")":"");
+    });
+    const lines=[
+     "LECTEUR YAML : CONNECTÉ",
+     "Routines transmises : "+records.length,
+     "Fichiers ayant fourni des routines : "+files.length,
+     ...files.slice(0,20).map(([src,n])=>"  "+src+" : "+n),
+     ...(files.length>20?["  … autres fichiers non affichés"]:[]),
+     "",
+     "Automatisations de contrôle :",...tests,"",
+     "Erreurs de lecture : "+errors.length,
+     ...errors.slice(0,12).map(([file,reason])=>"  "+file+" : "+String(reason).slice(0,80)),
+     ...(errors.length>12?["  … autres erreurs non affichées"]:[])
+    ];
+    panel.textContent=lines.join("\n");
+    this.status.textContent="Diagnostic local affiché · aucune commande exécutée.";
+   }catch(e){
+    const msg=String(e?.message||e).slice(0,180);
+    panel.textContent="LECTEUR YAML : INACCESSIBLE\n"+
+     "La commande WebSocket kimia_routine_reader/list a échoué.\n"+
+     "Erreur : "+msg+"\n"+
+     "Vérifier le chargement de l'intégration, pas les automatisations.";
+    this.status.textContent="Le diagnostic a identifié une erreur de communication.";
+   }
   }
   async snapshot(){
    if(!this.reg){
