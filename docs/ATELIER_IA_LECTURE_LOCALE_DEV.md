@@ -1,6 +1,6 @@
 # KIMIA Routine Reader — DEV uniquement
 
-**État : correctif de compatibilité WebSocket appliqué, non validé en exécution sur Home Assistant 2026.11.1. Ne pas réinstaller sur le DEV tant que la détection du composant n'a pas été diagnostiquée.**
+**État : nouvelle lecture des packages ajoutée sur la branche DEV. Home Assistant a été relancé par l'utilisateur sans erreur de configuration ; le comportement du nouveau lecteur de packages reste à vérifier en conditions réelles.**
 
 
 Cette petite intégration Home Assistant ajoute la commande WebSocket admin
@@ -26,15 +26,14 @@ automatisations et scripts existants dans l'Atelier IA.
 ## Fonctionnement et limites
 
 - Aucun service d'écriture ; WebSocket accessible aux administrateurs uniquement.
-- Ne lit que `automations.yaml` et `scripts.yaml` directement dans `/config`.
-- N'ouvre ni `configuration.yaml`, ni `secrets.yaml`, ni d'autres chemins.
+- Lit `automations.yaml` et `scripts.yaml` ainsi que les fichiers `*.yaml` et `*.yml` directement dans `/config/packages/` (sans sous-dossier ni récursion).
+- N'ouvre ni `configuration.yaml`, ni `secrets.yaml`, ni de chemins arbitraires. L'accès à `packages/*.yaml` est strictement limité aux fichiers de premier niveau.
 - Les valeurs `data`, templates, variables et paramètres potentiellement sensibles
   ne sont pas envoyés à Gemini. Les actions qui en dépendent peuvent donc être
   décrites seulement partiellement.
 - Les directives HA `!include`, `!secret` et les contenus YAML incompatibles
   avec PyYAML safe_load ne sont pas résolus : une erreur de lecture est remontée.
-- Les automatisations définies via packages, `configuration.yaml` ou inclusions
-  ne sont pas encore accessibles par ce lecteur.
+- Les automatisations déclarées directement dans les packages sont prises en charge. Celles de `configuration.yaml`, des sous-dossiers ou d'inclusions Home Assistant personnalisées ne le sont pas encore.
 - Les correspondances se font par ID quand il existe, sinon par nom exact :
   des doublons de noms peuvent produire une association incertaine.
 - L'état activé ne prouve jamais une exécution. Les traces seront étudiées dans
@@ -57,3 +56,16 @@ Cette correction ne démontre pas la résolution du message « Integration not f
 
 Si le lecteur n'est pas installé, **laisser la clé `kimia_routine_reader:` absente**
 du `configuration.yaml`. L'Atelier IA continue en mode inventaire/API native.
+
+## Mise à jour du lecteur pour les packages
+
+Si la version précédente est déjà installée et ne produit pas d'erreur au
+redémarrage, ne remplacer que `/config/custom_components/kimia_routine_reader/__init__.py`
+par la version du dépôt, puis redémarrer Home Assistant Core. Le fichier
+`manifest.json`, `configuration.yaml`, le JavaScript et les dashboards n'ont
+pas besoin d'être modifiés pour cette mise à jour.
+
+Test utile : demander l'explication de « Initialiser les onglets visibles une seule fois »
+qui figure dans `packages/kimia_admin_navigation.yaml` du dépôt. Ne pas utiliser
+« Appliquer le thème client » comme preuve de lecture des packages tant que sa
+source réelle n'a pas été identifiée.
