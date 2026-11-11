@@ -366,12 +366,12 @@
 
  // KIMIA Assistant V2, analyse de la maison en lecture seule, admin uniquement.
  class AssistantV2 extends HTMLElement{
-  constructor(){super();this.attachShadow({mode:"open"});this.history=[];this.reg=null;this.ready=false;this.busy=false;this.userId=null;}
+  constructor(){super();this.attachShadow({mode:"open"});this.history=[];this.messages=[];this.reg=null;this.ready=false;this.busy=false;this.userId=null;}
   setConfig(c){this.config=c||{};}
   connectedCallback(){this.render();}
   set hass(h){
    if(this.userId&&this.userId!==h?.user?.id){
-    this.history=[];this.reg=null;this.ready=false;this.shadowRoot.replaceChildren();
+    this.history=[];this.messages=[];this.reg=null;this.ready=false;this.shadowRoot.replaceChildren();
    }
    this._hass=h;this.userId=h?.user?.id;if(!this.ready)this.render();
   }
@@ -380,7 +380,7 @@
    if(!this._hass||this.ready)return;
    this.ready=true;
    const root=this.shadowRoot,style=document.createElement("style");
-   style.textContent=":host{display:block;color:var(--primary-text-color)} ha-card{display:block;padding:18px;border-radius:16px}h3{margin:0 0 9px}p{font-size:13px;line-height:1.5}.muted{color:var(--secondary-text-color)}.feed{display:flex;flex-direction:column;gap:9px;max-height:450px;overflow:auto;margin:14px 0}.msg{white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;border-radius:11px;font-size:13px;line-height:1.5;background:var(--secondary-background-color)}.user{margin-left:12%;background:color-mix(in srgb,var(--primary-color,#129e93) 12%,var(--card-background-color))}textarea,select{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--divider-color);border-radius:9px;background:var(--card-background-color);color:var(--primary-text-color);font:inherit}textarea{min-height:80px}.buttons{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}button{cursor:pointer;padding:10px;border:1px solid var(--divider-color);border-radius:9px;background:var(--secondary-background-color);color:var(--primary-text-color)}button.primary{background:var(--primary-color);color:#fff}button:disabled{opacity:.5}";
+   style.textContent=":host{display:block;color:var(--primary-text-color)} ha-card{display:block;padding:18px;border-radius:16px}h3{margin:0 0 9px}p{font-size:13px;line-height:1.5}.muted{color:var(--secondary-text-color)}.feed{display:flex;flex-direction:column;gap:9px;max-height:450px;overflow:auto;margin:14px 0}.msg{white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;border-radius:11px;font-size:13px;line-height:1.5;background:var(--secondary-background-color)}.user{margin-left:12%;background:color-mix(in srgb,var(--primary-color,#129e93) 12%,var(--card-background-color))}textarea,select{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--divider-color);border-radius:9px;background:var(--card-background-color);color:var(--primary-text-color);font:inherit}textarea{min-height:80px}.buttons{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}button{cursor:pointer;padding:10px;border:1px solid var(--divider-color);border-radius:9px;background:var(--secondary-background-color);color:var(--primary-text-color)}button.primary{background:var(--primary-color);color:#fff}button:disabled{opacity:.5}.msg{user-select:text;-webkit-user-select:text}.msg-wrap{display:flex;flex-direction:column;gap:4px}.copy-one{align-self:flex-end;font-size:11px;padding:5px 8px}.copy-one:focus-visible{outline:2px solid var(--primary-color)}";
    root.append(style);
    const card=document.createElement("ha-card");root.append(card);
    const title=document.createElement("h3");title.textContent="✨ Atelier IA · Assistant KIMIA";card.append(title);
@@ -403,15 +403,42 @@
    this.input.addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){e.preventDefault();void this.ask();}});
    const actions=document.createElement("div");actions.className="buttons";card.append(actions);
    this.send=document.createElement("button");this.send.className="primary";this.send.textContent="Demander à KIMIA";this.send.disabled=!models.length;this.send.addEventListener("click",()=>void this.ask());actions.append(this.send);
-   const clear=document.createElement("button");clear.textContent="Nouvelle conversation";clear.addEventListener("click",()=>{if(this.busy)return;this.history=[];this.feed.replaceChildren();this.status.textContent="Conversation effacée.";});actions.append(clear);
+   const clear=document.createElement("button");clear.textContent="Nouvelle conversation";clear.addEventListener("click",()=>{if(this.busy)return;this.history=[];this.messages=[];this.feed.replaceChildren();this.status.textContent="Conversation effacée.";});actions.append(clear);
    const refresh=document.createElement("button");refresh.textContent="Actualiser la maison";refresh.addEventListener("click",()=>{if(this.busy)return;this.reg=null;this.status.textContent="Inventaire réactualisé à la prochaine question.";});actions.append(refresh);
+   const copyAll=document.createElement("button");copyAll.textContent="Copier la conversation";copyAll.type="button";
+   copyAll.addEventListener("click",()=>void this.copyText(this.messages.map(x=>(x.role==="user"?"Vous : ":"KIMIA : ")+x.text).join("\n\n")));
+   actions.append(copyAll);
    this.status=document.createElement("p");this.status.className="muted";this.status.setAttribute("role","status");card.append(this.status);
    const privacy=document.createElement("p");privacy.className="muted";privacy.textContent="Gemini reçoit les noms de pièces, d'appareils et certains états techniques. Aucune clé, journal ni configuration complète. Vérifie les réponses.";card.append(privacy);
    this.say("ai","Bonjour ! Je peux analyser les équipements et les routines. Je ne commande rien.");
   }
+  async copyText(value){
+   const txt=String(value||"");
+   if(!txt){this.status.textContent="Rien à copier pour le moment.";return;}
+   try{
+    if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(txt);}
+    else{
+     const tmp=document.createElement("textarea");tmp.value=txt;tmp.setAttribute("readonly","");tmp.style.position="fixed";tmp.style.left="-9999px";
+     this.shadowRoot.append(tmp);tmp.select();
+     const ok=document.execCommand("copy");tmp.remove();
+     if(!ok)throw Error("copie refusée");
+    }
+    this.status.textContent="Texte copié dans le presse-papiers.";
+   }catch(ex){
+    this.status.textContent="Copie bloquée par le navigateur : sélectionne le texte directement.";
+   }
+  }
   say(role,value){
+   const text=String(value||"");this.messages.push({role,text});
+   const wrap=document.createElement("div");wrap.className="msg-wrap";
    const node=document.createElement("div");node.className="msg"+(role==="user"?" user":"");
-   node.textContent=(role==="user"?"Vous : ":"KIMIA : ")+String(value||"");this.feed.append(node);this.feed.scrollTop=this.feed.scrollHeight;
+   node.textContent=(role==="user"?"Vous : ":"KIMIA : ")+text;wrap.append(node);
+   if(role!=="user"){
+    const copy=document.createElement("button");copy.type="button";copy.className="copy-one";copy.textContent="Copier la réponse";
+    copy.setAttribute("aria-label","Copier cette réponse de KIMIA");
+    copy.addEventListener("click",()=>void this.copyText(text));wrap.append(copy);
+   }
+   this.feed.append(wrap);this.feed.scrollTop=this.feed.scrollHeight;
   }
   async snapshot(){
    if(!this.reg){
