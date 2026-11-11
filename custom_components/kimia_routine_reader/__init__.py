@@ -9,14 +9,13 @@ import logging
 from pathlib import Path
 
 import yaml
-import voluptuous as vol
+import probatio
 
 from homeassistant.components import websocket_api
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 
 _LOGGER = logging.getLogger(__name__)
 DOMAIN = "kimia_routine_reader"
-FILES = ("automations.yaml", "scripts.yaml")
 MAX_SIZE = 2_000_000
 MAX_ITEMS = 300
 MAX_DEPTH = 7
@@ -91,8 +90,8 @@ def _read_file(path: Path, kind: str):
     return records, None
 
 
-@websocket_api.websocket_command({vol.Required("type"): "kimia_routine_reader/list"})
 @websocket_api.require_admin
+@websocket_api.websocket_command({probatio.Required("type"): "kimia_routine_reader/list"})
 @websocket_api.async_response
 async def ws_list(hass, connection, msg):
     """Return sanitized summaries from explicitly allowlisted files."""
