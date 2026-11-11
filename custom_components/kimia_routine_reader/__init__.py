@@ -1,6 +1,6 @@
 """KIMIA routine-reader: read-only, administrator-only routine summaries.
 
-Only automations.yaml and scripts.yaml in HA configuration directory are read.
+Only automations.yaml, scripts.yaml and direct YAML files in packages/ are read.
 Never expose raw YAML or arbitrary paths. No write endpoints.
 """
 from __future__ import annotations
@@ -90,6 +90,50 @@ def _read_file(path: Path, kind: str):
     return records, None
 
 
+def _read_packages(root: Path):
+    """Inspect direct YAML package files; no recursive traversal or include expansion."""
+    folder = root / "packages"
+    if not folder.is_dir() or folder.is_symlink():
+        return [], {}
+    records, errors = [], {}
+    # Bounded scanning to avoid accidental large directories or infinite work.
+    paths = sorted(list(folder.glob("*.yaml")) + list(folder.glob("*.yml")))[:80]
+    for path in paths:
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > MAX_SIZE:
+            errors[path.name] = "unsafe_or_too_large"
+            continue
+        try:
+            data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        except (OSError, yaml.YAMLError, UnicodeError):
+            errors[path.name] = "not_parseable"
+            continue
+        if not isinstance(data, dict):
+            errors[path.name] = "unsupported_structure"
+            continue
+        for kind, payload in (("automation", data.get("automation")), ("script", data.get("script"))):
+            if payload is None:
+                continue
+            if kind == "automation" and not isinstance(payload, list):
+                errors[path.name] = "unsupported_automation_structure"
+                continue
+            if kind == "script" and not isinstance(payload, dict):
+                errors[path.name] = "unsupported_script_structure"
+                continue
+            items = enumerate(payload) if kind == "automation" else payload.items()
+            for key, raw in items:
+                if len(records) >= MAX_ITEMS:
+                    return records, {**errors, "packages": "truncated"}
+                if not isinstance(raw, dict):
+                    continue
+                rec_id = str(raw.get("id", "")) if kind == "automation" else str(key)
+                records.append({
+                    "kind": kind, "id": rec_id[:100],
+                    "name": str(raw.get("alias", rec_id))[:100],
+                    "source": "packages/" + path.name, "config": _safe(raw),
+                })
+    return records, errors
+
+
 @websocket_api.require_admin
 @websocket_api.websocket_command({probatio.Required("type"): "kimia_routine_reader/list"})
 @websocket_api.async_response
@@ -104,8 +148,11 @@ async def ws_list(hass, connection, msg):
             collected.extend(records)
             if issue:
                 errors[filename] = issue
-        return {"routines": collected, "errors": errors,
-                "scope": "automations.yaml and scripts.yaml only; read-only"}
+        package_records, package_errors = _read_packages(root)
+        collected.extend(package_records)
+        errors.update({"packages/" + k: v for k, v in package_errors.items()})
+        return {"routines": collected[:MAX_ITEMS], "errors": errors,
+                "scope": "automations.yaml, scripts.yaml and direct packages/*.yaml; read-only"}
     response = await hass.async_add_executor_job(read)
     connection.send_result(msg["id"], response)
 
