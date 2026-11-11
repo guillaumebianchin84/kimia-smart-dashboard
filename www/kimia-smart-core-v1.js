@@ -1032,6 +1032,54 @@
     const appearance=next.views.find(v=>v.path==="apparence");
     const scenarios=next.views.find(v=>v.path==="scenarios");
     let added=0;
+    // Atelier IA dans un onglet d'administration séparé : le manuel reste intact.
+    const aiAutomationType="custom:kimia-ai-automation-studio-v1-card";
+    const haHealthType="custom:kimia-ha-diagnostic-v1-card";
+    const aiTabPath="automatisations-ia";
+    let aiView=next.views.find(v=>v.path===aiTabPath);
+    if(!aiView){
+      aiView={
+        title:"Automatisations IA",path:aiTabPath,icon:"mdi:robot-outline",
+        type:"sections",max_columns:2,
+        sections:[
+          {type:"grid",column_span:2,cards:[
+            {type:"heading",heading:"Atelier IA KIMIA",icon:"mdi:creation",heading_style:"title",
+              grid_options:{columns:"full",rows:1}},
+            {type:"button",name:"Création manuelle",icon:"mdi:hand-back-right-outline",
+              show_name:true,show_icon:true,show_state:false,
+              tap_action:{action:"navigate",navigation_path:"/kimia-admin-next/scenarios"},
+              grid_options:{columns:12,rows:2}}
+          ]},
+          {type:"grid",column_span:2,cards:[{type:aiAutomationType,
+            grid_options:{columns:"full",rows:"auto"}}]},
+          {type:"grid",column_span:2,cards:[{type:haHealthType,
+            grid_options:{columns:"full",rows:"auto"}}]}
+        ]
+      };
+      const i=scenarios?next.views.indexOf(scenarios)+1:next.views.length;
+      next.views.splice(i,0,aiView);added+=4;
+    }else if(aiView.sections){
+      for(const type of [aiAutomationType,haHealthType]){
+        if(!hasCard(aiView,c=>c.type===type)){
+          aiView.sections.push({type:"grid",column_span:2,cards:[
+            {type,grid_options:{columns:"full",rows:"auto"}}
+          ]});
+          added++;
+        }
+      }
+    }
+    // Raccourci vers l'IA depuis les scénarios manuels, sans déplacer
+    // leurs cartes ni altérer l'éditeur Home Assistant.
+    if(scenarios?.sections&&!hasCard(scenarios,c=>
+       c.type==="button"&&c.name==="Automatisations IA KIMIA")){
+      scenarios.sections.push({type:"grid",column_span:2,cards:[{
+        type:"button",name:"Automatisations IA KIMIA",
+        icon:"mdi:creation",show_name:true,show_icon:true,show_state:false,
+        tap_action:{action:"navigate",navigation_path:"/kimia-admin-next/"+aiTabPath},
+        grid_options:{columns:12,rows:2}
+      }]});
+      added++;
+    }
     // Generateur Gemini : ajout non destructif dans la page Scenarios.
     const aiSettingsCard="custom:kimia-ai-scenes-settings-card";
     if(scenarios?.sections &&

@@ -94,6 +94,15 @@ for (const path of ["pieces","musique"]) {
  });
 }
 let config=clone(original),saveCount=0,lastPath=null;
+let adminConfig={title:"KIMIA Configuration",views:[
+  {title:"Scénarios",path:"scenarios",type:"sections",max_columns:2,
+    sections:[{type:"grid",cards:[
+      {type:"markdown",content:"Création MANUELLE originale à conserver"}
+    ]}]},
+  {title:"Apparence",path:"apparence",type:"sections",max_columns:2,
+    sections:[{type:"grid",cards:[{type:"markdown",content:"Mes réglages"}]}]}
+]};
+let adminSaves=0;
 const hass={
  user:{is_admin:true},
  states:{
@@ -107,13 +116,22 @@ const hass={
  },
  callWS:async request=>{
   switch(request.type){
-   case "lovelace/dashboards/list":return [{url_path:"kimia-next",mode:"storage"}];
+   case "lovelace/dashboards/list":return [
+    {url_path:"kimia-next",mode:"storage"},
+    {url_path:"kimia-admin-next",mode:"storage"}
+   ];
+   case "config/auth/list":return [];
    case "config/area_registry/list":return clone(rooms);
    case "config/device_registry/list":return clone(devices);
    case "config/entity_registry/list":return clone(entities);
    case "config/label_registry/list":return clone(labels);
-   case "lovelace/config":return clone(config);
+   case "lovelace/config":
+    return clone(request.url_path==="kimia-admin-next"?adminConfig:config);
    case "lovelace/config/save":
+    if(request.url_path==="kimia-admin-next"){
+      adminSaves++;adminConfig=clone(request.config);
+      return {};
+    }
     lastPath=request.url_path;saveCount++;config=clone(request.config);return {};
    default:throw Error("Commande inattendue: "+request.type);
   }
@@ -129,7 +147,19 @@ const roomSection=(path,area)=>view(path).sections.find(s=>
 async function main(){
  const first=await window.KimiaSmartCore.sync(hass);
  assert(first.added>=9);
- assert.equal(lastPath,"kimia-next","Un autre dashboard ne doit jamais être modifié");
+ assert.equal(lastPath,"kimia-next","Dashboard client bien synchronisé");
+ const automationTab=adminConfig.views.find(v=>v.path==="automatisations-ia");
+ assert(automationTab,"Onglet Automatisations IA créé dans l'administration");
+ assert(automationTab.sections.some(x=>x.cards?.some(c=>
+   c.type==="custom:kimia-ai-automation-studio-v1-card")));
+ assert(automationTab.sections.some(x=>x.cards?.some(c=>
+   c.type==="custom:kimia-ha-diagnostic-v1-card")));
+ const scenariosAdmin=adminConfig.views.find(v=>v.path==="scenarios");
+ assert(scenariosAdmin.sections.some(x=>x.cards?.some(c=>c.type==="markdown"&&
+   c.content.includes("MANUELLE"))),"Éditeur manuel conservé");
+ assert(scenariosAdmin.sections.some(x=>x.cards?.some(c=>c.type==="button"&&
+   c.tap_action?.navigation_path==="/kimia-admin-next/automatisations-ia")),
+   "Lien depuis l'onglet manuel vers l'IA");
  assert.equal(cards(view("accueil")).filter(c=>c.type==="area").length,0,
   "Accueil interdit aux cartes pièces");
  assert.equal(cards(view("accueil")).filter(c=>c.type==="tile").length,0,
@@ -315,6 +345,9 @@ async function main(){
  assert.equal(again.added,0);
  assert.equal(again.removed,0);
  assert.equal(saveCount,saves,"Synchronisation idempotente");
+ const adminSaveAfterFirst=adminSaves;
+ await window.KimiaSmartCore.sync(hass);
+ assert.equal(adminSaves,adminSaveAfterFirst,"Pas d'onglet IA en double dans l'administration");
 
  // Simuler une ancienne tuile native de KIMIA avant le wrapper.
  const cuisineCards=roomSection("prises","cuisine").cards;
