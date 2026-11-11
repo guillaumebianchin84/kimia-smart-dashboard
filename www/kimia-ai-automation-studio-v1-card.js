@@ -500,7 +500,10 @@
     const id=kind==="script"?s.entity_id.slice(7):String(s.attributes?.id||"");
     const base={entity:s.entity_id,name:s.attributes?.friendly_name||s.entity_id,
      enabled:kind==="automation"?s.state==="on":null};
-    if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id))return {...base,source:"inventaire",detail:"Identifiant de configuration non disponible."};
+    if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id)){
+     const match=localRecords.find(r=>r.kind===kind&&String(r.name||"").trim().toLowerCase()===String(base.name).trim().toLowerCase());
+     return match?{...base,source:"lecture locale "+match.source,configuration:match.config}:{...base,source:"inventaire",detail:"Identifiant de configuration non disponible."};
+    }
     try{
      const cfg=await this._hass.callApi("GET","config/"+kind+"/config/"+encodeURIComponent(id));
      if(!cfg||typeof cfg!=="object")throw Error("no config");
