@@ -316,18 +316,40 @@
      this.shadowRoot.innerHTML="<style>"+CSS+"</style>"+
        "<ha-card><h3>🩺 Diagnostic Home Assistant</h3>"+
        "<p>Vérifie la configuration YAML, l'état du cœur HA, les entités indisponibles, les appareils, les intégrations et les routines. Lecture seule, sans réparation ni redémarrage.</p>"+
-       "<button class='primary run'>Vérifier mon Home Assistant</button>"+
-       "<p class='status' role='status'></p><pre class='report' hidden></pre>"+
+       "<button class='primary run'>Vérifier mon Home Assistant</button> "+
+       "<button class='copy-report' type='button' hidden>Copier le rapport</button>"+
+       "<p class='status' role='status'></p><pre class='report' style='user-select:text;-webkit-user-select:text' hidden></pre>"+
        "<p class='hint'>Ce rapport est un contrôle de santé général, pas une certification complète de tous les équipements.</p></ha-card>";
      this.button=this.shadowRoot.querySelector(".run");
      this.status=this.shadowRoot.querySelector(".status");
      this.report=this.shadowRoot.querySelector(".report");
+     this.copyButton=this.shadowRoot.querySelector(".copy-report");
      this.button.disabled=this._hass.user?.is_admin!==true;
      this.button.addEventListener("click",()=>this.run());
+     this.copyButton.addEventListener("click",()=>void this.copyReport());
+   }
+   async copyReport(){
+     if(this._hass?.user?.is_admin!==true||this.report.hidden||!this.report.textContent)return;
+     const content=this.report.textContent;
+     try{
+       if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(content);
+       else{
+         const field=document.createElement("textarea");
+         field.value=content;field.setAttribute("readonly","");
+         field.style.cssText="position:fixed;left:-9999px;top:0";
+         this.shadowRoot.append(field);field.select();
+         const copied=document.execCommand("copy");field.remove();
+         if(!copied)throw Error("copie refusée");
+       }
+       this.status.textContent="Rapport copié dans le presse-papiers.";
+     }catch(_){
+       this.status.textContent="Copie bloquée par le navigateur. Sélectionne le texte du rapport.";
+     }
    }
    async run(){
      if(this.busy||this._hass?.user?.is_admin!==true)return;
      this.busy=true;this.button.disabled=true;this.report.hidden=true;
+     this.copyButton.hidden=true;
      this.status.textContent="Contrôles Home Assistant en cours…";
      try{
        const data={},missing=[];
@@ -350,6 +372,7 @@
        if(missing.length)data.errors="Contrôles indisponibles : "+missing.join("; ");
        this.report.textContent=summarizeHealth(data);
        this.report.hidden=false;
+       this.copyButton.hidden=false;
        this.status.textContent=missing.length
          ?"Diagnostic partiel : certains contrôles sont indisponibles.":"Diagnostic terminé : consulte le rapport.";
      }catch(error){this.status.textContent="Diagnostic impossible : "+err(error);}
