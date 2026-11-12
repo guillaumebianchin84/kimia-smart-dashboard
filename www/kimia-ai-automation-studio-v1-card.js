@@ -261,6 +261,52 @@
      finally{this.busy=false;this.propose.disabled=this._hass.user?.is_admin!==true||!this.model.value;}
    }
  }
+ function kimiaAudit(data){
+   const out=["", "AUDIT KIMIA — lecture seule"];
+   const reader=data.kimiaReader;
+   if(reader&&Array.isArray(reader.routines)){
+     const items=reader.routines,problems=Object.entries(reader.errors||{});
+     const sources=[...new Set(items.map(x=>String(x.source||"")).filter(Boolean))];
+     out.push("✓ Lecteur YAML connecté : "+items.length+" routines dans "+sources.length+" fichiers sources.");
+     if(problems.length)out.push("⚠ Fichiers YAML non lus : "+problems.slice(0,8).map(([name,why])=>name+" ("+why+")").join(", "));
+     let legacy=0;
+     for(const r of items){
+       if(r.kind!=="automation")continue;
+       const pending=[r.config],seen=new Set();
+       let found=false;
+       for(let n=0;n<120&&pending.length;n++){
+         const entry=pending.pop();
+         if(!entry||typeof entry!=="object"||seen.has(entry))continue;
+         seen.add(entry);
+         for(const value of Object.values(entry)){
+           if(value==="frontend.set_theme"){found=true;break;}
+           if(value&&typeof value==="object")pending.push(value);
+         }
+         if(found)break;
+       }
+       if(found){legacy++;if(legacy<=8)out.push("⚠ À examiner : frontend.set_theme dans « "+String(r.name||r.id).slice(0,80)+" » ("+String(r.source||"source inconnue").slice(0,100)+").");}
+     }
+     if(!legacy)out.push("✓ Aucun frontend.set_theme trouvé dans les routines accessibles.");
+   }else out.push("ℹ Lecteur YAML indisponible : recherche des anciennes automatisations limitée.");
+   const resources=Array.isArray(data.kimiaResources)?data.kimiaResources:
+     Array.isArray(data.kimiaResources?.resources)?data.kimiaResources.resources:null;
+   if(resources){
+     const urls=resources.map(x=>String(x?.url||"")).filter(u=>/kimia[^/]*\.js(?:[?#]|$)/i.test(u));
+     out.push("Ressources JavaScript KIMIA déclarées : "+urls.length+".");
+     const counts=new Map();
+     for(const u of urls){const path=u.split("?")[0].split("#")[0];counts.set(path,(counts.get(path)||0)+1);}
+     const duplicated=[...counts].filter(([,count])=>count>1);
+     if(duplicated.length)for(const [file,count] of duplicated.slice(0,8))
+       out.push("⚠ À vérifier : ressource inscrite "+count+" fois : "+file.slice(0,130));
+     else out.push("✓ Pas de doublon de chemin parmi les ressources KIMIA enregistrées.");
+     if(urls.some(u=>u.includes("kimia-local-theme-v16-card.js")))
+       out.push("✓ Ressource de thèmes locaux KIMIA V1.6 déclarée.");
+   }else out.push("ℹ Ressources Lovelace non accessibles : comparaison des doublons impossible.");
+   out.push("ℹ Cet audit ne peut pas lister les anciens fichiers inutilisés dans /config/www.");
+   out.push("Aucune suppression automatique. Un appareil volontairement débranché n'est pas nécessairement en panne.");
+   return out.join("\n");
+ }
+ 
  function summarizeHealth(data){
    const report=[];
    if(data.config)report.push("Home Assistant "+(data.config.version||"version inconnue")+
@@ -294,14 +340,14 @@
        " désactivées volontairement ou par une intégration.");
    }
    if(data.integrations)report.push(data.integrations.length+" composants chargés (ne garantit pas leur bon fonctionnement).");
-   if(typeof data.log==="string"){
-     const lines=data.log.split(/\r?\n/).slice(-3000);
-     const errors=lines.filter(line=>/\bERROR\b|\bCRITICAL\b/.test(line)).length;
-     const warnings=lines.filter(line=>/\bWARNING\b/.test(line)).length;
-     report.push("Journal de session (maximum 3 000 dernières lignes) : "+
-       errors+" lignes d'erreur, "+warnings+" avertissements. Voir les journaux HA pour le détail.");
-   }
+   if(Array.isArray(data.log)){
+     const events=data.log.slice(0,100);
+     const errors=events.filter(x=>/ERROR|CRITICAL/i.test(String(x?.level||""))).length;
+     const warnings=events.filter(x=>/WARNING/i.test(String(x?.level||""))).length;
+     report.push("Journal système (jusqu'à 100 entrées) : "+errors+" erreurs, "+warnings+" avertissements.");
+   }else if(data.logUnavailable)report.push("ℹ Journaux indisponibles par API ; consulter Paramètres → Système → Journaux.");
    if(data.errors)report.push(data.errors);
+   report.push(kimiaAudit(data));
    report.push("Ce diagnostic ne teste ni les piles physiques, ni chaque connexion Zigbee/Wi‑Fi, ni toutes les dépendances des routines.");
    return report.join("\n");
  }
@@ -361,12 +407,17 @@
          ["devices",()=>this._hass.callWS({type:"config/device_registry/list"})],
          ["registry",()=>this._hass.callWS({type:"config/entity_registry/list"})],
          ["integrations",()=>this._hass.callApi("GET","components")],
-         ["log",()=>this._hass.callApi("GET","error_log")]
+         ["log",()=>this._hass.callWS({type:"system_log/list"})],
+         ["kimiaReader",()=>this._hass.callWS({type:"kimia_routine_reader/list"})],
+         ["kimiaResources",()=>this._hass.callWS({type:"lovelace/resources"})]
        ];
        const res=await Promise.allSettled(attempts.map(async([name,fn])=>[name,await fn()]));
        res.forEach((item,i)=>{
          const name=attempts[i][0];
          if(item.status==="fulfilled")data[name]=item.value[1];
+         else if(name==="log")data.logUnavailable=true;
+         else if(name==="kimiaReader")data.kimiaReaderError=true;
+         else if(name==="kimiaResources")data.kimiaResourcesError=true;
          else missing.push(name+" ("+err(item.reason)+")");
        });
        if(missing.length)data.errors="Contrôles indisponibles : "+missing.join("; ");
