@@ -468,7 +468,7 @@
    for(const [label,prompt] of [
     ["Ma maison","Présente les pièces et appareils que tu connais."],
     ["Mes routines","Quelles routines sont présentes et quels points méritent une vérification ?"],
-    ["Diagnostic","Quels équipements semblent indisponibles et quelles vérifications proposer ?"]
+    ["Demander un avis à KIMIA","Quels équipements semblent indisponibles et quelles vérifications proposer ?"]
    ]){const b=document.createElement("button");b.textContent=label;b.addEventListener("click",()=>{this.input.value=prompt;this.input.focus();});chips.append(b);}
    this.input=document.createElement("textarea");this.input.maxLength=1500;this.input.placeholder="Demande à KIMIA ce que tu veux savoir sur la maison…";card.append(this.input);
    this.input.addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){e.preventDefault();void this.ask();}});
@@ -479,13 +479,15 @@
    const copyAll=document.createElement("button");copyAll.textContent="Copier la conversation";copyAll.type="button";
    copyAll.addEventListener("click",()=>void this.copyText(this.messages.map(x=>(x.role==="user"?"Vous : ":"KIMIA : ")+x.text).join("\n\n")));
    actions.append(copyAll);
-   const readerCheck=document.createElement("button");readerCheck.type="button";readerCheck.textContent="Diagnostic lecteur YAML";
-   readerCheck.addEventListener("click",()=>void this.diagnoseReader());actions.append(readerCheck);
-   this.readerPanel=document.createElement("div");this.readerPanel.setAttribute("aria-live","polite");
-   this.readerPanel.style.cssText="display:none;white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;border:1px solid var(--divider-color);border-radius:10px;background:var(--secondary-background-color);font:12px/1.5 monospace;user-select:text;-webkit-user-select:text";
-   card.append(this.readerPanel);
    this.status=document.createElement("p");this.status.className="muted";this.status.setAttribute("role","status");card.append(this.status);
    const privacy=document.createElement("p");privacy.className="muted";privacy.textContent="Gemini reçoit les noms de pièces, d'appareils et certains états techniques. Aucune clé, journal ni configuration complète. Vérifie les réponses.";card.append(privacy);
+   const technical=document.createElement("section");card.append(technical);
+   const technicalTitle=document.createElement("h4");technicalTitle.textContent="Diagnostic technique";technical.append(technicalTitle);
+   const readerCheck=document.createElement("button");readerCheck.type="button";readerCheck.textContent="Diagnostic lecteur YAML";
+   readerCheck.addEventListener("click",()=>void this.diagnoseReader());technical.append(readerCheck);
+   this.readerPanel=document.createElement("div");this.readerPanel.setAttribute("aria-live","polite");
+   this.readerPanel.style.cssText="display:none;white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;border:1px solid var(--divider-color);border-radius:10px;background:var(--secondary-background-color);font:12px/1.5 monospace;user-select:text;-webkit-user-select:text";
+   technical.append(this.readerPanel);
    this.say("ai","Bonjour ! Je peux analyser les équipements et les routines. Je ne commande rien.");
   }
   async copyText(value){
