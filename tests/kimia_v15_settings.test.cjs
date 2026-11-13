@@ -50,7 +50,7 @@ const hass={user:{is_admin:true},states:{},config:{internal_url:"http://192.168.
  }
 }};
 const get=path=>cfg.views.find(v=>v.path===path);
-const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
+const cards=path=>get(path).sections.flatMap(s=>s.cards||[]).map(c=>c.card||c);
 (async()=>{
  await window.KimiaSmartCore.sync(hass);
  assert.equal(cfg.kiosk_mode.kiosk,undefined,"Kiosk global V1.6.1 supprimé : admin voit HA");
@@ -86,7 +86,7 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
  assert(!cards("parametres").some(c=>c.name==="Terracotta"));
  assert(!cards("reglages-localisation").some(c=>c.tap_action?.navigation_path==="/config/zone"));
  assert(cards("reglages-localisation").some(c=>c.tap_action?.navigation_path==="/kimia-next/carte"));
- assert(!cards("reglages-reseau").some(c=>c.type==="custom:kimia-client-network-v1-card"));
+ assert.equal(cards("reglages-reseau").filter(c=>c.type==="custom:kimia-client-network-v1-card"&&c.client).length,1);
  assert(cards("reglages-reseau").some(c=>c.heading==="Accès local"));
  assert(cards("reglages-utilisateurs").some(c=>c.tap_action?.navigation_path==="/profile"));
  assert(!get("reglages-matter"));
@@ -98,6 +98,10 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
  assert(adminCards("reseau").some(c=>c.type==="custom:kimia-client-network-v1-card"));
  assert(adminLinks("atelier-ia").includes("/config/voice-assistants/assistants"));
  assert(adminLinks("utilisateurs").includes("/config/users"));
+ const controls=get("parametres").sections.flatMap(s=>s.cards||[]);
+ assert(controls.some(c=>c.type==="custom:kimia-settings-lock-v1-card"&&c.mode==="control"));
+ assert(controls.some(c=>c.type==="shortcut"&&c.tap_action?.navigation_path==="/kimia-next/reglages-apparence"));
+ assert(controls.some(c=>c.mode==="content"&&c.card?.tap_action?.navigation_path==="/kimia-next/reglages-reseau"));
  const was=writes;
  await window.KimiaSmartCore.sync(hass);
  assert.equal(writes,was,"no duplicate views, cards or writes on second pass");
@@ -126,7 +130,7 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
  });
  await window.KimiaSmartCore.sync(hass);
  assert(!get("reglages-matter"));
- assert(!cards("reglages-reseau").some(c=>c.type==="custom:kimia-client-network-v1-card"));
+ assert.equal(cards("reglages-reseau").filter(c=>c.type==="custom:kimia-client-network-v1-card"&&c.client).length,1);
  assert(!cards("reglages-localisation").some(c=>c.tap_action?.navigation_path==="/config/zone"));
  assert(cards("reglages-utilisateurs").some(c=>c.tap_action?.navigation_path==="/profile"));
  assert(!cards("parametres").some(c=>c.name==="Réglages de la voix Gemini"));
