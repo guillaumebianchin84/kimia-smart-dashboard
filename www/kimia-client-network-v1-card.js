@@ -147,10 +147,7 @@
      return cudy.length===1?cudy[0]:matches.length===1?matches[0]:null;
    }
    _settingsAllowed(){
-     // Reprend l'interrupteur déjà utilisé par l'onglet Paramètres KIMIA.
-     // Filtrage d'interface uniquement : ne remplace PAS les permissions HA.
-     return this._hass?.user?.is_admin===true||
-       this._hass?.states?.["input_boolean.kimia_onglet_parametres"]?.state==="on";
+     return this._hass?.user?.is_admin===true;
    }
    _wispCurrent(){
      const states=this._hass?.states||{};

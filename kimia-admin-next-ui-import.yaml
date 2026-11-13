@@ -125,6 +125,31 @@ views:
               columns: full
               rows: auto
       - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Matter
+            icon: mdi:matter
+          - type: markdown
+            content: |
+              Dans l’appli Home Assistant sur ton téléphone, ouvre **Appareils Matter**, puis **Ajouter un appareil**. Scanne le QR code ou choisis Google Home si l’appareil y est déjà configuré.
+
+              Choisis une pièce, puis dans **Démarrer**, appuie sur **Actualiser ma maison**.
+            grid_options:
+              columns: full
+              rows: auto
+          - type: shortcut
+            label: Appareils Matter
+            description: Ajouter ou retrouver un appareil
+            icon: mdi:matter
+            color: teal
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /config/matter/dashboard
+      - type: grid
         cards:
           - type: heading
             heading: Après l'installation
@@ -136,6 +161,20 @@ views:
             tap_action:
               action: navigate
               navigation_path: /kimia-next/pieces
+      - type: grid
+        column_span: 2
+        cards:
+          - type: shortcut
+            label: Réglages réseau
+            description: Wi-Fi Internet, Cudy et clé Zigbee
+            icon: mdi:wifi
+            color: blue
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-admin-next/reseau
   - title: Inventaire
     path: inventaire
     icon: mdi:format-list-bulleted-square
@@ -265,6 +304,20 @@ views:
             tap_action:
               action: navigate
               navigation_path: /kimia-next/parametres
+      - type: grid
+        column_span: 2
+        cards:
+          - type: shortcut
+            label: Créer ou modifier une zone
+            description: Gérer les zones de la carte
+            icon: mdi:map-marker-plus
+            color: cyan
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /config/zone
   - title: Scénarios
     path: scenarios
     icon: mdi:lightning-bolt
@@ -296,6 +349,49 @@ views:
         column_span: 2
         cards:
           - type: custom:kimia-ha-diagnostic-v1-card
+            grid_options:
+              columns: full
+              rows: auto
+      - type: grid
+        column_span: 2
+        cards:
+          - type: shortcut
+            label: Réglages de la voix Gemini
+            description: Ouvrir les assistants vocaux
+            icon: mdi:microphone
+            color: blue
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /config/voice-assistants/assistants
+  - title: Réseau
+    path: reseau
+    icon: mdi:wifi
+    type: sections
+    max_columns: 2
+    subview: true
+    back_path: /kimia-admin-next/appareils
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: shortcut
+            label: Retour aux appareils
+            description: Revenir à la liste
+            icon: mdi:arrow-left
+            color: teal
+            grid_options:
+              columns: 6
+              rows: 2
+            tap_action:
+              action: navigate
+              navigation_path: /kimia-admin-next/appareils
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:kimia-client-network-v1-card
             grid_options:
               columns: full
               rows: auto
