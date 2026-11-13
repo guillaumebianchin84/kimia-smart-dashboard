@@ -79,7 +79,9 @@
          option.textContent=String(value);e.net.append(option);
        }
      }
-     const selected=options.includes(net?.state)?net.state:options.includes(prev)?prev:"";
+     if(this._pendingNetwork&&net?.state===this._pendingNetwork)this._pendingNetwork=null;
+     const selected=options.includes(this._pendingNetwork)?this._pendingNetwork:
+       options.includes(net?.state)?net.state:options.includes(prev)?prev:"";
      if(e.net.value!==selected)e.net.value=selected;
      e.scan.disabled=this._busy||!online(ids.scan?this._hass.states[ids.scan]:null);
      e.net.disabled=this._busy||!online(net)||!options.length;
@@ -102,11 +104,11 @@
    async _select(){
      const id=this._ids?.network,option=this._els.net.value;
      if(this._busy||!id||!option)return;
-     this._busy=true;this._refresh();
+     this._pendingNetwork=option;this._busy=true;this._refresh();
      try{
        await this._hass.callService("select","select_option",{entity_id:id,option});
        this._els.notice.textContent="Réseau sélectionné : "+option+". Saisissez le mot de passe avant connexion.";
-     }catch(_){this._els.notice.textContent="Impossible de sélectionner ce réseau.";}
+     }catch(_){this._pendingNetwork=null;this._els.notice.textContent="Impossible de sélectionner ce réseau.";}
      finally{this._busy=false;this._refresh();}
    }
    async _connect(){
