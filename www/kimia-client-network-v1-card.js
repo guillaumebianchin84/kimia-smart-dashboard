@@ -83,18 +83,39 @@
    }
    _cudyClients(){
      const states=this._hass?.states||{};
-     if(Array.isArray(this._clientMeta)){
-       return this._clientMeta.map(item=>{
-         const entity=states[item.id];
-         const ip=online(entity)?localIp(entity.state):"";
-         const friendly=String(entity?.attributes?.friendly_name||"");
-         return {name:item.name||friendly.replace(/\s+IP address$/i,"")||item.id,ip};
-       }).filter(x=>x.ip).sort((a,b)=>a.name.localeCompare(b.name));
+     let sources=this._clientMeta;
+     let method="registre Cudy";
+     if(!Array.isArray(sources)){
+       // Certaines versions de HA exposent le registre dans hass.entities.
+       // On n'utilise alors que la plateforme Cudy, jamais les autres intégrations.
+       const raw=this._hass?.entities;
+       const entities=Array.isArray(raw)?raw:Object.values(raw||{});
+       sources=entities.filter(e=>e?.platform==="cudy_router"&&
+         /-device-[0-9a-f]{12}-ip$/i.test(String(e.unique_id||"")))
+         .map(e=>({id:e.entity_id,name:e.name||""}));
+       method=sources.length?"registre partagé":"";
      }
-     // Sans permission de lire le registre, les capteurs d'IP sont visibles
-     // dans les états HA mais leur provenance Cudy ne peut être certifiée.
-     // On ne présente donc PAS les autres capteurs comme clients du routeur.
-     return [];
+     if(!sources.length && !method){
+       // Repli pour les comptes HA standards : ces capteurs seuls ne prouvent pas
+       // leur origine Cudy. Affichage indicatif, sans prétendre à l'exhaustivité.
+       sources=Object.entries(states).filter(([id,e])=>
+         id.startsWith("sensor.")&&/ IP address$/i.test(String(e.attributes?.friendly_name||""))&&
+         localIp(e.state))
+         .map(([id,e])=>({id,name:String(e.attributes.friendly_name).replace(/ IP address$/i,"")}));
+       method=sources.length?"capteurs visibles (indicatif)":"";
+     }
+     this._clientListMethod=method;
+     const seen=new Set();
+     return sources.map(item=>{
+       const entity=states[item.id];
+       const ip=online(entity)?localIp(entity.state):"";
+       const name=item.name||String(entity?.attributes?.friendly_name||"")
+         .replace(/\s+IP address$/i,"")||item.id;
+       return {name,ip};
+     }).filter(item=>{
+       if(!item.ip||seen.has(item.ip))return false;
+       seen.add(item.ip);return true;
+     }).sort((a,b)=>a.name.localeCompare(b.name));
    }
    _find(kind){
      const specified=this._config["wisp_"+kind+"_entity"];
@@ -179,10 +200,12 @@
        line.append(name,ip);e.clients.append(line);
      }
      e["client-note"].textContent=clients.length?
-       clients.length+" appareil(s) connecté(s) avec adresse IP connue.":
+       clients.length+" appareil(s) avec IP détectée(s) · "+this._clientListMethod+
+       (this._clientListMethod==="capteurs visibles (indicatif)"?
+         " ; inventaire potentiellement incomplet.":"."):
        this._clientMeta===null?
-       "Inventaire indisponible pour ce compte. Un accès serveur dédié serait nécessaire pour afficher une liste complète.":
-       "Aucun client Cudy avec IP visible. Vérifier « Ajouter automatiquement les appareils connectés » dans les options de l'intégration Cudy Router.";
+         "Aucun client trouvé. Activer « Ajouter automatiquement les appareils connectés » dans les options Cudy Router.":
+         "Aucun client Cudy avec IP visible. Vérifier l'ajout automatique des appareils dans Cudy Router.";
      const ids={scan:this._find("scan"),network:this._find("network"),password:this._find("password"),connect:this._find("connect")};
      this._ids=ids;
      const net=ids.network?this._hass.states[ids.network]:null;
