@@ -145,10 +145,6 @@ views:
       - type: grid
         column_span: 2
         cards:
-          - type: heading
-            heading: Tous mes équipements
-            heading_style: title
-            icon: mdi:format-list-bulleted-square
           - type: markdown
             content: >-
               Retrouvez tous vos appareils, y compris ceux qui ne sont pas
@@ -292,26 +288,7 @@ views:
       - type: grid
         column_span: 2
         cards:
-          - type: heading
-            heading: Assistant KIMIA
-            heading_style: title
-            icon: mdi:creation
-          - type: markdown
-            content: >-
-              Assistant KIMIA : connaissance de la maison et dialogue Gemini.
-              L'analyse est en lecture seule. Les routines ne sont enregistrées
-              qu'après votre validation explicite.
-      - type: grid
-        column_span: 2
-        cards:
           - type: custom:kimia-ai-assistant-v2-card
-            grid_options:
-              columns: full
-              rows: auto
-      - type: grid
-        column_span: 2
-        cards:
-          - type: custom:kimia-ai-automation-studio-v1-card
             grid_options:
               columns: full
               rows: auto
