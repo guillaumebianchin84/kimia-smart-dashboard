@@ -78,10 +78,17 @@
   window.KimiaSettingsLock = Object.freeze({isOpen,token,changed});
 
   class KimiaSettingsLockCard extends HTMLElement {
+    get connectedWhileHidden() { return true; }
+    set layout(value) {
+      this._layout = value;
+      if (this.child) this.child.layout = value;
+      this.updateGridHeight();
+    }
     setConfig(config) {
       this.config = config;
       this.open = undefined;
       if (!this.shadowRoot) this.attachShadow({mode:"open"});
+      this.updateGridHeight();
       this.render();
     }
     set hass(hass) {
@@ -97,6 +104,17 @@
     }
     disconnectedCallback() { window.removeEventListener(changed,this.update); }
     getGridOptions() { return this.config?.grid_options || {columns:6,rows:2}; }
+    updateGridHeight() {
+      this.toggleAttribute("fixed-height", this._layout === "grid" &&
+        typeof this.getGridOptions().rows === "number");
+    }
+    setVisible(visible) {
+      if (this.hidden === !visible) return;
+      this.hidden = !visible;
+      this.dispatchEvent(new CustomEvent("card-visibility-changed", {
+        detail:{value:visible}, bubbles:true, composed:true
+      }));
+    }
     render() {
       if (!this.shadowRoot || !this.config || !this._hass) return;
       const open = isOpen(this._hass);
@@ -105,16 +123,18 @@
       this.renderMode = this.config.mode;
       this.child = undefined;
       this.shadowRoot.innerHTML = `<style>
-        :host{display:block} :host([hidden]){display:none} ha-card{padding:12px}
+        :host{display:block} :host([hidden]){display:none}
+        :host([fixed-height]){height:100%} :host([fixed-height]) #content{height:100%}
+        ha-card{padding:12px} :host([fixed-height]) > ha-card{height:100%;display:flex;align-items:center;box-sizing:border-box}
         ha-button{max-width:100%} dialog{background:var(--card-background-color);color:var(--primary-text-color);border:1px solid var(--divider-color);border-radius:12px;padding:20px;max-width:calc(100vw - 56px)}
         dialog::backdrop{background:#0008} form{display:grid;gap:12px} label,input{font:inherit} input{padding:10px;max-width:100%;box-sizing:border-box} p{margin:0} .actions{display:flex;flex-wrap:wrap;gap:8px}
       </style>`;
       if (this.config.mode === "content") {
-        this.hidden = !open;
+        this.setVisible(open);
         if (open) void this.renderCard();
         return;
       }
-      this.hidden = this.config.mode === "notice" && open;
+      this.setVisible(this.config.mode !== "notice" || !open);
       const card = document.createElement("ha-card");
       const button = document.createElement("ha-button");
       button.textContent = open ? "Verrouiller les paramètres" : "Déverrouiller les paramètres";
@@ -129,6 +149,8 @@
         if (!this.isConnected || this.child || !isOpen(this._hass) || current.user.id !== this._hass.user.id) return;
         const card = helpers.createCardElement(this.config.card);
         this.child = card;
+        card.id = "content";
+        card.layout = this._layout;
         card.hass = this._hass;
         this.shadowRoot.append(card);
       } catch (_) {
