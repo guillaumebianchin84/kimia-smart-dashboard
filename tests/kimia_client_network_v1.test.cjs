@@ -46,7 +46,8 @@ assert.equal(card._find("scan"),"button.cudy_wisp_scan");
 assert.equal(card._find("network"),"select.cudy_wisp_network");
 assert.equal(card._find("password"),"text.cudy_wisp_password");
 assert.equal(card._find("connect"),"button.cudy_wisp_connect");
-assert.equal(card._settingsAllowed(),true);
+assert.equal(card._settingsAllowed(),false);
+card._hass.user.is_admin=true;
 card._ids={scan:"button.cudy_wisp_scan",network:"select.cudy_wisp_network",
   password:"text.cudy_wisp_password",connect:"button.cudy_wisp_connect"};
 card._els={net:{value:"BoxTest"},password:{value:"SecretTest123"},notice:{textContent:""}};
@@ -56,11 +57,11 @@ card._els={net:{value:"BoxTest"},password:{value:"SecretTest123"},notice:{textCo
     ["select.select_option","text.set_value","button.press"]);
   assert.equal(calls[1].data.value,"SecretTest123");
   assert.equal(card._els.password.value,"","Le mot de passe doit être effacé du formulaire.");
-  states["input_boolean.kimia_onglet_parametres"].state="off";
+  card._hass.user.is_admin=false;
   assert.equal(card._settingsAllowed(),false);
   calls.length=0;
   await card._connect();
-  assert.equal(calls.length,0,"Le client ne doit pas agir lorsque Paramètres est masqué.");
+  assert.equal(calls.length,0,"Le client ne doit pas agir avec un compte non-admin.");
   card._hass.user.is_admin=true;
   assert.equal(card._settingsAllowed(),true,"L'administrateur garde l'accès.");
   // L'inventaire provient directement du Cudy, et jamais d'une liste
