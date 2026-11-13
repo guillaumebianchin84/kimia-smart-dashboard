@@ -169,13 +169,13 @@
      this.built=true;
      const root=this.shadowRoot;
      root.innerHTML="<style>"+CSS+"</style>"+
-     "<ha-card><h3>✨ Atelier IA — scripts et automatisations</h3>"+
+     "<ha-card><h3>Scripts et automatisations</h3>"+
      "<p class='hint'>Explique ce que tu souhaites. Gemini prépare une proposition ; KIMIA vérifie les appareils et les commandes autorisées. Rien n'est enregistré sans ton accord.</p>"+
      "<label>Type de création</label><select class='kind'><option value='automation'>Automatisation</option><option value='script'>Script</option></select>"+
      "<label>Modèle IA</label><select class='model'></select>"+
      "<label>Explique ton besoin</label><textarea class='request' placeholder='Exemple : après 19 h, quand le salon détecte une présence, allumer la lampe à 40 %.'></textarea>"+
      "<p class='warning'>Première version : éclairages, scènes et capteurs de présence. Pas de chauffage, prises électriques ou équipements de sécurité.</p>"+
-     "<div class='buttons'><button class='primary propose'>Proposer avec Gemini</button><button class='save' disabled>Enregistrer après validation</button><button class='manual'>Création manuelle</button></div>"+
+     "<div class='buttons'><button class='primary propose'>Proposer avec Gemini</button><button class='save' disabled>Enregistrer après validation</button></div>"+
      "<h4>Proposition vérifiée</h4><p class='explanation hint'>Aucune proposition pour le moment.</p><pre class='preview' hidden></pre><p class='status' role='status'></p></ha-card>";
      this.kind=root.querySelector(".kind");
      this.model=root.querySelector(".model");
@@ -200,9 +200,6 @@
      this.request.addEventListener("input",()=>this.clear());
      this.kind.addEventListener("change",()=>this.clear());
      this.model.addEventListener("change",()=>this.clear());
-     root.querySelector(".manual").addEventListener("click",()=>{
-       window.location.href="/kimia-admin-next/scenarios";
-     });
    }
    say(msg,bad=false){
      this.status.textContent=msg;
@@ -457,7 +454,7 @@
    style.textContent=":host{display:block;color:var(--primary-text-color)} ha-card{display:block;padding:18px;border-radius:16px}h3{margin:0 0 9px}p{font-size:13px;line-height:1.5}.muted{color:var(--secondary-text-color)}.feed{display:flex;flex-direction:column;gap:9px;max-height:450px;overflow:auto;margin:14px 0}.msg{white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;border-radius:11px;font-size:13px;line-height:1.5;background:var(--secondary-background-color)}.user{margin-left:12%;background:color-mix(in srgb,var(--primary-color,#129e93) 12%,var(--card-background-color))}textarea,select{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--divider-color);border-radius:9px;background:var(--card-background-color);color:var(--primary-text-color);font:inherit}textarea{min-height:80px}.buttons{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}button{cursor:pointer;padding:10px;border:1px solid var(--divider-color);border-radius:9px;background:var(--secondary-background-color);color:var(--primary-text-color)}button.primary{background:var(--primary-color);color:#fff}button:disabled{opacity:.5}.msg{user-select:text;-webkit-user-select:text}.msg-wrap{display:flex;flex-direction:column;gap:4px}.copy-one{align-self:flex-end;font-size:11px;padding:5px 8px}.copy-one:focus-visible{outline:2px solid var(--primary-color)}";
    root.append(style);
    const card=document.createElement("ha-card");root.append(card);
-   const title=document.createElement("h3");title.textContent="✨ Atelier IA · Assistant KIMIA";card.append(title);
+   const title=document.createElement("h3");title.textContent="Assistant KIMIA";card.append(title);
    const description=document.createElement("p");description.className="muted";
    description.textContent="Interroge Gemini sur les équipements, routines et anomalies. Aucun pilotage, appairage ni changement automatique.";
    card.append(description);
