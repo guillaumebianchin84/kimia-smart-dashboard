@@ -1231,6 +1231,10 @@
     grid_options:{columns:6,rows:2},
     tap_action:{action:"navigate",navigation_path:path}
   });
+  const MATTER_SETTINGS={
+    path:"reglages-matter",title:"Matter",icon:"mdi:matter",
+    parent:"reglages-reseau"
+  };
   const settingsHelp=(message)=>({type:"markdown",content:message,
     grid_options:{columns:"full",rows:"auto"}});
   const settingsGrid=cards=>({type:"grid",column_span:2,cards});
@@ -1254,14 +1258,16 @@
   };
   const makeSettingsSubview=(param,spec)=>{
     const nav=getSettingsNav(param);
+    const parent=spec.parent||"parametres";
     const cards=[
-      settingsShortcut("Retour aux paramètres",
-        "Revenir au menu principal","mdi:arrow-left",
-        SETTINGS_BASE+"parametres","teal")
+      settingsShortcut(
+        spec.parent?"Retour au réseau":"Retour aux paramètres",
+        spec.parent?"Revenir aux réglages réseau":"Revenir au menu principal",
+        "mdi:arrow-left",SETTINGS_BASE+parent,"teal")
     ];
     const view={title:spec.title,path:spec.path,icon:spec.icon,
       type:"sections",max_columns:2,subview:true,
-      back_path:SETTINGS_BASE+"parametres",
+      back_path:SETTINGS_BASE+parent,
       sections:[cloneSettingsBanner(param,spec),settingsGrid(cards)]};
     const add=(...items)=>view.sections.push(settingsGrid(items));
     if(spec.path==="reglages-utilisateurs")add(
@@ -1300,6 +1306,19 @@
       {type:"custom:kimia-client-network-v1-card",
        grid_options:{columns:"full",rows:"auto"}}
     );
+    if(spec.path===MATTER_SETTINGS.path)add(
+      {type:"heading",heading:"Ajouter un appareil Matter",icon:"mdi:matter"},
+      settingsHelp(
+        "Depuis l’appli Home Assistant sur ton téléphone, ouvre **Appareils Matter**, "+
+        "puis **Ajouter un appareil**. Scanne le QR code ou suis les étapes si "+
+        "l’appareil est déjà dans Google Home.\n\n"+
+        "Choisis une pièce, puis reviens dans **KIMIA Configuration** et appuie "+
+        "sur **Actualiser ma maison**. Une prise apparaît dans **Prises**, "+
+        "une ampoule dans **Lumières**."
+      ),
+      settingsShortcut("Appareils Matter","Ouvrir l’appairage et la liste des appareils",
+        "mdi:matter","/config/matter/dashboard","teal")
+    );
     if(nav)view.sections.push(settingsGrid([safeClone(nav)]));
     return view;
   };
@@ -1308,9 +1327,18 @@
     if(!Array.isArray(param?.sections))return {added:0,modified:0};
     const before=countCards(next);
     let modified=0;
-    for(const spec of SETTINGS_PAGES){
+    for(const spec of [...SETTINGS_PAGES,MATTER_SETTINGS]){
       if(next.views.some(v=>v.path===spec.path))continue;
       next.views.push(makeSettingsSubview(param,spec));
+    }
+    const networkView=next.views.find(v=>v.path===MATTER_SETTINGS.parent);
+    const matterPath=SETTINGS_BASE+MATTER_SETTINGS.path;
+    const networkSection=networkView?.sections?.find(section=>section.cards?.some(
+      card=>card.type==="custom:kimia-client-network-v1-card"));
+    if(networkSection&&!allCards(networkView).some(
+      card=>card.tap_action?.navigation_path===matterPath)){
+      networkSection.cards.push(settingsShortcut("Matter","Ajouter ou retrouver un appareil Matter",
+        MATTER_SETTINGS.icon,matterPath,"teal"));
     }
     // Déplacer sans reconstituer : conserve toutes les options existantes
     // (thèmes, couleurs, bouton Kiosk, tuiles et personnalisations).
