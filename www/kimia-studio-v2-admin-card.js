@@ -50,13 +50,18 @@ function deviceCatalog(states,entities,devices,areas,operations){
   return {id,name:String(v?.attributes?.friendly_name||id),area,room:names.get(area)||"Sans pièce",domain:dom};
  }).sort((a,b)=>a.room.localeCompare(b.room,"fr")||a.name.localeCompare(b.name,"fr"));
 }
+const internalInitializationIds=new Set([
+ "kimia_initialisation_navigation_admin",
+ "kimia_initialisation_pieces_nav_v15"
+]);
 function routineCatalog(states){
  return Object.entries(states||{}).filter(([id])=>id.startsWith("script.")||id.startsWith("automation.")).map(([id,s])=>{
   const script=id.startsWith("script."),idPart=id.split(".")[1];
   return {id,name:String(s?.attributes?.friendly_name||id),kind:script?"script":"automation",state:String(s?.state||""),
    own:script?/^(ks_|kimia_)/.test(idPart):String(s?.attributes?.id||"").startsWith("kimia_"),
    configId:script?idPart:String(s?.attributes?.id||idPart)};
- }).sort((a,b)=>a.name.localeCompare(b.name,"fr"));
+ }).filter(r=>r.kind!=="automation"||!internalInitializationIds.has(r.configId))
+  .sort((a,b)=>a.name.localeCompare(b.name,"fr"));
 }
 const protectedRoutine=r=>r?.kind==="script" &&
  (/recherche[_-]?internet|internet[_-]?search|kimia[_-]?maintenance/i.test(r.configId||"")||
