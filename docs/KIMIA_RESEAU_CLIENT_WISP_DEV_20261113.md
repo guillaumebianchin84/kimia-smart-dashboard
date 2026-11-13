@@ -23,6 +23,18 @@ Sous-page **Paramètres → Réseau** du dashboard `kimia-next` (route `/kimia-n
 5. Ouvrir `/kimia-next/parametres` puis « Réseau ». Vérifier les IP. Si elles sont indisponibles, ne pas inventer d'adresse : renseigner une entité IP disponible dans la carte ou configurer `ha_ip`/`zigbee_ip` après avoir identifié leur valeur locale réelle.
 6. Tester recherche et choix du Wi-Fi, puis, lorsque le test est autorisé, essayer la connexion WISP avec un réseau de test en conservant l'accès local KIMIA.
 
+## Inventaire des appareils connectés
+
+La page Réseau comprend maintenant **Appareils connectés au Cudy** (nom + IP), en lecture seule. Lorsque le registre des entités est accessible à un administrateur HA, la carte ne sélectionne que les capteurs IP de la plateforme `cudy_router` associés aux clients du routeur. Les clients déconnectés, dont le capteur indique `unavailable`, ne sont pas présentés comme connectés.
+
+**Important pour afficher tous les clients :** dans **Paramètres → Appareils et services → Cudy Router → Configurer**, activer **Automatically add connected devices / Ajouter automatiquement les appareils connectés** (désactivé par défaut dans l'intégration). Sinon, Home Assistant peut ne disposer que du compteur d'appareils et ne pas connaître les IP individuelles.
+
+Pour les comptes Home Assistant non-administrateurs sans accès au registre, un repli indicatif peut reconnaître des capteurs dont le nom se termine par « IP address ». L'interface prévient alors que la liste n'est **pas certifiée exhaustive**. Un futur contrôle serveur KIMIA sera nécessaire pour un inventaire fiable et un accès par utilisateur sécurisé.
+
+L'IP locale Home Assistant est tentée via la lecture seule `supervisor/api /network/info` sur les comptes administrateurs, avec priorité à l'interface principale et aux adresses LAN privées. Pour les autres comptes, la carte conserve ses sources `ha_ip` / `ha_ip_entity`, capteurs existants ou URL interne si elle contient déjà une IP. Aucune IP fixe n'est inventée ni intégrée au code. Avec Cloudflare, l'URL publique seule ne permet pas de retrouver automatiquement l'IP locale.
+
+**Clé Zigbee :** lorsqu'elle n'est pas connectée en Ethernet et qu'aucune IP fiable n'est détectée, afficher « Non détectée sur le réseau ». Elle apparaîtra aussi dans l'inventaire Cudy si la connexion Ethernet est établie et que l'intégration remonte son IP.
+
 ## Liaison manuelle en cas de noms d'entité modifiés
 
 La carte tente de découvrir les quatre entités Cudy à partir de leur domaine et de leur nom. Si plusieurs Cudy sont présents, préciser les entités exactes dans la configuration de la carte :
