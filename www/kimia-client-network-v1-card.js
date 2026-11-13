@@ -28,6 +28,26 @@
      const cudy=matches.filter(id=>id.includes("cudy"));
      return cudy.length===1?cudy[0]:matches.length===1?matches[0]:null;
    }
+   _settingsAllowed(){
+     // Reprend l'interrupteur déjà utilisé par l'onglet Paramètres KIMIA.
+     // Filtrage d'interface uniquement : ne remplace PAS les permissions HA.
+     return this._hass?.user?.is_admin===true||
+       this._hass?.states?.["input_boolean.kimia_onglet_parametres"]?.state==="on";
+   }
+   _wispCurrent(){
+     const states=this._hass?.states||{};
+     const id=this._config.wisp_ssid_entity;
+     if(id&&states[id]&&!["unknown","unavailable"].includes(states[id].state))
+       return String(states[id].state).slice(0,90);
+     const list=Object.entries(states).filter(([name,state])=>
+       name.startsWith("sensor.") &&
+       (/(?:^|_)wisp_ssid$/.test(name)||
+       /wisp ssid/i.test(String(state.attributes?.friendly_name||""))) &&
+       !["unknown","unavailable",""].includes(state.state));
+     const matches=list.filter(([name])=>name.includes("cudy"));
+     const chosen=matches.length===1?matches[0]:list.length===1?list[0]:null;
+     return chosen?String(chosen[1].state).slice(0,90):"Information indisponible";
+   }
    _haIp(){
      const configured=ipv4(this._config.ha_ip);if(configured)return configured;
      for(const id of ["sensor.kimia_ha_ip","sensor.local_ip","sensor.home_assistant_ip"]){
@@ -52,8 +72,8 @@
    _render(){
      if(this._built||!this.isConnected)return;
      this._built=true;
-     this.shadowRoot.innerHTML="<style>\n:host{display:block} ha-card{padding:16px;border-radius:16px}\nh3{margin:0 0 14px;font-size:18px}\n.line{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 0;border-bottom:1px solid var(--divider-color)}\n.line span{color:var(--secondary-text-color);font-size:13px}\n.line strong{text-align:right;font-size:14px;overflow-wrap:anywhere}\n.panel{margin-top:18px} p{margin:8px 0;font-size:13px;line-height:1.5;color:var(--secondary-text-color)}\nlabel{display:block;font-size:13px;font-weight:600;margin:12px 0 6px}\nselect,input{font:inherit;width:100%;box-sizing:border-box;border:1px solid var(--divider-color);background:var(--card-background-color);color:var(--primary-text-color);padding:11px;border-radius:9px}\n.buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}\nbutton{font:inherit;cursor:pointer;border:1px solid var(--divider-color);background:var(--secondary-background-color);color:var(--primary-text-color);border-radius:10px;padding:11px 14px}\nbutton.primary{background:var(--primary-color);color:white;border-color:transparent}\nbutton:disabled{opacity:.5;cursor:default} .notice{white-space:pre-wrap;font-size:13px;min-height:1em}\n</style>\n<ha-card><h3>Réseau KIMIA</h3>\n<div class=\"line\"><span>IP Home Assistant</span><strong id=\"ha-ip\">—</strong></div>\n<div class=\"line\"><span>Clé Zigbee</span><strong id=\"zigbee-ip\">—</strong></div>\n<div class=\"panel\"><h3>Connexion Internet · Wi-Fi WISP</h3>\n<p>Changer le réseau Internet utilisé par le routeur Cudy sans modifier le Wi-Fi local KIMIA.</p>\n<div class=\"buttons\"><button id=\"scan\" type=\"button\">Rechercher les réseaux</button></div>\n<label for=\"net\">Réseau Internet</label><select id=\"net\"><option value=\"\">Lancer une recherche</option></select>\n<label for=\"password\">Mot de passe du réseau</label>\n<input id=\"password\" type=\"password\" autocomplete=\"off\" spellcheck=\"false\" placeholder=\"Mot de passe Wi-Fi (si nécessaire)\"/>\n<div class=\"buttons\"><button id=\"connect\" class=\"primary\" type=\"button\">Se connecter</button></div>\n<p id=\"notice\" class=\"notice\" role=\"status\"></p></div></ha-card>";
-     this._els=Object.fromEntries(["ha-ip","zigbee-ip","scan","net","password","connect","notice"]
+     this.shadowRoot.innerHTML="<style>\n:host{display:block} ha-card{padding:16px;border-radius:16px}\nh3{margin:0 0 14px;font-size:18px}\n.line{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 0;border-bottom:1px solid var(--divider-color)}\n.line span{color:var(--secondary-text-color);font-size:13px}\n.line strong{text-align:right;font-size:14px;overflow-wrap:anywhere}\n.panel{margin-top:18px} p{margin:8px 0;font-size:13px;line-height:1.5;color:var(--secondary-text-color)}\nlabel{display:block;font-size:13px;font-weight:600;margin:12px 0 6px}\nselect,input{font:inherit;width:100%;box-sizing:border-box;border:1px solid var(--divider-color);background:var(--card-background-color);color:var(--primary-text-color);padding:11px;border-radius:9px}\n.buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}\nbutton{font:inherit;cursor:pointer;border:1px solid var(--divider-color);background:var(--secondary-background-color);color:var(--primary-text-color);border-radius:10px;padding:11px 14px}\nbutton.primary{background:var(--primary-color);color:white;border-color:transparent}\nbutton:disabled{opacity:.5;cursor:default} .notice{white-space:pre-wrap;font-size:13px;min-height:1em}\n</style>\n<ha-card><h3>Réseau KIMIA</h3>\n<div class=\"line\"><span>IP Home Assistant</span><strong id=\"ha-ip\">—</strong></div>\n<div class=\"line\"><span>Clé Zigbee</span><strong id=\"zigbee-ip\">—</strong></div>\n<div class=\"line\"><span>Wi-Fi Internet actuel</span><strong id=\"wisp-ssid\">—</strong></div>\n<div class=\"panel\"><h3>Connexion Internet · Wi-Fi WISP</h3>\n<p>Changer le réseau Internet utilisé par le routeur Cudy sans modifier le Wi-Fi local KIMIA.</p>\n<div class=\"buttons\"><button id=\"scan\" type=\"button\">Rechercher les réseaux</button></div>\n<label for=\"net\">Réseau Internet</label><select id=\"net\"><option value=\"\">Lancer une recherche</option></select>\n<label for=\"password\">Mot de passe du réseau</label>\n<input id=\"password\" type=\"password\" autocomplete=\"off\" spellcheck=\"false\" placeholder=\"Mot de passe Wi-Fi (si nécessaire)\"/>\n<div class=\"buttons\"><button id=\"connect\" class=\"primary\" type=\"button\">Se connecter</button></div>\n<p id=\"notice\" class=\"notice\" role=\"status\"></p></div></ha-card>";
+     this._els=Object.fromEntries(["ha-ip","zigbee-ip","wisp-ssid","scan","net","password","connect","notice"]
        .map(id=>[id,this.shadowRoot.getElementById(id)]));
      this._els.scan.addEventListener("click",()=>void this._scan());
      this._els.net.addEventListener("change",()=>void this._select());
@@ -64,6 +84,7 @@
      const e=this._els;
      e["ha-ip"].textContent=this._haIp()||"IP locale indisponible";
      e["zigbee-ip"].textContent=this._zigbee();
+     e["wisp-ssid"].textContent=this._wispCurrent();
      const ids={scan:this._find("scan"),network:this._find("network"),password:this._find("password"),connect:this._find("connect")};
      this._ids=ids;
      const net=ids.network?this._hass.states[ids.network]:null;
@@ -83,17 +104,19 @@
      const selected=options.includes(this._pendingNetwork)?this._pendingNetwork:
        options.includes(net?.state)?net.state:options.includes(prev)?prev:"";
      if(e.net.value!==selected)e.net.value=selected;
-     e.scan.disabled=this._busy||!online(ids.scan?this._hass.states[ids.scan]:null);
-     e.net.disabled=this._busy||!online(net)||!options.length;
-     e.password.disabled=this._busy||!online(ids.password?this._hass.states[ids.password]:null);
-     e.connect.disabled=this._busy||!online(ids.connect?this._hass.states[ids.connect]:null)||
+     const allowed=this._settingsAllowed();
+     e.scan.disabled=this._busy||!allowed||!online(ids.scan?this._hass.states[ids.scan]:null);
+     e.net.disabled=this._busy||!allowed||!online(net)||!options.length;
+     e.password.disabled=this._busy||!allowed||!online(ids.password?this._hass.states[ids.password]:null);
+     e.connect.disabled=this._busy||!allowed||!online(ids.connect?this._hass.states[ids.connect]:null)||
        !online(ids.password?this._hass.states[ids.password]:null)||!selected;
-     if(!ids.scan||!ids.network||!ids.password||!ids.connect)
+     if(!allowed)e.notice.textContent="La rubrique Paramètres est désactivée pour ce tableau de bord.";
+     else if(!ids.scan||!ids.network||!ids.password||!ids.connect)
        e.notice.textContent="Commandes WISP indisponibles : vérifier les quatre entités de l'intégration Cudy Router.";
    }
    async _scan(){
      const id=this._ids?.scan;
-     if(this._busy||!online(this._hass?.states?.[id]))return;
+     if(this._busy||!this._settingsAllowed()||!online(this._hass?.states?.[id]))return;
      this._busy=true;this._refresh();this._els.notice.textContent="Recherche demandée…";
      try{
        await this._hass.callService("button","press",{entity_id:id});
@@ -103,7 +126,7 @@
    }
    async _select(){
      const id=this._ids?.network,option=this._els.net.value;
-     if(this._busy||!id||!option)return;
+     if(this._busy||!this._settingsAllowed()||!id||!option)return;
      this._pendingNetwork=option;this._busy=true;this._refresh();
      try{
        await this._hass.callService("select","select_option",{entity_id:id,option});
@@ -113,13 +136,14 @@
    }
    async _connect(){
      const ids=this._ids||{},ssid=this._els.net.value;
-     if(this._busy||!ssid||!ids.connect||!ids.password||!ids.network)return;
+     if(this._busy||!this._settingsAllowed()||!ssid||!ids.connect||!ids.password||!ids.network)return;
      const net=this._hass?.states?.[ids.network];
      if(!Array.isArray(net?.attributes?.options)||!net.attributes.options.includes(ssid))return;
      if(!window.confirm("Connecter KIMIA au Wi-Fi Internet « "+ssid+" » ?\nLa connexion Internet peut être interrompue temporairement. Le réseau local KIMIA ne change pas."))return;
      const password=this._els.password.value;
      this._busy=true;this._refresh();this._els.notice.textContent="Connexion demandée…";
      try{
+       await this._hass.callService("select","select_option",{entity_id:ids.network,option:ssid});
        await this._hass.callService("text","set_value",{entity_id:ids.password,value:password});
        this._els.password.value="";
        await this._hass.callService("button","press",{entity_id:ids.connect});
