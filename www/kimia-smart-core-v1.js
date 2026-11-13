@@ -1442,20 +1442,70 @@
     const menu=param.sections.find(sec=>sec.cards?.some(c=>
       c.type==="heading"&&c.heading==="Mon espace KIMIA"));
     const network=SETTINGS_PAGES.find(p=>p.path==="reglages-reseau");
-    if(menu&&network&&!menu.cards.some(c=>c.type==="shortcut"&&
-      c.tap_action?.navigation_path===SETTINGS_BASE+network.path)){
+    if(menu&&network&&!menu.cards.some(c=>routeIs(c.card||c,SETTINGS_BASE+network.path))){
       menu.cards.push(settingsShortcut(network.label,network.description,network.icon,
         SETTINGS_BASE+network.path,network.color));
       modified++;
     }
     for(const spec of SETTINGS_PAGES.filter(p=>
       p.path==="reglages-utilisateurs"||p.path==="reglages-reseau")){
-      const card=menu?.cards.find(c=>c.type==="shortcut"&&routeIs(c,SETTINGS_BASE+spec.path));
+      const card=menu?.cards.map(c=>c.card||c).find(c=>c.type==="shortcut"&&routeIs(c,SETTINGS_BASE+spec.path));
       if(card&&(card.label!==spec.label||card.description!==spec.description)){
         card.label=spec.label;card.description=spec.description;modified++;
       }
     }
     return {added:countCards(next)-before+removed,removed,modified};
+  };
+
+  const settingsLockType="custom:kimia-settings-lock-v1-card";
+  const lockSettingsCard=(mode,card)=>({
+    type:settingsLockType,mode,
+    ...(card?{card}:{}),
+    grid_options:card?.grid_options||{columns:6,rows:2}
+  });
+  const protectSettings=(next,param)=>{
+    const menu=sectionWithHeader(param,"Mon espace KIMIA");
+    let added=0,modified=0;
+    if(menu&&!menu.cards.some(c=>c.type===settingsLockType&&c.mode==="control")){
+      menu.cards.push(lockSettingsCard("control"));added++;
+    }
+    for(const section of menu?[menu]:[]){
+      section.cards=section.cards.map(card=>{
+        const path=card.tap_action?.navigation_path;
+        if(!path||!SETTINGS_PAGES.some(p=>p.path!=="reglages-apparence"&&path===SETTINGS_BASE+p.path))return card;
+        modified++;
+        return lockSettingsCard("content",card);
+      });
+    }
+    for(const spec of SETTINGS_PAGES){
+      if(spec.path==="reglages-apparence")continue;
+      const view=next.views.find(v=>v.path===spec.path);
+      if(!Array.isArray(view?.sections))continue;
+      if(!hasCard(view,c=>c.type===settingsLockType&&c.mode==="notice")){
+        view.sections[1]?.cards?.push(lockSettingsCard("notice"));
+        added++;
+      }
+      if(spec.path==="reglages-reseau"&&!hasCard(view,c=>
+        c.type===settingsLockType&&c.card?.type===networkCardType)){
+        const local=sectionWithHeader(view,"Accès local");
+        if(local){
+          local.cards.push(lockSettingsCard("content",{
+            type:networkCardType,client:true,grid_options:{columns:"full",rows:"auto"}
+          }));added++;
+        }
+      }
+      for(const section of view.sections){
+        if(!Array.isArray(section.cards))continue;
+        section.cards=section.cards.map(card=>{
+          if(card.type===settingsLockType||isKimiaBrand(card)||kimiaNav(card)||
+             routeIs(card,SETTINGS_BASE+"parametres")||card.type==="heading"||
+             (spec.path==="reglages-reseau"&&card.type==="markdown"))return card;
+          modified++;
+          return lockSettingsCard("content",card);
+        });
+      }
+    }
+    return {added,modified};
   };
 
   // V1.6.1 : revenir à des préférences strictement locales pour les thèmes
@@ -1483,7 +1533,7 @@
         const cards=section.cards;
         if(!Array.isArray(cards))continue;
         if(!cards.some(c=>c.type==="heading"&&c.heading==="Mes thèmes"))continue;
-        const has=cards.some(c=>c.type===LOCAL_THEME_CARD);
+        const has=cards.some(c=>(c.card||c).type===LOCAL_THEME_CARD);
         const olds=cards.filter(c=>themeOption(c)||legacyThemeSelect(c));
         if(olds.length){
           section.cards=cards.filter(c=>!themeOption(c)&&!legacyThemeSelect(c));
@@ -1844,6 +1894,11 @@
         added+=appearanceFix.added;removed+=appearanceFix.removed;
         modified+=appearanceFix.modified;
         modified+=localKioskUI(next);
+        const preferences=next.views.find(v=>v.path==="parametres");
+        if(preferences){
+          const protection=protectSettings(next,preferences);
+          added+=protection.added;modified+=protection.modified;
+        }
         if (added === 0 && removed === 0 && modified === 0) {
           const adminAdded=await upgradeAdminDashboard(hass,dashboards);
           const result = { state: "ok", added: 0, removed: 0, adminAdded,
