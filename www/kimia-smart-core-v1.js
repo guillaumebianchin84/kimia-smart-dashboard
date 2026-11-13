@@ -1322,6 +1322,16 @@
       param.sections.splice(bannerIndex<0?0:bannerIndex+1,0,settingsMenu());
       modified++;
     }
+    // Ajouter le lien réseau à un portail déjà migré sans toucher aux cartes existantes.
+    const menu=param.sections.find(sec=>sec.cards?.some(c=>
+      c.type==="heading"&&c.heading==="Mon espace KIMIA"));
+    const network=SETTINGS_PAGES.find(p=>p.path==="reglages-reseau");
+    if(menu&&network&&!menu.cards.some(c=>c.type==="shortcut"&&
+      c.tap_action?.navigation_path===SETTINGS_BASE+network.path)){
+      menu.cards.push(settingsShortcut(network.label,network.description,network.icon,
+        SETTINGS_BASE+network.path,network.color));
+      modified++;
+    }
     return {added:countCards(next)-before,modified};
   };
 
