@@ -283,7 +283,7 @@ views:
               columns: full
               rows: auto
 
-  - title: Atelier IA
+  - title: Assistant KIMIA
     path: atelier-ia
     icon: mdi:creation
     type: sections
@@ -293,7 +293,7 @@ views:
         column_span: 2
         cards:
           - type: heading
-            heading: Atelier IA
+            heading: Assistant KIMIA
             heading_style: title
             icon: mdi:creation
           - type: markdown
