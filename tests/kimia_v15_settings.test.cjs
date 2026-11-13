@@ -51,8 +51,8 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
  assert(cfg.kiosk_mode.non_admin_settings.kiosk.includes("return window.localStorage.getItem"),
   "Expression localStorage conservée avec retour booléen");
  const pages=["reglages-utilisateurs","reglages-affichage","reglages-localisation",
-  "reglages-listes","reglages-apparence"];
- assert.equal(cfg.views.length,17);
+  "reglages-listes","reglages-apparence","reglages-reseau"];
+ assert.equal(cfg.views.length,18);
  for(const path of pages){
   assert(get(path)?.subview,path+" should be a subview");
   assert.equal(get(path).back_path,"/kimia-next/parametres");
@@ -64,7 +64,7 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
     c.tap_action?.navigation_path==="/kimia-next/parametres"));
  }
  const menu=cards("parametres").filter(c=>c.type==="shortcut");
- assert.equal(menu.filter(c=>pages.includes(c.tap_action?.navigation_path?.split("/").pop())).length,5);
+ assert.equal(menu.filter(c=>pages.includes(c.tap_action?.navigation_path?.split("/").pop())).length,6);
  assert(cards("parametres").some(c=>c.content===custom.content));
  assert(!cards("parametres").some(c=>c.type==="custom:kimia-header-toggle-v1-card"));
  const header=cards("reglages-affichage").find(c=>c.type==="custom:kimia-header-toggle-v1-card");
@@ -81,6 +81,7 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
  assert(cards("reglages-localisation").some(c=>c.type==="shortcut"&&
    c.tap_action?.navigation_path==="/kimia-next/carte"),
    "L'accès à la carte actuelle reste fonctionnel");
+ assert.equal(cards("reglages-reseau").filter(c=>c.type==="custom:kimia-client-network-v1-card").length,1);
  const was=writes;
  await window.KimiaSmartCore.sync(hass);
  assert.equal(writes,was,"no duplicate views, cards or writes on second pass");
@@ -90,5 +91,5 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
  await window.KimiaSmartCore.sync(hass);
  assert.equal(writes,was);
  assert.equal(cards("reglages-apparence").find(c=>c.heading==="Mes thèmes").icon,"mdi:palette-swatch");
- console.log("KIMIA Settings OK : 5 sous-vues, thèmes locaux sans action globale, bandeau et personnalisations préservés.");
+ console.log("KIMIA Settings OK : 6 sous-vues, thèmes locaux sans action globale, bandeau et personnalisations préservés.");
 })().catch(e=>{console.error(e);process.exitCode=1;});
