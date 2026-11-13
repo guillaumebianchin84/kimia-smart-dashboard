@@ -52,7 +52,7 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
   "Expression localStorage conservée avec retour booléen");
  const pages=["reglages-utilisateurs","reglages-affichage","reglages-localisation",
   "reglages-listes","reglages-apparence","reglages-reseau"];
- assert.equal(cfg.views.length,18);
+ assert.equal(cfg.views.length,19);
  for(const path of pages){
   assert(get(path)?.subview,path+" should be a subview");
   assert.equal(get(path).back_path,"/kimia-next/parametres");
@@ -82,6 +82,19 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
    c.tap_action?.navigation_path==="/kimia-next/carte"),
    "L'accès à la carte actuelle reste fonctionnel");
  assert.equal(cards("reglages-reseau").filter(c=>c.type==="custom:kimia-client-network-v1-card").length,1);
+ const matter=get("reglages-matter");
+ assert(matter.subview);
+ assert.equal(matter.back_path,"/kimia-next/reglages-reseau");
+ const matterLink=cards("reglages-reseau").filter(c=>
+  c.tap_action?.navigation_path==="/kimia-next/reglages-matter");
+ assert.equal(matterLink.length,1);
+ assert.equal(matterLink[0].type,"shortcut");
+ assert.deepEqual(matterLink[0].grid_options,{columns:6,rows:2});
+ assert(!cards("parametres").some(c=>c.tap_action?.navigation_path==="/kimia-next/reglages-matter"));
+ assert(cards("reglages-matter").some(c=>c.type==="shortcut"&&
+  c.tap_action?.navigation_path==="/config/matter/dashboard"));
+ assert(cards("reglages-matter").some(c=>c.type==="markdown"&&
+  c.content.includes("Actualiser ma maison")));
  const was=writes;
  await window.KimiaSmartCore.sync(hass);
  assert.equal(writes,was,"no duplicate views, cards or writes on second pass");
@@ -91,5 +104,5 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
  await window.KimiaSmartCore.sync(hass);
  assert.equal(writes,was);
  assert.equal(cards("reglages-apparence").find(c=>c.heading==="Mes thèmes").icon,"mdi:palette-swatch");
- console.log("KIMIA Settings OK : 6 sous-vues, thèmes locaux sans action globale, bandeau et personnalisations préservés.");
+ console.log("KIMIA Settings OK : 7 sous-vues, thèmes locaux sans action globale, bandeau et personnalisations préservés.");
 })().catch(e=>{console.error(e);process.exitCode=1;});
