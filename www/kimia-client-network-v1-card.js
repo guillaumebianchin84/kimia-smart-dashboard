@@ -159,19 +159,30 @@
      return internal||localIp(window.location?.hostname);
    }
    _zigbee(){
-     const configured=ipv4(this._config.zigbee_ip);if(configured)return "IP : "+configured;
-     const states=this._hass?.states||{},id=this._config.zigbee_ip_entity;
-     const direct=ipv4(id?states[id]?.state:"");if(direct)return "IP : "+direct;
-     for(const [name,st] of Object.entries(states)){
-       if(!/slzb[_-]/i.test(name)||!/(?:ip|adresse)(?:_|$)/i.test(name))continue;
-       const address=ipv4(st.state);if(address)return "IP : "+address;
-     }
+     const states=this._hass?.states||{};
      const mode=Object.entries(states).find(([name])=>/slzb.*mode_de_connexion/i.test(name))?.[1]?.state;
      if(/usb/i.test(String(mode)))return "USB (pas d'adresse IP)";
-     if(this._zigbeeRegistryIp)return "IP : "+this._zigbeeRegistryIp;
-     const zigbeeClient=this._cudyClients().filter(c=>/slzb|smlight/i.test(c.name));
-     if(zigbeeClient.length===1)return "IP : "+zigbeeClient[0].ip;
-     if(mode&&mode!=="unavailable"&&mode!=="unknown")return "Mode "+String(mode).slice(0,40)+" · IP inconnue";
+     // L'inventaire des clients Cudy, lorsqu'il est renseigné, est le seul
+     // indice exploité ici pour présenter une connexion réseau en cours.
+     const present=this._cudyClients().filter(c=>/slzb|smlight/i.test(c.name));
+     if(present.length===1)return "Connectée · IP : "+present[0].ip;
+     const candidates=[];
+     const add=value=>{const ip=localIp(value);if(ip&&!candidates.includes(ip))candidates.push(ip);};
+     add(this._config.zigbee_ip);
+     const id=this._config.zigbee_ip_entity;
+     if(id)add(states[id]?.state);
+     for(const [name,st] of Object.entries(states)){
+       if(!/slzb[_-]/i.test(name)||!/(?:ip|adresse)(?:_|$)/i.test(name))continue;
+       add(st.state);
+     }
+     add(this._zigbeeRegistryIp);
+     // Une URL de configuration enregistrée ne constitue pas une preuve
+     // de présence physique, même avec une IP routable.
+     if(candidates.length===1)
+       return "IP enregistrée : "+candidates[0]+" · connexion non vérifiée";
+     if(candidates.length>1)return "Plusieurs adresses enregistrées · connexion non vérifiée";
+     if(mode&&mode!=="unavailable"&&mode!=="unknown")
+       return "Mode "+String(mode).slice(0,40)+" · IP non détectée";
      return "Non détectée sur le réseau";
    }
    _render(){
@@ -199,13 +210,27 @@
        const ip=document.createElement("span");ip.textContent=item.ip;
        line.append(name,ip);e.clients.append(line);
      }
+     // L'adresse HA provient de Supervisor : elle identifie le serveur,
+     // mais ne prouve pas à elle seule qu'il figure dans la liste Cudy.
+     const haAddress=this._haIp();
+     if(haAddress&&!clients.some(c=>c.ip===haAddress)){
+       const line=document.createElement("div");line.className="client";
+       const title=document.createElement("strong");title.textContent="Home Assistant · ce serveur";
+       const addr=document.createElement("span");addr.textContent=haAddress;
+       line.append(title,addr);e.clients.prepend(line);
+     }
+     const count=Object.entries(this._hass.states||{}).find(([id,entity])=>
+       id.startsWith("sensor.")&&/cudy/i.test(id+" "+String(entity.attributes?.friendly_name||""))&&
+       /(?:device count|total clients)/i.test(String(entity.attributes?.friendly_name||""))&&
+       /^\d+$/.test(String(entity.state)));
+     const countHint=count?" Le Cudy annonce "+count[1].state+" appareil(s).":"";
      e["client-note"].textContent=clients.length?
-       clients.length+" appareil(s) avec IP détectée(s) · "+this._clientListMethod+
+       clients.length+" client(s) Cudy avec IP détectée(s) · "+this._clientListMethod+
        (this._clientListMethod==="capteurs visibles (indicatif)"?
          " ; inventaire potentiellement incomplet.":"."):
-       this._clientMeta===null?
-         "Aucun client trouvé. Activer « Ajouter automatiquement les appareils connectés » dans les options Cudy Router.":
-         "Aucun client Cudy avec IP visible. Vérifier l'ajout automatique des appareils dans Cudy Router.";
+       "Liste détaillée des clients Cudy indisponible."+countHint+
+       " Dans Cudy Router → Configurer, activer « Ajouter automatiquement les appareils connectés »."+
+       (haAddress?" L'IP de ce serveur est affichée séparément (présence Cudy non vérifiée).":"");
      const ids={scan:this._find("scan"),network:this._find("network"),password:this._find("password"),connect:this._find("connect")};
      this._ids=ids;
      const net=ids.network?this._hass.states[ids.network]:null;
