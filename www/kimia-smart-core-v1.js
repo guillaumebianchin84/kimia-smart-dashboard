@@ -1043,7 +1043,7 @@
         type:"sections",max_columns:2,
         sections:[
           {type:"grid",column_span:2,cards:[
-            {type:"heading",heading:"Atelier IA KIMIA",icon:"mdi:creation",heading_style:"title",
+            {type:"heading",heading:"Automatisations IA",icon:"mdi:creation",heading_style:"title",
               grid_options:{columns:"full",rows:1}},
             {type:"button",name:"Création manuelle",icon:"mdi:arrow-left-circle-outline",
               show_name:true,show_icon:false,show_state:false,
@@ -1072,7 +1072,11 @@
       for(const section of aiView.sections){
         if(!Array.isArray(section.cards))continue;
         for(let i=0;i<section.cards.length;i++){
-          if(JSON.stringify(section.cards[i])===JSON.stringify(legacyManual)){
+          const card=section.cards[i];
+          if(card.type==="heading"&&card.heading==="Atelier IA KIMIA"){
+            card.heading="Automatisations IA";added++;
+          }
+          if(JSON.stringify(card)===JSON.stringify(legacyManual)){
             section.cards[i]=compactManual;added++;
           }
         }
