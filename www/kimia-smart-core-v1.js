@@ -1205,7 +1205,9 @@
     {path:"reglages-listes",title:"Mes listes",icon:"mdi:format-list-checks",
      label:"Mes listes",description:"Tâches du foyer",color:"green"},
     {path:"reglages-apparence",title:"Apparence",icon:"mdi:palette-outline",
-     label:"Apparence",description:"Mes thèmes KIMIA",color:"deep-purple"}
+     label:"Apparence",description:"Mes thèmes KIMIA",color:"deep-purple"},
+    {path:"reglages-reseau",title:"Réseau",icon:"mdi:wifi",
+     label:"Réseau",description:"IP KIMIA, Zigbee et Wi-Fi Internet",color:"blue"}
   ];
   const settingsShortcut=(label,description,icon,path,color="teal")=>({
     type:"shortcut",label,description,icon,color,
@@ -1276,6 +1278,11 @@
       settingsHeading("Personnalisation"),
       settingsHelp("Choisissez ici un thème uniquement pour cet appareil. Aucun changement global sur Home Assistant.")
     );
+    if(spec.path==="reglages-reseau")add(
+      {type:"heading",heading:"Informations et connexion Internet",icon:"mdi:wifi"},
+      {type:"custom:kimia-client-network-v1-card",
+       grid_options:{columns:"full",rows:"auto"}}
+    );
     if(nav)view.sections.push(settingsGrid([safeClone(nav)]));
     return view;
   };
@@ -1313,6 +1320,16 @@
       c.type==="heading"&&c.heading==="Mon espace KIMIA"))){
       const bannerIndex=param.sections.findIndex(s=>s.cards?.some(isKimiaBrand));
       param.sections.splice(bannerIndex<0?0:bannerIndex+1,0,settingsMenu());
+      modified++;
+    }
+    // Ajouter le lien réseau à un portail déjà migré sans toucher aux cartes existantes.
+    const menu=param.sections.find(sec=>sec.cards?.some(c=>
+      c.type==="heading"&&c.heading==="Mon espace KIMIA"));
+    const network=SETTINGS_PAGES.find(p=>p.path==="reglages-reseau");
+    if(menu&&network&&!menu.cards.some(c=>c.type==="shortcut"&&
+      c.tap_action?.navigation_path===SETTINGS_BASE+network.path)){
+      menu.cards.push(settingsShortcut(network.label,network.description,network.icon,
+        SETTINGS_BASE+network.path,network.color));
       modified++;
     }
     return {added:countCards(next)-before,modified};
