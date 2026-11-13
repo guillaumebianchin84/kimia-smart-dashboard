@@ -61,3 +61,15 @@ Avant de promettre une restriction sécurisée par personne à un client final, 
 - Tests de l'ancien portail Paramètres : `node tests/kimia_v15_settings.test.cjs`.
 - Tests réseau isolés : `node tests/kimia_client_network_v1.test.cjs`.
 - Les tests ne prouvent ni l'accès au Cudy physique, ni l'étanchéité des droits HA : tests sur les vrais comptes DEV indispensables.
+
+
+## Attribution IP et type de connexion — version réseau enrichie
+
+Le capteur de connexion par client `connection_type` issu de Cudy Router est associé au capteur IP via son identifiant d'appareil dans le registre HA. La liste affiche **nom, adresse IP, type de connexion (Wi-Fi ou Ethernet si connu)** et un champ **Attribution IP**.
+
+- Pour le serveur **Home Assistant**, l'API réseau HA OS indique `ipv4.method=auto` (client DHCP) ou `static` (configuration IP statique sur HA OS). Cette indication ne dit pas si le DHCP attribue une réservation fixe.
+- Pour les **autres clients**, la version actuelle de `ha-cudy-router` ne renvoie pas le statut d'attribution individuel ni les réservations IP/MAC. La carte affiche donc « Non déterminé », sans déduction selon la plage du DHCP. Pour identifier les réservations il faudrait lire et comparer la configuration IP/MAC Binding du Cudy. Cudy sépare cette configuration des baux DHCP.
+- La liste des **clients Cudy** contient uniquement les appareils effectivement exposés par l'intégration (capteurs disponibles). **Le serveur Home Assistant n'y est plus ajouté artificiellement** : il dispose déjà de sa ligne dédiée dans la section Informations réseau.
+- Si la liste est vide mais que le routeur voit des clients, activer **Ajouter automatiquement les appareils connectés** dans les options de l'intégration Cudy Router sur l'ODROID. Le simple compteur ne suffit pas à produire une liste d'IP.
+
+Aucun changement aux dashboards ou cartes des équipements. Aucune configuration IP ou WISP modifiée par cette extension d'inventaire.
