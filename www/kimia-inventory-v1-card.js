@@ -106,6 +106,7 @@
         source: src.label, zigbee: src.zigbee,
         entityCount: e.length, controlCount: controls.length,
         activeCount: active.length, status, reason,
+        offline: visible.length > 0 && visible.every(x => states?.[x.entity_id]?.state === "unavailable"),
         entities: e.map(x => ({
           name: states?.[x.entity_id]?.attributes?.friendly_name ||
             x.name || x.original_name || "Fonction de l'appareil",
@@ -265,7 +266,9 @@
           (d.manufacturer?" · "+d.manufacturer:"");
         left.append(name,subtitle);
         const right=document.createElement("span");right.className="chip "+d.status;
-        right.textContent=d.controlCount?d.controlCount+" commande(s)":d.status==="ready"?"Prêt":"Détails";
+        right.textContent=d.status==="ready"
+          ? (d.offline?"Configuration prête · Hors ligne":"Configuration prête")
+          : d.controlCount?d.controlCount+" commande(s)":"Détails";
         summary.append(left,right);
         const body=document.createElement("div");body.className="body";
         const reason=document.createElement("p");reason.className="muted";reason.textContent=d.reason;
