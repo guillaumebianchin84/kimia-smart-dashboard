@@ -44,6 +44,9 @@
      this._config={};this._busy=false;this._built=false;
      this._supervisorIp="";this._supervisorIpMode="";this._clientMeta=null;this._lookupUser="";
      this._lookupStarted=false;this._zigbeeRegistryIp="";
+     this._routerClients=null;this._routerStatus="loading";
+     this._routerReported=0;this._routerHealthy=true;
+     this._routerTruncated=false;this._routerBusy=false;this._routerLast=0;
    }
    setConfig(c){this._config=c||{};this._refresh();}
    set hass(h){
@@ -51,10 +54,11 @@
      if(this._lookupUser!==user){
        this._lookupUser=user;this._lookupStarted=false;
        this._supervisorIp="";this._supervisorIpMode="";this._clientMeta=null;this._zigbeeRegistryIp="";
+       this._routerClients=null;this._routerStatus="loading";this._routerLast=0;
      }
-     this._hass=h;this._refresh();this._loadNetworkInfo();
+     this._hass=h;this._refresh();this._loadNetworkInfo();this._loadCudyClients();
    }
-   connectedCallback(){this._render();this._refresh();this._loadNetworkInfo();}
+   connectedCallback(){this._render();this._refresh();this._loadNetworkInfo();this._loadCudyClients();}
    async _loadNetworkInfo(){
      // En lecture seule. Les registres et Supervisor ne sont pas accessibles à
      // tous les utilisateurs HA. Les capteurs de clients restent le repli.
@@ -97,45 +101,38 @@
      }
      this._refresh();
    }
+   async _loadCudyClients(force=false){
+     const hass=this._hass,now=Date.now(),user=this._lookupUser;
+     if(!hass?.callWS||!this._settingsAllowed()||this._routerBusy)return;
+     if(!force&&now-this._routerLast<30000)return;
+     this._routerLast=now;this._routerBusy=true;
+     this._refresh();
+     try{
+       const result=await hass.callWS({type:"kimia_cudy_clients/list"});
+       if(this._lookupUser!==user)return;
+       this._routerClients=Array.isArray(result?.devices)?
+         result.devices.slice(0,300).map(item=>({
+           name:String(item.name||"Appareil sans nom").slice(0,100),
+           ip:localIp(item.ip),
+           mac:String(item.mac||"").slice(0,32),
+           connection:String(item.connection||"Non précisé").slice(0,40),
+           allocation:"Non déterminé"
+         })):[];
+       this._routerStatus=result?.status==="ok"?"ok":"missing";
+       this._routerReported=Number(result?.reported_count)||0;
+       this._routerHealthy=result?.last_update_success===true;
+       this._routerTruncated=result?.truncated===true;
+     }catch(error){
+       if(this._lookupUser!==user)return;
+       this._routerStatus="unavailable";this._routerClients=null;
+     }finally{
+       this._routerBusy=false;this._refresh();
+     }
+   }
    _cudyClients(){
-     const states=this._hass?.states||{};
-     let sources=this._clientMeta;
-     let method="registre Cudy";
-     if(!Array.isArray(sources)){
-       // Certaines versions de HA exposent le registre dans hass.entities.
-       // On n'utilise alors que la plateforme Cudy, jamais les autres intégrations.
-       const raw=this._hass?.entities;
-       const entities=Array.isArray(raw)?raw:Object.values(raw||{});
-       sources=entities.filter(e=>e?.platform==="cudy_router"&&
-         /-device-[0-9a-f]{12}-ip$/i.test(String(e.unique_id||"")))
-         .map(e=>({id:e.entity_id,name:e.name||"",
-           connectionId:entities.find(candidate=>candidate.platform==="cudy_router"&&
-             candidate.unique_id===String(e.unique_id).replace(/-ip$/,"-connection_type"))?.entity_id||""}));
-       method=sources.length?"registre partagé":"";
-     }
-     if(!sources.length && !method){
-       // Repli pour les comptes HA standards : ces capteurs seuls ne prouvent pas
-       // leur origine Cudy. Affichage indicatif, sans prétendre à l'exhaustivité.
-       sources=Object.entries(states).filter(([id,e])=>
-         id.startsWith("sensor.")&&/ IP address$/i.test(String(e.attributes?.friendly_name||""))&&
-         localIp(e.state))
-         .map(([id,e])=>({id,name:String(e.attributes.friendly_name).replace(/ IP address$/i,"")}));
-       method=sources.length?"capteurs visibles (indicatif)":"";
-     }
-     this._clientListMethod=method;
-     const seen=new Set();
-     return sources.map(item=>{
-       const entity=states[item.id];
-       const ip=online(entity)?localIp(entity.state):"";
-       const name=item.name||String(entity?.attributes?.friendly_name||"")
-         .replace(/\s+IP address$/i,"")||item.id;
-       const conn=states[item.connectionId]?.state;
-       const connection=online(states[item.connectionId])&&conn?String(conn).slice(0,45):"Non précisé";
-       return {name,ip,connection,allocation:"Non déterminé"};
-     }).filter(item=>{
-       if(!item.ip||seen.has(item.ip))return false;
-       seen.add(item.ip);return true;
-     }).sort((a,b)=>a.name.localeCompare(b.name));
+     // Pas de reconstruction à partir de capteurs individuels : on affiche
+     // exclusivement la liste de clients du coordinateur Cudy.
+     return Array.isArray(this._routerClients)?this._routerClients:[];
    }
    _find(kind){
      const specified=this._config["wisp_"+kind+"_entity"];
@@ -209,9 +206,10 @@
    _render(){
      if(this._built||!this.isConnected)return;
      this._built=true;
-     this.shadowRoot.innerHTML="<style>\n:host{display:block} ha-card{padding:16px;border-radius:16px}\nh3{margin:0 0 14px;font-size:18px}\n.line{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 0;border-bottom:1px solid var(--divider-color)}\n.line span{color:var(--secondary-text-color);font-size:13px}\n.line strong{text-align:right;font-size:14px;overflow-wrap:anywhere}\n.panel{margin-top:18px} .client{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:10px 0;border-bottom:1px solid var(--divider-color)} .client strong{font-size:13px;overflow-wrap:anywhere} .client span{font-size:13px;text-align:right;white-space:nowrap} .client-info{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px} .client-sub{font-size:11px;color:var(--secondary-text-color)} p{margin:8px 0;font-size:13px;line-height:1.5;color:var(--secondary-text-color)}\nlabel{display:block;font-size:13px;font-weight:600;margin:12px 0 6px}\nselect,input{font:inherit;width:100%;box-sizing:border-box;border:1px solid var(--divider-color);background:var(--card-background-color);color:var(--primary-text-color);padding:11px;border-radius:9px}\n.buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}\nbutton{font:inherit;cursor:pointer;border:1px solid var(--divider-color);background:var(--secondary-background-color);color:var(--primary-text-color);border-radius:10px;padding:11px 14px}\nbutton.primary{background:var(--primary-color);color:white;border-color:transparent}\nbutton:disabled{opacity:.5;cursor:default} .notice{white-space:pre-wrap;font-size:13px;min-height:1em}\n</style>\n<ha-card><h3>Réseau KIMIA</h3>\n<div class=\"line\"><span>IP Home Assistant</span><strong id=\"ha-ip\">—</strong></div><div class=\"line\"><span>Attribution IP Home Assistant</span><strong id=\"ha-ip-mode\">—</strong></div>\n<div class=\"line\"><span>Clé Zigbee</span><strong id=\"zigbee-ip\">—</strong></div>\n<div class=\"line\"><span>Wi-Fi Internet actuel</span><strong id=\"wisp-ssid\">—</strong></div>\n<div class=\"panel\"><h3>Appareils connectés au Cudy</h3><p id=\"client-note\">Recherche des appareils…</p><div id=\"clients\"></div></div>\n<div class=\"panel\"><h3>Connexion Internet · Wi-Fi WISP</h3>\n<p>Changer le réseau Internet utilisé par le routeur Cudy sans modifier le Wi-Fi local KIMIA.</p>\n<div class=\"buttons\"><button id=\"scan\" type=\"button\">Rechercher les réseaux</button></div>\n<label for=\"net\">Réseau Internet</label><select id=\"net\"><option value=\"\">Lancer une recherche</option></select>\n<label for=\"password\">Mot de passe du réseau</label>\n<input id=\"password\" type=\"password\" autocomplete=\"off\" spellcheck=\"false\" placeholder=\"Mot de passe Wi-Fi (si nécessaire)\"/>\n<div class=\"buttons\"><button id=\"connect\" class=\"primary\" type=\"button\">Se connecter</button></div>\n<p id=\"notice\" class=\"notice\" role=\"status\"></p></div></ha-card>";
-     this._els=Object.fromEntries(["ha-ip","ha-ip-mode","zigbee-ip","wisp-ssid","client-note","clients","scan","net","password","connect","notice"]
+     this.shadowRoot.innerHTML="<style>\n:host{display:block} ha-card{padding:16px;border-radius:16px}\nh3{margin:0 0 14px;font-size:18px}\n.line{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 0;border-bottom:1px solid var(--divider-color)}\n.line span{color:var(--secondary-text-color);font-size:13px}\n.line strong{text-align:right;font-size:14px;overflow-wrap:anywhere}\n.panel{margin-top:18px} .client{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:10px 0;border-bottom:1px solid var(--divider-color)} .client strong{font-size:13px;overflow-wrap:anywhere} .client span{font-size:13px;text-align:right;white-space:nowrap} .client-info{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px} .client-sub{font-size:11px;color:var(--secondary-text-color);line-height:1.5} p{margin:8px 0;font-size:13px;line-height:1.5;color:var(--secondary-text-color)}\nlabel{display:block;font-size:13px;font-weight:600;margin:12px 0 6px}\nselect,input{font:inherit;width:100%;box-sizing:border-box;border:1px solid var(--divider-color);background:var(--card-background-color);color:var(--primary-text-color);padding:11px;border-radius:9px}\n.buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}\nbutton{font:inherit;cursor:pointer;border:1px solid var(--divider-color);background:var(--secondary-background-color);color:var(--primary-text-color);border-radius:10px;padding:11px 14px}\nbutton.primary{background:var(--primary-color);color:white;border-color:transparent}\nbutton:disabled{opacity:.5;cursor:default} .notice{white-space:pre-wrap;font-size:13px;min-height:1em}\n</style>\n<ha-card><h3>Réseau KIMIA</h3>\n<div class=\"line\"><span>IP Home Assistant</span><strong id=\"ha-ip\">—</strong></div><div class=\"line\"><span>Attribution IP Home Assistant</span><strong id=\"ha-ip-mode\">—</strong></div>\n<div class=\"line\"><span>Clé Zigbee</span><strong id=\"zigbee-ip\">—</strong></div>\n<div class=\"line\"><span>Wi-Fi Internet actuel</span><strong id=\"wisp-ssid\">—</strong></div>\n<div class=\"panel\"><h3>Appareils connectés au Cudy</h3><p>Liste fournie directement par le routeur via son intégration Home Assistant.</p><button id=\"refresh-clients\" type=\"button\">Actualiser les appareils</button><p id=\"client-note\">Lecture des appareils…</p><div id=\"clients\"></div></div>\n<div class=\"panel\"><h3>Connexion Internet · Wi-Fi WISP</h3>\n<p>Changer le réseau Internet utilisé par le routeur Cudy sans modifier le Wi-Fi local KIMIA.</p>\n<div class=\"buttons\"><button id=\"scan\" type=\"button\">Rechercher les réseaux</button></div>\n<label for=\"net\">Réseau Internet</label><select id=\"net\"><option value=\"\">Lancer une recherche</option></select>\n<label for=\"password\">Mot de passe du réseau</label>\n<input id=\"password\" type=\"password\" autocomplete=\"off\" spellcheck=\"false\" placeholder=\"Mot de passe Wi-Fi (si nécessaire)\"/>\n<div class=\"buttons\"><button id=\"connect\" class=\"primary\" type=\"button\">Se connecter</button></div>\n<p id=\"notice\" class=\"notice\" role=\"status\"></p></div></ha-card>";
+     this._els=Object.fromEntries(["ha-ip","ha-ip-mode","zigbee-ip","wisp-ssid","client-note","clients","refresh-clients","scan","net","password","connect","notice"]
        .map(id=>[id,this.shadowRoot.getElementById(id)]));
+     this._els["refresh-clients"].addEventListener("click",()=>void this._loadCudyClients(true));
      this._els.scan.addEventListener("click",()=>void this._scan());
      this._els.net.addEventListener("change",()=>void this._select());
      this._els.connect.addEventListener("click",()=>void this._connect());
@@ -223,37 +221,37 @@
      e["ha-ip-mode"].textContent=this._haIpMode();
      e["zigbee-ip"].textContent=this._zigbee();
      e["wisp-ssid"].textContent=this._wispCurrent();
-     const clients=this._cudyClients();
+     const clients=this._cudyClients(),haAddress=this._haIp();
      e.clients.replaceChildren();
      for(const item of clients){
-       const line=document.createElement("div");
-       line.className="client";
+       const line=document.createElement("div");line.className="client";
        const info=document.createElement("div");info.className="client-info";
-       const name=document.createElement("strong");name.textContent=item.name;
+       const isHa=item.ip&&haAddress&&item.ip===haAddress;
+       const name=document.createElement("strong");
+       name.textContent=isHa?"Home Assistant · "+item.name:item.name;
        const detail=document.createElement("div");detail.className="client-sub";
-       detail.textContent="Connexion : "+item.connection+" · Attribution IP : "+item.allocation;
+       const assignment=isHa?this._haIpMode():"Non déterminé";
+       detail.textContent="MAC : "+(item.mac||"Non communiquée")+
+         " · Connexion : "+item.connection+" · IP : "+assignment;
        info.append(name,detail);
-       const ip=document.createElement("span");ip.textContent=item.ip;
+       const ip=document.createElement("span");ip.textContent=item.ip||"IP inconnue";
        line.append(info,ip);e.clients.append(line);
      }
-     // Home Assistant est déjà affiché dans les informations réseau.
-     // Ne pas le présenter comme un client du routeur sans preuve Cudy.
-     const haAddress=this._haIp();
-     const haIsClient=haAddress&&clients.some(c=>c.ip===haAddress);
-     const count=Object.entries(this._hass.states||{}).find(([id,entity])=>
-       id.startsWith("sensor.")&&/cudy/i.test(id+" "+String(entity.attributes?.friendly_name||""))&&
-       /(?:device count|total clients)/i.test(String(entity.attributes?.friendly_name||""))&&
-       /^\d+$/.test(String(entity.state)));
-     const countHint=count?" Le Cudy annonce "+count[1].state+" appareil(s).":"";
-     e["client-note"].textContent=clients.length?
-       clients.length+" client(s) Cudy avec IP détectée(s) · "+this._clientListMethod+
-       (this._clientListMethod==="capteurs visibles (indicatif)"?
-         " ; inventaire potentiellement incomplet.":".")+
-       " Type d'attribution des autres clients non exposé par Cudy Router."+
-       (!haIsClient?" HA n'est pas identifié dans la liste Cudy.":""):
-       "Liste détaillée des clients Cudy indisponible."+countHint+
-       " Dans Cudy Router → Configurer, activer « Ajouter automatiquement les appareils connectés »."+
-       (haAddress?" L'adresse IP de HA est connue, mais sa présence parmi les clients Cudy n'est pas confirmée.":"");
+     e["refresh-clients"].disabled=this._routerBusy||!this._settingsAllowed();
+     const status=this._routerStatus;
+     if(status==="loading")e["client-note"].textContent="Lecture de la liste Cudy…";
+     else if(status==="missing")e["client-note"].textContent=
+       "L'intégration Cudy Router n'est pas chargée sur ce Home Assistant.";
+     else if(status==="unavailable")e["client-note"].textContent=
+       "Lecteur Cudy indisponible. Installer et activer kimia_cudy_clients, puis redémarrer Home Assistant.";
+     else{
+       e["client-note"].textContent=clients.length+
+         " appareil(s) trouvé(s) dans la dernière liste du Cudy."+
+         (this._routerReported!==clients.length?" Compteur du routeur : "+this._routerReported+".":"")+
+         (!this._routerHealthy?" Attention : dernier rafraîchissement Cudy en erreur, liste possiblement ancienne.":"")+
+         (this._routerTruncated?" Liste tronquée à 300 appareils.":"")+
+         " Les réservations DHCP ne sont pas incluses dans cette liste.";
+     }
      const ids={scan:this._find("scan"),network:this._find("network"),password:this._find("password"),connect:this._find("connect")};
      this._ids=ids;
      const net=ids.network?this._hass.states[ids.network]:null;
