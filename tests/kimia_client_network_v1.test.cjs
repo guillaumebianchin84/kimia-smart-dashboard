@@ -74,6 +74,16 @@ card._els={net:{value:"BoxTest"},password:{value:"SecretTest123"},notice:{textCo
   assert.equal(card._cudyClients().length,1);
   assert.equal(card._cudyClients()[0].name,"Téléphone");
   assert.equal(card._cudyClients()[0].ip,"10.77.0.120");
+  assert.equal(card._cudyClients()[0].allocation,"Non déterminé",
+    "Ne jamais déduire une IP statique d'une simple adresse.");
+  states["sensor.telephone_connection_type"]={
+    state:"Ethernet",attributes:{friendly_name:"Téléphone Connection type"}
+  };
+  card._clientMeta[0].connectionId="sensor.telephone_connection_type";
+  assert.equal(card._cudyClients()[0].connection,"Ethernet");
+  card._supervisorIpMode="Statique sur HA OS";
+  assert.equal(card._haIpMode(),"Statique sur HA OS");
+
   card._supervisorIp="10.77.0.100";
   assert.equal(card._haIp(),"10.77.0.100","IP HA obtenue de Supervisor");
   assert.equal(card._zigbee(),"IP enregistrée : 10.77.0.50 · connexion non vérifiée","Une IP n'est pas une preuve de connexion Zigbee");
