@@ -40,7 +40,7 @@ card._hass={
   callService:async(domain,service,data)=>{calls.push({domain,service,data});}
 };
 assert.equal(card._haIp(),"10.77.0.76");
-assert.equal(card._zigbee(),"IP : 10.77.0.50");
+assert.equal(card._zigbee(),"IP enregistrée : 10.77.0.50 · connexion non vérifiée");
 assert.equal(card._wispCurrent(),"BoxActuelle");
 assert.equal(card._find("scan"),"button.cudy_wisp_scan");
 assert.equal(card._find("network"),"select.cudy_wisp_network");
@@ -76,7 +76,7 @@ card._els={net:{value:"BoxTest"},password:{value:"SecretTest123"},notice:{textCo
   assert.equal(card._cudyClients()[0].ip,"10.77.0.120");
   card._supervisorIp="10.77.0.100";
   assert.equal(card._haIp(),"10.77.0.100","IP HA obtenue de Supervisor");
-  assert.equal(card._zigbee(),"IP : 10.77.0.50","Clé Zigbee détectée via capteur");
+  assert.equal(card._zigbee(),"IP enregistrée : 10.77.0.50 · connexion non vérifiée","Une IP n'est pas une preuve de connexion Zigbee");
   delete states["sensor.slzb_06u_ip_address"];
   card._zigbeeRegistryIp="";
   assert.equal(card._zigbee(),"Non détectée sur le réseau");
