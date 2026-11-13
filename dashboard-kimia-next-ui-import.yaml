@@ -1633,6 +1633,12 @@ views:
             grid_options:
               columns: full
               rows: auto
+          - type: button
+            name: Réglages de la voix Gemini
+            icon: mdi:microphone
+            tap_action:
+              action: navigate
+              navigation_path: /config/voice-assistants/assistants
       - type: grid
         cards:
           - type: custom:navbar-card
