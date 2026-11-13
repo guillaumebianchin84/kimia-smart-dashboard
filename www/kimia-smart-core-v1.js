@@ -1035,6 +1035,7 @@
     // Atelier IA dans un onglet d'administration séparé : le manuel reste intact.
     const aiAutomationType="custom:kimia-ai-automation-studio-v1-card";
     const haHealthType="custom:kimia-ha-diagnostic-v1-card";
+    const assistantView=next.views.find(v=>v.path==="atelier-ia"&&Array.isArray(v.sections));
     const aiTabPath="automatisations-ia";
     let aiView=next.views.find(v=>v.path===aiTabPath);
     if(!aiView){
@@ -1051,14 +1052,13 @@
               grid_options:{columns:12,rows:1}}
           ]},
           {type:"grid",column_span:2,cards:[{type:aiAutomationType,
-            grid_options:{columns:"full",rows:"auto"}}]},
-          {type:"grid",column_span:2,cards:[{type:haHealthType,
             grid_options:{columns:"full",rows:"auto"}}]}
         ]
       };
       const i=scenarios?next.views.indexOf(scenarios)+1:next.views.length;
       next.views.splice(i,0,aiView);added+=4;
-    }else if(aiView.sections){
+    }
+    if(aiView.sections){
       // Migration non destructive de l'ancien grand bouton manuel (12x2).
       // Un bouton modifié par l'utilisateur est laissé tel quel.
       const legacyManual={type:"button",name:"Création manuelle",icon:"mdi:hand-back-right-outline",
@@ -1081,9 +1081,22 @@
           }
         }
       }
-      for(const type of [aiAutomationType,haHealthType]){
-        if(!hasCard(aiView,c=>c.type===type)){
-          aiView.sections.push({type:"grid",column_span:2,cards:[
+      const healthView=assistantView||aiView;
+      if(assistantView){
+        for(const section of aiView.sections){
+          if(!Array.isArray(section.cards))continue;
+          const card=section.cards.find(c=>c.type===haHealthType);
+          if(!card)continue;
+          if(!hasCard(assistantView,c=>c.type===haHealthType)){
+            assistantView.sections.push({type:"grid",column_span:2,cards:[card]});
+          }
+          section.cards=section.cards.filter(c=>c!==card);added++;
+        }
+        aiView.sections=aiView.sections.filter(section=>!Array.isArray(section.cards)||section.cards.length);
+      }
+      for(const [view,type] of [[aiView,aiAutomationType],[healthView,haHealthType]]){
+        if(!hasCard(view,c=>c.type===type)){
+          view.sections.push({type:"grid",column_span:2,cards:[
             {type,grid_options:{columns:"full",rows:"auto"}}
           ]});
           added++;
