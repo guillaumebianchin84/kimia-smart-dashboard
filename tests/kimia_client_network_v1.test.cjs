@@ -63,5 +63,26 @@ card._els={net:{value:"BoxTest"},password:{value:"SecretTest123"},notice:{textCo
   assert.equal(calls.length,0,"Le client ne doit pas agir lorsque Paramètres est masqué.");
   card._hass.user.is_admin=true;
   assert.equal(card._settingsAllowed(),true,"L'administrateur garde l'accès.");
-  console.log("KIMIA Réseau OK : IP, Zigbee, SSID, WISP et filtrage de l'interface.");
+  // Les capteurs Cudy des appareils connectés sont reconnus grâce au registre.
+  states["sensor.telephone_ip_address"]={
+    state:"10.77.0.120",attributes:{friendly_name:"Téléphone IP address"}
+  };
+  states["sensor.intrus_ip_address"]={
+    state:"10.77.0.121",attributes:{friendly_name:"Autre intégration IP address"}
+  };
+  card._clientMeta=[{id:"sensor.telephone_ip_address",name:"Téléphone"}];
+  assert.equal(card._cudyClients().length,1);
+  assert.equal(card._cudyClients()[0].name,"Téléphone");
+  assert.equal(card._cudyClients()[0].ip,"10.77.0.120");
+  card._supervisorIp="10.77.0.100";
+  assert.equal(card._haIp(),"10.77.0.100","IP HA obtenue de Supervisor");
+  assert.equal(card._zigbee(),"IP : 10.77.0.50","Clé Zigbee détectée via capteur");
+  delete states["sensor.slzb_06u_ip_address"];
+  card._zigbeeRegistryIp="";
+  assert.equal(card._zigbee(),"Non détectée sur le réseau");
+  card._clientMeta=null;
+  assert.equal(card._cudyClients().length,2,"Capteurs IP indicatifs sans accès au registre");
+  assert.equal(card._clientListMethod,"capteurs visibles (indicatif)");
+  console.log("KIMIA Réseau OK : IP HA, clients Cudy, clé Zigbee débranchée et WISP.");
+
 })().catch(err=>{console.error(err);process.exitCode=1;});
