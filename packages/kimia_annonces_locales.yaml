@@ -1,0 +1,55 @@
+script:
+  kimia_annonce_locale:
+    alias: KIMIA · Annonce locale
+    description: Lit un fichier audio du dossier /media/kimia sur une enceinte Home Assistant.
+    mode: single
+    fields:
+      enceinte:
+        name: Enceinte
+        required: true
+        selector:
+          entity:
+            filter:
+              - domain: media_player
+      fichier:
+        name: Fichier audio
+        description: Nom du fichier dans /media/kimia, par exemple test.mp3
+        required: true
+        selector:
+          text:
+      interrompre:
+        name: Autoriser la lecture pendant un autre média
+        default: false
+        selector:
+          boolean:
+    sequence:
+      - if:
+          - condition: template
+            value_template: >-
+              {{ enceinte is not defined or enceinte is not string
+                 or not (enceinte is match('^media_player[.][a-z0-9_]+$'))
+                 or states(enceinte) in ['unknown', 'unavailable'] }}
+        then:
+          - stop: Enceinte indisponible ou non renseignée.
+            error: true
+      - if:
+          - condition: template
+            value_template: >-
+              {{ fichier is not defined or fichier is not string
+                 or not (fichier is match('^[a-zA-Z0-9_-]+[.](mp3|wav)$')) }}
+        then:
+          - stop: Indique un nom de fichier MP3 ou WAV dans le dossier média KIMIA.
+            error: true
+      - if:
+          - condition: template
+            value_template: >-
+              {{ is_state(enceinte, 'playing') and not (interrompre | default(false) | bool) }}
+        then:
+          - stop: Une lecture est déjà en cours sur cette enceinte.
+            error: true
+      - action: media_player.play_media
+        target:
+          entity_id: "{{ enceinte }}"
+        data:
+          media_content_id: "media-source://media_source/local/kimia/{{ fichier }}"
+          media_content_type: "{{ 'audio/mpeg' if fichier.endswith('.mp3') else 'audio/wav' }}"
