@@ -1205,7 +1205,9 @@
     {path:"reglages-listes",title:"Mes listes",icon:"mdi:format-list-checks",
      label:"Mes listes",description:"Tâches du foyer",color:"green"},
     {path:"reglages-apparence",title:"Apparence",icon:"mdi:palette-outline",
-     label:"Apparence",description:"Mes thèmes KIMIA",color:"deep-purple"}
+     label:"Apparence",description:"Mes thèmes KIMIA",color:"deep-purple"},
+    {path:"reglages-reseau",title:"Réseau",icon:"mdi:wifi",
+     label:"Réseau",description:"IP KIMIA, Zigbee et Wi-Fi Internet",color:"blue"}
   ];
   const settingsShortcut=(label,description,icon,path,color="teal")=>({
     type:"shortcut",label,description,icon,color,
@@ -1275,6 +1277,11 @@
     if(spec.path==="reglages-apparence")add(
       settingsHeading("Personnalisation"),
       settingsHelp("Choisissez ici un thème uniquement pour cet appareil. Aucun changement global sur Home Assistant.")
+    );
+    if(spec.path==="reglages-reseau")add(
+      {type:"heading",heading:"Informations et connexion Internet",icon:"mdi:wifi"},
+      {type:"custom:kimia-client-network-v1-card",
+       grid_options:{columns:"full",rows:"auto"}}
     );
     if(nav)view.sections.push(settingsGrid([safeClone(nav)]));
     return view;
