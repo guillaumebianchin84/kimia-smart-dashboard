@@ -13,6 +13,8 @@ import probatio
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
+from .settings import async_setup_settings
+
 DOMAIN = "kimia_cudy_clients"
 _LOGGER = logging.getLogger(__name__)
 
@@ -118,4 +120,5 @@ async def ws_list(hass, connection, msg):
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     websocket_api.async_register_command(hass, ws_list)
+    await async_setup_settings(hass)
     return True
