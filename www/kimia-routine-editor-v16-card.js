@@ -92,8 +92,11 @@
      // V1.4 stocke les clés ks_ sous la même forme que l'entity_id.
      found.push({kind:"script",id:objId,entityId,name:obj.attributes?.friendly_name||entityId});
     }
-    if(domain==="automation"&&String(obj.attributes?.id||"").startsWith("kimia_"))
-     found.push({kind:"automation",id:String(obj.attributes.id),entityId,name:obj.attributes?.friendly_name||entityId});
+    const automationId=String(obj.attributes?.id||"");
+    if(domain==="automation"&&automationId.startsWith("kimia_")&&
+       automationId!=="kimia_initialisation_navigation_admin"&&
+       automationId!=="kimia_initialisation_pieces_nav_v15")
+     found.push({kind:"automation",id:automationId,entityId,name:obj.attributes?.friendly_name||entityId});
    }
    found.sort((a,b)=>a.name.localeCompare(b.name,"fr"));
    // HA peut conserver une entité supprimée quelques instants dans states.

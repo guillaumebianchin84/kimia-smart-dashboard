@@ -81,7 +81,7 @@ class Generator extends HTMLElement {
     this._hass=h;
     this._statesOverride=null;
     if(!this.built)this.draw();
-    else this.renderScenes();
+    else {this.refreshBulbs();this.renderScenes();}
   }
   connectedCallback(){this.draw();}
   draw(){
@@ -89,16 +89,6 @@ class Generator extends HTMLElement {
     this.built=true;
     const root=this.shadowRoot;
     root.innerHTML=htmlStyle+"<ha-card><h3>✨ Mes 10 scènes lumineuses IA</h3><p class='hint'>Choisis les ampoules concernées. Gemini créera 10 ambiances fixes, enregistrées dans Home Assistant.</p><div class='bulbs'></div><p>Modèle IA :</p><select aria-label='Modèle Gemini'></select><p>Ambiances souhaitées :</p><textarea></textarea><button class='primary'>Générer et enregistrer 10 scènes</button><p class='hint'>Régénérer remplace les 10 scènes IA KIMIA. La génération nécessite Internet ; les scènes fonctionnent ensuite hors ligne.</p><div class='scene-manage'><h4>Gérer mes scènes KIMIA</h4><div class='existing-scenes'></div><button type='button' class='danger remove-all' hidden>Supprimer toutes les scènes KIMIA</button></div><p class='status' role='status'></p></ha-card>";
-    const list=root.querySelector(".bulbs");
-    const lights=Object.values(this._hass.states||{}).filter(eligible).sort((a,b)=>String(a.attributes?.friendly_name||a.entity_id).localeCompare(String(b.attributes?.friendly_name||b.entity_id),"fr"));
-    for(const s of lights){
-      const label=document.createElement("label");label.className="bulb";
-      const checkbox=document.createElement("input");checkbox.type="checkbox";
-      checkbox.addEventListener("change",()=>checkbox.checked?this.sel.add(s.entity_id):this.sel.delete(s.entity_id));
-      const t=document.createTextNode(" "+(s.attributes?.friendly_name||s.entity_id));
-      label.append(checkbox,t);list.append(label);
-    }
-    if(!lights.length)list.textContent="Aucune ampoule disponible.";
     this.aiSelect=root.querySelector("select");
     const tasks=Object.values(this._hass.states||{}).filter(state=>
       state.entity_id?.startsWith("ai_task.")&&state.state!=="unavailable");
@@ -114,13 +104,43 @@ class Generator extends HTMLElement {
     this.field.addEventListener("input",()=>this.prompt=this.field.value);
     this.button=root.querySelector("button");
     this.status=root.querySelector(".status");
-    this.button.disabled=this._hass.user?.is_admin!==true||!tasks.length;
+    this.refreshBulbs();
     if(!tasks.length)this.say("Aucune entité AI Task détectée. Active l'entité AI Task de Google Gemini dans Home Assistant avant la génération.",true);
     this.button.addEventListener("click",()=>this.generate());
     this.sceneBox=root.querySelector(".existing-scenes");
     this.removeAllButton=root.querySelector(".remove-all");
     this.removeAllButton.addEventListener("click",()=>this.deleteScenes(this.listScenes()));
     this.renderScenes();
+  }
+  refreshBulbs(){
+    const signature=JSON.stringify(Object.values(this._hass.states||{}).filter(s=>s.entity_id?.startsWith("light.")).map(s=>[s.entity_id,eligible(s),s.attributes?.friendly_name]));
+    if(signature!==this.bulbSignature){this.bulbSignature=signature;this.renderBulbs();}
+    this.button.disabled=this.busy||this._hass.user?.is_admin!==true||!this.aiSelect.value||!Object.values(this._hass.states||{}).some(eligible);
+  }
+  renderBulbs(){
+    const root=this.shadowRoot;
+    const list=root.querySelector(".bulbs");
+    const configured=Object.values(this._hass.states||{}).filter(s=>/^light\.[a-z0-9_]+$/.test(s.entity_id));
+    const lights=configured.filter(eligible).sort((a,b)=>String(a.attributes?.friendly_name||a.entity_id).localeCompare(String(b.attributes?.friendly_name||b.entity_id),"fr"));
+    list.replaceChildren();
+    if(!configured.length){list.textContent="Aucune ampoule configurée.";return;}
+    if(!lights.length){
+      list.textContent=configured.length+" ampoule(s) configurée(s), 0 joignable. La génération reprend lorsqu’une ampoule est disponible.";
+      return;
+    }
+    if(lights.length!==configured.length){
+      const summary=document.createElement("p");summary.className="hint";
+      summary.textContent=configured.length+" ampoule(s) configurée(s), "+lights.length+" joignable(s).";
+      list.append(summary);
+    }
+    for(const s of lights){
+      const label=document.createElement("label");label.className="bulb";
+      const checkbox=document.createElement("input");checkbox.type="checkbox";
+      checkbox.checked=this.sel.has(s.entity_id);
+      checkbox.addEventListener("change",()=>checkbox.checked?this.sel.add(s.entity_id):this.sel.delete(s.entity_id));
+      const t=document.createTextNode(" "+(s.attributes?.friendly_name||s.entity_id));
+      label.append(checkbox,t);list.append(label);
+    }
   }
   listScenes(){
     return Object.values(this._statesOverride||this._hass?.states||{}).filter(s=>
@@ -200,7 +220,7 @@ class Generator extends HTMLElement {
       this.say("Échec — "+phase+" après "+deleted+" suppression(s) : "+err(error),true);
     }finally{
       this.busy=false;
-      this.button.disabled=this._hass?.user?.is_admin!==true||!this.aiSelect?.value;
+      this.refreshBulbs();
       this.renderScenes();
     }
   }
@@ -277,7 +297,7 @@ class Generator extends HTMLElement {
       this.say("Échec — "+phase+(saved?" ("+saved+" scène(s) enregistrée(s))":"")+" : "+err(error),true);
     }
     finally{
-      this.busy=false;this.button.disabled=this._hass?.user?.is_admin!==true||!this.aiSelect?.value;
+      this.busy=false;this.refreshBulbs();
       this.renderScenes();
     }
   }
