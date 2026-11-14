@@ -1427,6 +1427,7 @@
   };
 
   const settingsLockType="custom:kimia-settings-lock-v1-card";
+  const settingsZoneType="custom:kimia-zone-settings-card";
   const lockSettingsCard=(mode,card)=>({
     type:settingsLockType,mode,
     ...(card?{card}:{}),
@@ -1448,10 +1449,18 @@
         param.sections.splice(param.sections.indexOf(menu)+1,0,actions);
         if(index>=0)modified++;else added++;
       }
-      if(!actions.cards.some(c=>routeIs(c.card||c,"/profile")&&(c.card||c).label==="Paramètres avancés")){
-        actions.cards.push(lockSettingsCard("content",settingsShortcut(
-          "Paramètres avancés","Compte Home Assistant","mdi:account-cog-outline","/profile","teal")));
+      const advanced=actions.cards.find(c=>routeIs(c.card||c,"/profile")&&(c.card||c).label==="Paramètres avancés");
+      if(!advanced){
+        const shortcut=settingsShortcut(
+          "Paramètres avancés","Compte Home Assistant","mdi:account-cog-outline","/profile","teal");
+        shortcut.grid_options.columns=12;
+        actions.cards.push(lockSettingsCard("content",shortcut));
         added++;
+      }else if(advanced.grid_options?.columns!==12||advanced.card?.grid_options?.columns!==12){
+        const shortcut=advanced.card||advanced;
+        shortcut.grid_options={...shortcut.grid_options,columns:12};
+        actions.cards[actions.cards.indexOf(advanced)]=lockSettingsCard("content",shortcut);
+        modified++;
       }
       menu.cards=menu.cards.map(card=>{
         const shortcut=card.card||card;
@@ -1476,25 +1485,17 @@
       if(spec.path==="reglages-localisation"){
         const section=sectionWithHeader(view,"Carte géographique");
         if(section){
-          const legacy=section.cards.findIndex(c=>routeIs(c.card||c,SETTINGS_BASE+"carte"));
-          if(legacy>=0){section.cards.splice(legacy,1);modified++;}
-          const isZoneShortcut=c=>routeIs(c.card||c,"/config/zone");
-          const zoneShortcut=section.cards.find(isZoneShortcut);
-          const unique=section.cards.filter(c=>!isZoneShortcut(c)||c===zoneShortcut);
-          modified+=section.cards.length-unique.length;
-          section.cards=unique;
-          if(!zoneShortcut){
-            section.cards.push({...lockSettingsCard("content",settingsShortcut(
-              "Créer ou modifier une zone","Gérer les zones de la carte","mdi:map-marker-plus","/config/zone","cyan")),admin_only:true});
-            added++;
-          }else if(!zoneShortcut.admin_only){
-            const index=section.cards.indexOf(zoneShortcut);
-            section.cards[index]={...lockSettingsCard("content",zoneShortcut.card||zoneShortcut),admin_only:true};
-            modified++;
-          }
-          if(!hasCard(view,c=>(c.card||c).content==="La création de zones nécessite un compte administrateur Home Assistant.")){
-            section.cards.push({...lockSettingsCard("content",settingsHelp(
-              "La création de zones nécessite un compte administrateur Home Assistant.")),non_admin_only:true});
+          const kept=section.cards.filter(entry=>{
+            const card=entry.card||entry;
+            return !routeIs(card,SETTINGS_BASE+"carte")&&!routeIs(card,"/config/zone")&&
+              card.content!=="La création de zones nécessite un compte administrateur Home Assistant.";
+          });
+          modified+=section.cards.length-kept.length;
+          section.cards=kept;
+          if(!hasCard(view,c=>(c.card||c).type===settingsZoneType)){
+            section.cards.push(lockSettingsCard("content",{
+              type:settingsZoneType,grid_options:{columns:"full",rows:"auto"}
+            }));
             added++;
           }
         }
