@@ -58,9 +58,9 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]).map(c=>c.card||c);
   "Kiosk propre aux comptes non-admin");
  assert(cfg.kiosk_mode.non_admin_settings.kiosk.includes("return window.localStorage.getItem"),
   "Expression localStorage conservée avec retour booléen");
- const pages=["reglages-utilisateurs","reglages-affichage","reglages-localisation",
+ const pages=["reglages-affichage","reglages-localisation",
   "reglages-listes","reglages-apparence","reglages-reseau"];
- assert.equal(cfg.views.length,18);
+ assert.equal(cfg.views.length,17);
  for(const path of pages){
   assert(get(path)?.subview,path+" should be a subview");
   assert.equal(get(path).back_path,"/kimia-next/parametres");
@@ -72,7 +72,7 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]).map(c=>c.card||c);
     c.tap_action?.navigation_path==="/kimia-next/parametres"));
  }
  const menu=cards("parametres").filter(c=>c.type==="shortcut");
- assert.equal(menu.filter(c=>pages.includes(c.tap_action?.navigation_path?.split("/").pop())).length,6);
+ assert.equal(menu.filter(c=>pages.includes(c.tap_action?.navigation_path?.split("/").pop())).length,5);
  assert(cards("parametres").some(c=>c.content===custom.content));
  assert(!cards("parametres").some(c=>c.type==="custom:kimia-header-toggle-v1-card"));
  const header=cards("reglages-affichage").find(c=>c.type==="custom:kimia-header-toggle-v1-card");
@@ -84,11 +84,12 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]).map(c=>c.card||c);
  assert(!cards("reglages-apparence").some(c=>c.type==="entities"&&
   c.title==="Mon ambiance actuelle"),"global theme helper no longer exposed");
  assert(!cards("parametres").some(c=>c.name==="Terracotta"));
- assert(!cards("reglages-localisation").some(c=>c.tap_action?.navigation_path==="/config/zone"));
- assert(cards("reglages-localisation").some(c=>c.tap_action?.navigation_path==="/kimia-next/carte"));
+ assert(cards("reglages-localisation").some(c=>c.tap_action?.navigation_path==="/config/zone"));
+ assert(cards("reglages-listes").some(c=>c.type==="custom:kimia-services-v14-card"&&c.lists_only));
+ assert(!cards("reglages-listes").some(c=>c.type==="shortcut"&&c.tap_action?.navigation_path==="/kimia-next/listes"));
  assert.equal(cards("reglages-reseau").filter(c=>c.type==="custom:kimia-client-network-v1-card"&&c.client).length,1);
  assert(cards("reglages-reseau").some(c=>c.heading==="Accès local"));
- assert(cards("reglages-utilisateurs").some(c=>c.tap_action?.navigation_path==="/profile"));
+ assert(!get("reglages-utilisateurs"));
  assert(!get("reglages-matter"));
  assert(cards("reglages-reseau").some(c=>c.content?.includes("http://192.168.50.10:8123/kimia-next/accueil")));
  const adminCards=path=>admin.views.find(v=>v.path===path).sections.flatMap(s=>s.cards);
@@ -100,6 +101,7 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]).map(c=>c.card||c);
  assert(adminLinks("utilisateurs").includes("/config/users"));
  const controls=get("parametres").sections.flatMap(s=>s.cards||[]);
  assert(controls.some(c=>c.type==="custom:kimia-settings-lock-v1-card"&&c.mode==="control"));
+ assert(controls.some(c=>c.mode==="content"&&c.card?.label==="Paramètres avancés"&&c.card.tap_action.navigation_path==="/profile"));
  assert(controls.some(c=>c.type==="shortcut"&&c.tap_action?.navigation_path==="/kimia-next/reglages-apparence"));
  assert(controls.some(c=>c.mode==="content"&&c.card?.tap_action?.navigation_path==="/kimia-next/reglages-reseau"));
  const was=writes;
@@ -120,10 +122,8 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]).map(c=>c.card||c);
   {type:"heading",heading:"Informations et connexion Internet"},
   {type:"custom:kimia-client-network-v1-card"},legacyLink("/kimia-next/reglages-matter")
  ];
- get("reglages-utilisateurs").title="Utilisateurs";
- get("reglages-utilisateurs").sections[2].cards=[
-  {type:"heading",heading:"Mes accès"},legacyLink("/kimia-admin-next/utilisateurs")
- ];
+ get("parametres").sections.find(s=>s.cards?.some(c=>c.heading==="Mon espace KIMIA")).cards.push(
+  legacyLink("/kimia-next/reglages-utilisateurs"));
  get("reglages-localisation").sections[2].cards.push(legacyLink("/config/zone"));
  get("parametres").sections[1].cards.push({
   name:"Réglages de la voix Gemini",...legacyLink("/config/voice-assistants/assistants")
@@ -131,11 +131,11 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]).map(c=>c.card||c);
  await window.KimiaSmartCore.sync(hass);
  assert(!get("reglages-matter"));
  assert.equal(cards("reglages-reseau").filter(c=>c.type==="custom:kimia-client-network-v1-card"&&c.client).length,1);
- assert(!cards("reglages-localisation").some(c=>c.tap_action?.navigation_path==="/config/zone"));
- assert(cards("reglages-utilisateurs").some(c=>c.tap_action?.navigation_path==="/profile"));
+ assert.equal(cards("reglages-localisation").filter(c=>c.tap_action?.navigation_path==="/config/zone").length,1);
+ assert(!cards("parametres").some(c=>c.tap_action?.navigation_path==="/kimia-next/reglages-utilisateurs"));
  assert(!cards("parametres").some(c=>c.name==="Réglages de la voix Gemini"));
  const afterMigration=writes;
  await window.KimiaSmartCore.sync(hass);
  assert.equal(writes,afterMigration);
- console.log("KIMIA Settings OK : 6 sous-vues, thèmes locaux sans action globale, bandeau et personnalisations préservés.");
+ console.log("KIMIA Settings OK : 5 sous-vues, thèmes locaux sans action globale, bandeau et personnalisations préservés.");
 })().catch(e=>{console.error(e);process.exitCode=1;});
