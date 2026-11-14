@@ -63,7 +63,7 @@
      // En lecture seule. Les registres et Supervisor ne sont pas accessibles à
      // tous les utilisateurs HA. Les capteurs de clients restent le repli.
      const hass=this._hass,user=this._lookupUser;
-     if(this._lookupStarted||!hass?.callWS||hass.user?.is_admin!==true)return;
+     if(this._config.client||this._lookupStarted||!hass?.callWS||hass.user?.is_admin!==true)return;
      this._lookupStarted=true;
      const answers=await Promise.allSettled([
        hass.callWS({type:"supervisor/api",endpoint:"/network/info",method:"get"}),
@@ -108,7 +108,9 @@
      this._routerLast=now;this._routerBusy=true;
      this._refresh();
      try{
-       const result=await hass.callWS({type:"kimia_cudy_clients/list"});
+       const request={type:"kimia_cudy_clients/list"};
+       if(this._config.client)request.token=window.KimiaSettingsLock.token(hass);
+       const result=await hass.callWS(request);
        if(this._lookupUser!==user)return;
        this._routerClients=Array.isArray(result?.devices)?
          result.devices.slice(0,300).map(item=>({
@@ -147,6 +149,7 @@
      return cudy.length===1?cudy[0]:matches.length===1?matches[0]:null;
    }
    _settingsAllowed(){
+     if(this._config.client)return Boolean(window.KimiaSettingsLock?.token(this._hass));
      return this._hass?.user?.is_admin===true;
    }
    _wispCurrent(){
@@ -203,9 +206,15 @@
    _render(){
      if(this._built||!this.isConnected)return;
      this._built=true;
-     this.shadowRoot.innerHTML="<style>\n:host{display:block} ha-card{padding:16px;border-radius:16px}\nh3{margin:0 0 14px;font-size:18px}\n.line{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 0;border-bottom:1px solid var(--divider-color)}\n.line span{color:var(--secondary-text-color);font-size:13px}\n.line strong{text-align:right;font-size:14px;overflow-wrap:anywhere}\n.panel{margin-top:18px} .client{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:10px 0;border-bottom:1px solid var(--divider-color)} .client strong{font-size:13px;overflow-wrap:anywhere} .client span{font-size:13px;text-align:right;white-space:nowrap} .client-info{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px} .client-sub{font-size:11px;color:var(--secondary-text-color);line-height:1.5} p{margin:8px 0;font-size:13px;line-height:1.5;color:var(--secondary-text-color)}\nlabel{display:block;font-size:13px;font-weight:600;margin:12px 0 6px}\nselect,input{font:inherit;width:100%;box-sizing:border-box;border:1px solid var(--divider-color);background:var(--card-background-color);color:var(--primary-text-color);padding:11px;border-radius:9px}\n.buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}\nbutton{font:inherit;cursor:pointer;border:1px solid var(--divider-color);background:var(--secondary-background-color);color:var(--primary-text-color);border-radius:10px;padding:11px 14px}\nbutton.primary{background:var(--primary-color);color:white;border-color:transparent}\nbutton:disabled{opacity:.5;cursor:default} .notice{white-space:pre-wrap;font-size:13px;min-height:1em}\n</style>\n<ha-card><h3>Réseau KIMIA</h3>\n<div class=\"line\"><span>IP Home Assistant</span><strong id=\"ha-ip\">—</strong></div><div class=\"line\"><span>Attribution IP Home Assistant</span><strong id=\"ha-ip-mode\">—</strong></div>\n<div class=\"line\"><span>Clé Zigbee</span><strong id=\"zigbee-ip\">—</strong></div>\n<div class=\"line\"><span>Wi-Fi Internet actuel</span><strong id=\"wisp-ssid\">—</strong></div>\n<div class=\"panel\"><h3>Appareils connectés au Cudy</h3><p>Liste fournie directement par le routeur via son intégration Home Assistant.</p><button id=\"refresh-clients\" type=\"button\">Actualiser les appareils</button><p id=\"client-note\">Lecture des appareils…</p><div id=\"clients\"></div></div>\n<div class=\"panel\"><h3>Connexion Internet · Wi-Fi WISP</h3>\n<p>Changer le réseau Internet utilisé par le routeur Cudy sans modifier le Wi-Fi local KIMIA.</p>\n<div class=\"buttons\"><button id=\"scan\" type=\"button\">Rechercher les réseaux</button></div>\n<label for=\"net\">Réseau Internet</label><select id=\"net\"><option value=\"\">Lancer une recherche</option></select>\n<label for=\"password\">Mot de passe du réseau</label>\n<input id=\"password\" type=\"password\" autocomplete=\"off\" spellcheck=\"false\" placeholder=\"Mot de passe Wi-Fi (si nécessaire)\"/>\n<div class=\"buttons\"><button id=\"connect\" class=\"primary\" type=\"button\">Se connecter</button></div>\n<p id=\"notice\" class=\"notice\" role=\"status\"></p></div></ha-card>";
+     this.shadowRoot.innerHTML="<style>\n:host{display:block} [hidden]{display:none!important} ha-card{padding:16px;border-radius:16px}\nh3{margin:0 0 14px;font-size:18px}\n.line{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 0;border-bottom:1px solid var(--divider-color)}\n.line span{color:var(--secondary-text-color);font-size:13px}\n.line strong{text-align:right;font-size:14px;overflow-wrap:anywhere}\n.panel{margin-top:18px} .client{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:10px 0;border-bottom:1px solid var(--divider-color)} .client strong{font-size:13px;overflow-wrap:anywhere} .client span{font-size:13px;text-align:right;white-space:nowrap} .client-info{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px} .client-sub{font-size:11px;color:var(--secondary-text-color);line-height:1.5} p{margin:8px 0;font-size:13px;line-height:1.5;color:var(--secondary-text-color)}\nlabel{display:block;font-size:13px;font-weight:600;margin:12px 0 6px}\nselect,input{font:inherit;width:100%;box-sizing:border-box;border:1px solid var(--divider-color);background:var(--card-background-color);color:var(--primary-text-color);padding:11px;border-radius:9px}\n.buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}\nbutton{font:inherit;cursor:pointer;border:1px solid var(--divider-color);background:var(--secondary-background-color);color:var(--primary-text-color);border-radius:10px;padding:11px 14px}\nbutton.primary{background:var(--primary-color);color:white;border-color:transparent}\nbutton:disabled{opacity:.5;cursor:default} .notice{white-space:pre-wrap;font-size:13px;min-height:1em}\n</style>\n<ha-card><h3>Réseau KIMIA</h3>\n<div class=\"line\"><span>IP Home Assistant</span><strong id=\"ha-ip\">—</strong></div><div class=\"line\"><span>Attribution IP Home Assistant</span><strong id=\"ha-ip-mode\">—</strong></div>\n<div class=\"line\"><span>Clé Zigbee</span><strong id=\"zigbee-ip\">—</strong></div>\n<div class=\"line\"><span>Wi-Fi Internet actuel</span><strong id=\"wisp-ssid\">—</strong></div>\n<div class=\"panel\"><h3>Appareils connectés au Cudy</h3><p>Liste fournie directement par le routeur via son intégration Home Assistant.</p><button id=\"refresh-clients\" type=\"button\">Actualiser les appareils</button><p id=\"client-note\">Lecture des appareils…</p><div id=\"clients\"></div></div>\n<div class=\"panel\"><h3>Connexion Internet · Wi-Fi WISP</h3>\n<p>Changer le réseau Internet utilisé par le routeur Cudy sans modifier le Wi-Fi local KIMIA.</p>\n<div class=\"buttons\"><button id=\"scan\" type=\"button\">Rechercher les réseaux</button></div>\n<label for=\"net\">Réseau Internet</label><select id=\"net\"><option value=\"\">Lancer une recherche</option></select>\n<label for=\"password\">Mot de passe du réseau</label>\n<input id=\"password\" type=\"password\" autocomplete=\"off\" spellcheck=\"false\" placeholder=\"Mot de passe Wi-Fi (si nécessaire)\"/>\n<div class=\"buttons\"><button id=\"connect\" class=\"primary\" type=\"button\">Se connecter</button></div>\n<p id=\"notice\" class=\"notice\" role=\"status\"></p></div></ha-card>";
      this._els=Object.fromEntries(["ha-ip","ha-ip-mode","zigbee-ip","wisp-ssid","client-note","clients","refresh-clients","scan","net","password","connect","notice"]
        .map(id=>[id,this.shadowRoot.getElementById(id)]));
+     if(this._config.client){
+       for(const id of ["ha-ip","ha-ip-mode","zigbee-ip"]){
+         this._els[id].parentElement.hidden=true;
+       }
+       this.shadowRoot.querySelector("h3").textContent="Wi-Fi Internet";
+     }
      this._els["refresh-clients"].addEventListener("click",()=>void this._loadCudyClients(true));
      this._els.scan.addEventListener("click",()=>void this._scan());
      this._els.net.addEventListener("change",()=>void this._select());
@@ -230,7 +239,8 @@
        const assignment=isHa?this._haIpMode():"Non déterminé";
        detail.textContent="MAC : "+(item.mac||"Non communiquée")+
          " · Connexion : "+item.connection+" · IP : "+assignment;
-       info.append(name,detail);
+       info.append(name);
+       if(!this._config.client)info.append(detail);
        const ip=document.createElement("span");ip.textContent=item.ip||"IP inconnue";
        line.append(info,ip);e.clients.append(line);
      }
@@ -265,30 +275,38 @@
        }
      }
      if(this._pendingNetwork&&net?.state===this._pendingNetwork)this._pendingNetwork=null;
-     const selected=options.includes(this._pendingNetwork)?this._pendingNetwork:
+     const selected=this._config.client?(options.includes(prev)?prev:""):
+       options.includes(this._pendingNetwork)?this._pendingNetwork:
        options.includes(net?.state)?net.state:options.includes(prev)?prev:"";
      if(e.net.value!==selected)e.net.value=selected;
      const allowed=this._settingsAllowed();
-     e.scan.disabled=this._busy||!allowed||!online(ids.scan?this._hass.states[ids.scan]:null);
+     const buttonReady=id=>id&&this._hass.states[id]?.state!=="unavailable";
+     e.scan.disabled=this._busy||!allowed||!buttonReady(ids.scan);
      e.net.disabled=this._busy||!allowed||!online(net)||!options.length;
      e.password.disabled=this._busy||!allowed||!online(ids.password?this._hass.states[ids.password]:null);
-     e.connect.disabled=this._busy||!allowed||!online(ids.connect?this._hass.states[ids.connect]:null)||
+     e.connect.disabled=this._busy||!allowed||!buttonReady(ids.connect)||
        !online(ids.password?this._hass.states[ids.password]:null)||!selected;
-     if(!allowed)e.notice.textContent="La rubrique Paramètres est désactivée pour ce tableau de bord.";
+     if(!allowed)e.notice.textContent="Paramètres verrouillés.";
      else if(!ids.scan||!ids.network||!ids.password||!ids.connect)
        e.notice.textContent="Commandes WISP indisponibles : vérifier les quatre entités de l'intégration Cudy Router.";
    }
+   _wifi(action,entities,data={}){
+     return this._hass.callWS({type:"kimia_settings/wifi",action,entities,
+       token:window.KimiaSettingsLock?.token(this._hass),...data});
+   }
    async _scan(){
      const id=this._ids?.scan;
-     if(this._busy||!this._settingsAllowed()||!online(this._hass?.states?.[id]))return;
+     if(this._busy||!this._settingsAllowed()||!id||this._hass?.states?.[id]?.state==="unavailable")return;
      this._busy=true;this._refresh();this._els.notice.textContent="Recherche demandée…";
      try{
-       await this._hass.callService("button","press",{entity_id:id});
+       if(this._config.client)await this._wifi("scan",{scan:id});
+       else await this._hass.callService("button","press",{entity_id:id});
        this._els.notice.textContent="Scan demandé. Les réseaux apparaîtront dès l'actualisation Cudy.";
      }catch(_){this._els.notice.textContent="Recherche impossible. Vérifiez l'intégration Cudy.";}
      finally{this._busy=false;this._refresh();}
    }
    async _select(){
+     if(this._config.client){this._refresh();return;}
      const id=this._ids?.network,option=this._els.net.value;
      if(this._busy||!this._settingsAllowed()||!id||!option)return;
      this._pendingNetwork=option;this._busy=true;this._refresh();
@@ -307,10 +325,13 @@
      const password=this._els.password.value;
      this._busy=true;this._refresh();this._els.notice.textContent="Connexion demandée…";
      try{
-       await this._hass.callService("select","select_option",{entity_id:ids.network,option:ssid});
-       await this._hass.callService("text","set_value",{entity_id:ids.password,value:password});
-       this._els.password.value="";
-       await this._hass.callService("button","press",{entity_id:ids.connect});
+       if(this._config.client){
+         await this._wifi("connect",{network:ids.network,password:ids.password,connect:ids.connect},{ssid,password});
+       }else{
+         await this._hass.callService("select","select_option",{entity_id:ids.network,option:ssid});
+         await this._hass.callService("text","set_value",{entity_id:ids.password,value:password});
+         await this._hass.callService("button","press",{entity_id:ids.connect});
+       }
        this._els.notice.textContent="Commande envoyée. Vérifiez l'état Internet du Cudy.";
      }catch(_){this._els.notice.textContent="Échec WISP. Vérifiez le réseau et les journaux HA.";}
      finally{this._els.password.value="";this._busy=false;this._refresh();}

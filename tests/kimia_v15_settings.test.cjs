@@ -50,17 +50,68 @@ const hass={user:{is_admin:true},states:{},config:{internal_url:"http://192.168.
  }
 }};
 const get=path=>cfg.views.find(v=>v.path===path);
-const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
+const cards=path=>get(path).sections.flatMap(s=>s.cards||[]).map(c=>c.card||c);
+
+function checkHeaderTimer(){
+ const key="kimia_bandeau_ha_Test";
+ const stored=new Map([[key,"visible"]]);
+ const code=fs.readFileSync("www/kimia-header-toggle-v1-card.js","utf8");
+ let now=1_000_000;
+ function openPage(){
+  let Card,timer,reloads=0;
+  const listeners=new Map();
+  const window={
+   location:{pathname:"/kimia-next/reglages-affichage",reload:()=>reloads++},
+   localStorage:{getItem:k=>stored.get(k)??null,setItem:(k,v)=>stored.set(k,v),removeItem:k=>stored.delete(k)},
+   addEventListener:(name,fn)=>listeners.set(name,fn),
+   clearTimeout:()=>{timer=undefined;},
+   setTimeout:(fn,delay)=>{timer={fn,at:now+delay};}
+  };
+  vm.runInNewContext(code,{window,document:{querySelector:()=>null,addEventListener(){}},
+   Date:{now:()=>now},HTMLElement:class{},customElements:{get(){},define(_,value){Card=value;}}});
+  const card=Object.assign(Object.create(Card.prototype),{
+   _hass:{user:{name:"Test",is_admin:true}},_button:{},_description:{},_status:{}
+  });
+  return {window,card,reloads:()=>reloads,locationChanged:()=>listeners.get("location-changed")(),
+   tick(){if(timer&&now>=timer.at)timer.fn();}};
+ }
+ const initial=openPage();
+ assert(initial.window.KimiaHeaderTimer.isHidden("Test"),"Une ancienne préférence permanente expire");
+ initial.card._toggle();
+ assert.equal(stored.get(key),"1600000");
+ assert.equal(initial.reloads(),1);
+ now+=300_000;
+ const resumed=openPage();
+ assert(!resumed.window.KimiaHeaderTimer.isHidden("Test"));
+ resumed.window.location.pathname="/kimia-next/accueil";
+ resumed.locationChanged();
+ now=1_599_999;
+ resumed.tick();
+ assert.equal(resumed.reloads(),0);
+ now++;
+ resumed.tick();
+ assert.equal(resumed.reloads(),1,"Le bandeau se referme à l’échéance, même sur une autre vue");
+ assert(openPage().window.KimiaHeaderTimer.isHidden("Test"));
+ stored.set(key,"2200000");
+ const manual=openPage();
+ manual.card._toggle();
+ assert(!stored.has(key));
+ assert.equal(manual.reloads(),1);
+}
+
 (async()=>{
+ checkHeaderTimer();
  await window.KimiaSmartCore.sync(hass);
- assert.equal(cfg.kiosk_mode.kiosk,undefined,"Kiosk global V1.6.1 supprimé : admin voit HA");
+ assert.equal(cfg.kiosk_mode.kiosk,undefined,"Kiosk racine migré vers les réglages des comptes");
  assert.equal(typeof cfg.kiosk_mode.non_admin_settings?.kiosk,"string",
-  "Kiosk propre aux comptes non-admin");
- assert(cfg.kiosk_mode.non_admin_settings.kiosk.includes("return window.localStorage.getItem"),
-  "Expression localStorage conservée avec retour booléen");
- const pages=["reglages-utilisateurs","reglages-affichage","reglages-localisation",
+  "Kiosk actif dans la vue client des comptes standard");
+ assert.equal(cfg.kiosk_mode.admin_settings?.kiosk,cfg.kiosk_mode.non_admin_settings.kiosk,
+  "Même minuterie dans la vue client du compte admin");
+ assert(cfg.kiosk_mode.non_admin_settings.kiosk.includes("window.KimiaHeaderTimer?.isHidden(user_name)"),
+  "Expression booléenne reliée à la minuterie, avec lecture locale de secours");
+ const pages=["reglages-affichage","reglages-localisation",
   "reglages-listes","reglages-apparence","reglages-reseau"];
- assert.equal(cfg.views.length,18);
+ assert.equal(cfg.views.length,17);
  for(const path of pages){
   assert(get(path)?.subview,path+" should be a subview");
   assert.equal(get(path).back_path,"/kimia-next/parametres");
@@ -72,7 +123,7 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
     c.tap_action?.navigation_path==="/kimia-next/parametres"));
  }
  const menu=cards("parametres").filter(c=>c.type==="shortcut");
- assert.equal(menu.filter(c=>pages.includes(c.tap_action?.navigation_path?.split("/").pop())).length,6);
+ assert.equal(menu.filter(c=>pages.includes(c.tap_action?.navigation_path?.split("/").pop())).length,5);
  assert(cards("parametres").some(c=>c.content===custom.content));
  assert(!cards("parametres").some(c=>c.type==="custom:kimia-header-toggle-v1-card"));
  const header=cards("reglages-affichage").find(c=>c.type==="custom:kimia-header-toggle-v1-card");
@@ -84,11 +135,13 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
  assert(!cards("reglages-apparence").some(c=>c.type==="entities"&&
   c.title==="Mon ambiance actuelle"),"global theme helper no longer exposed");
  assert(!cards("parametres").some(c=>c.name==="Terracotta"));
+ assert(cards("reglages-localisation").some(c=>c.type==="custom:kimia-zone-settings-card"));
  assert(!cards("reglages-localisation").some(c=>c.tap_action?.navigation_path==="/config/zone"));
- assert(cards("reglages-localisation").some(c=>c.tap_action?.navigation_path==="/kimia-next/carte"));
- assert(!cards("reglages-reseau").some(c=>c.type==="custom:kimia-client-network-v1-card"));
+ assert(cards("reglages-listes").some(c=>c.type==="custom:kimia-services-v14-card"&&c.lists_only));
+ assert(!cards("reglages-listes").some(c=>c.type==="shortcut"&&c.tap_action?.navigation_path==="/kimia-next/listes"));
+ assert.equal(cards("reglages-reseau").filter(c=>c.type==="custom:kimia-client-network-v1-card"&&c.client).length,1);
  assert(cards("reglages-reseau").some(c=>c.heading==="Accès local"));
- assert(cards("reglages-utilisateurs").some(c=>c.tap_action?.navigation_path==="/profile"));
+ assert(!get("reglages-utilisateurs"));
  assert(!get("reglages-matter"));
  assert(cards("reglages-reseau").some(c=>c.content?.includes("http://192.168.50.10:8123/kimia-next/accueil")));
  const adminCards=path=>admin.views.find(v=>v.path===path).sections.flatMap(s=>s.cards);
@@ -98,6 +151,12 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
  assert(adminCards("reseau").some(c=>c.type==="custom:kimia-client-network-v1-card"));
  assert(adminLinks("atelier-ia").includes("/config/voice-assistants/assistants"));
  assert(adminLinks("utilisateurs").includes("/config/users"));
+ const controls=get("parametres").sections.flatMap(s=>s.cards||[]);
+ assert(controls.some(c=>c.type==="custom:kimia-settings-lock-v1-card"&&c.mode==="control"));
+ assert(controls.some(c=>c.mode==="content"&&c.card?.label==="Paramètres avancés"&&
+  c.card.tap_action.navigation_path==="/profile"&&c.grid_options.columns===12&&c.card.grid_options.columns===12));
+ assert(controls.some(c=>c.type==="shortcut"&&c.tap_action?.navigation_path==="/kimia-next/reglages-apparence"));
+ assert(controls.some(c=>c.mode==="content"&&c.card?.tap_action?.navigation_path==="/kimia-next/reglages-reseau"));
  const was=writes;
  await window.KimiaSmartCore.sync(hass);
  assert.equal(writes,was,"no duplicate views, cards or writes on second pass");
@@ -116,22 +175,21 @@ const cards=path=>get(path).sections.flatMap(s=>s.cards||[]);
   {type:"heading",heading:"Informations et connexion Internet"},
   {type:"custom:kimia-client-network-v1-card"},legacyLink("/kimia-next/reglages-matter")
  ];
- get("reglages-utilisateurs").title="Utilisateurs";
- get("reglages-utilisateurs").sections[2].cards=[
-  {type:"heading",heading:"Mes accès"},legacyLink("/kimia-admin-next/utilisateurs")
- ];
+ get("parametres").sections.find(s=>s.cards?.some(c=>c.heading==="Mon espace KIMIA")).cards.push(
+  legacyLink("/kimia-next/reglages-utilisateurs"));
  get("reglages-localisation").sections[2].cards.push(legacyLink("/config/zone"));
  get("parametres").sections[1].cards.push({
   name:"Réglages de la voix Gemini",...legacyLink("/config/voice-assistants/assistants")
  });
  await window.KimiaSmartCore.sync(hass);
  assert(!get("reglages-matter"));
- assert(!cards("reglages-reseau").some(c=>c.type==="custom:kimia-client-network-v1-card"));
+ assert.equal(cards("reglages-reseau").filter(c=>c.type==="custom:kimia-client-network-v1-card"&&c.client).length,1);
+ assert.equal(cards("reglages-localisation").filter(c=>c.type==="custom:kimia-zone-settings-card").length,1);
  assert(!cards("reglages-localisation").some(c=>c.tap_action?.navigation_path==="/config/zone"));
- assert(cards("reglages-utilisateurs").some(c=>c.tap_action?.navigation_path==="/profile"));
+ assert(!cards("parametres").some(c=>c.tap_action?.navigation_path==="/kimia-next/reglages-utilisateurs"));
  assert(!cards("parametres").some(c=>c.name==="Réglages de la voix Gemini"));
  const afterMigration=writes;
  await window.KimiaSmartCore.sync(hass);
  assert.equal(writes,afterMigration);
- console.log("KIMIA Settings OK : 6 sous-vues, thèmes locaux sans action globale, bandeau et personnalisations préservés.");
+ console.log("KIMIA Settings OK : 5 sous-vues, thèmes locaux sans action globale, bandeau et personnalisations préservés.");
 })().catch(e=>{console.error(e);process.exitCode=1;});
