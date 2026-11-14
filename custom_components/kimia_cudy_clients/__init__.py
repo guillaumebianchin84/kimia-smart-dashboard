@@ -88,16 +88,20 @@ def _clients_from_coordinators(coordinators):
     }
 
 
-@websocket_api.websocket_command({probatio.Required("type"): "kimia_cudy_clients/list"})
+@websocket_api.websocket_command({
+    probatio.Required("type"): "kimia_cudy_clients/list",
+    probatio.Optional("token"): str,
+})
 @websocket_api.async_response
 async def ws_list(hass, connection, msg):
-    """Read only; gate with the existing KIMIA Settings toggle.
-
-    Note: Settings is a global UI toggle, not a secure per-user ACL.
-    """
-    admin = bool(connection.user and connection.user.is_admin)
-    settings = hass.states.get("input_boolean.kimia_onglet_parametres")
-    if not admin and (settings is None or settings.state != "on"):
+    """Keep the full inventory for admin and return names and IPs to clients."""
+    user = connection.user
+    client_view = "token" in msg
+    if client_view:
+        allowed = hass.data["kimia_settings"].session(user.id, msg["token"])
+    else:
+        allowed = user.is_admin
+    if not allowed:
         connection.send_error(msg["id"], "unauthorized", "KIMIA Paramètres non autorisés")
         return
 
@@ -112,7 +116,12 @@ async def ws_list(hass, connection, msg):
         })
         return
     try:
-        connection.send_result(msg["id"], _clients_from_coordinators(coordinators))
+        result = _clients_from_coordinators(coordinators)
+        if client_view:
+            result["devices"] = [
+                {"name": item["name"], "ip": item["ip"]} for item in result["devices"]
+            ]
+        connection.send_result(msg["id"], result)
     except (ValueError, TypeError, AttributeError) as exc:
         _LOGGER.warning("KIMIA Cudy inventory unavailable: %s", type(exc).__name__)
         connection.send_error(msg["id"], "inventory_unavailable", "Inventaire Cudy indisponible")
