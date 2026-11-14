@@ -1,7 +1,7 @@
 {
   "domain": "kimia_cudy_clients",
-  "name": "KIMIA Cudy Clients (read-only)",
-  "version": "0.1.0",
+  "name": "KIMIA Cudy et paramètres",
+  "version": "0.2.0",
   "documentation": "https://github.com/guillaumebianchin84/kimia-smart-dashboard",
   "dependencies": [
     "websocket_api"

@@ -1,19 +1,58 @@
-/* KIMIA Smart by PROMAINT — Bandeau Home Assistant, préférence locale par utilisateur.
- * Fonctionne avec Kiosk Mode. Le réglage est stocké sur CE téléphone/navigateur
- * et n'impacte aucun autre utilisateur ni la VM Home Assistant personnelle.
- */
+/* KIMIA Smart — affichage temporaire du bandeau Home Assistant. */
 (() => {
   "use strict";
   const TAG = "kimia-header-toggle-v1-card";
   if (customElements.get(TAG)) return;
+  const duration = 10 * 60 * 1000;
   const keyFor = userName => "kimia_bandeau_ha_" + (userName || "");
-  function readVisible(userName) {
-    try { return window.localStorage.getItem(keyFor(userName)) === "visible"; }
-    catch (_) { return false; }
+  const onClientDashboard = () => /^\/kimia-next(?:\/|$)/.test(window.location.pathname);
+  let userName, displayed, timer, reloading = false;
+
+  function readUntil(name) {
+    try {
+      const until = Number(window.localStorage.getItem(keyFor(name)));
+      return Number.isFinite(until) ? until : 0;
+    } catch (_) { return 0; }
   }
-  function writeVisible(userName, visible) {
-    window.localStorage.setItem(keyFor(userName), visible ? "visible" : "masque");
+
+  function reloadDashboard() {
+    if (reloading) return;
+    reloading = true;
+    window.location.reload();
   }
+
+  function checkDeadline() {
+    window.clearTimeout(timer);
+    if (userName === undefined || !onClientDashboard() || reloading) return;
+    const remaining = readUntil(userName) - Date.now();
+    const visible = remaining > 0;
+    if (displayed !== visible) reloadDashboard();
+    else if (visible) timer = window.setTimeout(checkDeadline, Math.min(remaining, duration));
+  }
+
+  function isHidden(name) {
+    userName = name;
+    displayed = readUntil(name) > Date.now();
+    checkDeadline();
+    return !displayed;
+  }
+
+  // Kiosk Mode evaluates the template when it loads the dashboard. Keep the
+  // timer here so it continues when the Affichage card is no longer mounted.
+  window.KimiaHeaderTimer = Object.freeze({isHidden});
+  window.addEventListener("location-changed", checkDeadline);
+  window.addEventListener("popstate", checkDeadline);
+  window.addEventListener("pageshow", checkDeadline);
+  window.addEventListener("focus", checkDeadline);
+  window.addEventListener("storage", event => {
+    if (event.key === null || event.key === keyFor(userName)) checkDeadline();
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) checkDeadline();
+  });
+  const loadedUser = document.querySelector("home-assistant")?.hass?.user;
+  if (onClientDashboard() && loadedUser) isHidden(loadedUser.name);
+
   class KimiaHeaderToggleCard extends HTMLElement {
     constructor() {
       super();
@@ -26,8 +65,7 @@
         "p{margin:5px 0 14px;color:var(--secondary-text-color);font-size:13px;line-height:1.6}",
         "button{width:100%;border:0;border-radius:13px;min-height:52px;cursor:pointer;font:inherit;font-weight:700;background:var(--primary-color);color:var(--text-primary-color,#fff)}",
         "button:disabled{opacity:.6;cursor:wait}",
-        ".status{font-size:12px;margin-top:10px;color:var(--secondary-text-color)}",
-        ".hidden{display:none}"
+        ".status{font-size:12px;margin-top:10px;color:var(--secondary-text-color)}"
       ].join("\n");
       const card=document.createElement("ha-card");
       const title=document.createElement("h3");title.textContent="Bandeau Home Assistant";
@@ -45,29 +83,20 @@
     getCardSize(){return 3;}
     _render(){
       if(!this._hass)return;
-      // L'administrateur garde en permanence le bandeau et les onglets HA.
-      // Le réglage Kiosk appartient uniquement aux comptes non-admin.
-      if(this._hass.user?.is_admin){
-        this._description.textContent="Compte administrateur : le bandeau et le menu Home Assistant restent visibles.";
-        this._button.classList.add("hidden");
-        this._status.textContent="Le mode KIMIA plein écran concerne uniquement les comptes utilisateurs.";
-        return;
-      }
-      this._button.classList.remove("hidden");
-      const visible=readVisible(this._hass.user?.name);
+      const visible=readUntil(this._hass.user?.name)>Date.now();
       this._description.textContent=visible?
-        "Le menu Home Assistant est visible sur cet appareil. Vous pouvez retrouver la navigation KIMIA en masquant ce bandeau.":
-        "Vous utilisez uniquement le menu KIMIA. Affichez temporairement les commandes Home Assistant pour changer de serveur ou accéder à votre profil.";
+        "Le bandeau Home Assistant se masquera automatiquement au bout des 10 minutes.":
+        "Le bandeau Home Assistant est masqué. Vous pouvez l’afficher temporairement sur cet appareil.";
       this._button.textContent=visible?
-        "Masquer le bandeau Home Assistant":"Afficher le bandeau Home Assistant";
+        "Masquer maintenant":"Afficher le bandeau HA pendant 10 min";
       this._status.textContent="Ce choix est personnel à ce téléphone et à ce compte.";
     }
     _toggle(){
-      if(!this._hass||this._hass.user?.is_admin)return;
-      const userName=this._hass.user?.name;
-      const next=!readVisible(userName);
+      if(!this._hass||!onClientDashboard())return;
+      const name=this._hass.user?.name;
       try{
-        writeVisible(userName,next);
+        if(readUntil(name)>Date.now())window.localStorage.removeItem(keyFor(name));
+        else window.localStorage.setItem(keyFor(name),String(Date.now()+duration));
       }catch(error){
         this._status.textContent="Impossible d'enregistrer le choix sur ce téléphone : "+
           (error?.message||"stockage indisponible");
@@ -75,10 +104,7 @@
       }
       this._button.disabled=true;
       this._status.textContent="Application du réglage…";
-      // Kiosk Mode réévalue le stockage local au prochain chargement.
-      // RECHARGER la page actuelle, sans aucun changement de chemin, serveur ou
-      // origine : ne jamais naviguer vers "/" ni rediriger vers Internet.
-      window.location.reload();
+      reloadDashboard();
     }
   }
   customElements.define(TAG,KimiaHeaderToggleCard);
@@ -87,7 +113,7 @@
     window.customCards.push({
       type:TAG,
       name:"KIMIA · Afficher ou masquer le bandeau HA",
-      description:"Bascule par utilisateur et appareil depuis Paramètres KIMIA."
+      description:"Affichage du bandeau pendant 10 minutes sur cet appareil."
     });
   }
 })();
