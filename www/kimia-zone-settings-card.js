@@ -11,7 +11,10 @@
         :host{display:block} ha-card{padding:16px} h3{margin:0 0 10px;font-size:1.1rem}
         ul{margin:0 0 14px;padding-left:20px} li{padding:3px 0}
         form,.actions{margin-top:14px} .actions{display:flex;gap:8px;flex-wrap:wrap}
-        ha-form{display:block} [hidden]{display:none!important}
+        ha-selector,label{display:block} label{margin-bottom:8px}
+        input{display:block;box-sizing:border-box;width:100%;margin:6px 0 12px;padding:10px;
+          font:inherit;color:inherit;background:var(--card-background-color);border:1px solid var(--divider-color);border-radius:8px}
+        [hidden]{display:none!important}
         [role=status]{color:var(--secondary-text-color);margin:10px 0 0}
         [role=status]:empty{display:none}
       </style>
@@ -20,6 +23,7 @@
         <ul aria-label="Zones existantes"></ul>
         <ha-button id="add">Créer une zone</ha-button>
         <form hidden>
+          <label>Nom de la zone<input type="text" required maxlength="70"></label>
           <div id="fields"></div>
           <div class="actions">
             <ha-button id="save">Enregistrer la zone</ha-button>
@@ -31,6 +35,7 @@
       const find = selector => this.shadowRoot.querySelector(selector);
       this.list = find("ul");
       this.form = find("form");
+      this.nameInput = find("input");
       this.fields = find("#fields");
       this.add = find("#add");
       this.save = find("#save");
@@ -66,27 +71,30 @@
       this.add.disabled = true;
       this.status.textContent = "Chargement de la carte…";
       try {
-        if (!customElements.get("ha-form")) {
+        if (!customElements.get("ha-selector")) {
           const helpers = await window.loadCardHelpers();
           helpers.createCardElement({type: "entities", entities: []});
           const card = await customElements.whenDefined("hui-entities-card");
           await card.getConfigElement();
         }
         if (!this.isConnected) return;
-        const editor = document.createElement("ha-form");
+        const editor = document.createElement("ha-selector");
         editor.hass = this._hass;
-        editor.schema = [
-          {name: "name", required: true, selector: {text: {}}},
-          {name: "location", required: true, selector: {location: {radius: true}}},
-        ];
         const {latitude, longitude} = this._hass.config;
-        editor.data = {name: "", location: {latitude, longitude, radius: 100}};
-        editor.computeLabel = field => field.name === "name" ? "Nom de la zone" : "Position et rayon";
+        this.location = {latitude, longitude, radius: 100};
+        editor.selector = {location: {radius: true}};
+        editor.label = "Position et rayon";
+        editor.value = this.location;
+        editor.addEventListener("value-changed", event => {
+          this.location = event.detail.value;
+          editor.value = this.location;
+        });
         this.editor = editor;
         this.fields.replaceChildren(editor);
         this.status.textContent = "";
         this.form.hidden = false;
         this.add.hidden = true;
+        this.nameInput.focus();
       } catch (_) {
         this.status.textContent = "Le sélecteur de carte est indisponible. Réessaie après avoir actualisé la page.";
       } finally {
@@ -98,6 +106,7 @@
     closeForm() {
       this.form.hidden = true;
       this.add.hidden = false;
+      this.nameInput.value = "";
       this.editor = undefined;
       this.fields.replaceChildren();
       this.status.textContent = "";
@@ -107,8 +116,8 @@
       if (this.saving || this.form.hidden || !this.editor) return;
       const token = window.KimiaSettingsLock?.token(this._hass);
       if (!token) return;
-      const {name, location} = this.editor.data;
-      const {latitude, longitude, radius} = location || {};
+      const name = this.nameInput.value.trim();
+      const {latitude, longitude, radius} = this.location || {};
       if (!name?.trim() || ![latitude, longitude, radius].every(Number.isFinite)) {
         this.status.textContent = "Indique un nom, une position et un rayon.";
         return;
@@ -117,7 +126,7 @@
       this.save.disabled = this.cancel.disabled = true;
       try {
         await this._hass.callWS({type: "kimia_settings/zone/create", token,
-          name: name.trim(), latitude, longitude, radius});
+          name, latitude, longitude, radius});
         this.closeForm();
         this.status.textContent = "Zone créée.";
       } catch (error) {
