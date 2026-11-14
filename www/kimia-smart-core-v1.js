@@ -1214,8 +1214,6 @@
   // Les thèmes et le contrôle du bandeau HA sont déplacés, puis migrés vers des réglages locaux.
   const SETTINGS_BASE="/kimia-next/";
   const SETTINGS_PAGES=[
-    {path:"reglages-utilisateurs",title:"Mon profil",icon:"mdi:account-group",
-     label:"Mon profil",description:"Mes préférences",color:"teal"},
     {path:"reglages-affichage",title:"Affichage",icon:"mdi:monitor-eye",
      label:"Affichage",description:"Interface et bandeau HA",color:"blue"},
     {path:"reglages-localisation",title:"Zones et carte",icon:"mdi:map-marker-radius-outline",
@@ -1225,7 +1223,7 @@
     {path:"reglages-apparence",title:"Apparence",icon:"mdi:palette-outline",
      label:"Apparence",description:"Mes thèmes KIMIA",color:"deep-purple"},
     {path:"reglages-reseau",title:"Réseau",icon:"mdi:wifi",
-     label:"Réseau",description:"Adresse locale de KIMIA",color:"blue"}
+     label:"Réseau",description:"Wi-Fi et appareils connectés",color:"blue"}
   ];
   const settingsShortcut=(label,description,icon,path,color="teal")=>({
     type:"shortcut",label,description,icon,color,
@@ -1264,9 +1262,6 @@
       back_path:SETTINGS_BASE+"parametres",
       sections:[cloneSettingsBanner(param,spec),settingsGrid(cards)]};
     const add=(...items)=>view.sections.push(settingsGrid(items));
-    if(spec.path==="reglages-utilisateurs")add(
-      settingsHeading("Mon profil"),profileShortcut()
-    );
     if(spec.path==="reglages-localisation")add(
       settingsHeading("Carte géographique"),
       settingsShortcut("Ouvrir ma carte","Zones et positions sélectionnées",
@@ -1293,8 +1288,6 @@
     if(nav)view.sections.push(settingsGrid([safeClone(nav)]));
     return view;
   };
-  const profileShortcut=()=>settingsShortcut("Mes préférences",
-    "Langue et réglages de mon compte","mdi:account-cog-outline","/profile","teal");
   const networkCardType="custom:kimia-client-network-v1-card";
   const voiceSettingsPath="/config/voice-assistants/assistants";
   const matterSettingsPath="/config/matter/dashboard";
@@ -1391,25 +1384,8 @@
       if(heading)heading.heading="Accès local";
       modified++;
     }
-    const profile=find("reglages-utilisateurs");
-    if(profile?.title==="Utilisateurs"){
-      profile.title="Mon profil";
-      for(const card of allCards(profile)){
-        if(isKimiaBrand(card))card.custom_fields.slogan=bannerSlogan("Mon profil");
-      }
-      modified++;
-    }
-    for(const section of profile?.sections||[]){
-      const old=section.cards?.findIndex(c=>routeIs(c,"/kimia-admin-next/utilisateurs"))??-1;
-      if(old<0)continue;
-      section.cards.splice(old,1,profileShortcut());
-      const heading=section.cards.find(c=>c.type==="heading"&&c.heading==="Mes accès");
-      if(heading)heading.heading="Mon profil";
-      modified++;
-    }
-    removeCards(profile,c=>c.type==="markdown"&&c.content?.startsWith("Les pièces visibles sont définies par l'administrateur KIMIA."));
     removeCards(find("reglages-localisation"),c=>
-      routeIs(c,"/kimia-admin-next/apparence")||routeIs(c,"/config/zone")||
+      routeIs(c,"/kimia-admin-next/apparence")||
       c.type==="markdown"&&c.content?.startsWith("Les zones Home Assistant restent la référence."));
     // Déplacer sans reconstituer : conserve toutes les options existantes
     // (thèmes, couleurs, bouton Kiosk, tuiles et personnalisations).
@@ -1447,13 +1423,6 @@
         SETTINGS_BASE+network.path,network.color));
       modified++;
     }
-    for(const spec of SETTINGS_PAGES.filter(p=>
-      p.path==="reglages-utilisateurs"||p.path==="reglages-reseau")){
-      const card=menu?.cards.map(c=>c.card||c).find(c=>c.type==="shortcut"&&routeIs(c,SETTINGS_BASE+spec.path));
-      if(card&&(card.label!==spec.label||card.description!==spec.description)){
-        card.label=spec.label;card.description=spec.description;modified++;
-      }
-    }
     return {added:countCards(next)-before+removed,removed,modified};
   };
 
@@ -1464,26 +1433,88 @@
     grid_options:card?.grid_options||{columns:6,rows:2}
   });
   const protectSettings=(next,param)=>{
+    const originalCount=countCards({views:next.views});
     const menu=sectionWithHeader(param,"Mon espace KIMIA");
     let added=0,modified=0;
-    if(menu&&!menu.cards.some(c=>c.type===settingsLockType&&c.mode==="control")){
-      menu.cards.push(lockSettingsCard("control"));added++;
-    }
-    for(const section of menu?[menu]:[]){
-      section.cards=section.cards.map(card=>{
+    if(menu){
+      const legacyProfile=menu.cards.findIndex(c=>routeIs(c.card||c,SETTINGS_BASE+"reglages-utilisateurs"));
+      if(legacyProfile>=0){menu.cards.splice(legacyProfile,1);modified++;}
+      const isControl=c=>c.type===settingsLockType&&c.mode==="control";
+      let actions=param.sections.find(s=>s!==menu&&s.cards?.some(isControl));
+      if(!actions){
+        const index=menu.cards.findIndex(isControl);
+        const control=index>=0?menu.cards.splice(index,1)[0]:lockSettingsCard("control");
+        actions=settingsGrid([control]);
+        param.sections.splice(param.sections.indexOf(menu)+1,0,actions);
+        if(index>=0)modified++;else added++;
+      }
+      if(!actions.cards.some(c=>routeIs(c.card||c,"/profile")&&(c.card||c).label==="Paramètres avancés")){
+        actions.cards.push(lockSettingsCard("content",settingsShortcut(
+          "Paramètres avancés","Compte Home Assistant","mdi:account-cog-outline","/profile","teal")));
+        added++;
+      }
+      menu.cards=menu.cards.map(card=>{
+        const shortcut=card.card||card;
+        if(routeIs(shortcut,SETTINGS_BASE+"reglages-reseau")&&shortcut.description==="Adresse locale de KIMIA"){
+          shortcut.description="Wi-Fi et appareils connectés";
+          modified++;
+        }
         const path=card.tap_action?.navigation_path;
         if(!path||!SETTINGS_PAGES.some(p=>p.path!=="reglages-apparence"&&path===SETTINGS_BASE+p.path))return card;
         modified++;
         return lockSettingsCard("content",card);
       });
     }
-    for(const spec of SETTINGS_PAGES){
+    for(const spec of [...SETTINGS_PAGES,{path:"reglages-utilisateurs"}]){
       if(spec.path==="reglages-apparence")continue;
       const view=next.views.find(v=>v.path===spec.path);
       if(!Array.isArray(view?.sections))continue;
       if(!hasCard(view,c=>c.type===settingsLockType&&c.mode==="notice")){
         view.sections[1]?.cards?.push(lockSettingsCard("notice"));
         added++;
+      }
+      if(spec.path==="reglages-localisation"){
+        const section=sectionWithHeader(view,"Carte géographique");
+        if(section){
+          const legacy=section.cards.findIndex(c=>routeIs(c.card||c,SETTINGS_BASE+"carte"));
+          if(legacy>=0){section.cards.splice(legacy,1);modified++;}
+          const isZoneShortcut=c=>routeIs(c.card||c,"/config/zone");
+          const zoneShortcut=section.cards.find(isZoneShortcut);
+          const unique=section.cards.filter(c=>!isZoneShortcut(c)||c===zoneShortcut);
+          modified+=section.cards.length-unique.length;
+          section.cards=unique;
+          if(!zoneShortcut){
+            section.cards.push({...lockSettingsCard("content",settingsShortcut(
+              "Créer ou modifier une zone","Gérer les zones de la carte","mdi:map-marker-plus","/config/zone","cyan")),admin_only:true});
+            added++;
+          }else if(!zoneShortcut.admin_only){
+            const index=section.cards.indexOf(zoneShortcut);
+            section.cards[index]={...lockSettingsCard("content",zoneShortcut.card||zoneShortcut),admin_only:true};
+            modified++;
+          }
+          if(!hasCard(view,c=>(c.card||c).content==="La création de zones nécessite un compte administrateur Home Assistant.")){
+            section.cards.push({...lockSettingsCard("content",settingsHelp(
+              "La création de zones nécessite un compte administrateur Home Assistant.")),non_admin_only:true});
+            added++;
+          }
+        }
+      }
+      if(spec.path==="reglages-listes"){
+        const section=sectionWithHeader(view,"Mes listes");
+        if(section){
+          const previousCount=section.cards.length;
+          section.cards=section.cards.filter(c=>{
+            const card=c.card||c;
+            return !routeIs(card,SETTINGS_BASE+"listes")&&
+              !card.content?.startsWith("Le choix de plusieurs listes (trois maximum, empilées)");
+          });
+          modified+=previousCount-section.cards.length;
+          if(!hasCard(view,c=>(c.card||c).type==="custom:kimia-services-v14-card"&&(c.card||c).lists_only)){
+            section.cards.push({type:"custom:kimia-services-v14-card",lists_only:true,
+              grid_options:{columns:"full",rows:"auto"}});
+            added++;
+          }
+        }
       }
       if(spec.path==="reglages-reseau"&&!hasCard(view,c=>
         c.type===settingsLockType&&c.card?.type===networkCardType)){
@@ -1498,14 +1529,13 @@
         if(!Array.isArray(section.cards))continue;
         section.cards=section.cards.map(card=>{
           if(card.type===settingsLockType||isKimiaBrand(card)||kimiaNav(card)||
-             routeIs(card,SETTINGS_BASE+"parametres")||card.type==="heading"||
-             (spec.path==="reglages-reseau"&&card.type==="markdown"))return card;
+             routeIs(card,SETTINGS_BASE+"parametres")||card.type==="heading")return card;
           modified++;
           return lockSettingsCard("content",card);
         });
       }
     }
-    return {added,modified};
+    return {added,removed:added-(countCards({views:next.views})-originalCount),modified};
   };
 
   // V1.6.1 : revenir à des préférences strictement locales pour les thèmes
@@ -1897,7 +1927,7 @@
         const preferences=next.views.find(v=>v.path==="parametres");
         if(preferences){
           const protection=protectSettings(next,preferences);
-          added+=protection.added;modified+=protection.modified;
+          added+=protection.added;removed+=protection.removed;modified+=protection.modified;
         }
         if (added === 0 && removed === 0 && modified === 0) {
           const adminAdded=await upgradeAdminDashboard(hass,dashboards);
