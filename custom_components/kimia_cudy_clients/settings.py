@@ -4,12 +4,16 @@ import asyncio
 import hashlib
 import hmac
 import secrets
+from copy import deepcopy
 from pathlib import Path
 from time import monotonic
 
 import probatio
 from homeassistant.components import websocket_api
+from homeassistant.components.lovelace import LOVELACE_DATA
+from homeassistant.config_entries import SOURCE_USER
 from homeassistant.core import HomeAssistant
+from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry
 
@@ -20,6 +24,60 @@ WISP = {
     "password": ("text", "wisp-password", "set_value"),
     "connect": ("button", "wisp-connect", "press"),
 }
+EMPTY_LISTS = "Aucune liste sélectionnée. Choisissez les listes à afficher dans les paramètres KIMIA."
+
+
+def managed_todo(card):
+    title = card.get("title")
+    return (
+        card.get("type") == "todo-list"
+        and isinstance(title, str)
+        and (title == "Mes listes" or title.startswith("KIMIA · "))
+        and set(card) == {"type", "entity", "title", "grid_options"}
+        and card["grid_options"] == {"columns": 12, "rows": "auto"}
+    )
+
+
+def todo_placeholder(card):
+    content = card.get("content", "")
+    return card.get("type") == "markdown" and (
+        content == EMPTY_LISTS or content.startswith("KIMIA V1.4 : aucune liste To-do détectée.")
+    )
+
+
+def with_todo_selection(config, selected, states):
+    after = deepcopy(config)
+    view = next((view for view in after["views"] if view.get("path") == "listes"), None)
+    if not view or not view.get("sections"):
+        raise HomeAssistantError("La vue Listes de KIMIA est introuvable.")
+    sections = [section["cards"] for section in view["sections"] if "cards" in section]
+    target = next((cards for cards in sections if any(
+        card.get("type") == "todo-list" or todo_placeholder(card) for card in cards
+    )), None)
+    if target is None:
+        raise HomeAssistantError("La section To-do de KIMIA est introuvable.")
+    existing = [card for cards in [*sections, view.get("cards", [])] for card in cards
+                if card.get("type") == "todo-list"]
+    if any(not managed_todo(card) and card.get("entity") not in selected for card in existing):
+        raise HomeAssistantError("Une liste personnalisée est présente. Elle doit rester sélectionnée.")
+    if set(selected) == {card.get("entity") for card in existing} and (
+        selected or any(card.get("content") == EMPTY_LISTS for card in target)
+    ):
+        return config
+    for cards in sections:
+        cards[:] = [card for card in cards if not (
+            managed_todo(card) and card.get("entity") not in selected or todo_placeholder(card)
+        )]
+    kept = {card.get("entity") for card in existing if card.get("entity") in selected}
+    for entity in selected:
+        if entity not in kept:
+            target.append({"type": "todo-list", "entity": entity,
+                           "title": "KIMIA · " + (states.get(entity).name or entity),
+                           "grid_options": {"columns": 12, "rows": "auto"}})
+    if not selected:
+        target.append({"type": "markdown", "content": EMPTY_LISTS,
+                       "grid_options": {"columns": 12, "rows": "auto"}})
+    return after
 
 
 def load_pin(path):
@@ -38,6 +96,7 @@ class Settings:
         self.sessions = {}
         self.attempts = {}
         self.wifi_lock = asyncio.Lock()
+        self.todo_lock = asyncio.Lock()
 
     def session(self, user, token, touch=False):
         now = monotonic()
@@ -167,9 +226,53 @@ async def ws_wifi(hass, connection, msg):
     connection.send_result(msg["id"], {})
 
 
+@websocket_api.websocket_command({
+    probatio.Required("type"): "kimia_settings/todo",
+    probatio.Required("action"): probatio.In(("save", "create")),
+    probatio.Required("token"): str,
+    probatio.Optional("entities"): [str],
+    probatio.Optional("name"): str,
+})
+@websocket_api.async_response
+async def ws_todo(hass, connection, msg):
+    settings = hass.data["kimia_settings"]
+    async with settings.todo_lock:
+        if not settings.session(connection.user.id, msg["token"], touch=True):
+            connection.send_error(msg["id"], "pin_required", "Paramètres verrouillés")
+            return
+        try:
+            if msg["action"] == "create":
+                name = msg.get("name", "").strip()
+                if not name or len(name) > 70:
+                    raise HomeAssistantError("Saisissez un nom de liste valide.")
+                flow = await hass.config_entries.flow.async_init("local_todo", context={"source": SOURCE_USER})
+                if flow["type"] != FlowResultType.FORM:
+                    raise HomeAssistantError("La création Local To-do est indisponible.")
+                result = await hass.config_entries.flow.async_configure(flow["flow_id"], {"todo_list_name": name})
+                if result["type"] != FlowResultType.CREATE_ENTRY:
+                    raise HomeAssistantError("La liste n’a pas été créée. Vérifiez qu’une liste du même nom n’existe pas.")
+            else:
+                selected = list(dict.fromkeys(msg.get("entities", [])))
+                if len(selected) > 3 or any(not key.startswith("todo.") or not hass.states.get(key) for key in selected):
+                    raise HomeAssistantError("Choisissez jusqu’à trois listes disponibles.")
+                lovelace = hass.data.get(LOVELACE_DATA)
+                dashboard = lovelace.dashboards.get("kimia-next") if lovelace else None
+                if not dashboard or dashboard.mode != "storage":
+                    raise HomeAssistantError("Le tableau de bord KIMIA n’est pas disponible en mode stockage.")
+                config = await dashboard.async_load(False)
+                after = with_todo_selection(config, selected, hass.states)
+                if after is not config:
+                    await dashboard.async_save(after)
+        except HomeAssistantError as err:
+            connection.send_error(msg["id"], "todo_failed", str(err))
+            return
+    connection.send_result(msg["id"], {})
+
+
 async def async_setup_settings(hass: HomeAssistant):
     path = hass.config.path("kimia", "settings_pin")
     pin = await hass.async_add_executor_job(load_pin, path)
     hass.data["kimia_settings"] = Settings(hass, pin)
     websocket_api.async_register_command(hass, ws_session)
     websocket_api.async_register_command(hass, ws_wifi)
+    websocket_api.async_register_command(hass, ws_todo)
