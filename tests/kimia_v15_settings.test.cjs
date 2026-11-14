@@ -51,7 +51,56 @@ const hass={user:{is_admin:true},states:{},config:{internal_url:"http://192.168.
 }};
 const get=path=>cfg.views.find(v=>v.path===path);
 const cards=path=>get(path).sections.flatMap(s=>s.cards||[]).map(c=>c.card||c);
+
+function checkHeaderTimer(){
+ const key="kimia_bandeau_ha_Test";
+ const stored=new Map([[key,"visible"]]);
+ const code=fs.readFileSync("www/kimia-header-toggle-v1-card.js","utf8");
+ let now=1_000_000;
+ function openPage(){
+  let Card,timer,reloads=0;
+  const listeners=new Map();
+  const window={
+   location:{pathname:"/kimia-next/reglages-affichage",reload:()=>reloads++},
+   localStorage:{getItem:k=>stored.get(k)??null,setItem:(k,v)=>stored.set(k,v),removeItem:k=>stored.delete(k)},
+   addEventListener:(name,fn)=>listeners.set(name,fn),
+   clearTimeout:()=>{timer=undefined;},
+   setTimeout:(fn,delay)=>{timer={fn,at:now+delay};}
+  };
+  vm.runInNewContext(code,{window,document:{querySelector:()=>null,addEventListener(){}},
+   Date:{now:()=>now},HTMLElement:class{},customElements:{get(){},define(_,value){Card=value;}}});
+  const card=Object.assign(Object.create(Card.prototype),{
+   _hass:{user:{name:"Test",is_admin:true}},_button:{},_description:{},_status:{}
+  });
+  return {window,card,reloads:()=>reloads,locationChanged:()=>listeners.get("location-changed")(),
+   tick(){if(timer&&now>=timer.at)timer.fn();}};
+ }
+ const initial=openPage();
+ assert(initial.window.KimiaHeaderTimer.isHidden("Test"),"Une ancienne préférence permanente expire");
+ initial.card._toggle();
+ assert.equal(stored.get(key),"1600000");
+ assert.equal(initial.reloads(),1);
+ now+=300_000;
+ const resumed=openPage();
+ assert(!resumed.window.KimiaHeaderTimer.isHidden("Test"));
+ resumed.window.location.pathname="/kimia-next/accueil";
+ resumed.locationChanged();
+ now=1_599_999;
+ resumed.tick();
+ assert.equal(resumed.reloads(),0);
+ now++;
+ resumed.tick();
+ assert.equal(resumed.reloads(),1,"Le bandeau se referme à l’échéance, même sur une autre vue");
+ assert(openPage().window.KimiaHeaderTimer.isHidden("Test"));
+ stored.set(key,"2200000");
+ const manual=openPage();
+ manual.card._toggle();
+ assert(!stored.has(key));
+ assert.equal(manual.reloads(),1);
+}
+
 (async()=>{
+ checkHeaderTimer();
  await window.KimiaSmartCore.sync(hass);
  assert.equal(cfg.kiosk_mode.kiosk,undefined,"Kiosk racine migré vers les réglages des comptes");
  assert.equal(typeof cfg.kiosk_mode.non_admin_settings?.kiosk,"string",
