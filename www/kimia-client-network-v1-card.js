@@ -103,12 +103,14 @@
    }
    async _loadCudyClients(force=false){
      const hass=this._hass,now=Date.now(),user=this._lookupUser;
-     if(this._config.client||!hass?.callWS||!this._settingsAllowed()||this._routerBusy)return;
+     if(!hass?.callWS||!this._settingsAllowed()||this._routerBusy)return;
      if(!force&&now-this._routerLast<30000)return;
      this._routerLast=now;this._routerBusy=true;
      this._refresh();
      try{
-       const result=await hass.callWS({type:"kimia_cudy_clients/list"});
+       const request={type:"kimia_cudy_clients/list"};
+       if(this._config.client)request.token=window.KimiaSettingsLock.token(hass);
+       const result=await hass.callWS(request);
        if(this._lookupUser!==user)return;
        this._routerClients=Array.isArray(result?.devices)?
          result.devices.slice(0,300).map(item=>({
@@ -208,7 +210,7 @@
      this._els=Object.fromEntries(["ha-ip","ha-ip-mode","zigbee-ip","wisp-ssid","client-note","clients","refresh-clients","scan","net","password","connect","notice"]
        .map(id=>[id,this.shadowRoot.getElementById(id)]));
      if(this._config.client){
-       for(const id of ["ha-ip","ha-ip-mode","zigbee-ip","refresh-clients"]){
+       for(const id of ["ha-ip","ha-ip-mode","zigbee-ip"]){
          this._els[id].parentElement.hidden=true;
        }
        this.shadowRoot.querySelector("h3").textContent="Wi-Fi Internet";
@@ -237,7 +239,8 @@
        const assignment=isHa?this._haIpMode():"Non déterminé";
        detail.textContent="MAC : "+(item.mac||"Non communiquée")+
          " · Connexion : "+item.connection+" · IP : "+assignment;
-       info.append(name,detail);
+       info.append(name);
+       if(!this._config.client)info.append(detail);
        const ip=document.createElement("span");ip.textContent=item.ip||"IP inconnue";
        line.append(info,ip);e.clients.append(line);
      }
