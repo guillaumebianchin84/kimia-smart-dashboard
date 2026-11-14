@@ -118,8 +118,10 @@
     render() {
       if (!this.shadowRoot || !this.config || !this._hass) return;
       const open = isOpen(this._hass);
-      if (this.open === open && this.renderMode === this.config.mode) return;
+      const admin = this._hass.user?.is_admin === true;
+      if (this.open === open && this.admin === admin && this.renderMode === this.config.mode) return;
       this.open = open;
+      this.admin = admin;
       this.renderMode = this.config.mode;
       this.child = undefined;
       this.shadowRoot.innerHTML = `<style>
@@ -130,8 +132,9 @@
         dialog::backdrop{background:#0008} form{display:grid;gap:12px} label,input{font:inherit} input{padding:10px;max-width:100%;box-sizing:border-box} p{margin:0} .actions{display:flex;flex-wrap:wrap;gap:8px}
       </style>`;
       if (this.config.mode === "content") {
-        this.setVisible(open);
-        if (open) void this.renderCard();
+        const visible = open && (!this.config.admin_only || admin) && (!this.config.non_admin_only || !admin);
+        this.setVisible(visible);
+        if (visible) void this.renderCard();
         return;
       }
       this.setVisible(this.config.mode !== "notice" || !open);
@@ -146,7 +149,7 @@
       const current = this._hass;
       try {
         const helpers = await window.loadCardHelpers();
-        if (!this.isConnected || this.child || !isOpen(this._hass) || current.user.id !== this._hass.user.id) return;
+        if (!this.isConnected || this.hidden || this.child || !isOpen(this._hass) || current.user.id !== this._hass.user.id) return;
         const card = helpers.createCardElement(this.config.card);
         this.child = card;
         card.id = "content";
