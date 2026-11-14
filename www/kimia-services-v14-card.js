@@ -24,6 +24,8 @@
     card.grid_options?.columns===12 && card.grid_options?.rows==="auto")
  );
  const placeholder="KIMIA V1.4 : aucune liste To-do détectée. Activez une intégration de listes dans Home Assistant puis cliquez sur Actualiser ma maison.";
+ const isPlaceholder=c=>c.type==="markdown"&&(c.content===placeholder||
+   c.content==="Aucune liste sélectionnée. Choisissez les listes à afficher dans les paramètres KIMIA.");
  const css=[
   ":host{display:block;color:var(--primary-text-color)}",
   "ha-card{display:block;padding:19px;border-radius:18px;border:1px solid var(--divider-color)}",
@@ -46,13 +48,13 @@
  class KConfig extends HTMLElement {
   constructor(){
    super();this.attachShadow({mode:"open"});
-   this._hass=null;this._started=false;this._busy=false;this._zones=[];
+   this._hass=null;this._started=false;this._loaded=false;this._busy=false;this._zones=[];
    this._availableTodos=[];this._selectedPositions=new Set();
    this._selectedTodos=new Set();this._todoNames=new Map();
    this._notice="";this._error="";this._newName="";
    this._render();
   }
-  setConfig(cfg){this._cfg=cfg||{};}
+  setConfig(cfg){this._cfg=cfg||{};this._render();}
   getCardSize(){return 8;}
   set hass(hass){
    this._hass=hass;
@@ -64,30 +66,42 @@
   _names(id){
    return this._hass?.states?.[id]?.attributes?.friendly_name||id;
   }
-  async _load(){
-   if(!this._hass?.user?.is_admin)return;
+  _allowed(){
+   return this._cfg?.lists_only?Boolean(window.KimiaSettingsLock?.token(this._hass)):
+     this._hass?.user?.is_admin===true;
+  }
+  _todoCommand(action,data){
+   return this._hass.callWS({type:"kimia_settings/todo",action,
+    token:window.KimiaSettingsLock?.token(this._hass),...data});
+  }
+  async _load(preserveSelection=false){
+   if(!this._allowed())return;
    this._busy=true;this._render();
    try{
     const config=await this._hass.callWS({type:"lovelace/config",url_path:"kimia-next"});
     const views=new Map((config.views||[]).map(v=>[v.path,v]));
     const m=cards(views.get("carte")).find(c=>c.type==="map");
     const listView=views.get("listes");
-    if(!m||!listView)throw Error("Les vues Carte et Listes sont absentes de KIMIA Next.");
-    const ids=Object.keys(this._hass.states||{}).filter(id=>{
-      if(id==="zone.home")return true;
-      const s=this._hass.states[id];
-      if(!["zone","person","device_tracker"].includes(id.split(".")[0]))return false;
-      return s?.attributes?.latitude!=null&&s?.attributes?.longitude!=null &&
-       Number.isFinite(Number(s.attributes.latitude))&&Number.isFinite(Number(s.attributes.longitude));
-    }).sort();
-    if(!ids.includes("zone.home"))ids.unshift("zone.home");
-    this._zones=ids;
-    this._selectedPositions=new Set((m.entities||[]).map(v=>typeof v==="string"?v:v.entity));
+    if(!listView||(!this._cfg?.lists_only&&!m))throw Error("Les vues KIMIA nécessaires sont introuvables.");
+    if(!this._cfg?.lists_only){
+      const ids=Object.keys(this._hass.states||{}).filter(id=>{
+        if(id==="zone.home")return true;
+        const s=this._hass.states[id];
+        if(!["zone","person","device_tracker"].includes(id.split(".")[0]))return false;
+        return s?.attributes?.latitude!=null&&s?.attributes?.longitude!=null &&
+         Number.isFinite(Number(s.attributes.latitude))&&Number.isFinite(Number(s.attributes.longitude));
+      }).sort();
+      if(!ids.includes("zone.home"))ids.unshift("zone.home");
+      this._zones=ids;
+      this._selectedPositions=new Set((m.entities||[]).map(v=>typeof v==="string"?v:v.entity));
+    }
     this._availableTodos=Object.keys(this._hass.states||{}).filter(id=>id.startsWith("todo.")).sort();
     this._todoNames=new Map(this._availableTodos.map(id=>[id,this._names(id)]));
-    this._selectedTodos=new Set(cards(listView).filter(c=>c.type==="todo-list")
-      .map(c=>c.entity).filter(id=>this._availableTodos.includes(id)));
-    this._error="";this._notice="Sélections chargées. Seuls les éléments cochés seront ajoutés à KIMIA.";
+    const selected=preserveSelection?[...this._selectedTodos]:
+      cards(listView).filter(c=>c.type==="todo-list").map(c=>c.entity);
+    this._selectedTodos=new Set(selected.filter(id=>this._availableTodos.includes(id)));
+    this._loaded=true;
+    this._error="";this._notice=this._cfg?.lists_only?"":"Sélections chargées. Seuls les éléments cochés seront ajoutés à KIMIA.";
    }catch(e){this._error=e?.message||String(e);}
    finally{this._busy=false;this._render();}
   }
@@ -116,20 +130,24 @@
   }
   _render(){
    const root=this.shadowRoot,style=make("style",css),card=make("ha-card");
-   card.append(make("h2","Carte et listes"),
+   const listsOnly=this._cfg?.lists_only;
+   if(!listsOnly)card.append(make("h2","Carte et listes"),
      make("p","Sélectionnez les positions et listes que vous souhaitez afficher. Aucun téléphone ou utilisateur n'est suivi automatiquement."));
-   if(!this._hass?.user?.is_admin){
-     card.append(make("p","Réservé à l'administrateur."));
+   if(!this._allowed()){
+     card.append(make("p",listsOnly?"Déverrouille les paramètres pour gérer les listes.":"Réservé à l'administrateur."));
      root.replaceChildren(style,card);return;
    }
-   if(this._busy&&!this._zones.length){
+   if(this._busy&&!this._loaded){
      card.append(make("p","Chargement…"));root.replaceChildren(style,card);return;
    }
-   const mapGroup=make("section",undefined,"group");
-   mapGroup.append(make("h3","Positions visibles sur la carte"),
-     make("p","Cochez les zones, personnes ou appareils à afficher. Une position personnelle ne sera visible que si vous la choisissez."));
-   const mapCounter=make("p",this._selectedPositions.size+" / 15 sélectionné(s)","counter muted");
-   mapGroup.append(mapCounter,this._checkGrid(this._zones,this._selectedPositions,"positions",15));
+   if(!listsOnly){
+     const mapGroup=make("section",undefined,"group");
+     mapGroup.append(make("h3","Positions visibles sur la carte"),
+       make("p","Cochez les zones, personnes ou appareils à afficher. Une position personnelle ne sera visible que si vous la choisissez."));
+     const mapCounter=make("p",this._selectedPositions.size+" / 15 sélectionné(s)","counter muted");
+     mapGroup.append(mapCounter,this._checkGrid(this._zones,this._selectedPositions,"positions",15));
+     card.append(mapGroup);
+   }
    const todoGroup=make("section",undefined,"group");
    todoGroup.append(make("h3","Listes To-do affichées"),
     make("p","Vous pouvez afficher jusqu'à trois listes, les unes sous les autres. Les tâches existantes restent conservées."));
@@ -139,27 +157,36 @@
      todoGroup.append(make("p","Aucune liste trouvée. Créez votre première liste ci-dessous."));
    todoGroup.append(make("h3","Créer une nouvelle liste"));
    const name=make("input");name.type="text";name.placeholder="Ex. Courses, Ménage, Vacances";
+   name.setAttribute("aria-label","Nom de la nouvelle liste");
    name.value=this._newName;name.maxLength=70;name.disabled=this._busy;
    name.addEventListener("input",()=>{this._newName=name.value;});
    const add=make("button","+ Créer une liste");
    add.disabled=this._busy;add.addEventListener("click",()=>void this._createTodo());
    const refresh=make("button","Actualiser les listes","secondary");
-   refresh.disabled=this._busy;refresh.addEventListener("click",()=>void this._load());
+   refresh.disabled=this._busy;refresh.addEventListener("click",()=>void this._load(Boolean(listsOnly)&&this._loaded));
    todoGroup.append(name,add,refresh,make("p",
+    listsOnly?"Après la création, actualisez les listes pour pouvoir sélectionner la nouvelle.":
     "Après une création, cliquez sur Actualiser les listes quand Home Assistant l'a ajoutée. Le renommage ou la suppression se fait depuis les intégrations HA, pour préserver les tâches."));
-   const save=make("button",this._busy?"Enregistrement…":"Enregistrer la carte et les listes");
-   save.disabled=this._busy;save.addEventListener("click",()=>void this._save());
-   card.append(mapGroup,todoGroup,save);
+   const save=make("button",listsOnly?"Enregistrer les listes":"Enregistrer la carte et les listes");
+   save.disabled=this._busy||!this._loaded;save.addEventListener("click",()=>void this._save());
+   card.append(todoGroup,save);
    if(this._error)card.append(make("p","Erreur : "+this._error,"feedback error"));
    if(this._notice)card.append(make("p",this._notice,"feedback"));
    root.replaceChildren(style,card);
   }
   async _createTodo(){
-   if(this._busy||!this._hass?.user?.is_admin)return;
+   if(this._busy||!this._allowed())return;
    const name=this._newName.trim();
    if(!name||name.length>70){this._status("Saisissez un nom de liste valide.",true);return;}
    this._busy=true;this._render();
    try{
+    if(this._cfg?.lists_only){
+      await this._todoCommand("create",{name});
+      this._newName="";
+      this._notice="Liste créée. Actualisez les listes pour la sélectionner.";
+      this._error="";
+      return;
+    }
     // Config flow officiel de l'intégration Local to-do : crée une liste persistante,
     // pas un fichier YAML ni une simple carte sans entité HA.
     const start=await this._hass.callApi("POST","config/config_entries/flow",{handler:"local_todo"});
@@ -177,7 +204,16 @@
    finally{this._busy=false;this._render();}
   }
   async _save(){
-   if(this._busy||!this._hass?.user?.is_admin)return;
+   if(this._busy||!this._loaded||!this._allowed())return;
+   if(this._cfg?.lists_only){
+    this._busy=true;this._render();
+    try{
+      await this._todoCommand("save",{entities:[...this._selectedTodos]});
+      this._notice="Listes affichées enregistrées.";this._error="";
+    }catch(e){this._error=e?.message||String(e);this._notice="";}
+    finally{this._busy=false;this._render();}
+    return;
+   }
    const zones=[...this._selectedPositions],todos=[...this._selectedTodos];
    if(!zones.length||zones.length>15){this._status("Choisissez entre 1 et 15 positions.",true);return;}
    if(todos.length>3){this._status("Trois listes maximum.",true);return;}
@@ -200,13 +236,12 @@
     if(manualUnselected.length)
       throw Error("Une liste modifiée manuellement est présente : retirez-la depuis l'éditeur HA avant de changer son affichage. Aucune carte personnalisée n'a été effacée.");
     const firstSection=listView.sections.find(s=>s.cards?.some(c=>
-      c.type==="todo-list"||c.type==="markdown"&&c.content===placeholder));
+      c.type==="todo-list"||isPlaceholder(c)));
     if(!firstSection)throw Error("Section de listes introuvable. Modifications automatiques refusées.");
     // Retirer uniquement les cartes standard reconnues comme générées par KIMIA.
     for(const section of listView.sections||[]){
       if(!Array.isArray(section.cards))continue;
-      section.cards=section.cards.filter(c=>!isManaged(c)&&!(
-        c.type==="markdown"&&c.content===placeholder&&todos.length));
+      section.cards=section.cards.filter(c=>!isManaged(c)&&!(isPlaceholder(c)&&todos.length));
     }
     const already=new Set(unmanaged.map(c=>c.entity));
     for(const id of todos){
