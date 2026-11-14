@@ -1,10 +1,11 @@
-"""Local KIMIA settings sessions and the Cudy Wi-Fi operations they allow."""
+"""Local KIMIA settings sessions and their permitted operations."""
 
 import asyncio
 import hashlib
 import hmac
 import secrets
 from copy import deepcopy
+from math import isfinite
 from pathlib import Path
 from time import monotonic
 
@@ -97,6 +98,7 @@ class Settings:
         self.attempts = {}
         self.wifi_lock = asyncio.Lock()
         self.todo_lock = asyncio.Lock()
+        self.zone_lock = asyncio.Lock()
 
     def session(self, user, token, touch=False):
         now = monotonic()
@@ -269,6 +271,48 @@ async def ws_todo(hass, connection, msg):
     connection.send_result(msg["id"], {})
 
 
+@websocket_api.websocket_command({
+    probatio.Required("type"): "kimia_settings/zone/create",
+    probatio.Required("token"): str,
+    probatio.Required("name"): str,
+    probatio.Required("latitude"): probatio.Any(int, float),
+    probatio.Required("longitude"): probatio.Any(int, float),
+    probatio.Required("radius"): probatio.Any(int, float),
+})
+@websocket_api.async_response
+async def ws_create_zone(hass, connection, msg):
+    settings = hass.data["kimia_settings"]
+    async with settings.zone_lock:
+        if not settings.session(connection.user.id, msg["token"], touch=True):
+            connection.send_error(msg["id"], "pin_required", "Paramètres verrouillés")
+            return
+        name = msg["name"].strip()
+        latitude, longitude, radius = (msg[key] for key in ("latitude", "longitude", "radius"))
+        if (not name or len(name) > 70 or not -90 <= latitude <= 90
+                or not -180 <= longitude <= 180 or not 1 <= radius <= 40_000_000
+                or not all(isfinite(value) for value in (latitude, longitude, radius))):
+            connection.send_error(msg["id"], "zone_invalid", "Vérifiez le nom, la position et le rayon de la zone.")
+            return
+        zones = hass.data.get("zone")
+        # Home Assistant 2026.11 stores the collection on ZoneData. Earlier
+        # versions stored the collection itself under the same key.
+        collection = getattr(zones, "storage_collection", zones)
+        if collection is None:
+            connection.send_error(msg["id"], "zone_unavailable", "La gestion des zones est indisponible.")
+            return
+        try:
+            if any(state.name.strip().casefold() == name.casefold() for state in hass.states.async_all("zone")):
+                connection.send_error(msg["id"], "zone_exists", "Une zone porte déjà ce nom.")
+                return
+            item = await collection.async_create_item({
+                "name": name, "latitude": latitude, "longitude": longitude, "radius": radius,
+            })
+        except (probatio.Invalid, HomeAssistantError):
+            connection.send_error(msg["id"], "zone_failed", "Home Assistant n’a pas pu créer cette zone.")
+            return
+    connection.send_result(msg["id"], {"id": item["id"]})
+
+
 async def async_setup_settings(hass: HomeAssistant):
     path = hass.config.path("kimia", "settings_pin")
     pin = await hass.async_add_executor_job(load_pin, path)
@@ -276,3 +320,4 @@ async def async_setup_settings(hass: HomeAssistant):
     websocket_api.async_register_command(hass, ws_session)
     websocket_api.async_register_command(hass, ws_wifi)
     websocket_api.async_register_command(hass, ws_todo)
+    websocket_api.async_register_command(hass, ws_create_zone)
