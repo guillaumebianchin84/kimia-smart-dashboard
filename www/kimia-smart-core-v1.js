@@ -1580,33 +1580,25 @@
     }
     return {added,removed,modified};
   };
-  // Migration prudente : ne réécrit jamais un Kiosk Mode personnalisé.
-  // L'ancien réglage ne s'appliquait qu'aux non-admin et pouvait donc
-  // laisser l'administrateur avec un bandeau impossible à masquer.
+  // Le bandeau est temporaire sur le dashboard client, quel que soit le compte.
+  // Les options Kiosk personnalisées priment sur celles gérées par KIMIA.
   const localKioskUI = next=>{
     const km=next.kiosk_mode;
     if(!km||typeof km!=="object")return 0;
-    // KIMIA V1.6.1 créait par erreur kiosk au niveau racine :
-    // les admins perdaient leur bandeau HA. Migrer cette valeur uniquement
-    // lorsqu'elle porte la signature exacte de notre ancien réglage.
     const managed=value=>typeof value==="string" &&
       value.includes("kimia_bandeau_ha_") &&
       value.includes("localStorage.getItem");
-    const local='[[[ return window.localStorage.getItem("kimia_bandeau_ha_" + user_name) !== "visible"; ]]]';
+    const local='[[[ return window.KimiaHeaderTimer?.isHidden(user_name) ?? !(Number(window.localStorage.getItem("kimia_bandeau_ha_" + user_name)) > Date.now()); ]]]';
+    if(![km.kiosk,km.admin_settings?.kiosk,km.non_admin_settings?.kiosk].some(managed))return 0;
     let changed=0;
     if(managed(km.kiosk)){
       delete km.kiosk;
-      // La config Kiosk pour admin ne doit JAMAIS hériter de ce réglage.
-      // Conserver les autres personnalisations déjà en place.
-      if(!km.non_admin_settings)km.non_admin_settings={};
-      if(km.non_admin_settings.kiosk===undefined ||
-         managed(km.non_admin_settings.kiosk)){
-        km.non_admin_settings.kiosk=local;
-      }
       changed++;
-    }else if(managed(km?.non_admin_settings?.kiosk) &&
-             km.non_admin_settings.kiosk!==local){
-      km.non_admin_settings.kiosk=local;
+    }
+    for(const role of ["admin_settings","non_admin_settings"]){
+      const setting=km[role]?.kiosk;
+      if(setting===local|| (setting!==undefined&&!managed(setting)))continue;
+      km[role]={...km[role],kiosk:local};
       changed++;
     }
     return changed;
