@@ -1253,14 +1253,13 @@
   };
   const makeSettingsSubview=(param,spec,localAccess)=>{
     const nav=getSettingsNav(param);
-    const cards=[
-      settingsShortcut("Retour aux paramètres","Revenir au menu principal",
-        "mdi:arrow-left",SETTINGS_BASE+"parametres","teal")
-    ];
+    const back=settingsShortcut("Retour aux paramètres","Revenir au menu principal",
+      "mdi:arrow-left",SETTINGS_BASE+"parametres","teal");
+    back.grid_options.columns=12;
     const view={title:spec.title,path:spec.path,icon:spec.icon,
       type:"sections",max_columns:2,subview:true,
       back_path:SETTINGS_BASE+"parametres",
-      sections:[cloneSettingsBanner(param,spec),settingsGrid(cards)]};
+      sections:[cloneSettingsBanner(param,spec),settingsGrid([back])]};
     const add=(...items)=>view.sections.push(settingsGrid(items));
     if(spec.path==="reglages-localisation")add(
       settingsHeading("Carte géographique"),
@@ -1475,9 +1474,14 @@
       });
     }
     for(const spec of [...SETTINGS_PAGES,{path:"reglages-utilisateurs"}]){
-      if(spec.path==="reglages-apparence")continue;
       const view=next.views.find(v=>v.path===spec.path);
       if(!Array.isArray(view?.sections))continue;
+      for(const card of allCards(view)){
+        if(card.type!=="shortcut"||!routeIs(card,SETTINGS_BASE+"parametres")||card.grid_options?.columns===12)continue;
+        card.grid_options={...card.grid_options,columns:12};
+        modified++;
+      }
+      if(spec.path==="reglages-apparence")continue;
       if(!hasCard(view,c=>c.type===settingsLockType&&c.mode==="notice")){
         view.sections[1]?.cards?.push(lockSettingsCard("notice"));
         added++;
