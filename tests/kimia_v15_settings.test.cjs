@@ -53,11 +53,13 @@ const get=path=>cfg.views.find(v=>v.path===path);
 const cards=path=>get(path).sections.flatMap(s=>s.cards||[]).map(c=>c.card||c);
 (async()=>{
  await window.KimiaSmartCore.sync(hass);
- assert.equal(cfg.kiosk_mode.kiosk,undefined,"Kiosk global V1.6.1 supprimé : admin voit HA");
+ assert.equal(cfg.kiosk_mode.kiosk,undefined,"Kiosk racine migré vers les réglages des comptes");
  assert.equal(typeof cfg.kiosk_mode.non_admin_settings?.kiosk,"string",
-  "Kiosk propre aux comptes non-admin");
- assert(cfg.kiosk_mode.non_admin_settings.kiosk.includes("return window.localStorage.getItem"),
-  "Expression localStorage conservée avec retour booléen");
+  "Kiosk actif dans la vue client des comptes standard");
+ assert.equal(cfg.kiosk_mode.admin_settings?.kiosk,cfg.kiosk_mode.non_admin_settings.kiosk,
+  "Même minuterie dans la vue client du compte admin");
+ assert(cfg.kiosk_mode.non_admin_settings.kiosk.includes("window.KimiaHeaderTimer?.isHidden(user_name)"),
+  "Expression booléenne reliée à la minuterie, avec lecture locale de secours");
  const pages=["reglages-affichage","reglages-localisation",
   "reglages-listes","reglages-apparence","reglages-reseau"];
  assert.equal(cfg.views.length,17);
