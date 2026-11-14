@@ -119,8 +119,9 @@ function checkHeaderTimer(){
     c.custom_fields?.logo===oldBrand.custom_fields.logo));
   assert(cards(path).some(c=>c.type==="custom:navbar-card"),
    "conserver la navbar dans "+path);
-  assert(cards(path).some(c=>c.type==="shortcut"&&
-    c.tap_action?.navigation_path==="/kimia-next/parametres"));
+  const back=cards(path).find(c=>c.type==="shortcut"&&
+    c.tap_action?.navigation_path==="/kimia-next/parametres");
+  assert.deepEqual(back?.grid_options,{columns:12,rows:2},path+" : retour pleine largeur");
  }
  const menu=cards("parametres").filter(c=>c.type==="shortcut");
  assert.equal(menu.filter(c=>pages.includes(c.tap_action?.navigation_path?.split("/").pop())).length,5);
@@ -177,11 +178,13 @@ function checkHeaderTimer(){
  ];
  get("parametres").sections.find(s=>s.cards?.some(c=>c.heading==="Mon espace KIMIA")).cards.push(
   legacyLink("/kimia-next/reglages-utilisateurs"));
+ cards("reglages-apparence").find(c=>c.tap_action?.navigation_path==="/kimia-next/parametres").grid_options.columns=6;
  get("reglages-localisation").sections[2].cards.push(legacyLink("/config/zone"));
  get("parametres").sections[1].cards.push({
   name:"Réglages de la voix Gemini",...legacyLink("/config/voice-assistants/assistants")
  });
  await window.KimiaSmartCore.sync(hass);
+ assert.equal(cards("reglages-apparence").find(c=>c.tap_action?.navigation_path==="/kimia-next/parametres").grid_options.columns,12);
  assert(!get("reglages-matter"));
  assert.equal(cards("reglages-reseau").filter(c=>c.type==="custom:kimia-client-network-v1-card"&&c.client).length,1);
  assert.equal(cards("reglages-localisation").filter(c=>c.type==="custom:kimia-zone-settings-card").length,1);
