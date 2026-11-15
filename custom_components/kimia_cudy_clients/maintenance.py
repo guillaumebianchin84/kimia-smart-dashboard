@@ -77,9 +77,9 @@ class Maintenance:
             note = "L’intégration SMLIGHT est absente et aucun rechargement ZHA sur USB n’est disponible."
         return None, None, note
 
-    async def status(self, *, include_zigbee=True):
+    async def status(self):
         retry_after = await self.retry_after()
-        mode, _, note = self.zigbee_target() if include_zigbee else (None, None, None)
+        mode, _, note = self.zigbee_target()
         return {"instance": self.instance, "core": self.core_available(),
                 "zigbee": mode, "zigbee_note": note, "retry_after": retry_after}
 
@@ -106,10 +106,10 @@ class Maintenance:
             if not settings.session(connection.user.id, msg["token"]):
                 raise PermissionError
             context = connection.context(msg)
+            if not connection.user.is_admin:
+                # The PIN delegates only the fixed Core action or the Zigbee target resolved here.
+                context = Context(parent_id=context.id)
             if action == "restart_core":
-                if not connection.user.is_admin:
-                    # KIMIA delegates only this fixed service after verifying the user's PIN session.
-                    context = Context(parent_id=context.id)
                 await self.hass.services.async_call("homeassistant", "restart", blocking=True, context=context)
                 return
             current_mode, target, note = self.zigbee_target()
@@ -137,9 +137,6 @@ async def ws_maintenance(hass, connection, msg):
             or not (user.is_admin or any(group.id == GROUP_ID_USER for group in user.groups))):
         connection.send_error(msg["id"], "unauthorized", "Ce compte ne peut pas utiliser la maintenance KIMIA.")
         return
-    if action == "restart_zigbee" and not user.is_admin:
-        connection.send_error(msg["id"], "unauthorized", "Un compte administrateur Home Assistant est nécessaire.")
-        return
     settings = hass.data["kimia_settings"]
     maintenance = settings.maintenance
     if action == "instance":
@@ -151,7 +148,7 @@ async def ws_maintenance(hass, connection, msg):
         if not settings.session(user.id, msg["token"]):
             raise PermissionError
         if action == "status":
-            result = await maintenance.status(include_zigbee=user.is_admin)
+            result = await maintenance.status()
         else:
             await maintenance.run(settings, connection, msg)
             result = {"accepted": True}

@@ -118,15 +118,12 @@ class MaintenanceTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(settings_module.IDLE_SECONDS, 600)
         self.hass.services.async_call.assert_not_awaited()
 
-    async def test_client_can_restart_only_core_with_own_pin(self):
+    async def test_client_can_restart_core_with_own_pin(self):
         client = {"user": "client", "is_admin": False, "token": self.client_token}
         status = await self.request("status", **client)
         result = status.send_result.call_args.args[1]
         self.assertTrue(result["core"])
-        self.assertIsNone(result["zigbee"])
-        refused = await self.request("restart_zigbee", **client, zigbee_mode="smlight")
-        self.assertEqual(refused.send_error.call_args.args[1], "unauthorized")
-        self.hass.services.async_call.assert_not_awaited()
+        self.assertEqual(result["zigbee"], "smlight")
         (await self.request("restart_core", **client)).send_result.assert_called_once_with(7, {"accepted": True})
         call = self.hass.services.async_call.await_args
         self.assertEqual(call.args, ("homeassistant", "restart"))
@@ -135,10 +132,27 @@ class MaintenanceTest(unittest.IsolatedAsyncioTestCase):
         instance = await self.request("instance", user="client", is_admin=False, token="")
         instance.send_result.assert_called_once_with(7, {"instance": self.settings.maintenance.instance, "running": True})
 
+    async def test_client_can_restart_only_the_resolved_zigbee_target_with_own_pin(self):
+        client = {"user": "client", "is_admin": False, "zigbee_mode": "smlight"}
+        for token in ("", self.token):
+            refused = await self.request("restart_zigbee", **client, token=token)
+            self.assertEqual(refused.send_error.call_args.args[1], "pin_required")
+        refused = await self.request("restart_zigbee", **client, token=self.client_token, group="system-read-only")
+        self.assertEqual(refused.send_error.call_args.args[1], "unauthorized")
+        self.hass.services.async_call.assert_not_awaited()
+        result = await self.request("restart_zigbee", **client, token=self.client_token, entity_id="button.unrelated")
+        result.send_result.assert_called_once_with(7, {"accepted": True})
+        self.hass.services.async_call.assert_awaited_once()
+        call = self.hass.services.async_call.await_args
+        self.assertEqual(call.args, ("button", "press", {"entity_id": "button.renamed"}))
+        self.assertIsNone(call.kwargs["context"].user_id)
+        self.assertEqual(call.kwargs["context"].parent_id, "request-context")
+        self.hass.config_entries.async_reload.assert_not_awaited()
+
     async def test_core_only_and_cooldown_across_users_and_boot(self):
         first, second = await asyncio.gather(
             self.request("restart_core"),
-            self.request("restart_core", user="client", is_admin=False, token=self.client_token),
+            self.request("restart_zigbee", user="client", is_admin=False, token=self.client_token, zigbee_mode="smlight"),
         )
         first.send_result.assert_called_once_with(7, {"accepted": True})
         self.assertEqual(second.send_error.call_args.args[1], "maintenance_failed")
@@ -164,6 +178,7 @@ class MaintenanceTest(unittest.IsolatedAsyncioTestCase):
         self.hass.services.async_call.assert_not_awaited()
 
     async def test_usb_fallback_requires_its_own_confirmation_and_reports_failure(self):
+        client = {"user": "client", "is_admin": False, "token": self.client_token}
         self.hass.states["button.renamed"].state = "unavailable"
         entry = SimpleNamespace(entry_id="usb-zha", state=State.LOADED, supports_unload=True, disabled_by=None,
                                 data={"device": {"path": "socket://zigbee:6638"}})
@@ -171,15 +186,15 @@ class MaintenanceTest(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone((await self.settings.maintenance.status())["zigbee"])
         entry.data["device"]["path"] = "/dev/serial/by-id/usb-Test_Radio"
         self.assertEqual((await self.settings.maintenance.status())["zigbee"], "zha")
-        (await self.request("restart_zigbee", zigbee_mode="smlight")).send_error.assert_called_once()
+        (await self.request("restart_zigbee", **client, zigbee_mode="smlight")).send_error.assert_called_once()
         self.hass.services.async_call.assert_not_awaited()
         self.hass.config_entries.async_reload.return_value = False
-        result = await self.request("restart_zigbee", zigbee_mode="zha")
+        result = await self.request("restart_zigbee", **client, zigbee_mode="zha")
         result.send_error.assert_called_once_with(7, "maintenance_failed", "Home Assistant n’a pas pu recharger ZHA.")
         self.hass.config_entries.async_reload.assert_awaited_once_with("usb-zha")
         self.hass.config_entries.async_reload.return_value = True
         with patch.object(maintenance_module, "time", return_value=self.settings.maintenance.until + 1):
-            (await self.request("restart_zigbee", zigbee_mode="zha")).send_result.assert_called_once_with(
+            (await self.request("restart_zigbee", **client, zigbee_mode="zha")).send_result.assert_called_once_with(
                 7, {"accepted": True}
             )
         self.hass.services.async_call.assert_not_awaited()

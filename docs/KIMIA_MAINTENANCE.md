@@ -2,11 +2,11 @@
 
 Ouvrir **Paramètres client → Paramètres avancés → Maintenance du système**.
 Le code des paramètres déverrouille la page pour dix minutes d’inactivité.
-Les comptes Home Assistant standard peuvent redémarrer Home Assistant depuis
-KIMIA. Les commandes Zigbee demandent un compte administrateur. Chaque
-commande demande une confirmation. Le serveur applique un délai de 90 secondes
-entre deux commandes, y compris après un redémarrage de Home Assistant. Les commandes KIMIA passent
-par le WebSocket des paramètres et sont absentes des outils Assist et Gemini.
+Les comptes Home Assistant standard peuvent utiliser les deux commandes de
+maintenance depuis KIMIA. Chaque commande demande une confirmation. Le serveur
+applique un délai de 90 secondes entre deux commandes, y compris après un
+redémarrage de Home Assistant. Les commandes KIMIA passent par le WebSocket
+des paramètres et sont absentes des outils Assist et Gemini.
 
 - **Redémarrer Home Assistant** appelle `homeassistant.restart`. Seul Home
   Assistant redémarre. La page se reconnecte automatiquement et redemande
