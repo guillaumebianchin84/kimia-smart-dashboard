@@ -70,6 +70,7 @@
   const maintenanceCommand = (hass, action, values = {}) =>
     hass.callWS({type:"kimia_settings/maintenance",action,...values});
   const coreWarning = "Home Assistant sera temporairement indisponible. Cette page se reconnectera automatiquement.";
+  const corePending = "Redémarrage demandé. Home Assistant va être temporairement indisponible.";
   const maintenancePanel = (status, busy, message, admin) => {
     const ready = Boolean(admin && status && !busy && !status.retry_after);
     const fullWidth = {columns:12,rows:"auto"};
@@ -156,10 +157,17 @@
       this.update ??= () => this.render();
       window.addEventListener(changed,this.update);
       if (this.config?.mode === "maintenance") this.open = undefined;
+      this.maintenanceConfirmed ??= event => {
+        const action = event.detail;
+        if (this.config?.mode !== "maintenance" || !action?.kimia_maintenance) return;
+        void this.runMaintenance(action.kimia_maintenance, action.zigbee_mode);
+      };
+      this.addEventListener("ll-custom",this.maintenanceConfirmed);
       this.render();
     }
     disconnectedCallback() {
       window.removeEventListener(changed,this.update);
+      if (this.maintenanceConfirmed) this.removeEventListener("ll-custom",this.maintenanceConfirmed);
       clearInterval(this.maintenancePoll);
     }
     getGridOptions() { return this.config?.grid_options || {columns:6,rows:2}; }
@@ -229,8 +237,13 @@
         if (key !== this.maintenanceKey) this.child.setConfig(config);
       } else {
         this.child = helpers.createCardElement(config);
-        this.child.addEventListener("ll-custom", event => {
-          void this.runMaintenance(event.detail?.kimia_maintenance, event.detail?.zigbee_mode);
+        this.child.addEventListener("hass-action", event => {
+          const detail = event.detail;
+          if (detail?.action !== "tap" || !detail.config?.tap_action?.kimia_maintenance) return;
+          // HA dispatches ll-custom from the action's source after confirmation.
+          // Keep that source connected when the native stack rebuilds its cards.
+          event.stopPropagation();
+          this.dispatchEvent(new CustomEvent("hass-action",{detail,bubbles:true,composed:true}));
         });
         this.child.layout = this._layout;
         this.child.hass = this._hass;
@@ -262,7 +275,7 @@
       if (core ? !status.core : action !== "restart_zigbee" || !mode || mode !== status.zigbee) return;
       const request = {};
       this.maintenanceRequest = request;
-      this.maintenanceMessage = core ? coreWarning : "Commande Zigbee en cours…";
+      this.maintenanceMessage = core ? corePending : "Commande Zigbee en cours…";
       void this.renderMaintenance();
       const stop = core && monitorRestart(hass,status.instance,returned => {
         this.maintenanceRequest = undefined;
@@ -278,7 +291,7 @@
         this.maintenanceMessage = mode === "zha" ? "ZHA a été rechargé." : "Commande envoyée à la puce Zigbee de la SLZB-06U.";
       } catch (error) {
         if (this.maintenanceRequest !== request) return;
-        const rejected = ["maintenance_failed","pin_required","unauthorized","unknown_command"].includes(error?.code);
+        const rejected = typeof error?.code === "string";
         if (core && !rejected) return;
         if (stop) stop();
         this.maintenanceMessage = rejected ? error.message : "La commande Zigbee n’a pas pu être confirmée.";
