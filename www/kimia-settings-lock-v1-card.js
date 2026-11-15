@@ -72,7 +72,7 @@
   const coreWarning = "Home Assistant sera temporairement indisponible. Cette page se reconnectera automatiquement.";
   const corePending = "Redémarrage demandé. Home Assistant va être temporairement indisponible.";
   const maintenancePanel = (status, busy, message, admin) => {
-    const ready = Boolean(admin && status && !busy && !status.retry_after);
+    const ready = Boolean(status && !busy && !status.retry_after);
     const fullWidth = {columns:12,rows:"auto"};
     const button = (name, icon, action, enabled, warning, mode) => ({
       type:"button", name, icon, icon_height:"26px", grid_options:{columns:12,rows:2},
@@ -80,19 +80,20 @@
         confirmation:{text:warning,confirm_text:"Confirmer",dismiss_text:"Annuler"}} : {action:"none"},
       hold_action:{action:"none"}, double_tap_action:{action:"none"}
     });
-    const zha = status?.zigbee === "zha";
     const cards = [
       {type:"heading",heading:"Maintenance du système",icon:"mdi:wrench-outline",grid_options:fullWidth},
-      button("Redémarrer Home Assistant","mdi:restart","restart_core",ready && status.core,coreWarning),
-      button(zha ? "Recharger Zigbee (ZHA)" : "Redémarrer Zigbee","mdi:zigbee","restart_zigbee",
-        ready && status.zigbee, zha ? "Recharger ZHA ? Les appareils Zigbee seront brièvement indisponibles. La puce Zigbee ne redémarre pas." :
-          "Redémarrer la puce Zigbee de la SLZB-06U ? Les appareils Zigbee seront brièvement indisponibles.",status?.zigbee)
+      button("Redémarrer Home Assistant","mdi:restart","restart_core",ready && status.core,coreWarning)
     ];
+    if (admin) {
+      const zha = status?.zigbee === "zha";
+      cards.push(button(zha ? "Recharger Zigbee (ZHA)" : "Redémarrer Zigbee","mdi:zigbee","restart_zigbee",
+        ready && status.zigbee, zha ? "Recharger ZHA ? Les appareils Zigbee seront brièvement indisponibles. La puce Zigbee ne redémarre pas." :
+          "Redémarrer la puce Zigbee de la SLZB-06U ? Les appareils Zigbee seront brièvement indisponibles.",status?.zigbee));
+    }
     const details = [message];
-    if (!admin) details.push("Connecte-toi avec un compte administrateur Home Assistant pour utiliser ces commandes.");
-    else if (status && !busy) {
+    if (status && !busy) {
       if (!status.core) details.push("L’action de redémarrage Home Assistant est indisponible.");
-      if (status.zigbee_note) details.push(status.zigbee_note);
+      if (admin && status.zigbee_note) details.push(status.zigbee_note);
       if (status.retry_after) details.push(`Une commande a déjà été lancée. Réessaie dans ${status.retry_after} s.`);
     }
     const content = details.filter(Boolean).join("\n\n");
@@ -204,10 +205,8 @@
         this.maintenanceStatus = undefined;
         if (open && this.isConnected) {
           void this.renderMaintenance();
-          if (admin) {
-            void this.refreshMaintenance();
-            this.maintenancePoll = setInterval(() => void this.refreshMaintenance(),5000);
-          }
+          void this.refreshMaintenance();
+          this.maintenancePoll = setInterval(() => void this.refreshMaintenance(),5000);
         }
         return;
       }
@@ -253,26 +252,31 @@
     }
     async refreshMaintenance() {
       const hass = this._hass, codeToken = token(hass);
-      if (!codeToken || hass.user.is_admin !== true || this.maintenanceRequest || this.maintenanceRefreshing) return;
+      if (!codeToken || this.maintenanceRequest || this.maintenanceRefreshing) return;
       this.maintenanceRefreshing = true;
       try {
         const status = await maintenanceCommand(hass,"status",{token:codeToken});
         if (codeToken !== token(this._hass) || this.maintenanceRequest) return;
         this.maintenanceStatus = status;
-        if (this.maintenanceMessage === "Maintenance indisponible. Actualise la page.") this.maintenanceMessage = "";
+        if (this.maintenanceStatusError) {
+          this.maintenanceStatusError = false;
+          this.maintenanceMessage = "";
+        }
       } catch (error) {
         if (codeToken !== token(this._hass) || this.maintenanceRequest) return;
         if (error?.code === "pin_required") { forget(); return; }
         this.maintenanceStatus = undefined;
-        this.maintenanceMessage = "Maintenance indisponible. Actualise la page.";
+        this.maintenanceStatusError = true;
+        this.maintenanceMessage = error?.code === "unauthorized" ? error.message : "Maintenance indisponible. Actualise la page.";
       } finally { this.maintenanceRefreshing = false; }
       await this.renderMaintenance();
     }
     async runMaintenance(action, mode) {
       const hass = this._hass, codeToken = token(hass), status = this.maintenanceStatus;
-      if (!codeToken || hass.user.is_admin !== true || !status || status.retry_after || this.maintenanceRequest) return;
+      if (!codeToken || !status || status.retry_after || this.maintenanceRequest) return;
       const core = action === "restart_core";
-      if (core ? !status.core : action !== "restart_zigbee" || !mode || mode !== status.zigbee) return;
+      if (core && !status.core) return;
+      if (!core && (hass.user.is_admin !== true || action !== "restart_zigbee" || !mode || mode !== status.zigbee)) return;
       const request = {};
       this.maintenanceRequest = request;
       this.maintenanceMessage = core ? corePending : "Commande Zigbee en cours…";

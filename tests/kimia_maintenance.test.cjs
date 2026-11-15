@@ -97,10 +97,18 @@ async function setup({admin=true,status=originalStatus,handle=()=>({})}={}) {
   const unavailable = await setup({status:{...originalStatus,zigbee:null,zigbee_note:"Zigbee indisponible"}});
   assert.equal(unavailable.card.child.config.cards[2].tap_action.action,"none");
   assert.match(unavailable.card.child.config.cards.at(-1).content,/Zigbee indisponible/);
-  const ordinaryUser = await setup({admin:false});
-  assert.equal(ordinaryUser.card.child.config.cards[1].tap_action.action,"none");
-  assert.equal(ordinaryUser.card.child.config.cards[2].tap_action.action,"none");
-  assert(!ordinaryUser.requests.some(r=>r.type==="kimia_settings/maintenance"));
+  const ordinaryUser = await setup({admin:false,status:{...originalStatus,zigbee:null}});
+  const clientCards=ordinaryUser.card.child.config.cards;
+  assert.equal(clientCards[1].tap_action.action,"fire-dom-event");
+  assert.equal(clientCards.length,2);
+  assert(ordinaryUser.requests.some(r=>r.action==="status" && r.token==="test-token"));
+  await ordinaryUser.card.runMaintenance("restart_zigbee","smlight");
+  assert(!ordinaryUser.requests.some(r=>r.action==="restart_zigbee"));
+  const confirmClientCore=ordinaryUser.tap(clientCards[1]);
+  assert(!ordinaryUser.requests.some(r=>r.action==="restart_core"));
+  confirmClientCore();
+  await ordinaryUser.flush();
+  assert(ordinaryUser.requests.some(r=>r.action==="restart_core" && r.token==="test-token"));
 
   let boot = {instance:"boot-1",running:true};
   const restarted = await setup({handle:request=>{

@@ -7,10 +7,11 @@ from time import time
 from uuid import uuid4
 
 import probatio
+from homeassistant.auth.const import GROUP_ID_USER
 from homeassistant.components import websocket_api
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import STATE_UNAVAILABLE
-from homeassistant.core import CoreState
+from homeassistant.core import Context, CoreState
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry, entity_registry
 from homeassistant.helpers.storage import Store
@@ -76,9 +77,9 @@ class Maintenance:
             note = "L’intégration SMLIGHT est absente et aucun rechargement ZHA sur USB n’est disponible."
         return None, None, note
 
-    async def status(self):
+    async def status(self, *, include_zigbee=True):
         retry_after = await self.retry_after()
-        mode, _, note = self.zigbee_target()
+        mode, _, note = self.zigbee_target() if include_zigbee else (None, None, None)
         return {"instance": self.instance, "core": self.core_available(),
                 "zigbee": mode, "zigbee_note": note, "retry_after": retry_after}
 
@@ -106,6 +107,9 @@ class Maintenance:
                 raise PermissionError
             context = connection.context(msg)
             if action == "restart_core":
+                if not connection.user.is_admin:
+                    # KIMIA delegates only this fixed service after verifying the user's PIN session.
+                    context = Context(parent_id=context.id)
                 await self.hass.services.async_call("homeassistant", "restart", blocking=True, context=context)
                 return
             current_mode, target, note = self.zigbee_target()
@@ -127,21 +131,27 @@ class Maintenance:
 })
 @websocket_api.async_response
 async def ws_maintenance(hass, connection, msg):
-    if not connection.user.is_admin:
+    user = connection.user
+    action = msg["action"]
+    if (not user.is_active or user.system_generated
+            or not (user.is_admin or any(group.id == GROUP_ID_USER for group in user.groups))):
+        connection.send_error(msg["id"], "unauthorized", "Ce compte ne peut pas utiliser la maintenance KIMIA.")
+        return
+    if action == "restart_zigbee" and not user.is_admin:
         connection.send_error(msg["id"], "unauthorized", "Un compte administrateur Home Assistant est nécessaire.")
         return
     settings = hass.data["kimia_settings"]
     maintenance = settings.maintenance
-    if msg["action"] == "instance":
+    if action == "instance":
         # The old PIN session is lost on restart. This read-only check can use the HA login.
         connection.send_result(msg["id"], {"instance": maintenance.instance,
                                           "running": hass.state is CoreState.running})
         return
     try:
-        if not settings.session(connection.user.id, msg["token"]):
+        if not settings.session(user.id, msg["token"]):
             raise PermissionError
-        if msg["action"] == "status":
-            result = await maintenance.status()
+        if action == "status":
+            result = await maintenance.status(include_zigbee=user.is_admin)
         else:
             await maintenance.run(settings, connection, msg)
             result = {"accepted": True}

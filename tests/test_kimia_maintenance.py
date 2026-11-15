@@ -21,6 +21,13 @@ class HomeAssistantError(Exception):
     pass
 
 
+class Context:
+    def __init__(self, user_id=None, parent_id=None, id="request-context"):
+        self.user_id = user_id
+        self.parent_id = parent_id
+        self.id = id
+
+
 class Store:
     def __init__(self, hass, _version, _key, **_options):
         self.data = hass.storage
@@ -44,11 +51,12 @@ def load_settings():
     devices = SimpleNamespace(async_get=lambda hass: SimpleNamespace(async_get=hass.devices.get))
     dependencies = [
         module("probatio", Required=lambda key: key, Optional=lambda key, **_: key, In=tuple, Any=lambda *types: types),
+        module("homeassistant.auth.const", GROUP_ID_USER="system-users"),
         module("homeassistant.components", websocket_api=websocket_api),
         module("homeassistant.components.lovelace", LOVELACE_DATA="lovelace"),
         module("homeassistant.config_entries", ConfigEntryState=State, SOURCE_USER="user"),
         module("homeassistant.const", STATE_UNAVAILABLE="unavailable"),
-        module("homeassistant.core", CoreState=State, HomeAssistant=object),
+        module("homeassistant.core", Context=Context, CoreState=State, HomeAssistant=object),
         module("homeassistant.data_entry_flow", FlowResultType=object),
         module("homeassistant.exceptions", HomeAssistantError=HomeAssistantError),
         module("homeassistant.helpers", device_registry=devices, entity_registry=registry),
@@ -77,22 +85,30 @@ class MaintenanceTest(unittest.IsolatedAsyncioTestCase):
                                            async_reload=AsyncMock(return_value=True)),
             services=SimpleNamespace(has_service=lambda *args: True, async_call=AsyncMock()),
         )
-        pin, salt = "3176", b"test salt"
-        self.settings = settings_module.Settings(self.hass, (salt, hashlib.sha256(salt + pin.encode()).digest()))
+        self.pin, salt = "3176", b"test salt"
+        self.settings = settings_module.Settings(self.hass, (salt, hashlib.sha256(salt + self.pin.encode()).digest()))
         self.hass.data["kimia_settings"] = self.settings
-        self.token, _ = self.settings.unlock("admin", pin)
-        self.context = object()
+        self.token, _ = self.settings.unlock("admin", self.pin)
+        self.client_token, _ = self.settings.unlock("client", self.pin)
+        self.context = Context(user_id="admin")
 
-    async def request(self, action, user="admin", is_admin=True, token=None, **kwargs):
-        connection = SimpleNamespace(user=SimpleNamespace(id=user, is_admin=is_admin),
-                                     send_error=Mock(), send_result=Mock(), context=Mock(return_value=self.context))
+    async def request(self, action, user="admin", is_admin=True, token=None, *,
+                      group="system-users", active=True, system_generated=False, **kwargs):
+        account = SimpleNamespace(id=user, is_admin=is_admin, is_active=active,
+                                  system_generated=system_generated, groups=[SimpleNamespace(id=group)])
+        context = self.context if is_admin else Context(user_id=user)
+        connection = SimpleNamespace(user=account, send_error=Mock(), send_result=Mock(),
+                                     context=Mock(return_value=context))
         await maintenance_module.ws_maintenance(self.hass, connection,
                                                 {"id": 7, "action": action, "token": self.token if token is None else token, **kwargs})
         return connection
 
-    async def test_admin_and_matching_pin_required(self):
-        for kwargs, error in (({"is_admin": False}, "unauthorized"), ({"token": ""}, "pin_required"),
-                              ({"user": "other-admin"}, "pin_required")):
+    async def test_matching_pin_and_eligible_account_required(self):
+        for kwargs, error in (({"active": False}, "unauthorized"), ({"system_generated": True}, "unauthorized"),
+                              ({"token": ""}, "pin_required"), ({"user": "other-admin"}, "pin_required"),
+                              ({"user": "client", "is_admin": False, "token": self.token}, "pin_required"),
+                              ({"user": "client", "is_admin": False, "token": self.client_token,
+                                "group": "system-read-only"}, "unauthorized")):
             self.assertEqual((await self.request("restart_core", **kwargs)).send_error.call_args.args[1], error)
         clock = self.settings.sessions[self.token][1]
         with patch.object(settings_module, "monotonic", return_value=clock - 1):
@@ -102,8 +118,28 @@ class MaintenanceTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(settings_module.IDLE_SECONDS, 600)
         self.hass.services.async_call.assert_not_awaited()
 
+    async def test_client_can_restart_only_core_with_own_pin(self):
+        client = {"user": "client", "is_admin": False, "token": self.client_token}
+        status = await self.request("status", **client)
+        result = status.send_result.call_args.args[1]
+        self.assertTrue(result["core"])
+        self.assertIsNone(result["zigbee"])
+        refused = await self.request("restart_zigbee", **client, zigbee_mode="smlight")
+        self.assertEqual(refused.send_error.call_args.args[1], "unauthorized")
+        self.hass.services.async_call.assert_not_awaited()
+        (await self.request("restart_core", **client)).send_result.assert_called_once_with(7, {"accepted": True})
+        call = self.hass.services.async_call.await_args
+        self.assertEqual(call.args, ("homeassistant", "restart"))
+        self.assertIsNone(call.kwargs["context"].user_id)
+        self.assertEqual(call.kwargs["context"].parent_id, "request-context")
+        instance = await self.request("instance", user="client", is_admin=False, token="")
+        instance.send_result.assert_called_once_with(7, {"instance": self.settings.maintenance.instance, "running": True})
+
     async def test_core_only_and_cooldown_across_users_and_boot(self):
-        first, second = await asyncio.gather(self.request("restart_core"), self.request("restart_core"))
+        first, second = await asyncio.gather(
+            self.request("restart_core"),
+            self.request("restart_core", user="client", is_admin=False, token=self.client_token),
+        )
         first.send_result.assert_called_once_with(7, {"accepted": True})
         self.assertEqual(second.send_error.call_args.args[1], "maintenance_failed")
         self.hass.services.async_call.assert_awaited_once_with("homeassistant", "restart", blocking=True, context=self.context)
