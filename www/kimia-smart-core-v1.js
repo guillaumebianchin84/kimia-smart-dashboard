@@ -1427,11 +1427,25 @@
 
   const settingsLockType="custom:kimia-settings-lock-v1-card";
   const settingsZoneType="custom:kimia-zone-settings-card";
+  const advancedSettings={path:"reglages-avances",title:"Paramètres avancés",icon:"mdi:account-cog-outline"};
+  const advancedSettingsPath=SETTINGS_BASE+advancedSettings.path;
   const lockSettingsCard=(mode,card)=>({
     type:settingsLockType,mode,
     ...(card?{card}:{}),
     grid_options:card?.grid_options||{columns:6,rows:2}
   });
+  const makeAdvancedSettings=param=>{
+    const view=makeSettingsSubview(param,advancedSettings);
+    view.sections[1].cards.push({...lockSettingsCard("notice"),grid_options:{columns:12,rows:2}});
+    const profile=settingsShortcut("Compte Home Assistant","Ouvrir mon profil",
+      "mdi:account-cog-outline","/profile","teal");
+    profile.grid_options.columns=12;
+    view.sections.splice(2,0,settingsGrid([
+      {...lockSettingsCard("maintenance"),grid_options:{columns:12,rows:"auto"}},
+      lockSettingsCard("content",profile)
+    ]));
+    return view;
+  };
   const protectSettings=(next,param)=>{
     const originalCount=countCards({views:next.views});
     const menu=sectionWithHeader(param,"Mon espace KIMIA");
@@ -1448,16 +1462,28 @@
         param.sections.splice(param.sections.indexOf(menu)+1,0,actions);
         if(index>=0)modified++;else added++;
       }
-      const advanced=actions.cards.find(c=>routeIs(c.card||c,"/profile")&&(c.card||c).label==="Paramètres avancés");
+      if(!next.views.some(view=>view.path===advancedSettings.path)){
+        const view=makeAdvancedSettings(param);
+        next.views.push(view);
+        added+=allCards(view).length;
+      }
+      const advanced=actions.cards.find(c=>{
+        const shortcut=c.card||c;
+        return routeIs(shortcut,advancedSettingsPath)||
+          (routeIs(shortcut,"/profile")&&shortcut.label==="Paramètres avancés");
+      });
       if(!advanced){
         const shortcut=settingsShortcut(
-          "Paramètres avancés","Compte Home Assistant","mdi:account-cog-outline","/profile","teal");
+          "Paramètres avancés","Maintenance et compte Home Assistant","mdi:account-cog-outline",advancedSettingsPath,"teal");
         shortcut.grid_options.columns=12;
         actions.cards.push(lockSettingsCard("content",shortcut));
         added++;
-      }else if(advanced.grid_options?.columns!==12||advanced.card?.grid_options?.columns!==12){
+      }else if(!routeIs(advanced.card||advanced,advancedSettingsPath)||
+          advanced.grid_options?.columns!==12||advanced.card?.grid_options?.columns!==12){
         const shortcut=advanced.card||advanced;
         shortcut.grid_options={...shortcut.grid_options,columns:12};
+        shortcut.tap_action={...shortcut.tap_action,navigation_path:advancedSettingsPath};
+        if(shortcut.description==="Compte Home Assistant")shortcut.description="Maintenance et compte Home Assistant";
         actions.cards[actions.cards.indexOf(advanced)]=lockSettingsCard("content",shortcut);
         modified++;
       }

@@ -111,7 +111,7 @@ function checkHeaderTimer(){
   "Expression booléenne reliée à la minuterie, avec lecture locale de secours");
  const pages=["reglages-affichage","reglages-localisation",
   "reglages-listes","reglages-apparence","reglages-reseau"];
- assert.equal(cfg.views.length,17);
+ assert.equal(cfg.views.length,18);
  for(const path of pages){
   assert(get(path)?.subview,path+" should be a subview");
   assert.equal(get(path).back_path,"/kimia-next/parametres");
@@ -155,7 +155,13 @@ function checkHeaderTimer(){
  const controls=get("parametres").sections.flatMap(s=>s.cards||[]);
  assert(controls.some(c=>c.type==="custom:kimia-settings-lock-v1-card"&&c.mode==="control"));
  assert(controls.some(c=>c.mode==="content"&&c.card?.label==="Paramètres avancés"&&
-  c.card.tap_action.navigation_path==="/profile"&&c.grid_options.columns===12&&c.card.grid_options.columns===12));
+  c.card.tap_action.navigation_path==="/kimia-next/reglages-avances"&&c.grid_options.columns===12&&c.card.grid_options.columns===12));
+ const advanced=get("reglages-avances");
+ assert(advanced.subview);
+ assert.equal(advanced.back_path,"/kimia-next/parametres");
+ assert(advanced.sections.flatMap(s=>s.cards).some(c=>c.mode==="maintenance"&&c.grid_options.columns===12));
+ assert(advanced.sections.flatMap(s=>s.cards).some(c=>c.mode==="notice"));
+ assert(cards("reglages-avances").some(c=>c.label==="Compte Home Assistant"&&c.tap_action.navigation_path==="/profile"));
  assert(controls.some(c=>c.type==="shortcut"&&c.tap_action?.navigation_path==="/kimia-next/reglages-apparence"));
  assert(controls.some(c=>c.mode==="content"&&c.card?.tap_action?.navigation_path==="/kimia-next/reglages-reseau"));
  const was=writes;
@@ -183,6 +189,8 @@ function checkHeaderTimer(){
  get("parametres").sections[1].cards.push({
   name:"Réglages de la voix Gemini",...legacyLink("/config/voice-assistants/assistants")
  });
+ cards("parametres").find(c=>c.label==="Paramètres avancés").tap_action.navigation_path="/profile";
+ cfg.views=cfg.views.filter(view=>view.path!=="reglages-avances");
  await window.KimiaSmartCore.sync(hass);
  assert.equal(cards("reglages-apparence").find(c=>c.tap_action?.navigation_path==="/kimia-next/parametres").grid_options.columns,12);
  assert(!get("reglages-matter"));
@@ -191,8 +199,12 @@ function checkHeaderTimer(){
  assert(!cards("reglages-localisation").some(c=>c.tap_action?.navigation_path==="/config/zone"));
  assert(!cards("parametres").some(c=>c.tap_action?.navigation_path==="/kimia-next/reglages-utilisateurs"));
  assert(!cards("parametres").some(c=>c.name==="Réglages de la voix Gemini"));
+ assert.equal(cards("parametres").find(c=>c.label==="Paramètres avancés").tap_action.navigation_path,
+  "/kimia-next/reglages-avances");
+ assert(cards("reglages-avances").some(c=>c.tap_action?.navigation_path==="/profile"));
  const afterMigration=writes;
  await window.KimiaSmartCore.sync(hass);
  assert.equal(writes,afterMigration);
- console.log("KIMIA Settings OK : 5 sous-vues, thèmes locaux sans action globale, bandeau et personnalisations préservés.");
+ console.log("KIMIA Settings OK : 6 sous-vues, thèmes locaux sans action globale, bandeau et personnalisations préservés.");
 })().catch(e=>{console.error(e);process.exitCode=1;});
+
