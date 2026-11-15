@@ -1427,11 +1427,25 @@
 
   const settingsLockType="custom:kimia-settings-lock-v1-card";
   const settingsZoneType="custom:kimia-zone-settings-card";
+  const advancedSettings={path:"reglages-avances",title:"Paramètres avancés",icon:"mdi:account-cog-outline"};
+  const advancedSettingsPath=SETTINGS_BASE+advancedSettings.path;
   const lockSettingsCard=(mode,card)=>({
     type:settingsLockType,mode,
     ...(card?{card}:{}),
     grid_options:card?.grid_options||{columns:6,rows:2}
   });
+  const makeAdvancedSettings=param=>{
+    const view=makeSettingsSubview(param,advancedSettings);
+    view.sections[1].cards.push({...lockSettingsCard("notice"),grid_options:{columns:12,rows:2}});
+    const profile=settingsShortcut("Compte Home Assistant","Ouvrir mon profil",
+      "mdi:account-cog-outline","/profile","teal");
+    profile.grid_options.columns=12;
+    view.sections.splice(2,0,settingsGrid([
+      {...lockSettingsCard("maintenance"),grid_options:{columns:12,rows:"auto"}},
+      lockSettingsCard("content",profile)
+    ]));
+    return view;
+  };
   const protectSettings=(next,param)=>{
     const originalCount=countCards({views:next.views});
     const menu=sectionWithHeader(param,"Mon espace KIMIA");
@@ -1448,16 +1462,28 @@
         param.sections.splice(param.sections.indexOf(menu)+1,0,actions);
         if(index>=0)modified++;else added++;
       }
-      const advanced=actions.cards.find(c=>routeIs(c.card||c,"/profile")&&(c.card||c).label==="Paramètres avancés");
+      if(!next.views.some(view=>view.path===advancedSettings.path)){
+        const view=makeAdvancedSettings(param);
+        next.views.push(view);
+        added+=allCards(view).length;
+      }
+      const advanced=actions.cards.find(c=>{
+        const shortcut=c.card||c;
+        return routeIs(shortcut,advancedSettingsPath)||
+          (routeIs(shortcut,"/profile")&&shortcut.label==="Paramètres avancés");
+      });
       if(!advanced){
         const shortcut=settingsShortcut(
-          "Paramètres avancés","Compte Home Assistant","mdi:account-cog-outline","/profile","teal");
+          "Paramètres avancés","Maintenance et compte Home Assistant","mdi:account-cog-outline",advancedSettingsPath,"teal");
         shortcut.grid_options.columns=12;
         actions.cards.push(lockSettingsCard("content",shortcut));
         added++;
-      }else if(advanced.grid_options?.columns!==12||advanced.card?.grid_options?.columns!==12){
+      }else if(!routeIs(advanced.card||advanced,advancedSettingsPath)||
+          advanced.grid_options?.columns!==12||advanced.card?.grid_options?.columns!==12){
         const shortcut=advanced.card||advanced;
         shortcut.grid_options={...shortcut.grid_options,columns:12};
+        shortcut.tap_action={...shortcut.tap_action,navigation_path:advancedSettingsPath};
+        if(shortcut.description==="Compte Home Assistant")shortcut.description="Maintenance et compte Home Assistant";
         actions.cards[actions.cards.indexOf(advanced)]=lockSettingsCard("content",shortcut);
         modified++;
       }
@@ -1814,99 +1840,8 @@
             }
           }
         }
-        // Scènes IA : cartouche à gauche, vraie pile verticale Tile HA à droite.
-        const lightsView=vmap.get("lumieres");
-        const sceneList=Object.values(hass.states||{}).filter(st=>
-          st.entity_id?.startsWith("scene.") &&
-          /^kimia_ambiance_\d{2}$/.test(st.attributes?.id||""))
-          .sort((a,b)=>String(a.attributes.id).localeCompare(String(b.attributes.id)))
-          .slice(0,10);
-        const sceneIcon=st=>{
-          const title=String(st.attributes?.friendly_name||st.entity_id)
-            .normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
-          const icons=[
-            ["detente","mdi:weather-sunset"],["cinema","mdi:movie-open"],
-            ["lecture","mdi:book-open-variant"],["romance","mdi:heart"],
-            ["concentration","mdi:brain"],["soiree","mdi:party-popper"],
-            ["nuit","mdi:weather-night"],["reveil","mdi:weather-sunset-up"],
-            ["tropicale","mdi:palm-tree"],["douceur","mdi:weather-cloudy"]
-          ];
-          return icons.find(([name])=>title.includes(name))?.[1]||"mdi:palette";
-        };
-        const sceneTile=st=>({
-          type:"tile",entity:st.entity_id,icon:sceneIcon(st),
-          tap_action:{action:"perform-action",perform_action:"scene.turn_on",
-            target:{entity_id:st.entity_id}},
-          icon_tap_action:{action:"perform-action",perform_action:"scene.turn_on",
-            target:{entity_id:st.entity_id}}
-        });
-        const sceneTiles=sceneList.map(sceneTile);
-        // Sans area valide, le titre est un bouton natif non interactif.
-        const sceneHeading=()=>({
-          type:"button",name:"Scènes lumineuses",icon:"mdi:palette",
-          show_name:true,show_icon:true,show_state:false,
-          tap_action:{action:"none"},hold_action:{action:"none"},
-          grid_options:{columns:12,rows:2}
-        });
-        const sceneSection=()=>({
-          type:"grid",column_span:Math.min(Number(lightsView?.max_columns)||3,3),
-          cards:[sceneHeading(),{type:"vertical-stack",cards:sceneTiles}]
-        });
-        const isSceneAction=card=>
-          card?.type==="tile" && card.entity?.startsWith("scene.") &&
-          card.tap_action?.perform_action==="scene.turn_on" &&
-          card.tap_action?.target?.entity_id===card.entity &&
-          card.icon_tap_action?.perform_action==="scene.turn_on" &&
-          card.icon_tap_action?.target?.entity_id===card.entity;
-        const legacyScenes=section=>section?.cards?.length===1 &&
-          section.cards[0]?.type==="custom:kimia-ai-scenes-shortcuts-card";
-        const generatedScenes=section=>section?.cards?.length===2 &&
-          ((section.cards[0]?.type==="button" &&
-              section.cards[0].name==="Scènes lumineuses") ||
-           (section.cards[0]?.type==="vertical-stack" &&
-              section.cards[0].cards?.[0]?.name==="Scènes lumineuses")) &&
-          section.cards[1]?.cards?.every(isSceneAction);
-        const manualScenes=section=>section?.cards?.length===2 &&
-          section.cards[0]?.type==="area" &&
-          /sc[eè]nes lumineus/i.test(section.cards[0].name||"") &&
-          section.cards[1]?.type==="vertical-stack" &&
-          section.cards[1].cards?.every(isSceneAction);
-        // Réconcilie les scènes lorsque la liste change (suppression partielle
-        // ou totale), tout en préservant les autres sections et cartes client.
-        if(lightsView?.sections){
-          const owned=lightsView.sections.filter(section=>
-            legacyScenes(section)||generatedScenes(section)||manualScenes(section));
-          const desired=sceneList.length?sceneSection():null;
-          if(!desired){
-            // Aucune scène KIMIA : le titre ET les boutons disparaissent.
-            for(const section of owned){
-              lightsView.sections.splice(lightsView.sections.indexOf(section),1);
-              removed+=section.cards.length;
-            }
-          }else if(owned.length){
-            // Remplace le faux "area" (qui provoquait l'erreur HA) par
-            // un bouton natif inactif, avec l'icône palette centrée.
-            const first=owned[0];
-            if(JSON.stringify(first)!==JSON.stringify(desired)){
-              if(first.cards.length===desired.cards.length)modified++;
-              else{
-                removed+=first.cards.length;added+=desired.cards.length;
-              }
-              lightsView.sections[lightsView.sections.indexOf(first)]=desired;
-            }
-            for(const duplicate of owned.slice(1)){
-              lightsView.sections.splice(lightsView.sections.indexOf(duplicate),1);
-              removed+=duplicate.cards.length;
-            }
-          }else{
-            const lastRoom=lightsView.sections.reduce((n,sec,i)=>
-              managedRoom(sec,"lumieres")?i:n,-1);
-            const nav=lightsView.sections.findIndex(sec=>
-              (sec.cards||[]).some(c=>c.type==="custom:navbar-card"));
-            const at=lastRoom>=0?lastRoom+1:nav>=0?nav:lightsView.sections.length;
-            lightsView.sections.splice(at,0,desired);added+=2;
-          }
-        }
+        const scenes=reconcileSceneTiles(next,hass);
+        added+=scenes.added;removed+=scenes.removed;modified+=scenes.modified;
         // Préférences par utilisateur : les nouveaux comptes voient tout par défaut.
         // L'ancienne navigation, la maquette et les cartes personnalisées restent intactes.
         const hiddenByArea=await loadHiddenByArea(hass,dashboards);
@@ -1969,8 +1904,128 @@
     })();
     return active;
   }
+  const isKimiaScene=state=>state.entity_id?.startsWith("scene.") &&
+    /^kimia_ambiance_(0[1-9]|1[0-9]|20)$/.test(state.attributes?.id||"") &&
+    String(state.attributes?.friendly_name||"").startsWith("KIMIA · ");
+  const reconcileSceneTiles=(config,hass,previousEntities=[])=>{
+    const lightsView=config.views.find(view=>view.path==="lumieres");
+    let added=0,removed=0,modified=0;
+    const catalog=Object.values(hass.states||{}).filter(isKimiaScene)
+      .sort((a,b)=>a.attributes.id.localeCompare(b.attributes.id));
+    const selected=Array.isArray(config.kimia_ai_scenes?.selection)
+      ?new Set(config.kimia_ai_scenes.selection):null;
+    const sceneList=catalog.filter(scene=>!selected||selected.has(scene.attributes.id)).slice(0,10);
+    const known=new Set([...catalog.map(scene=>scene.entity_id),...previousEntities,
+      ...(config.kimia_ai_scenes?.entities||[])]);
+    const sceneIcon=st=>{
+      const title=String(st.attributes?.friendly_name||st.entity_id)
+        .normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+      const icons=[
+        ["detente","mdi:weather-sunset"],["cinema","mdi:movie-open"],
+        ["lecture","mdi:book-open-variant"],["romance","mdi:heart"],
+        ["concentration","mdi:brain"],["soiree","mdi:party-popper"],
+        ["nuit","mdi:weather-night"],["reveil","mdi:weather-sunset-up"],
+        ["tropicale","mdi:palm-tree"],["douceur","mdi:weather-cloudy"]
+      ];
+      return icons.find(([name])=>title.includes(name))?.[1]||"mdi:palette";
+    };
+    const sceneTile=st=>({
+      type:"tile",entity:st.entity_id,icon:sceneIcon(st),
+      tap_action:{action:"perform-action",perform_action:"scene.turn_on",
+        target:{entity_id:st.entity_id}},
+      icon_tap_action:{action:"perform-action",perform_action:"scene.turn_on",
+        target:{entity_id:st.entity_id}}
+    });
+    const sceneTiles=sceneList.map(sceneTile);
+    // Sans area valide, le titre est un bouton natif non interactif.
+    const sceneHeading=()=>({
+      type:"button",name:"Scènes lumineuses",icon:"mdi:palette",
+      show_name:true,show_icon:true,show_state:false,
+      tap_action:{action:"none"},hold_action:{action:"none"},
+      grid_options:{columns:12,rows:2}
+    });
+    const sceneSection=()=>({
+      type:"grid",column_span:Math.min(Number(lightsView?.max_columns)||3,3),
+      cards:[sceneHeading(),{type:"vertical-stack",cards:sceneTiles}]
+    });
+    const isSceneAction=card=>
+      card?.type==="tile" && known.has(card.entity) &&
+      card.tap_action?.perform_action==="scene.turn_on" &&
+      card.tap_action?.target?.entity_id===card.entity &&
+      card.icon_tap_action?.perform_action==="scene.turn_on" &&
+      card.icon_tap_action?.target?.entity_id===card.entity;
+    const legacyScenes=section=>section?.cards?.length===1 &&
+      section.cards[0]?.type==="custom:kimia-ai-scenes-shortcuts-card";
+    const generatedScenes=section=>section?.cards?.length===2 &&
+      ((section.cards[0]?.type==="button" &&
+          section.cards[0].name==="Scènes lumineuses") ||
+       (section.cards[0]?.type==="vertical-stack" &&
+          section.cards[0].cards?.[0]?.name==="Scènes lumineuses")) &&
+      section.cards[1]?.type==="vertical-stack" && section.cards[1].cards?.every(isSceneAction);
+    const manualScenes=section=>section?.cards?.length===2 &&
+      section.cards[0]?.type==="area" &&
+      /sc[eè]nes lumineus/i.test(section.cards[0].name||"") &&
+      section.cards[1]?.type==="vertical-stack" &&
+      section.cards[1].cards?.every(isSceneAction);
+    // Réconcilie les scènes lorsque la liste change (suppression partielle
+    // ou totale), tout en préservant les autres sections et cartes client.
+    if(lightsView?.sections){
+      const owned=lightsView.sections.filter(section=>
+        legacyScenes(section)||generatedScenes(section)||manualScenes(section));
+      const desired=sceneList.length?sceneSection():null;
+      if(!desired){
+        // Aucune scène KIMIA : le titre ET les boutons disparaissent.
+        for(const section of owned){
+          lightsView.sections.splice(lightsView.sections.indexOf(section),1);
+          removed+=section.cards.length;
+        }
+      }else if(owned.length){
+        // Remplace le faux "area" (qui provoquait l'erreur HA) par
+        // un bouton natif inactif, avec l'icône palette centrée.
+        const first=owned[0];
+        if(JSON.stringify(first)!==JSON.stringify(desired)){
+          if(first.cards.length===desired.cards.length)modified++;
+          else{
+            removed+=first.cards.length;added+=desired.cards.length;
+          }
+          lightsView.sections[lightsView.sections.indexOf(first)]=desired;
+        }
+        for(const duplicate of owned.slice(1)){
+          lightsView.sections.splice(lightsView.sections.indexOf(duplicate),1);
+          removed+=duplicate.cards.length;
+        }
+      }else{
+        const lastRoom=lightsView.sections.reduce((n,sec,i)=>
+          managedRoom(sec,"lumieres")?i:n,-1);
+        const nav=lightsView.sections.findIndex(sec=>
+          (sec.cards||[]).some(c=>c.type==="custom:navbar-card"));
+        const at=lastRoom>=0?lastRoom+1:nav>=0?nav:lightsView.sections.length;
+        lightsView.sections.splice(at,0,desired);added+=2;
+      }
+    }
+    return {added,removed,modified};
+  };
+  const saveSceneSelection=async(hass,ids,previousEntities=[])=>{
+    if(!hass.user?.is_admin)throw Error("Droits administrateur requis.");
+    const unique=[...new Set(ids)];
+    const existing=new Set(Object.values(hass.states||{}).filter(isKimiaScene).map(state=>state.attributes.id));
+    if(unique.length>10||unique.some(id=>!existing.has(id)))throw Error("Sélection d’ambiances invalide.");
+    const query={type:"lovelace/config",url_path:DASHBOARD};
+    const before=await hass.callWS(query);
+    const after=safeClone(before);
+    if(!after.views?.some(v=>v.path==="lumieres"&&Array.isArray(v.sections)))throw Error("Vue Lumières introuvable.");
+    const previous=[...previousEntities,...(before.kimia_ai_scenes?.entities||[])];
+    after.kimia_ai_scenes={selection:unique,
+      entities:Object.values(hass.states||{}).filter(isKimiaScene).map(state=>state.entity_id).sort()};
+    reconcileSceneTiles(after,hass,previous);
+    if(JSON.stringify(before)===JSON.stringify(after))return;
+    if(JSON.stringify(before)!==JSON.stringify(await hass.callWS(query)))throw Error("Le dashboard a changé. Réessaie.");
+    await hass.callWS({type:"lovelace/config/save",url_path:DASHBOARD,config:after});
+  };
+
   window.KimiaSmartCore = Object.freeze({
     sync: synchronize,
+    saveSceneSelection,
     getStatus: () => ({ ..._last }),
     dashboard: DASHBOARD,
     version: "1.7.0-dev"

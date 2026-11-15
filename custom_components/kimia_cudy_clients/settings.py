@@ -18,7 +18,9 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry
 
-IDLE_SECONDS = 300
+from .maintenance import Maintenance, ws_maintenance
+
+IDLE_SECONDS = 600
 WISP = {
     "scan": ("button", "wisp-scan", "press"),
     "network": ("select", "wisp-network", "select_option"),
@@ -99,6 +101,7 @@ class Settings:
         self.wifi_lock = asyncio.Lock()
         self.todo_lock = asyncio.Lock()
         self.zone_lock = asyncio.Lock()
+        self.maintenance = Maintenance(hass)
 
     def session(self, user, token, touch=False):
         now = monotonic()
@@ -321,3 +324,4 @@ async def async_setup_settings(hass: HomeAssistant):
     websocket_api.async_register_command(hass, ws_wifi)
     websocket_api.async_register_command(hass, ws_todo)
     websocket_api.async_register_command(hass, ws_create_zone)
+    websocket_api.async_register_command(hass, ws_maintenance)
