@@ -78,6 +78,27 @@
  };
  const midpoint=seg=>Array.isArray(seg)&&seg.length===4?
   [(Number(seg[0])+Number(seg[2]))/2,(Number(seg[1])+Number(seg[3]))/2]:null;
+ const roomLabel=poly=>{
+  if(!Array.isArray(poly)||poly.length<3)return;
+  const points=poly.filter(p=>Array.isArray(p)&&p.length>=2).map(([x,y])=>[Number(x),Number(y)]);
+  if(points.length!==poly.length||points.some(p=>!p.every(Number.isFinite)))return;
+  const ys=[...new Set(points.map(p=>p[1]))].sort((a,b)=>a-b);
+  // Choose an interior point even for a concave room without a native label.
+  let width=0,label;
+  for(let i=1;i<ys.length;i++){
+   const y=(ys[i-1]+ys[i])/2,xs=[];
+   for(const [j,[x1,y1]] of points.entries()){
+    const [x2,y2]=points[(j+1)%points.length];
+    if((y1>y)!==(y2>y))xs.push(x1+(x2-x1)*(y-y1)/(y2-y1));
+   }
+   xs.sort((a,b)=>a-b);
+   for(let j=1;j<xs.length;j+=2){
+    if(xs[j]-xs[j-1]<=width)continue;
+    width=xs[j]-xs[j-1];label=[(xs[j]+xs[j-1])/2,y];
+   }
+  }
+  return label;
+ };
  const locatedIn=(room,item,point,includeEdge=false)=>
   ((room.name&&item.room===room.name)||polygonContains(point,room.poly,includeEdge));
  const groupsIn=states=>Object.entries(states||{}).flatMap(([id,state])=>{
@@ -143,6 +164,7 @@
      // Keep the polygon and retain a native room label.
      room.area=zoneOf(room);
      room.name="🔒 "+String(room.name||"Pièce").replace(/^🔒\s*/,"");
+     if(!Array.isArray(room.label))room.label=roomLabel(room.poly);
      room.zoom=false;
      room.tap="";
      room.auto_actions=false;

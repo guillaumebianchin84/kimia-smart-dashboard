@@ -14,7 +14,7 @@ Maquette v0.4.1 peut encore compter une ouverture ou une pastille masquée par u
 
 1. Sur `demo.domo-pilote.fr`, vérifier que **Système → Matériel** affiche **Hardkernel ODROID-M1S**, puis créer une sauvegarde locale des réglages Home Assistant.
 2. Conserver une copie de `/config/www/kimia-maquette-acl-v17-card.js` et de l’URL actuelle de sa ressource Lovelace.
-3. Remplacer ce fichier par la version de la PR et modifier la ressource Module JavaScript existante en `/local/kimia-maquette-acl-v17-card.js?v=171`.
+3. Remplacer ce fichier par la version de la PR et modifier la ressource Module JavaScript existante en `/local/kimia-maquette-acl-v17-card.js?v=172`.
 4. Recharger le navigateur. Si le plan apparaît comme une carte Maquette brute, utiliser **KIMIA Configuration → Démarrer → Actualiser ma maison** pour appliquer l’enveloppe existante. Les dashboards à jour la contiennent déjà. Le déploiement s’effectue sans redémarrage.
 5. Vérifier le plan en compte admin et en compte client, puis restaurer la sélection de pièces et l’état des appareils utilisés pour les essais.
 

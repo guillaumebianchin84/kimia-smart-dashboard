@@ -113,6 +113,8 @@ test("coupe le contenu des pièces, des résumés et des calques sans retirer le
   assert.equal(ground.rooms[0].automations, false);
   assert.equal(ground.rooms[0].zoom, false);
   assert.deepEqual(ground.rooms[0].poly, rooms.living.poly);
+  assert.deepEqual(ground.rooms[0].label, [10,10]);
+  assert.equal(ground.rooms[1].label, undefined, "aucun label ajouté à une pièce autorisée");
   for (const key of ["panels", "temperature", "temperature_attribute", "humidity", "actions"])
     assert.equal(Object.hasOwn(ground.rooms[0], key), false);
   assert.equal(ground.rooms[1].temperature, undefined);
@@ -133,6 +135,15 @@ test("coupe le contenu des pièces, des résumés et des calques sans retirer le
   assert(result.entities.has("sensor.unmapped"));
   assert(result.entities.has("sensor.new_sensor"));
   assert(!result.entities.has("light.moved"));
+});
+
+test("place le cadenas dans une pièce concave sans étiquette et garde les étiquettes personnalisées", () => {
+  const concave = [[0,0],[20,0],[20,4],[4,4],[4,20],[0,20]];
+  const source = { rooms: [{ area: "salon", poly: concave },
+    { area: "salon", poly: concave, label: [2,14] }] };
+  const { cfg } = ACL.filtered(source, deny);
+  assert.deepEqual(copy(cfg.rooms[0].label), [10,2]);
+  assert.deepEqual(copy(cfg.rooms[1].label), [2,14]);
 });
 
 test("identifie l'association absente ou obsolète sans se baser sur le nom de pièce", () => {
