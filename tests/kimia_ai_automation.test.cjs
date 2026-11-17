@@ -13,7 +13,11 @@ const context={window,HTMLElement:class{},customElements:{
 }};
 vm.runInNewContext(exposed,context,{timeout:1500});
 const {compile,aiEntityList,summarizeHealth}=window.__test;
-assert.equal(components.size,2);
+assert.deepEqual([...components.keys()].sort(),[
+ "kimia-ai-assistant-v2-card",
+ "kimia-ai-automation-studio-v1-card",
+ "kimia-ha-diagnostic-v1-card"
+]);
 const states=[
  {entity_id:"light.cuisine",state:"on",attributes:{friendly_name:"Cuisine"}},
  {entity_id:"scene.kimia_romance",state:"2026-11-11T10:00",attributes:{friendly_name:"Romance"}},
@@ -85,7 +89,7 @@ async function testDiagnostic(){
  const Class=components.get("kimia-ha-diagnostic-v1-card");
  const card=Object.create(Class.prototype);
  card.busy=false;card.button={disabled:false};card.report={hidden:true,textContent:""};
- card.status={textContent:""};let writes=[];
+ card.status={textContent:""};card.copyButton={hidden:true};let writes=[];
  card._hass={user:{is_admin:true},
   callApi:async(method,path)=>{
     writes.push(method+" "+path);
@@ -93,12 +97,13 @@ async function testDiagnostic(){
     if(method==="GET"&&path==="core/state")return {state:"RUNNING"};
     if(method==="POST"&&path==="config/core/check_config")return {result:"valid"};
     if(method==="GET"&&path==="components")return ["zha"];
-    if(method==="GET"&&path==="error_log")
-      return "2026 ERROR Device offline\n2026 WARNING Zigbee route\n2026 INFO Test";
     throw Error("Unexpected API "+path);
   },
   callWS:async request=>{
     if(request.type==="get_states")return states;
+    if(request.type==="system_log/list")return [{level:"ERROR"},{level:"WARNING"},{level:"INFO"}];
+    if(request.type==="kimia_routine_reader/list")return {routines:[],errors:{}};
+    if(request.type==="lovelace/resources")return [];
     if(request.type==="config/device_registry/list")return [{id:"d1"}];
     if(request.type==="config/entity_registry/list")
       return [{entity_id:"light.cuisine",disabled_by:null},
@@ -108,7 +113,8 @@ async function testDiagnostic(){
  await card.run();
  assert.equal(card.report.hidden,false);
  assert(card.report.textContent.includes("configuration.yaml valide"));
- assert(card.report.textContent.includes("1 lignes d'erreur"));
+ assert(card.report.textContent.includes("1 erreurs, 1 avertissements"));
+ assert.equal(card.copyButton.hidden,false);
  assert(card.report.textContent.includes("1 désactivées"));
  assert(writes.every(c=>c.startsWith("GET ")||c==="POST config/core/check_config"),
   "Health is read-only aside from the official validation endpoint");

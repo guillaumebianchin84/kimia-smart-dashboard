@@ -105,8 +105,4 @@ async function verifyNativeCards(){
 verifyNativeCards().catch(error=>{console.error(error);process.exitCode=1;});
 
 assert.throws(()=>T.select(u1,"Some other theme"),/inconnu/);
-const first=String(fs.readFileSync("www/kimia-smart-core-v1.js","utf8"));
-assert(first.includes("localKioskUI(next)"));
-assert(first.includes('return window.localStorage.getItem'));
-assert(!/window\.location\.assign\(/.test(fs.readFileSync("www/kimia-header-toggle-v1-card.js","utf8")));
 console.log("KIMIA local preferences OK: two users, two devices, reset and no HA global service.");

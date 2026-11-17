@@ -412,15 +412,36 @@ async function main(){
   "Une pièce supprimée ne subsiste pas");
  assert(cards(view("lumieres")).some(c=>nativeCard(c)?.name==="Lampe personnalisée"),
   "La personnalisation reste intacte après suppression de pièce");
- // Toutes les scènes supprimées : KIMIA doit retirer le cartouche ET les boutons.
  const sceneOnly=Object.entries(hass.states).filter(([id])=>id.startsWith("scene."));
  const noScenes=Object.fromEntries(Object.entries(hass.states)
    .filter(([id])=>!id.startsWith("scene.")));
+ // Simuler un bloc hérité, dupliqué par une ancienne synchronisation sans historique.
+ const nativeBlock=()=>view("lumieres").sections.filter(sec=>sec.cards?.[0]?.name==="Scènes lumineuses");
+ assert.equal(config.kimia_ai_scenes.entities.length,10);
+ assert.equal(config.kimia_ai_scenes.selection,undefined,"La sélection automatique reste active");
+ delete config.kimia_ai_scenes;
+ view("lumieres").sections.push(clone(nativeBlock()[0]));
+ const [firstDeleted]=sceneOnly[0];
+ delete hass.states[firstDeleted];
+ const mixed={type:"grid",column_span:1,cards:[
+   {type:"heading",heading:"Mes scènes personnelles"},
+   {type:"tile",entity:"scene.kimia_privee",name:"Ma scène privée"}
+ ]};
+ view("lumieres").sections.push(clone(mixed));
+ await window.KimiaSmartCore.sync(hass);
+ assert.equal(nativeBlock().length,1,"Les blocs standard se regroupent");
+ assert.equal(nativeBlock()[0].cards[1].cards.length,9);
+ assert(!nativeBlock()[0].cards[1].cards.some(c=>c.entity===firstDeleted));
+ assert(view("lumieres").sections.some(section=>JSON.stringify(section)===JSON.stringify(mixed)));
+ // Supprimer le reste depuis HA retire le bloc, y compris après effacement de l’historique.
+ delete config.kimia_ai_scenes;
  hass.states=noScenes;
  await window.KimiaSmartCore.sync(hass);
  assert.equal(view("lumieres").sections.filter(sec=>
    sec.cards?.some(card=>card.name==="Scènes lumineuses")).length,0,
    "Toutes les cartes scènes disparaissent quand aucune scène IA n'existe");
+ assert(view("lumieres").sections.some(section=>JSON.stringify(section)===JSON.stringify(mixed)),
+  "Les tuiles personnelles restent en place");
  // Une scène recréée : les deux cartes natives réapparaissent sans doublon.
  hass.states={...noScenes,[sceneOnly[0][0]]:sceneOnly[0][1]};
  await window.KimiaSmartCore.sync(hass);

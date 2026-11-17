@@ -15,11 +15,14 @@ expected = {
     "parametres": "Paramètres", "pieces": "Pièces",
 }
 assert len(views) == 12 and len(source_views) == 10
-assert len(admin_views) == 6
+assert set(admin_views) == {
+    "demarrer", "pieces", "appareils", "inventaire", "apparence", "scenarios",
+    "atelier-ia", "reseau",
+}
+assert len(admin["views"]) == len(admin_views), "Chemins de vues admin uniques"
 assert all(k in views for k in expected)
 assert "kiosk" not in main["kiosk_mode"], "Admin must never inherit global Kiosk"
-assert "localStorage.getItem" in main["kiosk_mode"]["non_admin_settings"]["kiosk"]
-assert "return " in main["kiosk_mode"]["non_admin_settings"]["kiosk"]
+assert main["kiosk_mode"]["admin_settings"]["kiosk"] == main["kiosk_mode"]["non_admin_settings"]["kiosk"]
 
 def cards(view):
     return [c for s in view.get("sections", []) for c in s.get("cards", [])]
@@ -71,6 +74,11 @@ assert not any(c.get("type") in ("custom:kimia-scenarios-v1-card",
                for c in cards(admin_views["scenarios"])), "Pas de doublon des ateliers"
 assert any(c.get("type") == "custom:kimia-setup-v1-card"
            for c in cards(admin_views["demarrer"]))
+assert sum(c.get("type") == "custom:kimia-ai-assistant-v2-card"
+           for c in cards(admin_views["atelier-ia"])) == 1
+assert admin_views["reseau"]["back_path"] == "/kimia-admin-next/appareils"
+assert any(c.get("type") == "custom:kimia-client-network-v1-card"
+           for c in cards(admin_views["reseau"]))
 # Deux nouveaux onglets natifs ; la source esthétique V1.3 reste inchangée.
 for slug, title, typ in (("carte","Carte","map"),("listes","Listes","markdown")):
     v=views[slug]

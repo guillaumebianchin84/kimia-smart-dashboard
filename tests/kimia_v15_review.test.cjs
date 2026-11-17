@@ -24,6 +24,8 @@ const config={views:[
 ]};
 let current=clone(config),writes=0;
 const state={
+ "zone.home":{attributes:{latitude:43,longitude:5}},
+ "person.parent":{attributes:{latitude:43,longitude:5}},
  "todo.shopping_list":{attributes:{friendly_name:"Courses"}},
  "todo.menage":{attributes:{friendly_name:"Ménage"}},
  "todo.vacances":{attributes:{friendly_name:"Vacances"}}
@@ -42,6 +44,12 @@ Object.assign(service,{_hass:{user:{is_admin:true},states:state,callWS:ws},_busy
  _todoNames:new Map(Object.keys(state).map(k=>[k,state[k].attributes.friendly_name])),
  _notice:"",_error:"",_newName:""});
 async function test(){
+ await service._save();
+ assert.equal(writes,0,"Aucune écriture avant le chargement");
+ await service._load();
+ assert.equal(service._loaded,true);
+ service._selectedPositions.add("person.parent");
+ for(const entity of ["todo.menage","todo.vacances"])service._selectedTodos.add(entity);
  await service._save();
  assert.equal(writes,1,"Carte/Listes saved to kimia-next");
  assert.deepEqual(cards("carte")[0].entities,["zone.home","person.parent"]);
