@@ -341,6 +341,10 @@
     return "autre";
   };
   const safeClone = obj => JSON.parse(JSON.stringify(obj));
+  const orderedConfig = (key,value) => value && typeof value==="object" && !Array.isArray(value)
+    ?Object.fromEntries(Object.keys(value).sort().map(name=>[name,value[name]])):value;
+  const sameConfig = (left,right) =>
+    JSON.stringify(left,orderedConfig)===JSON.stringify(right,orderedConfig);
   const natural = (a, b) => a.localeCompare(b, "fr", { sensitivity: "base" });
   const getArea = (e, devices) => e.area_id || devices.get(e.device_id)?.area_id || null;
   const entityName = (entity, hass) =>
@@ -1025,13 +1029,13 @@
 
   async function upgradeAdminDashboard(hass,dashboards) {
     if(!Array.isArray(dashboards) ||
-       !dashboards.some(d=>d.url_path===ADMIN_DASHBOARD && d.mode==="storage"))return 0;
+       !dashboards.some(d=>d.url_path===ADMIN_DASHBOARD && d.mode==="storage"))return {added:0,removed:0};
     const config=await hass.callWS({type:"lovelace/config",url_path:ADMIN_DASHBOARD});
-    if(!Array.isArray(config?.views)||config.strategy)return 0;
+    if(!Array.isArray(config?.views)||config.strategy)return {added:0,removed:0};
     const next=safeClone(config);
     const appearance=next.views.find(v=>v.path==="apparence");
     const scenarios=next.views.find(v=>v.path==="scenarios");
-    let added=0;
+    let added=0,removed=0;
     // Atelier IA dans un onglet d'administration séparé : le manuel reste intact.
     const aiAutomationType="custom:kimia-ai-automation-studio-v1-card";
     const haHealthType="custom:kimia-ha-diagnostic-v1-card";
@@ -1145,11 +1149,20 @@
         added++;
       }
     }
+    const editor="custom:kimia-routine-editor-v16-card";
+    const standardEditor={type:editor,grid_options:{columns:"full",rows:"auto"}};
+    const editorSection={type:"grid",column_span:2,cards:[standardEditor]};
+    const studioV2=scenarios && hasCard(scenarios,c=>c.type==="custom:kimia-studio-v2-admin-card");
+    if(studioV2 && scenarios.sections){
+      // Studio V2 ouvre déjà cet éditeur. Seule la section KIMIA standard est redondante.
+      const before=scenarios.sections.length;
+      scenarios.sections=scenarios.sections.filter(section=>!sameConfig(section,editorSection));
+      removed+=before-scenarios.sections.length;
+    }
     // V1.6 : faire évoluer uniquement la carte standard de création de scripts.
     // Les scénarios Home Assistant sont conservés et la carte d'association aussi.
     // Une carte V1.4 personnalisée reste intacte ; le nouvel atelier est ajouté à part.
-    if(scenarios?.sections){
-      const editor="custom:kimia-routine-editor-v16-card";
+    if(scenarios?.sections&&!studioV2){
       const legacy="custom:kimia-script-builder-v14-card";
       for(const section of scenarios.sections){
         for(const card of section.cards||[]){
@@ -1165,8 +1178,7 @@
         const oldIdx=scenarios.sections.findIndex(s=>s.cards?.some(c=>
           c.type==="custom:kimia-scenarios-v1-card"));
         const target=oldIdx<0?scenarios.sections.length:oldIdx;
-        scenarios.sections.splice(target,0,{type:"grid",column_span:2,cards:[
-          {type:editor,grid_options:{columns:"full",rows:"auto"}}]});
+        scenarios.sections.splice(target,0,editorSection);
         added++;
       }
     }
@@ -1197,7 +1209,7 @@
       added++;
     }
     added+=addAdminSettings(next);
-    if(!added)return 0;
+    if(!added&&!removed)return {added,removed};
     const latest=await hass.callWS({type:"lovelace/config",url_path:ADMIN_DASHBOARD});
     if(JSON.stringify(latest)!==JSON.stringify(config))
       throw Error("L'administration KIMIA a changé pendant la synchronisation. Réessayez.");
@@ -1207,8 +1219,11 @@
        !saved.views.some(v=>v.path==="apparence"))){
       throw Error("Vérification de la sauvegarde de KIMIA Configuration impossible.");
     }
-    return added;
+    return {added,removed};
   }
+  const adminSyncMessage=(added,removed)=>
+    (added?added+" réglage(s) admin ajouté(s). ":"")+
+    (removed?removed+" éditeur(s) admin en double retiré(s). ":"");
 
   // V1.5 : portail Paramètres conçu comme extension non destructive.
   // Les thèmes et le contrôle du bandeau HA sont déplacés, puis migrés vers des réglages locaux.
@@ -1862,10 +1877,10 @@
           added+=protection.added;removed+=protection.removed;modified+=protection.modified;
         }
         if (added === 0 && removed === 0 && modified === 0) {
-          const adminAdded=await upgradeAdminDashboard(hass,dashboards);
-          const result = { state: "ok", added: 0, removed: 0, adminAdded,
-            message: adminAdded
-              ? "KIMIA Configuration : "+adminAdded+" élément(s) ajouté(s). Votre maison est à jour."
+          const {added:adminAdded,removed:adminRemoved}=await upgradeAdminDashboard(hass,dashboards);
+          const result = { state: "ok", added: 0, removed: 0, adminAdded, adminRemoved,
+            message: adminAdded||adminRemoved
+              ? "KIMIA Configuration : "+adminSyncMessage(adminAdded,adminRemoved)+"Votre maison est à jour."
               : "Votre maison est déjà à jour. Rien à modifier." };
           notify(result);
           return result;
@@ -1886,11 +1901,11 @@
             countCards(after) < countCards(next)) {
           throw new Error("L'enregistrement doit être vérifié dans KIMIA.");
         }
-        const adminAdded=await upgradeAdminDashboard(hass,dashboards);
-        const result = { state: "ok", added, removed, modified, adminAdded,
+        const {added:adminAdded,removed:adminRemoved}=await upgradeAdminDashboard(hass,dashboards);
+        const result = { state: "ok", added, removed, modified, adminAdded, adminRemoved,
           message: added + " carte(s) ajoutée(s), "+removed+
             " supprimée(s), "+modified+" mise(s) en forme. "+
-            (adminAdded?adminAdded+" réglage(s) admin ajouté(s). ":"")+
+            adminSyncMessage(adminAdded,adminRemoved)+
             "Votre maison est à jour." };
         notify(result);
         return result;
@@ -1910,69 +1925,103 @@
   const reconcileSceneTiles=(config,hass,previousEntities=[])=>{
     const lightsView=config.views.find(view=>view.path==="lumieres");
     let added=0,removed=0,modified=0;
-    const catalog=Object.values(hass.states||{}).filter(isKimiaScene)
+    const states=hass.states||{};
+    const catalog=Object.values(states).filter(isKimiaScene)
       .sort((a,b)=>a.attributes.id.localeCompare(b.attributes.id));
-    const selected=Array.isArray(config.kimia_ai_scenes?.selection)
-      ?new Set(config.kimia_ai_scenes.selection):null;
-    const sceneList=catalog.filter(scene=>!selected||selected.has(scene.attributes.id)).slice(0,10);
-    const known=new Set([...catalog.map(scene=>scene.entity_id),...previousEntities,
-      ...(config.kimia_ai_scenes?.entities||[])]);
+    const settings=config.kimia_ai_scenes;
+    const selected=Array.isArray(settings?.selection)?new Set(settings.selection):null;
+    const entities=catalog.map(scene=>scene.entity_id).sort();
+    const known=new Set([...entities,...previousEntities,
+      ...(Array.isArray(settings?.entities)?settings.entities:[])]);
+    const icons=[
+      ["detente","mdi:weather-sunset"],["cinema","mdi:movie-open"],
+      ["lecture","mdi:book-open-variant"],["romance","mdi:heart"],
+      ["concentration","mdi:brain"],["soiree","mdi:party-popper"],
+      ["nuit","mdi:weather-night"],["reveil","mdi:weather-sunset-up"],
+      ["tropicale","mdi:palm-tree"],["douceur","mdi:weather-cloudy"]
+    ];
     const sceneIcon=st=>{
       const title=String(st.attributes?.friendly_name||st.entity_id)
         .normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
-      const icons=[
-        ["detente","mdi:weather-sunset"],["cinema","mdi:movie-open"],
-        ["lecture","mdi:book-open-variant"],["romance","mdi:heart"],
-        ["concentration","mdi:brain"],["soiree","mdi:party-popper"],
-        ["nuit","mdi:weather-night"],["reveil","mdi:weather-sunset-up"],
-        ["tropicale","mdi:palm-tree"],["douceur","mdi:weather-cloudy"]
-      ];
       return icons.find(([name])=>title.includes(name))?.[1]||"mdi:palette";
     };
-    const sceneTile=st=>({
-      type:"tile",entity:st.entity_id,icon:sceneIcon(st),
+    const sceneTile=(entity,icon)=>({
+      type:"tile",entity,icon,
       tap_action:{action:"perform-action",perform_action:"scene.turn_on",
-        target:{entity_id:st.entity_id}},
+        target:{entity_id:entity}},
       icon_tap_action:{action:"perform-action",perform_action:"scene.turn_on",
-        target:{entity_id:st.entity_id}}
+        target:{entity_id:entity}}
     });
-    const sceneTiles=sceneList.map(sceneTile);
-    // Sans area valide, le titre est un bouton natif non interactif.
-    const sceneHeading=()=>({
+    const heading={
       type:"button",name:"Scènes lumineuses",icon:"mdi:palette",
       show_name:true,show_icon:true,show_state:false,
       tap_action:{action:"none"},hold_action:{action:"none"},
       grid_options:{columns:12,rows:2}
-    });
-    const sceneSection=()=>({
-      type:"grid",column_span:Math.min(Number(lightsView?.max_columns)||3,3),
-      cards:[sceneHeading(),{type:"vertical-stack",cards:sceneTiles}]
-    });
-    const isSceneAction=card=>
-      card?.type==="tile" && known.has(card.entity) &&
-      card.tap_action?.perform_action==="scene.turn_on" &&
-      card.tap_action?.target?.entity_id===card.entity &&
-      card.icon_tap_action?.perform_action==="scene.turn_on" &&
-      card.icon_tap_action?.target?.entity_id===card.entity;
-    const legacyScenes=section=>section?.cards?.length===1 &&
-      section.cards[0]?.type==="custom:kimia-ai-scenes-shortcuts-card";
-    const generatedScenes=section=>section?.cards?.length===2 &&
-      ((section.cards[0]?.type==="button" &&
-          section.cards[0].name==="Scènes lumineuses") ||
-       (section.cards[0]?.type==="vertical-stack" &&
-          section.cards[0].cards?.[0]?.name==="Scènes lumineuses")) &&
-      section.cards[1]?.type==="vertical-stack" && section.cards[1].cards?.every(isSceneAction);
-    const manualScenes=section=>section?.cards?.length===2 &&
-      section.cards[0]?.type==="area" &&
-      /sc[eè]nes lumineus/i.test(section.cards[0].name||"") &&
-      section.cards[1]?.type==="vertical-stack" &&
-      section.cards[1].cards?.every(isSceneAction);
+    };
+    const span=Math.min(Number(lightsView?.max_columns)||3,3);
+    const stockIcons=new Set(["mdi:palette",...icons.map(([,icon])=>icon)]);
+    const stockTile=card=>typeof card?.entity==="string"&&card.entity.startsWith("scene.")&&
+      (card.icon===undefined||stockIcons.has(card.icon))&&sameConfig(card,sceneTile(card.entity,card.icon));
+    const legacyScenes=section=>{
+      if(section.cards?.length!==1)return false;
+      const type="custom:kimia-ai-scenes-shortcuts-card";
+      const card=section.cards[0];
+      return (sameConfig(card,{type})||sameConfig(card,{type,grid_options:{columns:12,rows:"auto"}})) &&
+        sameConfig(section,{type:"grid",column_span:section.column_span,cards:section.cards});
+    };
+    const stockHeading=card=>sameConfig(card,heading)||
+      sameConfig(card,{type:"vertical-stack",cards:[heading]});
+    const oldAreaHeading=card=>card?.type==="area" && !card.area &&
+      /sc[eè]nes lumineus/i.test(card.name||"") &&
+      sameConfig(card,{
+        type:"area",name:card.name,display_type:"compact",features:[],features_position:"bottom",
+        grid_options:{columns:12,rows:2},tap_action:{action:"none"}
+      });
+    const stockSection=section=>{
+      if(legacyScenes(section))return true;
+      if(!Array.isArray(section.cards)||!sameConfig(section,{type:"grid",column_span:span,cards:section.cards}))
+        return false;
+      const [title,stack]=section.cards;
+      if(section.cards.length!==2||!Array.isArray(stack?.cards)||
+        !sameConfig(stack,{type:"vertical-stack",cards:stack.cards}))return false;
+      const nativeHeading=stockHeading(title);
+      if(!nativeHeading&&!oldAreaHeading(title))return false;
+      // Pour un bloc ancien sans historique, exiger le titre et les tuiles d’origine
+      // ainsi qu’un identifiant KIMIA disparu avant de le considérer comme généré.
+      return stack.cards.every(card=>stockTile(card)&&(known.has(card.entity)||
+        (nativeHeading&&/^scene\.kimia_[a-z0-9_]+$/.test(card.entity)&&!Object.hasOwn(states,card.entity))));
+    };
     // Réconcilie les scènes lorsque la liste change (suppression partielle
     // ou totale), tout en préservant les autres sections et cartes client.
-    if(lightsView?.sections){
-      const owned=lightsView.sections.filter(section=>
-        legacyScenes(section)||generatedScenes(section)||manualScenes(section));
-      const desired=sceneList.length?sceneSection():null;
+    if(Array.isArray(lightsView?.sections)){
+      const owned=lightsView.sections.filter(stockSection);
+      const personalizedTiles=new Set();
+      for(const section of lightsView.sections){
+        if(owned.includes(section)||!Array.isArray(section.cards))continue;
+        const [title]=section.cards;
+        const sceneGroup=stockHeading(title)||oldAreaHeading(title)||
+          title?.name===heading.name;
+        for(const card of section.cards){
+          if(card.type==="tile")personalizedTiles.add(card.entity);
+          if(card.type!=="vertical-stack"||!Array.isArray(card.cards))continue;
+          if(sceneGroup){
+            const live=card.cards.filter(tile=>!stockTile(tile)||
+              !known.has(tile.entity)||Object.hasOwn(states,tile.entity));
+            if(live.length!==card.cards.length){card.cards=live;modified++;}
+          }
+          for(const tile of card.cards)if(tile.type==="tile")personalizedTiles.add(tile.entity);
+        }
+      }
+      const sceneTiles=catalog.filter(scene=>!selected||selected.has(scene.attributes.id))
+        .slice(0,10).filter(scene=>!personalizedTiles.has(scene.entity_id))
+        .map(scene=>sceneTile(scene.entity_id,sceneIcon(scene)));
+      const desired=sceneTiles.length?{
+        type:"grid",column_span:span,cards:[heading,{type:"vertical-stack",cards:sceneTiles}]
+      }:null;
+      if((entities.length||settings)&&!sameConfig(settings?.entities,entities)){
+        config.kimia_ai_scenes={...settings,entities};
+        modified++;
+      }
       if(!desired){
         // Aucune scène KIMIA : le titre ET les boutons disparaissent.
         for(const section of owned){
@@ -2014,10 +2063,8 @@
     const before=await hass.callWS(query);
     const after=safeClone(before);
     if(!after.views?.some(v=>v.path==="lumieres"&&Array.isArray(v.sections)))throw Error("Vue Lumières introuvable.");
-    const previous=[...previousEntities,...(before.kimia_ai_scenes?.entities||[])];
-    after.kimia_ai_scenes={selection:unique,
-      entities:Object.values(hass.states||{}).filter(isKimiaScene).map(state=>state.entity_id).sort()};
-    reconcileSceneTiles(after,hass,previous);
+    after.kimia_ai_scenes={...after.kimia_ai_scenes,selection:unique};
+    reconcileSceneTiles(after,hass,previousEntities);
     if(JSON.stringify(before)===JSON.stringify(after))return;
     if(JSON.stringify(before)!==JSON.stringify(await hass.callWS(query)))throw Error("Le dashboard a changé. Réessaie.");
     await hass.callWS({type:"lovelace/config/save",url_path:DASHBOARD,config:after});

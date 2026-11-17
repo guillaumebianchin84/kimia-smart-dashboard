@@ -1,9 +1,13 @@
 title: KIMIA Smart · Nouvelle génération
 kiosk_mode:
+  admin_settings:
+    kiosk: >-
+      [[[ return window.KimiaHeaderTimer?.isHidden(user_name) ??
+      !(Number(window.localStorage.getItem("kimia_bandeau_ha_" + user_name)) > Date.now()); ]]]
   non_admin_settings:
     kiosk: >-
-      [[[ return window.localStorage.getItem("kimia_bandeau_ha_" + user_name)
-      !== "visible"; ]]]
+      [[[ return window.KimiaHeaderTimer?.isHidden(user_name) ??
+      !(Number(window.localStorage.getItem("kimia_bandeau_ha_" + user_name)) > Date.now()); ]]]
 views:
   - title: Accueil
     path: accueil

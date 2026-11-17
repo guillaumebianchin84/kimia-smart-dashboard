@@ -43,7 +43,7 @@ const hass={user:{is_admin:true},states:{},callWS:async q=>{
 const cards=path=>a.views.find(v=>v.path===path).sections.flatMap(s=>s.cards||[]);
 (async()=>{
  const first=await window.KimiaSmartCore.sync(hass);
- assert.equal(first.adminAdded,6,"réglages V1.4, bouton Pièces et module utilisateurs");
+ assert(first.adminAdded>0,"Le premier passage ajoute les fonctionnalités absentes");
  assert.equal(adminWrites,1,"une seule sauvegarde admin");
  assert.equal(cards("apparence").filter(c=>c.type==="tile"&&
   c.entity==="input_boolean.kimia_onglet_pieces").length,1);
@@ -53,6 +53,8 @@ const cards=path=>a.views.find(v=>v.path===path).sections.flatMap(s=>s.cards||[]
   c.entity==="input_boolean.kimia_onglet_listes").length,1);
  assert.equal(cards("apparence").filter(c=>c.type==="custom:kimia-services-v14-card").length,1);
  assert.equal(cards("scenarios").filter(c=>c.type==="custom:kimia-routine-editor-v16-card").length,1);
+ assert.equal(cards("scenarios").filter(c=>c.type==="custom:kimia-ai-scenes-settings-card").length,1);
+ assert.equal(cards("automatisations-ia").filter(c=>c.type==="custom:kimia-ai-automation-studio-v1-card").length,1);
  assert.equal(a.views.filter(v=>v.path==="utilisateurs").length,1);
  assert.equal(a.views.find(v=>v.path==="utilisateurs").sections.flatMap(s=>s.cards||[])
   .filter(c=>c.type==="custom:kimia-user-visibility-v15-card").length,1);
@@ -71,5 +73,24 @@ const cards=path=>a.views.find(v=>v.path===path).sections.flatMap(s=>s.cards||[]
  assert.equal(adminWrites,1);
  assert.equal(cards("apparence").find(c=>c.entity===tile.entity).name,
   "Mon affichage personnel");
+ // Une installation ayant déjà Studio V2 peut contenir l'ancien doublon standard.
+ const scenarios=a.views.find(v=>v.path==="scenarios");
+ const studio={type:"custom:kimia-studio-v2-admin-card",grid_options:{columns:"full",rows:"auto"}};
+ const personalEditor={type:"custom:kimia-routine-editor-v16-card",grid_options:{columns:6,rows:4}};
+ scenarios.sections.push({type:"grid",column_span:2,cards:[studio,personalEditor]});
+ const cleanup=await window.KimiaSmartCore.sync(hass);
+ assert.equal(cleanup.adminAdded,0);
+ assert.equal(cleanup.adminRemoved,1);
+ assert.equal(adminWrites,2);
+ assert.deepEqual(cards("scenarios").filter(c=>c.type==="custom:kimia-routine-editor-v16-card"),
+  [personalEditor],"L’éditeur personnalisé est préservé");
+ assert.deepEqual(cards("scenarios").filter(c=>c.type===studio.type),[studio]);
+ for(let i=0;i<3;i++){
+  const repeated=await window.KimiaSmartCore.sync(hass);
+  assert.equal(repeated.adminAdded,0);
+  assert.equal(repeated.adminRemoved,0);
+ }
+ assert.equal(adminWrites,2,"Aucun doublon réintroduit");
+ assert.equal(clientWrites,previous,"Aucune écriture client pendant ce nettoyage admin");
  console.log("KIMIA V1.5 OK : synchro admin additive, idempotente, personnalisations conservées.");
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -151,6 +151,12 @@ async function testGenerationAndDelete(){
  assert.equal(scenes.size,19);
  assert.equal(config.kimia_ai_scenes.selection.length,9);
  assert.equal(savedScript.fields.ambiance.selector.select.options.length,19);
+ await generator.deleteScenes(generator.listScenes());
+ assert.notEqual(generator.failed,true,generator.message);
+ assert.equal(scenes.size,0);
+ assert.equal(config.views[0].sections.length,0);
+ assert.deepEqual(config.kimia_ai_scenes.entities,[]);
+ assert.equal(exposure["scene.personnelle"].conversation,true);
 }
 (async()=>{
  await testDashboard();
