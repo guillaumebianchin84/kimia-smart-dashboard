@@ -9,8 +9,10 @@
  const TAG="kimia-maquette-acl-v17-card";
  if(customElements.get(TAG))return;
  const copy=x=>JSON.parse(JSON.stringify(x));
+ const items=x=>Array.isArray(x)?x.filter(v=>v&&typeof v==="object"):[];
  const list=x=>Array.isArray(x)?x:(typeof x==="string"?x.split(",").map(s=>s.trim()).filter(Boolean):[]);
- const polygonContains=(pt,poly)=>{
+ const entityId=/^[a-z0-9_]+\.[a-z0-9_]+$/;
+ const polygonContains=(pt,poly,includeEdge=false)=>{
   if(!Array.isArray(pt)||!Array.isArray(poly)||poly.length<3)return false;
   const x=Number(pt[0]),y=Number(pt[1]);
   if(!Number.isFinite(x)||!Number.isFinite(y))return false;
@@ -20,11 +22,13 @@
    if(!Array.isArray(a)||!Array.isArray(b))continue;
    const ax=Number(a[0]),ay=Number(a[1]),bx=Number(b[0]),by=Number(b[1]);
    if(![ax,ay,bx,by].every(Number.isFinite))continue;
+   if(includeEdge && Math.abs((x-ax)*(by-ay)-(y-ay)*(bx-ax))<1e-7 &&
+      x>=Math.min(ax,bx) && x<=Math.max(ax,bx) && y>=Math.min(ay,by) && y<=Math.max(ay,by))return true;
    if((ay>y)!==(by>y)&&x<(bx-ax)*(y-ay)/(by-ay)+ax)inside=!inside;
   }
   return inside;
  };
- const floorList=cfg=>Array.isArray(cfg.floors)&&cfg.floors.length?cfg.floors:[cfg];
+ const floorList=cfg=>items(cfg.floors).length?items(cfg.floors):[cfg];
  const denyAreas=(hass,policy)=>{
   if(!hass?.user||hass.user.is_admin)return new Set();
   const id=hass.user.id;
@@ -33,58 +37,177 @@
    .filter(([area,ids])=>area&&Array.isArray(ids)&&ids.includes(id))
    .map(([area])=>area));
  };
- const zoneOf=r=>typeof r?.area==="string"?r.area:
-                 typeof r?.zone==="string"?r.zone:"";
- const lockedRooms=(floor,deny)=>Array.isArray(floor?.rooms)
-  ?floor.rooms.filter(r=>deny.has(zoneOf(r))):[];
- const guardFloor=(floor,deny)=>{
-  const locked=lockedRooms(floor,deny),polys=locked.map(r=>r.poly).filter(Array.isArray);
-  for(const room of locked){
-   room.name=String(room.name||"Pièce").replace(/^🔒\s*/,"");
-   room.name="🔒 "+room.name;
-   room.zoom=false;
-   room.tap="";
-   room.auto_actions=false;
-   room.automations=false;
-   room.actions=[];
-   // Pas de widgets propres à une pièce dont l'utilisateur est exclu.
-   room.panels={left:[],right:[]};
+ const zoneOf=room=>[room?.area,room?.area_id,room?.zone].find(v=>typeof v==="string"&&v.trim())?.trim();
+ const unlinkedRooms=(source,areas)=>{
+  const hasAreas=Object.keys(areas||{}).length>0;
+  return floorList(source).flatMap(floor=>items(floor.rooms)
+   .filter(room=>!zoneOf(room)||(hasAreas&&!Object.hasOwn(areas,zoneOf(room))))
+   .map(room=>floor===source?room.name||"Pièce":[floor.name||floor.id,room.name||"Pièce"].filter(Boolean).join(" / ")));
+ };
+
+ const registryFor=(deny,fallback,hass)=>{
+  const entities=new Set(),devices=new Set(),areas=new Map();
+  for(const id of deny){
+   const reg=fallback?.[id];
+   for(const entity of reg?.entities||[])areas.set(entity,id);
+   for(const device of reg?.devices||[])devices.add(device);
   }
-  const inLocked=pt=>polys.some(poly=>polygonContains(pt,poly));
-  for(const field of ["badges","furniture"]){
-   for(const item of floor[field]||[]){
-    if(inLocked(item.pos)){item.tap="none";if(item.action)delete item.action;}
+  for(const [id,device] of Object.entries(hass?.devices||{})){
+   if(deny.has(device.area_id))devices.add(id);
+   else devices.delete(id);
+  }
+  const live=hass?.entities||{};
+  for(const [id,entry] of Object.entries(live)){
+   const device=hass.devices?.[entry.device_id];
+   if(entry.area_id||device||!entry.device_id)areas.set(id,entry.area_id||device?.area_id||null);
+  }
+  for(const [id,area] of areas){
+   if(!deny.has(area))continue;
+   entities.add(id);
+   if(live[id]?.device_id)devices.add(live[id].device_id);
+  }
+  return {entities,devices,areas};
+ };
+ const references=value=>{
+  if(typeof value==="string")return list(value).filter(id=>entityId.test(id));
+  if(Array.isArray(value))return value.flatMap(references);
+  if(value&&typeof value==="object")return Object.entries(value)
+   .filter(([key])=>!["name","title","text","note"].includes(key))
+   .flatMap(([key,child])=>[...(entityId.test(key)?[key]:[]),...references(child)]);
+  return [];
+ };
+ const midpoint=seg=>Array.isArray(seg)&&seg.length===4?
+  [(Number(seg[0])+Number(seg[2]))/2,(Number(seg[1])+Number(seg[3]))/2]:null;
+ const roomLabel=poly=>{
+  if(!Array.isArray(poly)||poly.length<3)return;
+  const points=poly.filter(p=>Array.isArray(p)&&p.length>=2).map(([x,y])=>[Number(x),Number(y)]);
+  if(points.length!==poly.length||points.some(p=>!p.every(Number.isFinite)))return;
+  const ys=[...new Set(points.map(p=>p[1]))].sort((a,b)=>a-b);
+  // Choose an interior point even for a concave room without a native label.
+  let width=0,label;
+  for(let i=1;i<ys.length;i++){
+   const y=(ys[i-1]+ys[i])/2,xs=[];
+   for(const [j,[x1,y1]] of points.entries()){
+    const [x2,y2]=points[(j+1)%points.length];
+    if((y1>y)!==(y2>y))xs.push(x1+(x2-x1)*(y-y1)/(y2-y1));
+   }
+   xs.sort((a,b)=>a-b);
+   for(let j=1;j<xs.length;j+=2){
+    if(xs[j]-xs[j-1]<=width)continue;
+    width=xs[j]-xs[j-1];label=[(xs[j]+xs[j-1])/2,y];
    }
   }
-  for(const opening of floor.openings||[]){
-   const s=opening.seg;
-   if(Array.isArray(s)&&s.length===4&&inLocked([(s[0]+s[2])/2,(s[1]+s[3])/2])){
+  return label;
+ };
+ const locatedIn=(room,item,point,includeEdge=false)=>
+  ((room.name&&item.room===room.name)||polygonContains(point,room.poly,includeEdge));
+ const groupsIn=states=>Object.entries(states||{}).flatMap(([id,state])=>{
+  const members=list(state?.attributes?.entity_id);
+  return members.length?[[id,members]]:[];
+ });
+ const groupRestrictions=(entities,groups)=>{
+  const parents=new Map();
+  for(const [id,members] of groups){
+   for(const member of members){
+    if(!parents.has(member))parents.set(member,[]);
+    parents.get(member).push(id);
+   }
+  }
+  // Set visits entries added during iteration, including nested groups.
+  for(const id of entities)for(const group of parents.get(id)||[])entities.add(group);
+ };
+ const OPENING_DATA=["entity","contact","shutter","shutter_only","tap","card","name","confirm",
+  "protected","animation","shutter_animation"];
+ const CLIMATE_DATA=["temperature","humidity","temperature_attribute","humidity_attribute"];
+ const filterList=(owner,key,keep)=>{
+  if(Array.isArray(owner[key]))owner[key]=owner[key].filter(keep);
+ };
+ const filtered=(source,deny,registry=registryFor(deny),groups=[])=>{
+  const cfg=copy(source);
+  const entities=new Set(registry.entities);
+  if(!deny.size)return {cfg,count:0,entities};
+  const floors=floorList(cfg);
+  const locks=floors.map(floor=>items(floor.rooms).filter(room=>deny.has(zoneOf(room))));
+  const count=locks.reduce((sum,rooms)=>sum+rooms.length,0);
+  // Some Maquette elements predate registry assignments. Infer only for entities with no HA area.
+  const infer=value=>{
+   for(const id of references(value))if(!registry.areas.get(id))entities.add(id);
+  };
+  floors.forEach((floor,index)=>{
+   const rooms=locks[index];
+   for(const room of rooms)for(const key of CLIMATE_DATA.slice(0,2))infer(room[key]);
+   for(const key of ["badges","furniture","texts"]){
+    for(const item of items(floor[key]))if(rooms.some(room=>locatedIn(room,item,item.pos)))infer(item);
+   }
+   for(const opening of items(floor.openings)){
+    if(rooms.some(room=>locatedIn(room,opening,midpoint(opening.seg),true)))infer(opening);
+   }
+  });
+  groupRestrictions(entities,groups);
+  const touches=value=>references(value).some(id=>entities.has(id));
+  const panels=owner=>{
+   if(!owner.panels||typeof owner.panels!=="object")return;
+   for(const side of ["left","right"]){
+    filterList(owner.panels,side,widget=>{
+     // Keep safe rows of a mixed sensor list, but drop widgets driven by a restricted input.
+     for(const key of ["rows","entities"])filterList(widget,key,row=>!touches(row));
+     return !touches(widget)&&(!Array.isArray(widget.rows)||widget.rows.length>0)&&
+      (!Array.isArray(widget.entities)||widget.entities.length>0);
+    });
+   }
+  };
+  for(const [index,floor] of floors.entries()){
+   const locked=new Set(locks[index]);
+   const inside=(item,pt=item.pos,includeEdge=false)=>locks[index].some(room=>locatedIn(room,item,pt,includeEdge));
+   for(const room of items(floor.rooms)){
+    if(locked.has(room)){
+     // Keep the polygon and retain a native room label.
+     room.area=zoneOf(room);
+     room.name="🔒 "+String(room.name||"Pièce").replace(/^🔒\s*/,"");
+     if(!Array.isArray(room.label))room.label=roomLabel(room.poly);
+     room.zoom=false;
+     room.tap="";
+     room.auto_actions=false;
+     room.automations=false;
+     delete room.actions;
+     delete room.panels;
+     for(const key of CLIMATE_DATA)delete room[key];
+    }else{
+     for(const key of CLIMATE_DATA)if(touches(room[key]))delete room[key];
+     if(touches(room.tap))delete room.tap;
+     filterList(room,"actions",action=>!touches(action)&&!blockedTargets(action.data,action.target,deny,{entities,devices:registry.devices}));
+     panels(room);
+    }
+   }
+   filterList(floor,"badges",badge=>!inside(badge)&&!touches(badge));
+   filterList(floor,"texts",label=>!inside(label)&&!touches(label));
+   if(Array.isArray(floor.furniture))floor.furniture=floor.furniture.map(item=>{
+    if(!item||!(touches(item)||(inside(item)&&(references(item).length||item.card))))return item;
+    // Maquette can index furniture for the energy layer. Retain the slot without any data or control.
+    return {type:item.type,pos:item.pos,size:item.size,hidden:true};
+   });
+   for(const opening of items(floor.openings)){
+    if(!inside(opening,midpoint(opening.seg),true)&&!touches(opening))continue;
+    for(const key of OPENING_DATA)delete opening[key];
     opening.tap="none";
    }
+   if(floor!==cfg)panels(floor);
   }
-  return locked.length;
- };
- const filtered=(source,deny)=>{
-  const cfg=copy(source);
-  let count=0;
-  for(const floor of floorList(cfg))count+=guardFloor(floor,deny);
-  return {cfg,count};
- };
- const blockedTargets=(data,target,deny,registry)=>{
-  const forbiddenEntity=new Set(),forbiddenDevice=new Set();
-  for(const id of deny){
-   const reg=registry?.[id];
-   for(const e of reg?.entities||[])forbiddenEntity.add(e);
-   for(const d of reg?.devices||[])forbiddenDevice.add(d);
+  panels(cfg);
+  for(const key of ["summary","alerts"])filterList(cfg,key,item=>!touches(item));
+  if(touches(cfg.presence))delete cfg.presence;
+  for(const key of ["day_night","weather","people"]){
+   if(touches(cfg.ambience?.[key]))delete cfg.ambience[key];
   }
-  for(const p of [data,target]){
-   if(!p||typeof p!=="object")continue;
-   if(list(p.area_id).some(x=>deny.has(x)))return true;
-   if(list(p.entity_id).some(x=>forbiddenEntity.has(x)))return true;
-   if(list(p.device_id).some(x=>forbiddenDevice.has(x)))return true;
-  }
-  return false;
+  return {cfg,count,entities};
  };
+ const blockedTargets=(data,target,deny,{entities,devices})=>
+  [data,target].some(p=>p&&typeof p==="object"&&(
+   list(p.area_id).some(id=>deny.has(id)||id==="all")||
+   list(p.entity_id).some(id=>entities.has(id)||id==="all")||
+   list(p.device_id).some(id=>devices.has(id)||id==="all")||
+   (deny.size>0&&(list(p.floor_id).length>0||list(p.label_id).length>0))
+  ));
  let cardHelperPromise;
  const helpers=()=>{
   if(typeof window.loadCardHelpers!=="function")return Promise.reject(Error("Home Assistant : cartes Lovelace indisponibles"));
@@ -97,7 +220,6 @@
    this.attachShadow({mode:"open"});
    this._source=null;this._policy={};this._registry={};
    this._hass=null;this._child=null;this._deny=new Set();
-   this._signature=null;this._request=0;
    this._blockedEvent=e=>this._intercept(e);
    const style=document.createElement("style");
    style.textContent=[
@@ -118,6 +240,7 @@
    this._source=cfg.card;
    this._policy=cfg.hidden_users_by_area||{};
    this._registry=cfg.entities_by_area||{};
+   this._input=null;
    this._update();
   }
   set hass(hass){this._hass=hass;this._update();}
@@ -129,84 +252,87 @@
    this._note.className="note"+(error?" error":"");
   }
   _create(){
-   if(this._child||this._loading||!this._source)return;
+   if(this._child||this._loading||!this._source||!this._hass?.user?.id)return;
    this._loading=true;
-   const req=++this._request;
    void helpers().then(h=>{
-    if(req!==this._request)return;
     if(typeof h?.createCardElement!=="function")throw Error("Créateur Lovelace indisponible");
     const c=h.createCardElement({type:"custom:maquette-card"});
-    for(const ev of ["click","pointerdown","change","keydown"])
+    for(const ev of ["click","pointerdown","change","keydown","hass-more-info"])
      c.addEventListener(ev,this._blockedEvent,true);
     this._child=c;this._frame.replaceChildren(c);
     this._loading=false;
     this._update();
    }).catch(e=>{
-    if(req!==this._request)return;
+    this._child=null;this._frame.replaceChildren();
     this._loading=false;this._noteText("Maquette indisponible : "+(e?.message||e),true);
    });
   }
   _update(){
-   if(!this._source)return;
-   this._deny=denyAreas(this._hass,this._policy);
+   const hass=this._hass,user=hass?.user;
+   if(!this._source||!user?.id){
+    this._account=null;this._child=null;this._frame.replaceChildren();
+    return;
+   }
+   const account=JSON.stringify([user.id,!!user.is_admin]);
+   if(this._account!==account){
+    this._account=account;this._child=null;this._input=null;
+    this._frame.replaceChildren();this._noteText("");
+   }
    if(!this._child){this._create();return;}
-   if(!this._hass)return;
-   const signature=JSON.stringify([this._source,[...this._deny].sort()]);
-   if(signature!==this._signature){
-    const {cfg,count}=filtered(this._source,this._deny);
-    this._child.setConfig(cfg);
-    this._signature=signature;
-    if(count)this._noteText("🔒 "+count+" pièce(s) verrouillée(s) pour ce compte.");
+   const deny=denyAreas(hass,this._policy);
+   const groups=deny.size?groupsIn(hass.states):[];
+   const inputs=[this._source,this._policy,this._registry,hass.areas,hass.devices,hass.entities,JSON.stringify(groups)];
+   if(!this._input||inputs.some((v,i)=>v!==this._input[i])||inputs.length!==this._input.length){
+    const registry=registryFor(deny,this._registry,hass);
+    const view=filtered(this._source,deny,registry,groups);
+    const signature=JSON.stringify(view.cfg);
+    this._deny=deny;this._forbidden={entities:view.entities,devices:registry.devices};
+    if(signature!==this._signature||this._configuredChild!==this._child){
+     if(this._configuredChild===this._child && deny.size){
+      if(this._child._rp)this._child._replayFermer?.();
+      this._child.revenirAuPlan?.();
+     }
+     this._child.setConfig(view.cfg);
+     this._signature=signature;this._configuredChild=this._child;
+    }
+    this._input=inputs;
+    if(user.is_admin){
+     const unlinked=unlinkedRooms(this._source,hass.areas);
+     this._noteText(unlinked.length?"Pièces sans zone Home Assistant : "+unlinked.join(", ")+".":"");
+    } else if(view.count)this._noteText("🔒 "+view.count+" pièce(s) verrouillée(s) pour ce compte.");
     else this._noteText("");
    }
-   // Proxy limité à cette instance Maquette : aucune modification du hass global.
-   // Défense supplémentaire, particulièrement pour les commandes de widgets.
-   if(this._deny.size && this._hass.callService){
-    const source=this._hass,deny=this._deny,registry=this._registry;
-    const isolated=Object.create(source);
-    isolated.callService=(domain,service,data,target)=>{
-     if(blockedTargets(data,target,deny,registry))
-      return Promise.reject(Error("KIMIA : appareil d'une pièce verrouillée"));
-     return source.callService(domain,service,data,target);
-    };
-    this._child.hass=isolated;
-   }else this._child.hass=this._hass;
+   if(!deny.size){this._child.hass=hass;return;}
+   // Maquette resolves live statuses and related entities from hass. Restrict only its own copy.
+   const isolated=Object.create(hass);
+   isolated.states=Object.fromEntries(Object.entries(hass.states||{}).filter(([id])=>!this._blockedEntity(id)));
+   if(hass.callService)isolated.callService=(domain,service,data,target)=>{
+    if(blockedTargets(data,target,this._deny,this._forbidden))
+     return Promise.reject(Error("KIMIA : appareil d'une pièce verrouillée"));
+    return hass.callService(domain,service,data,target);
+   };
+   this._child.hass=isolated;
   }
   _intercept(ev){
    if(!this._deny.size||!this._child)return;
-   const cfg=this._child._config; // Maquette v0.4.0 : étage courant, normalisé.
-   if(!cfg||!Array.isArray(cfg.pieces))return;
-   const locked=cfg.pieces.filter(r=>this._deny.has(r.zone));
-   if(!locked.length)return;
-   const poly=pt=>locked.some(r=>polygonContains(pt,r.poly));
-   const idx=(value,arr)=>value==null?null:arr?.[Number(value)];
-   let forbidden=cfg.pieces[this._child._iso]&&this._deny.has(cfg.pieces[this._child._iso].zone);
+   const rooms=this._child._config?.pieces||[]; // Rooms on the currently selected Maquette floor.
+   let forbidden=this._blockedEntity(ev.detail?.entityId);
    for(const node of ev.composedPath?.()||[]){
     const d=node?.dataset;
     if(!d)continue;
-    const room=idx(d.l??d.p,cfg.pieces);
-    if(room&&this._deny.has(room.zone))forbidden=true;
-    const badge=idx(d.q??d.fq,cfg.points);
-    if(badge&&(poly(badge.pos)||this._blockedEntity(badge.entite)))forbidden=true;
-    const furniture=idx(d.mbq??d.mb,cfg.meubles);
-    if(furniture&&poly(furniture.pos))forbidden=true;
-    const opening=idx(d.o??d.fo,cfg.ouvertures);
-    if(opening&&Array.isArray(opening.seg)&&opening.seg.length===4 &&
-      poly([(opening.seg[0]+opening.seg[2])/2,(opening.seg[1]+opening.seg[3])/2]))
-     forbidden=true;
-    if(d.e&&this._blockedEntity(d.e))forbidden=true;
+    const index=d.l??d.p;
+    if(this._deny.has(rooms[index]?.zone)||this._blockedEntity(d.e))forbidden=true;
    }
    if(!forbidden)return;
    ev.preventDefault();ev.stopImmediatePropagation();ev.stopPropagation();
    if(ev.type==="click")this._noteText("🔒 Cette pièce est verrouillée pour votre compte.");
   }
   _blockedEntity(entity){
-   if(!entity)return false;
-   return [...this._deny].some(area=>(this._registry[area]?.entities||[]).includes(entity));
+   return this._forbidden?.entities.has(entity)===true;
   }
  }
  customElements.define(TAG,GuardCard);
- window.KimiaMaquetteACL=Object.freeze({denyAreas,guardFloor,filtered,blockedTargets,polygonContains});
+ window.KimiaMaquetteACL=Object.freeze({denyAreas,filtered,blockedTargets,registryFor,unlinkedRooms,groupsIn});
  window.customCards=window.customCards||[];
  if(!window.customCards.some(c=>c.type===TAG))
   window.customCards.push({type:TAG,name:"KIMIA · Maquette par utilisateur",
