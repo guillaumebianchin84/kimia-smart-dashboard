@@ -29,7 +29,8 @@ const cards=path=>(view(path)?.sections||[]).flatMap(s=>s.cards||[]);
 async function run(){
  assert.match(window.KimiaSmartCore.version,/^1\.(4|5|7)\.0-dev$|^1\.6\.[012]-dev$/);
  await window.KimiaSmartCore.sync(hass);
- assert.equal(cfg.views.length,18,"V1.4 + six sous-vues de réglages");
+ assert.equal(cfg.views.length,19,"Réglages existants et nouvelle sous-vue des ampoules");
+ assert(cfg.views.some(view=>view.path==="reglages-ampoules"));
  const map=cards("carte").find(c=>c.type==="map");
  assert.deepEqual(Array.from(map.entities),["zone.home"]);
  assert.equal(map.show_all,false,"pas de suivi de position implicite");
