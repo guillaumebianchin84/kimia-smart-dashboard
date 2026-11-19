@@ -1442,6 +1442,8 @@
 
   const settingsLockType="custom:kimia-settings-lock-v1-card";
   const settingsZoneType="custom:kimia-zone-settings-card";
+  const bulbSettings={path:"reglages-ampoules",title:"Réglages des ampoules",icon:"mdi:lightbulb-cog-outline"};
+  const bulbSettingsType="custom:kimia-bulb-settings-card";
   const advancedSettings={path:"reglages-avances",title:"Paramètres avancés",icon:"mdi:account-cog-outline"};
   const advancedSettingsPath=SETTINGS_BASE+advancedSettings.path;
   const lockSettingsCard=(mode,card)=>({
@@ -1465,6 +1467,15 @@
     const originalCount=countCards({views:next.views});
     const menu=sectionWithHeader(param,"Mon espace KIMIA");
     let added=0,modified=0;
+    if(!next.views.some(view=>view.path===bulbSettings.path)){
+      const view=makeSettingsSubview(param,bulbSettings);
+      view.sections[1].cards.push({...lockSettingsCard("notice"),grid_options:{columns:12,rows:2}});
+      view.sections.splice(2,0,settingsGrid([
+        lockSettingsCard("content",{type:bulbSettingsType,grid_options:{columns:12,rows:"auto"}})
+      ]));
+      next.views.push(view);
+      added+=allCards(view).length;
+    }
     if(menu){
       const legacyProfile=menu.cards.findIndex(c=>routeIs(c.card||c,SETTINGS_BASE+"reglages-utilisateurs"));
       if(legacyProfile>=0){menu.cards.splice(legacyProfile,1);modified++;}
@@ -1514,7 +1525,17 @@
         return lockSettingsCard("content",card);
       });
     }
-    for(const spec of [...SETTINGS_PAGES,{path:"reglages-utilisateurs"}]){
+    const advancedView=next.views.find(view=>view.path===advancedSettings.path);
+    if(advancedView?.sections&&!hasCard(advancedView,c=>routeIs(c.card||c,SETTINGS_BASE+bulbSettings.path))){
+      const shortcut=settingsShortcut("Réglages des ampoules","Retour du courant, luminosité et transitions",
+        bulbSettings.icon,SETTINGS_BASE+bulbSettings.path,"amber");
+      shortcut.grid_options.columns=12;
+      const section=advancedView.sections.find(section=>section.cards?.some(c=>c.type===settingsLockType&&c.mode==="maintenance"));
+      if(section)section.cards.unshift(lockSettingsCard("content",shortcut));
+      else advancedView.sections.splice(2,0,settingsGrid([lockSettingsCard("content",shortcut)]));
+      added++;
+    }
+    for(const spec of [...SETTINGS_PAGES,bulbSettings,{path:"reglages-utilisateurs"}]){
       const view=next.views.find(v=>v.path===spec.path);
       if(!Array.isArray(view?.sections))continue;
       for(const card of allCards(view)){

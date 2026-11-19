@@ -317,6 +317,8 @@ async def ws_create_zone(hass, connection, msg):
 
 
 async def async_setup_settings(hass: HomeAssistant):
+    from .bulbs import ws_bulbs
+
     path = hass.config.path("kimia", "settings_pin")
     pin = await hass.async_add_executor_job(load_pin, path)
     hass.data["kimia_settings"] = Settings(hass, pin)
@@ -325,3 +327,4 @@ async def async_setup_settings(hass: HomeAssistant):
     websocket_api.async_register_command(hass, ws_todo)
     websocket_api.async_register_command(hass, ws_create_zone)
     websocket_api.async_register_command(hass, ws_maintenance)
+    websocket_api.async_register_command(hass, ws_bulbs)

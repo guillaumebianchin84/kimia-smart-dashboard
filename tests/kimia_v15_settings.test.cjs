@@ -111,7 +111,7 @@ function checkHeaderTimer(){
   "Expression booléenne reliée à la minuterie, avec lecture locale de secours");
  const pages=["reglages-affichage","reglages-localisation",
   "reglages-listes","reglages-apparence","reglages-reseau"];
- assert.equal(cfg.views.length,18);
+ assert.equal(cfg.views.length,19);
  for(const path of pages){
   assert(get(path)?.subview,path+" should be a subview");
   assert.equal(get(path).back_path,"/kimia-next/parametres");
@@ -161,6 +161,16 @@ function checkHeaderTimer(){
  assert.equal(advanced.back_path,"/kimia-next/parametres");
  assert(advanced.sections.flatMap(s=>s.cards).some(c=>c.mode==="maintenance"&&c.grid_options.columns===12));
  assert(advanced.sections.flatMap(s=>s.cards).some(c=>c.mode==="notice"));
+ const bulbAccess=advanced.sections.flatMap(s=>s.cards).filter(c=>c.mode==="content"&&
+  c.card?.tap_action?.navigation_path==="/kimia-next/reglages-ampoules");
+ assert.equal(bulbAccess.length,1,"Un accès protégé aux ampoules");
+ assert.equal(bulbAccess[0].grid_options.columns,12);
+ const bulbPage=get("reglages-ampoules");
+ assert(bulbPage.subview);
+ const bulbCards=bulbPage.sections.flatMap(section=>section.cards);
+ assert.equal(bulbCards.filter(c=>c.mode==="content"&&c.card?.type==="custom:kimia-bulb-settings-card").length,1);
+ assert(bulbCards.some(c=>c.mode==="notice"));
+ assert.equal(bulbCards.find(c=>c.tap_action?.navigation_path==="/kimia-next/parametres").grid_options.columns,12);
  assert(cards("reglages-avances").some(c=>c.label==="Compte Home Assistant"&&c.tap_action.navigation_path==="/profile"));
  assert(controls.some(c=>c.type==="shortcut"&&c.tap_action?.navigation_path==="/kimia-next/reglages-apparence"));
  assert(controls.some(c=>c.mode==="content"&&c.card?.tap_action?.navigation_path==="/kimia-next/reglages-reseau"));
